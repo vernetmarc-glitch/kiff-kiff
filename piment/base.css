@@ -330,6 +330,21 @@ button { font: inherit; color: inherit; }
 .piment-desc { margin: 6px 0 0; font-size: 13.5px; line-height: 1.35; opacity: .9; }
 .sheet--skins .piment-desc { margin-top: -4px; }
 
+/* Estampille piment dans les roues */
+.reel-chilis {
+  display: inline-flex; align-items: center; gap: 0; flex: none;
+  margin-left: 7px;
+  padding: 2px 4px;
+  border-radius: 999px;
+  background: var(--reel-chili-bg, transparent);
+  box-shadow: inset 0 0 0 1px var(--reel-chili-line, transparent);
+  color: var(--reel-chili, var(--chili-color, currentColor));
+  font-size: 15px;
+  line-height: 1;
+}
+.reel-chilis .chili { width: 1em; height: 1em; margin: 0 -2px; opacity: 1; }
+.reel-chilis--3 .chili { filter: drop-shadow(0 0 2px var(--reel-chili-glow, transparent)); }
+
 /* Accueil sur petit écran : tout tient sans faire défiler */
 @media (max-height: 700px) {
   :root .overlay--start { padding-top: 14px; padding-bottom: 14px; }
