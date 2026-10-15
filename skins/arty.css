@@ -653,3 +653,6 @@ button { font: inherit; color: inherit; }
 .piment-field legend { font-weight: 800; font-size: 15px; color: var(--blue); }
 .piment-name { font-family: var(--f-ui); font-weight: 800; font-stretch: 104%; }
 .piment-desc { color: var(--violet); }
+
+/* Estampille piment sur chaque bande */
+.reel { --reel-chili: #FF48B0; --reel-chili-bg: var(--violet); }

@@ -209,11 +209,21 @@
         const a = d * theta;
         const idx = mod(i, this.n);
         const txt = labelFor(this.r, idx);
-        if (node._t !== txt) {
+        const lvl = LISTS[this.r][idx].lvl || 1;
+        const key = txt + '|' + lvl;
+        if (node._t !== key) {
           node.textContent = txt;
-          node._t = txt;
-          node.classList.toggle('is-long', txt.length > 22 && txt.length <= 28);
-          node.classList.toggle('is-xlong', txt.length > 28);
+          // Estampille piment : 2 ou 3 piments à côté des cases pimentées et brûlantes
+          if (lvl > 1) {
+            const tag = document.createElement('span');
+            tag.className = 'reel-chilis reel-chilis--' + lvl;
+            tag.innerHTML = '<svg class="chili is-on" viewBox="0 0 24 24" aria-hidden="true"><use href="#chili"/></svg>'.repeat(lvl);
+            node.appendChild(tag);
+          }
+          node._t = key;
+          const len = txt.length + (lvl > 1 ? lvl + 1 : 0);
+          node.classList.toggle('is-long', len > 22 && len <= 28);
+          node.classList.toggle('is-xlong', len > 28);
         }
         node.classList.toggle('is-placeholder', isPlaceholder(this.r, idx));
         node.classList.toggle('is-center', Math.abs(d) < 0.5);
@@ -221,7 +231,8 @@
         node.style.opacity = vis ? Math.pow(Math.cos(a), 2).toFixed(3) : '0';
         node.style.transform = 'translateY(' + (Math.sin(a) * R).toFixed(2) + 'px) rotateX(' + (-a * 57.2958).toFixed(2) + 'deg)';
       }
-      this.el.setAttribute('aria-valuetext', labelFor(this.r, this.index));
+      const cur = LISTS[this.r][this.index];
+      this.el.setAttribute('aria-valuetext', labelFor(this.r, this.index) + ((cur.lvl || 1) > 1 ? (cur.lvl === 3 ? ', brûlant' : ', pimenté') : ''));
       const t = Math.round(this.p);
       if (t !== this.lastTick) {
         this.lastTick = t;

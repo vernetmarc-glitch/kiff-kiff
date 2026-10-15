@@ -516,3 +516,6 @@ body:has(#ov-skins:not([hidden])) .deco-candles { display: none; }
 @media (max-height: 720px) {
   .poster-title { font-size: clamp(40px, 14vw, 60px); }
 }
+
+/* Estampille piment */
+.reel { --reel-chili: #FF4D63; --reel-chili-bg: rgba(255, 59, 85, .16); --reel-chili-line: rgba(255, 77, 99, .7); --reel-chili-glow: rgba(255, 59, 85, .9); }

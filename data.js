@@ -15,7 +15,7 @@
 window.ROUE_DATA = {
   niveaux: [
     { n: 1, nom: "Tendre", desc: "Câlins, chatouilles et bêtises." },
-    { n: 2, nom: "Pimenté", desc: "Ça chauffe : sexe, fesses et tétons." },
+    { n: 2, nom: "Pimenté", desc: "Ça chauffe : fesses, tétons et morsures." },
     { n: 3, nom: "Brûlant", desc: "Carrément cochon, entre adultes consentants." }
   ],
 
@@ -45,8 +45,8 @@ window.ROUE_DATA = {
     /* Pimenté */
     { s: "suces", i: "sucer", lvl: 2 },
     { s: "déglingues", i: "déglinguer", lvl: 2 },
-    { s: "circlues", i: "circlure", lvl: 2 },
-    { s: "introduises un appendice dans", i: "introduire un appendice dans", lvl: 2 },
+    { s: "circlues", i: "circlure", lvl: 3 },
+    { s: "introduises un appendice dans", i: "introduire un appendice dans", lvl: 3 },
     { s: "fasses un suçon sur", i: "faire un suçon sur", lvl: 2 },
     { s: "mettes un glaçon sur", i: "mettre un glaçon sur", lvl: 2 },
     { s: "enduises d’huile", i: "enduire d’huile", lvl: 2 },
@@ -54,11 +54,11 @@ window.ROUE_DATA = {
     { s: "frottes", i: "frotter", lvl: 2 },
 
     /* Brûlant */
-    { s: "lèches", i: "lécher", lvl: 3 },
+    { s: "lèches", i: "lécher", lvl: 2 },
     { s: "lapes", i: "laper", lvl: 3 },
-    { s: "mordes", i: "mordre", lvl: 3 },
-    { s: "dévores", i: "dévorer", lvl: 3 },
-    { s: "fesses", i: "fesser", lvl: 3 },
+    { s: "mordes", i: "mordre", lvl: 2 },
+    { s: "dévores", i: "dévorer", lvl: 2 },
+    { s: "fesses", i: "fesser", lvl: 2 },
     { s: "écartes", i: "écarter", lvl: 3 },
     { s: "attaches", i: "attacher", lvl: 3 },
     { s: "tètes", i: "téter", lvl: 3 },
@@ -90,7 +90,7 @@ window.ROUE_DATA = {
     { t: "la moustache" },
 
     /* Pimenté */
-    { t: "le sexe", lvl: 2 },
+    { t: "le sexe", lvl: 3 },
     { t: "le fessier", lvl: 2 },
     { t: "le téton gauche", lvl: 2 },
     { t: "les tétons", lvl: 2 },
@@ -144,14 +144,14 @@ window.ROUE_DATA = {
     { t: "avec un glaçon dans la bouche", lvl: 2 },
 
     /* Brûlant */
-    { t: "goulûment", lvl: 3 },
+    { t: "goulûment", lvl: 2 },
     { t: "comme un·e bon·ne petit·e chien·ne", lvl: 3 },
     { t: "en mode soumis·e", lvl: 3 },
     { t: "en mode dominant·e", lvl: 3 },
     { s: "avec ton sexe", i: "avec mon sexe", lvl: 3 },
     { s: "avec tes tétons", i: "avec mes tétons", lvl: 3 },
-    { s: "avec ta langue", i: "avec ma langue", lvl: 3 },
-    { t: "les yeux bandés", lvl: 3 },
+    { s: "avec ta langue", i: "avec ma langue", lvl: 2 },
+    { t: "les yeux bandés", lvl: 2 },
     { t: "à genoux", lvl: 3 },
     { s: "en me tirant les cheveux", i: "en te tirant les cheveux", lvl: 3 },
     { s: "jusqu’à ce que je supplie", i: "jusqu’à ce que tu supplies", lvl: 3 }

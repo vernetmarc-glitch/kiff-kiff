@@ -398,3 +398,6 @@ body {
 .piment-name { font-family: var(--f-ui); font-weight: 900; }
 .piment-desc { font-style: italic; color: var(--navy); }
 .piment-btn { background: var(--navy); }
+
+/* Estampille piment */
+.reel { --reel-chili: var(--cream-hi); --reel-chili-bg: var(--red); }
