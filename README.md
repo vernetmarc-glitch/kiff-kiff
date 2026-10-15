@@ -1,4 +1,4 @@
-# La Roue du Consentement
+# Kiff Kiff
 
 Jeu à deux sur un téléphone : trois rouleaux de machine à sous composent une phrase d’envie (« J’ai envie que tu me gratouilles le gros orteil en chantonnant »). L’un·e propose, l’autre peut changer une roue, et rien ne se passe tant que les deux n’ont pas dit « j’ai envie ».
 

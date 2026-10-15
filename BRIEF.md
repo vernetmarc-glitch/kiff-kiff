@@ -1,4 +1,4 @@
-# La Roue du Consentement — brief
+# Kiff Kiff — brief
 
 Jeu à deux sur un seul téléphone, en portrait. Une phrase d’envie se compose avec des rouleaux de machine à sous ; elle ne devient une envie partagée que quand les deux personnes ont dit « j’ai envie ».
 
@@ -43,7 +43,14 @@ Chaque rouleau a une dernière case « ✎ … à toi ». En la touchant, on éc
 
 ## Direction graphique
 
-Fête foraine rétro, léger et décalé : auvent rayé cerise, borne cerise bordée d’ampoules dorées (qui clignotent pendant le hasard et la célébration), fenêtre de rouleaux couleur beurre, fond menthe, encre prune. Typo d’affiche ronde (Shrikhand) pour les switches et les titres, Bricolage Grotesque pour le reste.
+Fanzine imprimé en risographie, léger et décalé. Papier jaune citron avec un grain d’impression, deux encres (rose fluo et bleu) qui se chevauchent en violet, repérage volontairement un peu décalé sur les titres.
+
+- Les trois rouleaux sont des bandes de papier légèrement de travers : rose, bleue, puis tramée rose. Leur ombre est une trame de points dans l’autre encre.
+- Une bande verrouillée perd son encre : il ne reste que son contour en pointillés. Une bande changée reçoit un tampon « changé ».
+- Les deux switches ont le même dessin : piste bleue, bouton rose qui révèle un cœur.
+- Le moment signature : à chaque switch activé, au hasard et à la célébration, les encres « bougent » comme des plaques mal calées.
+- Écrans de passage en bleu, « On passe » en rose, célébration « Kiff Kiff ! » sur page rose avec une trame qui éclate et des confettis de papier.
+- Typo : Bagel Fat One pour le logo, les switches et les titres ; Archivo (avec ses largeurs variables) pour tout le reste.
 
 ## Fichiers
 
@@ -52,7 +59,7 @@ Fête foraine rétro, léger et décalé : auvent rayé cerise, borne cerise bor
 - `data.js` : les listes des rouleaux (à modifier pour changer les mots).
 - `app.js` : rouleaux, déroulé du tour, grammaire, sons, confettis.
 
-Aucune dépendance, aucun build : GitHub Pages sert les fichiers tels quels.
+Aucune dépendance, aucun build : GitHub Pages sert les fichiers tels quels. À chaque mise à jour, augmenter le numéro `?v=` des fichiers dans `index.html` pour que les téléphones rechargent la nouvelle version.
 
 ## Pistes ouvertes
 

@@ -1,4 +1,4 @@
-/* La Roue du Consentement — logique du jeu.
+/* Kiff Kiff — logique du jeu.
  *
  * Déroulé d’un tour (A propose, B répond) :
  *   compose   : A règle la direction et les trois rouleaux, puis active « J’ai envie ».
@@ -22,7 +22,7 @@
     D.objets.map((t) => ({ t })).concat([{ free: true }]),
     D.manieres.map((t) => ({ t })).concat([{ free: true }])
   ];
-  const PLACEHOLDER = ['✎ ton action à toi', '✎ ton endroit à toi', '✎ ta manière à toi'];
+  const PLACEHOLDER = ['ton action à toi…', 'ton endroit à toi…', 'ta manière à toi…'];
   const REEL_NAMES = ['l’action', 'l’endroit', 'la manière'];
 
   /* ---------- Stockage local (confort, jamais indispensable) ---------- */
@@ -126,7 +126,7 @@
     o.start(t); o.stop(t + dur + 0.02);
   }
   const sClick = () => blip(2400, 0, 0.022, 0.018, 'triangle', 1500);
-  const sSwitchOn = () => { blip(620, 0, 0.09, 0.05); blip(930, 0.07, 0.12, 0.045); };
+  const sSwitchOn = () => { blip(620, 0, 0.09, 0.05); blip(930, 0.07, 0.12, 0.045); printJitter(); };
   const sSwitchOff = () => blip(520, 0, 0.1, 0.035, 'sine', 380);
   const sNope = () => blip(220, 0, 0.12, 0.03, 'triangle', 160);
   const sParty = () => [523, 659, 784, 1047, 1319].forEach((f, i) => blip(f, i * 0.085, 0.32, 0.04, 'triangle'));
@@ -397,6 +397,19 @@
     if (u) u.addEventListener('click', undoChange);
   }
 
+  function setBottomLabel(on) {
+    const t = on ? 'J’ai envie aussi' : 'Oui mais…';
+    el.bottomLabel.textContent = t;
+    el.bottomLabel.dataset.ink = t;
+  }
+  function printJitter() {
+    document.body.classList.remove('is-printing');
+    void document.body.offsetWidth;
+    document.body.classList.add('is-printing');
+    clearTimeout(printJitter.t);
+    printJitter.t = setTimeout(() => document.body.classList.remove('is-printing'), 950);
+  }
+
   function setSwitch(sw, on) { sw.setAttribute('aria-checked', on ? 'true' : 'false'); }
 
   function render() {
@@ -425,7 +438,7 @@
     if (ph === 'compose') { setSwitch(el.swBottom, false); el.swBottom.disabled = true; el.swBottom.classList.add('is-idle'); }
     else if (ph === 'review') { el.swBottom.disabled = false; }
     else { el.swBottom.disabled = true; }
-    el.bottomLabel.textContent = el.swBottom.getAttribute('aria-checked') === 'true' ? 'J’ai envie aussi' : 'Oui mais…';
+    setBottomLabel(el.swBottom.getAttribute('aria-checked') === 'true');
 
     // Direction et hasard : seulement pour A pendant la composition
     el.dir.classList.toggle('is-locked', ph !== 'compose');
@@ -457,7 +470,7 @@
 
   function handoff(to, kind, then) {
     $('#handoff-title').textContent = 'Au tour de ' + nameOf(to);
-    $('#handoff-kicker').textContent = 'Passe le téléphone';
+    $('#handoff-kicker').textContent = 'Passe-lui le téléphone.';
     $('#handoff-text').textContent = kind === 'review'
       ? nameOf(other(to)) + ' te fait une proposition. Tu peux changer une roue.'
       : nameOf(other(to)) + ' a changé une roue. La phrase attend ta réponse.';
@@ -480,7 +493,7 @@
 
   function shuffle(includeDir) {
     if (includeDir) { S.dir = Math.random() < 0.5 ? 'me' : 'te'; }
-    el.cabinet.classList.add('is-lit');
+    printJitter();
     let pending = 3;
     reels.forEach((rl, k) => {
       // la case texte libre ne sort pas au hasard
@@ -489,7 +502,7 @@
       const prev = rl.settle.bind(rl);
       rl.settle = () => {
         rl.settle = prev; prev();
-        if (--pending === 0) el.cabinet.classList.remove('is-lit');
+        if (--pending === 0) printJitter();
       };
     });
     renderReels();
@@ -525,7 +538,7 @@
     if (m !== undefined) { reels[m].nope(); flashHint('Écris ' + REEL_NAMES[m] + ' ou choisis une autre case.'); return; }
     setSwitch(el.swBottom, true); sSwitchOn(); haptic(15);
     el.swBottom.disabled = true;
-    el.bottomLabel.textContent = 'J’ai envie aussi';
+    setBottomLabel(true);
     if (changedReels().length) {
       setTimeout(() => handoff(S.proposer, 'reconfirm', () => {
         S.phase = 'reconfirm';
@@ -594,7 +607,7 @@
 
   function handoffNewTurn(to) {
     $('#handoff-title').textContent = 'Au tour de ' + nameOf(to);
-    $('#handoff-kicker').textContent = 'Passe le téléphone';
+    $('#handoff-kicker').textContent = 'Passe-lui le téléphone.';
     $('#handoff-text').textContent = 'C’est toi qui proposes maintenant.';
     const go = $('#handoff-go');
     go.textContent = 'C’est moi, ' + nameOf(to);
@@ -660,7 +673,7 @@
     $('#party-sentence').textContent = sentence();
     $('#party-next').textContent = 'C’est fait ! À ' + nameOf(other(S.proposer)) + ' de proposer';
     show(el.ovParty);
-    el.cabinet.classList.add('is-lit');
+    printJitter();
     sParty(); haptic(40);
     confetti();
     save('names', S.names);
@@ -668,7 +681,6 @@
   $('#party-next').addEventListener('click', () => {
     hide(el.ovParty);
     stopConfetti();
-    el.cabinet.classList.remove('is-lit');
     startComposition(other(S.proposer));
   });
 
@@ -685,7 +697,7 @@
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const css = getComputedStyle(document.documentElement);
-    const cols = ['--gold', '--cherry', '--cotton', '--mint', '--butter', '--teal'].map((v) => css.getPropertyValue(v).trim());
+    const cols = ['--paper', '--blue', '--violet', '--paper-hi', '--paper', '--blue'].map((v) => css.getPropertyValue(v).trim());
     const N = reduce ? 40 : 170;
     const P = [];
     for (let i = 0; i < N; i++) {
