@@ -126,7 +126,7 @@
     o.start(t); o.stop(t + dur + 0.02);
   }
   const sClick = () => blip(2400, 0, 0.022, 0.018, 'triangle', 1500);
-  const sSwitchOn = () => { blip(620, 0, 0.09, 0.05); blip(930, 0.07, 0.12, 0.045); printJitter(); };
+  const sSwitchOn = () => { blip(620, 0, 0.09, 0.05); blip(930, 0.07, 0.12, 0.045); pulse(); };
   const sSwitchOff = () => blip(520, 0, 0.1, 0.035, 'sine', 380);
   const sNope = () => blip(220, 0, 0.12, 0.03, 'triangle', 160);
   const sParty = () => [523, 659, 784, 1047, 1319].forEach((f, i) => blip(f, i * 0.085, 0.32, 0.04, 'triangle'));
@@ -402,12 +402,12 @@
     el.bottomLabel.textContent = t;
     el.bottomLabel.dataset.ink = t;
   }
-  function printJitter() {
-    document.body.classList.remove('is-printing');
+  function pulse() {
+    document.body.classList.remove('is-pulse');
     void document.body.offsetWidth;
-    document.body.classList.add('is-printing');
-    clearTimeout(printJitter.t);
-    printJitter.t = setTimeout(() => document.body.classList.remove('is-printing'), 950);
+    document.body.classList.add('is-pulse');
+    clearTimeout(pulse.t);
+    pulse.t = setTimeout(() => document.body.classList.remove('is-pulse'), 950);
   }
 
   function setSwitch(sw, on) { sw.setAttribute('aria-checked', on ? 'true' : 'false'); }
@@ -493,7 +493,7 @@
 
   function shuffle(includeDir) {
     if (includeDir) { S.dir = Math.random() < 0.5 ? 'me' : 'te'; }
-    printJitter();
+    pulse();
     let pending = 3;
     reels.forEach((rl, k) => {
       // la case texte libre ne sort pas au hasard
@@ -502,7 +502,7 @@
       const prev = rl.settle.bind(rl);
       rl.settle = () => {
         rl.settle = prev; prev();
-        if (--pending === 0) printJitter();
+        if (--pending === 0) pulse();
       };
     });
     renderReels();
@@ -673,7 +673,7 @@
     $('#party-sentence').textContent = sentence();
     $('#party-next').textContent = 'C’est fait ! À ' + nameOf(other(S.proposer)) + ' de proposer';
     show(el.ovParty);
-    printJitter();
+    pulse();
     sParty(); haptic(40);
     confetti();
     save('names', S.names);
@@ -697,7 +697,8 @@
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const css = getComputedStyle(document.documentElement);
-    const cols = ['--paper', '--blue', '--violet', '--paper-hi', '--paper', '--blue'].map((v) => css.getPropertyValue(v).trim());
+    const cols = (css.getPropertyValue('--confetti') || '#ffffff').split(',').map((v) => v.trim()).filter(Boolean);
+    const shapes = (css.getPropertyValue('--confetti-shapes') || 'rect, dot, heart').split(',').map((v) => v.trim()).filter(Boolean);
     const N = reduce ? 40 : 170;
     const P = [];
     for (let i = 0; i < N; i++) {
@@ -710,9 +711,23 @@
         r: Math.random() * Math.PI, vr: (Math.random() - 0.5) * 0.3,
         s: 6 + Math.random() * 7,
         c: cols[i % cols.length],
-        shape: i % 5 === 0 ? 'heart' : (i % 3 === 0 ? 'dot' : 'rect')
+        shape: shapes[i % shapes.length]
       });
     }
+    const star = (s) => {
+      ctx.beginPath();
+      for (let k = 0; k < 10; k++) {
+        const r = k % 2 ? s * 0.45 : s;
+        const a = (k * Math.PI) / 5 - Math.PI / 2;
+        ctx.lineTo(Math.cos(a) * r, Math.sin(a) * r);
+      }
+      ctx.closePath(); ctx.fill();
+    };
+    const sparkle = (s) => {
+      ctx.beginPath();
+      ctx.moveTo(0, -s); ctx.quadraticCurveTo(0, 0, s, 0); ctx.quadraticCurveTo(0, 0, 0, s);
+      ctx.quadraticCurveTo(0, 0, -s, 0); ctx.quadraticCurveTo(0, 0, 0, -s); ctx.fill();
+    };
     const heart = (s) => {
       ctx.beginPath();
       ctx.moveTo(0, s * 0.35);
@@ -732,6 +747,10 @@
         ctx.fillStyle = q.c;
         if (q.shape === 'heart') heart(q.s * 1.1);
         else if (q.shape === 'dot') { ctx.beginPath(); ctx.arc(0, 0, q.s / 2.4, 0, 6.283); ctx.fill(); }
+        else if (q.shape === 'petal') { ctx.beginPath(); ctx.ellipse(0, 0, q.s * 0.75, q.s * 0.42, 0, 0, 6.283); ctx.fill(); ctx.globalAlpha = 0.25; ctx.fillStyle = '#000'; ctx.beginPath(); ctx.ellipse(q.s * 0.15, 0, q.s * 0.45, q.s * 0.18, 0, 0, 6.283); ctx.fill(); ctx.globalAlpha = 1; }
+        else if (q.shape === 'star') { star(q.s * 0.8); }
+        else if (q.shape === 'sparkle') { sparkle(q.s * 0.9); }
+        else if (q.shape === 'ticket') { ctx.fillRect(-q.s * 0.8, -q.s * 0.45, q.s * 1.6, q.s * 0.9); ctx.globalCompositeOperation = 'destination-out'; ctx.beginPath(); ctx.arc(-q.s * 0.8, 0, q.s * 0.22, 0, 6.283); ctx.arc(q.s * 0.8, 0, q.s * 0.22, 0, 6.283); ctx.fill(); ctx.globalCompositeOperation = 'source-over'; }
         else ctx.fillRect(-q.s / 2, -q.s / 4, q.s, q.s / 2 * Math.abs(Math.cos(q.r * 2)) + 1);
         ctx.restore();
       });
@@ -741,6 +760,25 @@
     confRaf = requestAnimationFrame(frame);
   }
 
+  /* ---------- Ambiances ---------- */
+  const SKINS = ['zinzin', 'pomme', 'redcorner'];
+  function currentSkin() {
+    const s = document.documentElement.getAttribute('data-skin');
+    return SKINS.includes(s) ? s : 'zinzin';
+  }
+  function applySkin(s) {
+    if (!SKINS.includes(s)) s = 'zinzin';
+    document.documentElement.setAttribute('data-skin', s);
+    document.querySelectorAll('[data-skin-sheet]').forEach((n) => { n.disabled = n.getAttribute('data-skin-sheet') !== s; });
+    save('skin', s);
+    requestAnimationFrame(() => {
+      const c = getComputedStyle(document.documentElement).getPropertyValue('--theme-color').trim();
+      const m = document.querySelector('meta[name="theme-color"]');
+      if (c && m) m.setAttribute('content', c);
+      if (reels.length) renderReels();
+    });
+  }
+
   /* ---------- Démarrage ---------- */
   function init() {
     S.idx = LISTS.map((l) => Math.floor(Math.random() * (l.length - 1)));
@@ -748,6 +786,11 @@
     renderReels();
     render();
 
+    applySkin(currentSkin());
+    document.querySelectorAll('input[name="skin"]').forEach((r) => {
+      r.checked = r.value === currentSkin();
+      r.addEventListener('change', () => { if (r.checked) { audio(); applySkin(r.value); sClick(); haptic(8); } });
+    });
     $('#name0').value = S.names[0] || '';
     $('#name1').value = S.names[1] || '';
     $('#start-form').addEventListener('submit', (e) => {

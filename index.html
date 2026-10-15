@@ -7,12 +7,32 @@
 <title>Kiff Kiff</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,62..125,100..900;1,62..125,100..900&family=Bagel+Fat+One&display=swap">
-<link rel="stylesheet" href="style.css?v=6">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,62..125,100..900;1,62..125,100..900&family=Bagel+Fat+One&family=Abril+Fatface&family=Merriweather:ital,opsz,wght@0,18..144,400..900;1,18..144,400..900&family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..900;1,6..96,400..900&family=Jost:wght@300..700&family=Great+Vibes&display=swap">
+<link rel="stylesheet" href="base.css?v=7">
+<link rel="stylesheet" href="skins/zinzin.css?v=7" data-skin-sheet="zinzin">
+<link rel="stylesheet" href="skins/pomme.css?v=7" data-skin-sheet="pomme">
+<link rel="stylesheet" href="skins/redcorner.css?v=7" data-skin-sheet="redcorner">
+<script>
+/* Applique l’ambiance mémorisée avant l’affichage, pour éviter un flash */
+(function () {
+  var s = 'zinzin';
+  try { s = JSON.parse(localStorage.getItem('roue:skin')) || s; } catch (e) {}
+  if (!/^(zinzin|pomme|redcorner)$/.test(s)) s = 'zinzin';
+  document.documentElement.setAttribute('data-skin', s);
+  var l = document.querySelectorAll('[data-skin-sheet]');
+  for (var i = 0; i < l.length; i++) l[i].disabled = l[i].getAttribute('data-skin-sheet') !== s;
+})();
+</script>
 </head>
 <body>
 <!--APP-->
 <div class="grain" aria-hidden="true"></div>
+<div class="deco" aria-hidden="true">
+  <div class="deco-rays"></div>
+  <div class="deco-frame"></div>
+  <div class="deco-glow"></div>
+  <div class="deco-candles"><span class="candle candle--tall"><i></i></span><span class="candle"><i></i></span><span class="candle candle--short"><i></i></span></div>
+</div>
 
 <div class="app" id="app">
   <header class="top">
@@ -45,9 +65,9 @@
       </button>
     </div>
     <div class="strips">
-      <div class="reel strip strip--pink" data-reel="0" tabindex="0" role="spinbutton" aria-label="Action"><div class="reel-strip"></div><span class="stamp" aria-hidden="true">changé</span></div>
-      <div class="reel strip strip--blue" data-reel="1" tabindex="0" role="spinbutton" aria-label="Endroit"><div class="reel-strip"></div><span class="stamp" aria-hidden="true">changé</span></div>
-      <div class="reel strip strip--pink2" data-reel="2" tabindex="0" role="spinbutton" aria-label="Manière"><div class="reel-strip"></div><span class="stamp" aria-hidden="true">changé</span></div>
+      <div class="reel strip strip--pink" data-reel="0" tabindex="0" role="spinbutton" aria-label="Action"><div class="reel-strip"></div><span class="reel-shade" aria-hidden="true"></span><span class="stamp" aria-hidden="true">changé</span></div>
+      <div class="reel strip strip--blue" data-reel="1" tabindex="0" role="spinbutton" aria-label="Endroit"><div class="reel-strip"></div><span class="reel-shade" aria-hidden="true"></span><span class="stamp" aria-hidden="true">changé</span></div>
+      <div class="reel strip strip--pink2" data-reel="2" tabindex="0" role="spinbutton" aria-label="Manière"><div class="reel-strip"></div><span class="reel-shade" aria-hidden="true"></span><span class="stamp" aria-hidden="true">changé</span></div>
     </div>
   </section>
 
@@ -68,6 +88,14 @@
       <input id="name0" maxlength="20" autocomplete="off" placeholder="Cerise">
       <label for="name1">Et l’autre ?</label>
       <input id="name1" maxlength="20" autocomplete="off" placeholder="Pistache">
+      <fieldset class="skins" id="skins">
+        <legend>Ambiance</legend>
+        <div class="skin-list">
+          <label class="skin-opt"><input type="radio" name="skin" value="zinzin"><span class="skin-swatch skin-swatch--zinzin"></span><span class="skin-name">Zinzin</span></label>
+          <label class="skin-opt"><input type="radio" name="skin" value="pomme"><span class="skin-swatch skin-swatch--pomme"></span><span class="skin-name">Pomme d’Amour</span></label>
+          <label class="skin-opt"><input type="radio" name="skin" value="redcorner"><span class="skin-swatch skin-swatch--redcorner"></span><span class="skin-name">Red Corner</span></label>
+        </div>
+      </fieldset>
       <button class="btn" type="submit">C’est parti</button>
     </form>
   </div>
@@ -121,7 +149,7 @@
   </div>
 </div>
 <!--/APP-->
-<script src="data.js?v=6"></script>
-<script src="app.js?v=6"></script>
+<script src="data.js?v=7"></script>
+<script src="app.js?v=7"></script>
 </body>
 </html>

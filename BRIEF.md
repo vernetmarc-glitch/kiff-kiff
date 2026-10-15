@@ -41,28 +41,32 @@ Chaque rouleau a une dernière case « ✎ … à toi ». En la touchant, on éc
 - Petit son discret à l’activation des switches, petit arpège à la célébration.
 - Bouton pour couper le son. Haptique : Android via l’API vibration ; iPhone via l’astuce du switch natif de Safari (iOS 18 et plus, au mieux).
 
-## Direction graphique
+## Ambiances
 
-Fanzine imprimé en risographie, léger et décalé. Papier jaune citron avec un grain d’impression, deux encres (rose fluo et bleu) qui se chevauchent en violet, repérage volontairement un peu décalé sur les titres.
+L’ambiance se choisit sur l’écran d’accueil et reste mémorisée sur le téléphone. Les règles et les mots sont les mêmes partout. Chaque roue a un ombrage en haut et en bas et des repères sur la ligne lue, pour qu’on comprenne qu’elle tourne.
 
-- Les trois rouleaux sont des bandes de papier légèrement de travers : rose, bleue, puis tramée rose. Leur ombre est une trame de points dans l’autre encre.
-- Une bande verrouillée perd son encre : il ne reste que son contour en pointillés. Une bande changée reçoit un tampon « changé ».
-- Les deux switches ont le même dessin : piste bleue, bouton rose qui révèle un cœur.
-- Le moment signature : à chaque switch activé, au hasard et à la célébration, les encres « bougent » comme des plaques mal calées.
-- Écrans de passage en bleu, « On passe » en rose, célébration « Kiff Kiff ! » sur page rose avec une trame qui éclate et des confettis de papier.
-- Typo : Bagel Fat One pour le logo, les switches et les titres ; Archivo (avec ses largeurs variables) pour tout le reste.
+Les ambiances ont été conçues avec deux skills de design publics, lus directement (sans lancer leurs programmes) : **impeccable** (méthode de refonte, liste des défauts « faits par IA » à éviter) et **UI/UX Pro Max** (base de styles, palettes et associations de polices).
+
+### Zinzin — fanzine risographe
+Papier jaune citron avec grain, deux encres (rose fluo et bleu) qui se chevauchent en violet, repérage décalé. Rouleaux en bandes de papier de travers, ombre en trame ; ombrage du tambour en trame qui se resserre. Bande verrouillée : il ne reste que le contour en pointillés. Tampon « changé ». Typo : Bagel Fat One + Archivo.
+
+### Pomme d’Amour — machine à sous de fête foraine
+La façade d’une machine à sous en tôle lithographiée : rayons rouge et crème, plaques émaillées rivetées pour la consigne et les switches, borne bleu nuit avec rangée d’ampoules, hublots chromés et tambours crème ombrés, flèches rouges de ligne gagnante, manette rouge pour le hasard, touches de caisse enregistreuse pour « que tu me / de te », ticket d’entrée « changé ». Célébration : rayons qui tournent, phrase sur un ticket gagnant, étoiles et tickets. Typo : Abril Fatface (lettrage d’enseigne extrudé) + Merriweather.
+
+### Red Corner — boudoir
+Velours bordeaux plissé, cadre doré à moulures, bougies qui vacillent (et s’embrasent quand on active un switch), écrin capitonné, rouleaux en cadres dorés avec tambours de velours satiné et filets d’or, sceau de cire « changé », feuille d’or sur les titres. Célébration : lumière dorée, pétales et étincelles, phrase sur une carte de visite. Typo : Bodoni Moda italique + Great Vibes pour « J’ai envie » + Jost.
 
 ## Fichiers
 
-- `index.html` : structure de l’écran et des écrans superposés.
-- `style.css` : tout le visuel.
+- `index.html` : structure de l’écran, écrans superposés, sélecteur d’ambiance.
+- `base.css` : mécanique commune (mise en page, rouleaux, switches).
+- `skins/zinzin.css`, `skins/pomme.css`, `skins/redcorner.css` : une feuille par ambiance.
 - `data.js` : les listes des rouleaux (à modifier pour changer les mots).
-- `app.js` : rouleaux, déroulé du tour, grammaire, sons, confettis.
+- `app.js` : rouleaux, déroulé du tour, grammaire, sons, confettis, ambiances.
 
 Aucune dépendance, aucun build : GitHub Pages sert les fichiers tels quels. À chaque mise à jour, augmenter le numéro `?v=` des fichiers dans `index.html` pour que les téléphones rechargent la nouvelle version.
 
 ## Pistes ouvertes
 
 - Historique des envies réalisées.
-- Thème sombre « fête foraine de nuit ».
 - Ajouter ses propres mots de façon permanente dans les listes.

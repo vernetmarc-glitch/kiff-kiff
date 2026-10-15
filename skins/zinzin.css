@@ -1,4 +1,4 @@
-/* Kiff Kiff — fanzine risographe.
+/* Kiff Kiff — ambiance « Zinzin » : fanzine risographe.
    Papier jaune citron, deux encres (rose fluo, bleu) qui se chevauchent en violet,
    grain d’impression, repérage légèrement décalé. Les rouleaux sont des bandes de
    papier imprimées ; la phrase se lit de haut en bas, du switch « J’ai envie »
@@ -14,6 +14,9 @@
   --f-display: "Bagel Fat One", "Arial Rounded MT Bold", "Trebuchet MS", sans-serif;
   --f-ui: "Archivo", "Helvetica Neue", Arial, sans-serif;
 
+  --theme-color: #FFE45C;
+  --confetti: #FFE45C, #2E4FA3, #2E1670, #FFF08F, #FFE45C, #2E4FA3;
+  --confetti-shapes: heart, rect, dot, rect, rect;
   --halftone-pink: radial-gradient(circle, var(--pink) 1.25px, transparent 1.7px) 0 0 / 5px 5px;
   --halftone-blue: radial-gradient(circle, var(--blue) 1.25px, transparent 1.7px) 0 0 / 5px 5px;
 
@@ -49,6 +52,7 @@ button { font: inherit; color: inherit; }
 
 /* Grain d’impression posé sur tout l’écran */
 .grain {
+  display: block;
   position: fixed;
   inset: 0;
   z-index: 50;
@@ -78,7 +82,7 @@ button { font: inherit; color: inherit; }
 .ink::after { color: var(--ink-b); transform: translate(var(--mx), var(--my)); z-index: 0; }
 .ink::before { color: var(--ink-a); mix-blend-mode: multiply; z-index: 1; }
 .ink--flat::before { mix-blend-mode: normal; }
-.is-printing .ink::after, .ink.is-printing::after { animation: register .42s steps(3) 2; }
+.is-pulse .ink::after, .ink.is-pulse::after { animation: register .42s steps(3) 2; }
 @keyframes register {
   0% { transform: translate(var(--mx), var(--my)); }
   33% { transform: translate(-2px, 4px); }
@@ -365,6 +369,32 @@ button { font: inherit; color: inherit; }
 .reel-item.is-xlong { font-size: 15.5px; font-stretch: 86%; }
 .reel-item.is-xlong.is-center { font-stretch: 88%; }
 .reel-item.is-placeholder { font-style: italic; font-weight: 600; }
+
+/* Ombrage du tambour : la trame se resserre vers le haut et le bas,
+   deux encoches marquent la ligne lue */
+.reel-shade {
+  background:
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='9' height='14'><path d='M0 0 L9 7 L0 14Z' fill='%232E1670'/></svg>") left 50% / 9px 14px no-repeat,
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='9' height='14'><path d='M9 0 L0 7 L9 14Z' fill='%232E1670'/></svg>") right 50% / 9px 14px no-repeat;
+}
+.reel-shade::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle, var(--violet) 1.15px, transparent 1.55px) 0 0 / 4px 4px,
+    linear-gradient(rgba(46, 22, 112, .55), transparent 40%, transparent 60%, rgba(46, 22, 112, .55));
+  -webkit-mask-image: linear-gradient(#000, rgba(0, 0, 0, .55) 16%, transparent 36%, transparent 64%, rgba(0, 0, 0, .55) 84%, #000);
+  mask-image: linear-gradient(#000, rgba(0, 0, 0, .55) 16%, transparent 36%, transparent 64%, rgba(0, 0, 0, .55) 84%, #000);
+  opacity: .62;
+}
+.strip--blue .reel-shade::before {
+  background:
+    radial-gradient(circle, #13245C 1.15px, transparent 1.55px) 0 0 / 4px 4px,
+    linear-gradient(rgba(19, 36, 92, .7), transparent 40%, transparent 60%, rgba(19, 36, 92, .7));
+  opacity: .8;
+}
+.reel.is-locked .reel-shade { opacity: .25; }
 
 /* Bande verrouillée : l’encre est retirée, il reste le tracé */
 .reel.is-locked { cursor: not-allowed; --text: var(--blue); outline: 2.5px dashed var(--blue); outline-offset: -2px; }
