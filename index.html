@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#E0334F">
+<title>La Roue du Consentement</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Shrikhand&display=swap">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<!--APP-->
+<div class="awning" aria-hidden="true"></div>
+
+<div class="app" id="app">
+  <header class="top">
+    <h1 class="brand">La Roue du Consentement</h1>
+    <div class="top-actions">
+      <button class="icon-btn" id="mute" type="button" aria-pressed="false" aria-label="Couper le son">
+        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path class="wave" d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path class="cross" d="M16 9l5 6M21 9l-5 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      </button>
+      <button class="pass-btn" id="pass" type="button">On passe</button>
+    </div>
+  </header>
+
+  <p class="hint" id="hint" aria-live="polite"></p>
+
+  <button class="switch switch--top" id="sw-top" type="button" role="switch" aria-checked="false">
+    <span class="track"><span class="knob"></span></span>
+    <span class="sw-text"><span class="sw-label">J’ai envie</span><span class="sw-owner" id="owner-top"></span></span>
+  </button>
+
+  <section class="cabinet" id="cabinet" aria-label="La phrase">
+    <div class="cab-row">
+      <div class="dir" id="dir" data-dir="me" role="group" aria-label="Qui fait l’action">
+        <span class="thumb" aria-hidden="true"></span>
+        <button type="button" data-dir="me" aria-pressed="true">que tu me</button>
+        <button type="button" data-dir="te" aria-pressed="false">de te</button>
+      </div>
+      <button class="dice" id="dice" type="button" aria-label="Au hasard">
+        <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5" fill="currentColor"/><g fill="var(--gold)"><circle cx="8" cy="8" r="1.7"/><circle cx="16" cy="16" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="16" cy="8" r="1.7"/><circle cx="8" cy="16" r="1.7"/></g></svg>
+        <span>Hasard</span>
+      </button>
+    </div>
+    <div class="window">
+      <div class="reel" data-reel="0" tabindex="0" role="spinbutton" aria-label="Action"><div class="reel-strip"></div><span class="lock" aria-hidden="true"></span></div>
+      <div class="reel" data-reel="1" tabindex="0" role="spinbutton" aria-label="Endroit"><div class="reel-strip"></div><span class="lock" aria-hidden="true"></span></div>
+      <div class="reel" data-reel="2" tabindex="0" role="spinbutton" aria-label="Manière"><div class="reel-strip"></div><span class="lock" aria-hidden="true"></span></div>
+    </div>
+  </section>
+
+  <button class="switch switch--bottom" id="sw-bottom" type="button" role="switch" aria-checked="false">
+    <span class="track"><span class="knob"></span></span>
+    <span class="sw-text"><span class="sw-label" id="bottom-label">Oui mais…</span><span class="sw-owner" id="owner-bottom"></span></span>
+  </button>
+</div>
+
+<!-- Écran d’accueil -->
+<div class="overlay overlay--start" id="ov-start">
+  <div class="sheet">
+    <p class="start-kicker">Un jeu à deux, sur un seul téléphone</p>
+    <h2 class="start-title">La Roue du Consentement</h2>
+    <p class="start-rules">L’un·e propose une envie avec les roues. L’autre peut changer une roue. On ne fait rien tant que les deux n’ont pas dit « j’ai envie ».</p>
+    <form id="start-form" class="start-form">
+      <label for="name0">Qui propose en premier ?</label>
+      <input id="name0" maxlength="20" autocomplete="off" placeholder="Cerise">
+      <label for="name1">Et l’autre ?</label>
+      <input id="name1" maxlength="20" autocomplete="off" placeholder="Pistache">
+      <button class="btn" type="submit">C’est parti</button>
+    </form>
+  </div>
+</div>
+
+<!-- Passage du téléphone -->
+<div class="overlay overlay--handoff" id="ov-handoff" hidden>
+  <div class="sheet">
+    <p class="handoff-kicker" id="handoff-kicker">Passe le téléphone</p>
+    <h2 class="handoff-title" id="handoff-title"></h2>
+    <p class="handoff-text" id="handoff-text"></p>
+    <button class="btn" id="handoff-go" type="button"></button>
+  </div>
+</div>
+
+<!-- On passe -->
+<div class="overlay overlay--pass" id="ov-pass" hidden>
+  <div class="sheet">
+    <h2 class="pass-title">On passe.</h2>
+    <p class="pass-text">Pas besoin d’expliquer pourquoi.</p>
+    <div class="stack">
+      <button class="btn" id="pass-same" type="button"></button>
+      <button class="btn btn--ghost" id="pass-other" type="button"></button>
+      <button class="link-btn" id="pass-cancel" type="button">Finalement, on continue</button>
+    </div>
+  </div>
+</div>
+
+<!-- Texte libre -->
+<div class="overlay overlay--edit" id="ov-edit" hidden>
+  <form class="sheet sheet--edit" id="edit-form">
+    <label class="edit-label" for="edit-input" id="edit-label">À toi d’écrire</label>
+    <p class="edit-preview" id="edit-preview"></p>
+    <input id="edit-input" maxlength="40" autocomplete="off" enterkeyhint="done">
+    <p class="edit-hint" id="edit-hint"></p>
+    <div class="row">
+      <button class="link-btn" id="edit-cancel" type="button">Annuler</button>
+      <button class="btn" type="submit">Valider</button>
+    </div>
+  </form>
+</div>
+
+<!-- Célébration -->
+<div class="overlay overlay--party" id="ov-party" hidden>
+  <canvas id="confetti" aria-hidden="true"></canvas>
+  <div class="sheet">
+    <h2 class="party-title">Envie partagée !</h2>
+    <p class="party-sentence" id="party-sentence"></p>
+    <p class="party-text">Prenez votre temps. Revenez quand c’est fait.</p>
+    <button class="btn" id="party-next" type="button"></button>
+  </div>
+</div>
+<!--/APP-->
+<script src="data.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
