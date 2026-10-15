@@ -43,12 +43,13 @@ Chaque rouleau a une dernière case « ✎ … à toi ». En la touchant, on éc
 - Écran de passage : lien « Oups, … n’avait pas fini » pour revenir en arrière après un switch activé trop vite.
 - Écran de célébration : lien « Finalement, on passe » ; on peut changer d’avis jusqu’au bout.
 - La case libre s’annonce « touche pour écrire ton action / ton endroit / ta manière ».
+- Bouton « Accueil » (maison) dans la barre du haut : il rouvre l’écran d’accueil pour changer les prénoms, l’ambiance ou le son. On y trouve « Reprendre la partie en cours » ou « Nouvelle partie ».
 
 ## Sensations
 
 - Petit retour haptique et clic sonore très discret à chaque cran de rouleau.
 - Petit son discret à l’activation des switches, petit arpège à la célébration.
-- Bouton pour couper le son. Haptique : Android via l’API vibration ; iPhone via l’astuce du switch natif de Safari (iOS 18 et plus, au mieux).
+- Lien « Son : activé / coupé » sur l’écran d’accueil pour couper le son. Haptique : Android via l’API vibration ; iPhone via l’astuce du switch natif de Safari (iOS 18 et plus, au mieux).
 
 ## Ambiances
 

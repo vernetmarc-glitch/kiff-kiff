@@ -352,7 +352,7 @@
     ownerTop: $('#owner-top'), ownerBottom: $('#owner-bottom'),
     bottomLabel: $('#bottom-label'),
     dir: $('#dir'), dice: $('#dice'), cabinet: $('#cabinet'),
-    mute: $('#mute'), pass: $('#pass'),
+    mute: $('#mute'), pass: $('#pass'), home: $('#home'),
     ovStart: $('#ov-start'), ovHandoff: $('#ov-handoff'), ovPass: $('#ov-pass'),
     ovEdit: $('#ov-edit'), ovParty: $('#ov-party')
   };
@@ -459,7 +459,7 @@
     renderDir();
     renderHint();
     el.mute.setAttribute('aria-pressed', S.muted ? 'true' : 'false');
-    el.mute.setAttribute('aria-label', S.muted ? 'Remettre le son' : 'Couper le son');
+    $('#mute-state').textContent = S.muted ? 'coupé' : 'activé';
   }
   const renderReels = () => reels.forEach((r) => r.render());
 
@@ -832,15 +832,35 @@
     document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !ovSkins.hidden) closeSkins(); });
     $('#name0').value = S.names[0] || '';
     $('#name1').value = S.names[1] || '';
-    $('#start-form').addEventListener('submit', (e) => {
-      e.preventDefault();
-      audio();
+    const readNames = () => {
       S.names = [$('#name0').value.trim(), $('#name1').value.trim()];
       save('names', S.names);
       document.activeElement && document.activeElement.blur();
       hide(el.ovStart);
+    };
+    $('#start-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      audio();
+      readNames();
+      S.started = true;
       startComposition(0);
       setTimeout(() => shuffle(false), 250);
+    });
+    // Reprendre la partie : garde le tour en cours, applique les prénoms éventuellement changés
+    $('#resume').addEventListener('click', () => {
+      audio();
+      readNames();
+      render();
+    });
+    // Retour à l’accueil depuis le jeu
+    el.home.addEventListener('click', () => {
+      audio();
+      $('#name0').value = S.names[0] || '';
+      $('#name1').value = S.names[1] || '';
+      $('#resume').hidden = !S.started;
+      $('#start-go').textContent = S.started ? 'Nouvelle partie' : 'C’est parti';
+      show(el.ovStart);
+      el.ovStart.scrollTop = 0;
     });
   }
 

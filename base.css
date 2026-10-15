@@ -227,6 +227,9 @@ button { font: inherit; color: inherit; }
   cursor: pointer;
 }
 .skin-link span { font-weight: 700; }
+.start-links { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 18px; margin-top: 4px; }
+.start-links .skin-link { margin-top: 0; }
+.resume-link { align-self: center; margin-top: 2px; font-weight: 700; }
 .sheet--skins { gap: 16px; }
 .row--end { justify-content: flex-end; }
 .skin-list { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }

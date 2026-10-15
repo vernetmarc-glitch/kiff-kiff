@@ -8,10 +8,10 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,62..125,100..900;1,62..125,100..900&family=Bagel+Fat+One&family=Abril+Fatface&family=Merriweather:ital,opsz,wght@0,18..144,400..900;1,18..144,400..900&family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..900;1,6..96,400..900&family=Jost:wght@300..700&family=Great+Vibes&family=Cinzel:wght@400..900&display=swap">
-<link rel="stylesheet" href="base.css?v=9">
-<link rel="stylesheet" href="skins/arty.css?v=9" data-skin-sheet="arty">
-<link rel="stylesheet" href="skins/pomme.css?v=9" data-skin-sheet="pomme">
-<link rel="stylesheet" href="skins/redcorner.css?v=9" data-skin-sheet="redcorner">
+<link rel="stylesheet" href="base.css?v=10">
+<link rel="stylesheet" href="skins/arty.css?v=10" data-skin-sheet="arty">
+<link rel="stylesheet" href="skins/pomme.css?v=10" data-skin-sheet="pomme">
+<link rel="stylesheet" href="skins/redcorner.css?v=10" data-skin-sheet="redcorner">
 <script>
 /* Ambiance : celle du lien (?design=redcorner ou #redcorner), sinon celle mémorisée.
    Appliquée avant l’affichage pour éviter un flash. */
@@ -50,8 +50,8 @@
   <header class="top">
     <h1 class="logo" aria-label="Kiff Kiff"><span class="ink" data-ink="Kiff Kiff">Kiff Kiff</span></h1>
     <div class="top-actions">
-      <button class="sticker sticker--round" id="mute" type="button" aria-pressed="false" aria-label="Couper le son">
-        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path class="wave" d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><path class="cross" d="M16 9l5 6M21 9l-5 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
+      <button class="sticker sticker--round" id="home" type="button" aria-label="Accueil : prénoms et réglages">
+        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M3.5 11.2 12 4l8.5 7.2" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/><path d="M6 10v9.5h4.5v-5h3v5H18V10" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linejoin="round"/></svg>
       </button>
       <button class="sticker sticker--pass" id="pass" type="button">On passe</button>
     </div>
@@ -100,8 +100,12 @@
       <input id="name0" maxlength="20" autocomplete="off" placeholder="Cerise">
       <label for="name1">Et l’autre ?</label>
       <input id="name1" maxlength="20" autocomplete="off" placeholder="Pistache">
-      <button class="btn" type="submit">C’est parti</button>
-      <button class="skin-link" id="skin-open" type="button" aria-haspopup="dialog">Ambiance : <span id="skin-current">Arty</span></button>
+      <button class="btn" type="submit" id="start-go">C’est parti</button>
+      <button class="link-btn resume-link" id="resume" type="button" hidden>Reprendre la partie en cours</button>
+      <div class="start-links">
+        <button class="skin-link" id="skin-open" type="button" aria-haspopup="dialog">Ambiance : <span id="skin-current">Arty</span></button>
+        <button class="skin-link" id="mute" type="button" aria-pressed="false">Son : <span id="mute-state">activé</span></button>
+      </div>
     </form>
   </div>
 </div>
@@ -171,7 +175,7 @@
   </div>
 </div>
 <!--/APP-->
-<script src="data.js?v=9"></script>
-<script src="app.js?v=9"></script>
+<script src="data.js?v=10"></script>
+<script src="app.js?v=10"></script>
 </body>
 </html>
