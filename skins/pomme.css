@@ -3,6 +3,7 @@
    rayons rouge et crème, plaques émaillées rivetées, hublots chromés,
    une manette pour le hasard, des tickets d’entrée. */
 :root {
+  --call-color: var(--red);
   --red: #D7262F;
   --red-deep: #9E1520;
   --cream: #F3E3C0;
@@ -116,9 +117,6 @@ body {
 .sw-label { font-family: var(--f-display); font-size: 31px; line-height: 1; color: var(--navy); }
 .switch[aria-checked="true"] .sw-label { color: var(--red); }
 .sw-owner { font-size: 12px; font-weight: 700; font-style: italic; color: var(--teal); }
-.switch.is-waiting { opacity: .45; }
-.switch.is-idle { opacity: .4; }
-.switch.is-calling .track { animation: buzz 1.1s ease-in-out infinite; }
 @keyframes buzz { 0%, 100% { transform: rotate(0); } 15% { transform: rotate(-6deg); } 30% { transform: rotate(5deg); } 45% { transform: rotate(0); } }
 
 /* ---------- La borne ---------- */
@@ -306,6 +304,7 @@ body {
 .handoff-kicker { font-weight: 900; font-style: italic; font-size: 18px; color: var(--gold); }
 .handoff-text { font-size: 17px; line-height: 1.5; max-width: 28ch; }
 .overlay--handoff .btn { margin-top: 14px; }
+.overlay--handoff .link-btn, .overlay--party .link-btn { color: var(--cream-hi); text-shadow: 0 1px 2px var(--navy-deep); }
 
 /* On passe : plaque rouge */
 .overlay--pass { background: repeating-conic-gradient(from -90deg at 50% -4%, var(--red) 0 6deg, var(--red-deep) 6deg 12deg); color: var(--cream-hi); }

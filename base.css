@@ -92,7 +92,27 @@ button { font: inherit; color: inherit; }
 .switch[aria-checked="true"] .knob { transform: translateX(34px); }
 .switch[aria-checked="true"] .knob::after { transform: scale(1); }
 .sw-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-.sw-label { white-space: nowrap; }
+.sw-label { white-space: nowrap; transition: opacity .35s, filter .35s; }
+/* Un switch éteint garde son texte, en grisé : on voit ce qu’il dira une fois activé */
+.switch[aria-checked="false"] .sw-label { opacity: .4; filter: grayscale(1); }
+.switch[aria-checked="false"] .sw-owner { opacity: .75; }
+.switch.is-idle .track { opacity: .4; }
+.switch.is-waiting .track { opacity: .55; }
+/* Le switch qui attend une réponse émet une onde, pour qu’on sache où toucher */
+.switch.is-calling .track::after {
+  content: "";
+  position: absolute;
+  inset: -3px;
+  border-radius: inherit;
+  border: 2.5px solid var(--call-color, currentColor);
+  pointer-events: none;
+  animation: ping 1.8s cubic-bezier(.2, .7, .3, 1) infinite;
+}
+@keyframes ping {
+  0% { transform: scale(1); opacity: .9; }
+  70%, 100% { transform: scale(1.32, 1.6); opacity: 0; }
+}
+.switch.is-calling[aria-checked="false"] .sw-label { opacity: .55; }
 
 /* ---------- Sélecteur, hasard, rouleaux ---------- */
 .press { position: relative; flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 12px; }

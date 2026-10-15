@@ -2,6 +2,7 @@
    Un boudoir suranné : velours bordeaux, capitonné, moulures et dorures,
    lumière de bougies. Pimenté, mais chaleureux. */
 :root {
+  --call-color: var(--gold-hi);
   --velvet: #6B0F22;
   --velvet-hi: #9C1A33;
   --velvet-lo: #2B040C;
@@ -84,8 +85,10 @@ body {
   align-items: flex-end;
   gap: 5px;
   position: absolute;
-  right: max(22px, calc(env(safe-area-inset-right, 0px) + 14px));
-  bottom: max(20px, calc(env(safe-area-inset-bottom, 0px) + 12px));
+  right: max(18px, calc(env(safe-area-inset-right, 0px) + 12px));
+  bottom: max(16px, calc(env(safe-area-inset-bottom, 0px) + 10px));
+  transform: scale(.82);
+  transform-origin: right bottom;
 }
 body:has(#ov-start:not([hidden])) .deco-candles,
 body:has(#ov-edit:not([hidden])) .deco-candles,
@@ -177,12 +180,9 @@ body:has(#ov-skins:not([hidden])) .deco-candles { display: none; }
   background: linear-gradient(#C33A55, #7E1430);
   box-shadow: 0 0 0 1.5px var(--gold-hi), 0 0 0 4px var(--velvet-lo), 0 0 0 5px var(--gold-lo), inset 0 3px 6px rgba(0, 0, 0, .35), 0 0 22px rgba(233, 166, 176, .45);
 }
-.sw-label { font-family: var(--f-script); font-size: 42px; line-height: 1.05; color: var(--gold-hi); padding-right: 8px; }
+.sw-label { font-family: var(--f-script); font-size: 38px; line-height: 1.05; color: var(--gold-hi); padding-right: 8px; }
 .switch[aria-checked="true"] .sw-label { color: #FFE9EE; text-shadow: 0 0 14px rgba(233, 166, 176, .8); }
 .sw-owner { font-size: 12.5px; font-weight: 400; letter-spacing: .06em; color: var(--blush); }
-.switch.is-waiting { opacity: .4; }
-.switch.is-idle { opacity: .35; }
-.switch.is-calling .track { animation: heartbeat 1.3s ease-in-out infinite; }
 @keyframes heartbeat { 0%, 100% { transform: scale(1); } 14% { transform: scale(1.08); } 28% { transform: scale(1); } 42% { transform: scale(1.06); } }
 
 /* ---------- L’écrin capitonné ---------- */
@@ -199,45 +199,61 @@ body:has(#ov-skins:not([hidden])) .deco-candles { display: none; }
   box-shadow: 0 0 0 1.5px var(--gold), 0 0 0 5px var(--velvet-lo), 0 0 0 6.5px var(--gold-lo), 0 0 0 8px var(--gold), 0 18px 30px rgba(0, 0, 0, .5);
 }
 
-/* que tu me / de te : plaques gravées */
-.dir { gap: 4px; }
-.dir-or { color: var(--gold); font-family: var(--f-script); font-size: 26px; padding: 0 2px; }
-.dir button {
-  min-height: 40px;
-  padding: 2px 8px 4px;
-  font-family: var(--f-display);
-  font-style: italic;
-  font-weight: 500;
-  font-size: 19px;
-  color: var(--cream);
-  opacity: .5;
-  transition: opacity .3s, color .3s;
+/* que tu me / de te : grande plaque de velours, curseur en feuille d’or qui glisse */
+.press-row { gap: 10px; }
+.dir {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  height: 54px;
+  padding: 4px;
+  border-radius: 999px;
+  background: linear-gradient(var(--velvet-lo), var(--wine));
+  box-shadow: 0 0 0 1.5px var(--gold), 0 0 0 4px var(--velvet-lo), 0 0 0 5px var(--gold-lo), inset 0 3px 8px rgba(0, 0, 0, .65);
 }
-.dir button::after {
+.dir::before {
   content: "";
   position: absolute;
-  left: 8px; right: 8px; bottom: 4px;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, var(--gold-hi), transparent);
-  transform: scaleX(0);
-  transition: transform .4s cubic-bezier(.2, .9, .2, 1);
-}
-.dir button[aria-pressed="true"] { opacity: 1; color: var(--gold-hi); font-weight: 700; }
-.dir button[aria-pressed="true"]::after { transform: scaleX(1); }
-.dir.is-locked button[aria-pressed="false"] { opacity: .22; }
-
-.sticker--dice {
-  height: 42px;
-  padding: 0 16px 0 12px;
-  border: 0;
+  top: 4px; bottom: 4px; left: 4px;
+  width: calc(50% - 4px);
   border-radius: 999px;
   background: var(--foil);
-  color: var(--velvet-lo);
-  font-weight: 600;
-  font-size: 15px;
-  box-shadow: 0 3px 8px rgba(0, 0, 0, .45), inset 0 1px 0 rgba(255, 255, 255, .6);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, .55), inset 0 1px 0 rgba(255, 255, 255, .7), inset 0 -2px 0 rgba(0, 0, 0, .18);
+  transition: transform .5s cubic-bezier(.3, 1.35, .45, 1);
 }
-.sticker--dice:active { transform: translateY(1px); }
+.dir[data-dir="te"]::before { transform: translateX(100%); }
+.dir-or { display: none; }
+.dir button {
+  z-index: 1;
+  min-height: 0;
+  padding: 0 4px 2px;
+  font-family: var(--f-display);
+  font-style: italic;
+  font-weight: 700;
+  font-size: 22px;
+  letter-spacing: -.01em;
+  color: var(--cream);
+  opacity: .72;
+  transition: color .35s, opacity .35s;
+}
+.dir button[aria-pressed="true"] { opacity: 1; color: var(--velvet-lo); }
+.dir.is-locked button[aria-pressed="false"] { opacity: .28; }
+
+/* Hasard : médaillon doré, dé seul */
+.sticker--dice {
+  flex: none;
+  width: 54px;
+  height: 54px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: radial-gradient(circle at 34% 28%, #FFF8E0 0 6%, var(--gold-hi) 22%, var(--gold) 55%, var(--gold-lo) 100%);
+  color: var(--velvet-lo);
+  box-shadow: 0 0 0 1.5px var(--gold-hi), 0 0 0 4px var(--velvet-lo), 0 0 0 5px var(--gold-lo), 0 4px 10px rgba(0, 0, 0, .5);
+}
+.sticker--dice svg { width: 26px; height: 26px; }
+.sticker--dice span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.sticker--dice:active { transform: translateY(1px) rotate(-12deg); }
 
 /* Rouleaux : cadres dorés, tambours de velours satiné */
 .strips { gap: 10px; }
@@ -401,6 +417,7 @@ body:has(#ov-skins:not([hidden])) .deco-candles { display: none; }
   .reel-item { font-size: 19px; }
   .reel-item.is-long { font-size: 16px; }
   .reel-item.is-xlong { font-size: 14px; }
-  .dir button { min-height: 36px; font-size: 17px; }
-  .candle { transform: scale(.8); transform-origin: bottom; }
+  .dir { height: 48px; }
+  .dir button { font-size: 20px; }
+  .sticker--dice { width: 48px; height: 48px; }
 }

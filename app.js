@@ -22,7 +22,7 @@
     D.objets.map((t) => ({ t })).concat([{ free: true }]),
     D.manieres.map((t) => ({ t })).concat([{ free: true }])
   ];
-  const PLACEHOLDER = ['ton action à toi…', 'ton endroit à toi…', 'ta manière à toi…'];
+  const PLACEHOLDER = ['touche pour écrire ton action', 'touche pour écrire ton endroit', 'touche pour écrire ta manière'];
   const REEL_NAMES = ['l’action', 'l’endroit', 'la manière'];
 
   /* ---------- Stockage local (confort, jamais indispensable) ---------- */
@@ -388,19 +388,19 @@
     const B = esc(nameOf(other(S.proposer)));
     const ch = changedReels();
     let h = '';
-    if (S.phase === 'compose') h = '<b>' + A + '</b> propose. Fais tourner les roues, puis active « J’ai envie ».';
-    else if (S.phase === 'review' && !ch.length) h = '<b>' + B + '</b>, tu peux changer une roue. Quand la phrase te va, active « J’ai envie aussi ».';
-    else if (S.phase === 'review') h = 'Tu as changé ' + REEL_NAMES[ch[0]] + ' : ' + A + ' devra reconfirmer. <button class="undo" type="button" id="undo">Annuler mon changement</button>';
-    else if (S.phase === 'reconfirm') h = '<b>' + A + '</b>, ' + B + ' a changé ' + REEL_NAMES[changedReels()[0]] + '. Toujours envie ?';
+    if (S.phase === 'compose') h = '<b>' + A + '</b>, fais glisser les roues pour composer ton envie, puis active « J’ai envie ».';
+    else if (S.phase === 'review' && !ch.length) h = '<b>' + B + '</b>, tu peux changer une roue. Si la phrase te va, active « J’ai envie aussi ».';
+    else if (S.phase === 'review') h = 'Tu as changé ' + REEL_NAMES[ch[0]] + ' : ' + A + ' devra redire « J’ai envie ». <button class="undo" type="button" id="undo">Annuler mon changement</button>';
+    else if (S.phase === 'reconfirm') h = '<b>' + A + '</b>, ' + B + ' a changé ' + REEL_NAMES[changedReels()[0]] + '. Toujours envie ? Sinon, « On passe ».';
     el.hint.innerHTML = h;
     const u = $('#undo');
     if (u) u.addEventListener('click', undoChange);
   }
 
-  function setBottomLabel(on) {
-    const t = on ? 'J’ai envie aussi' : 'Oui mais…';
-    el.bottomLabel.textContent = t;
-    el.bottomLabel.dataset.ink = t;
+  function setBottomLabel() {
+    /* Le libellé reste « J’ai envie aussi » : grisé tant que l’autre n’a pas dit oui */
+    el.bottomLabel.textContent = 'J’ai envie aussi';
+    el.bottomLabel.dataset.ink = 'J’ai envie aussi';
   }
   function pulse() {
     document.body.classList.remove('is-pulse');
@@ -422,11 +422,13 @@
     // Switch du haut : l’envie de A
     el.ownerTop.textContent = A;
     el.swTop.classList.remove('is-waiting', 'is-calling', 'is-idle');
-    if (ph === 'compose') { setSwitch(el.swTop, false); el.swTop.disabled = false; }
-    else if (ph === 'review') {
+    if (ph === 'compose') {
+      setSwitch(el.swTop, false); el.swTop.disabled = false;
+      if (!el.swTop.disabled) el.swTop.classList.add('is-calling');
+    } else if (ph === 'review') {
       setSwitch(el.swTop, !ch.length);
       el.swTop.disabled = true;
-      if (ch.length) { el.swTop.classList.add('is-waiting'); el.ownerTop.textContent = A + ' devra reconfirmer'; }
+      if (ch.length) { el.swTop.classList.add('is-waiting'); el.ownerTop.textContent = A + ' devra le redire'; }
     } else if (ph === 'reconfirm') {
       el.swTop.disabled = false;
       if (el.swTop.getAttribute('aria-checked') !== 'true') el.swTop.classList.add('is-calling');
@@ -436,9 +438,11 @@
     el.ownerBottom.textContent = B;
     el.swBottom.classList.remove('is-idle', 'is-calling');
     if (ph === 'compose') { setSwitch(el.swBottom, false); el.swBottom.disabled = true; el.swBottom.classList.add('is-idle'); }
-    else if (ph === 'review') { el.swBottom.disabled = false; }
-    else { el.swBottom.disabled = true; }
-    setBottomLabel(el.swBottom.getAttribute('aria-checked') === 'true');
+    else if (ph === 'review') {
+      el.swBottom.disabled = el.swBottom.getAttribute('aria-checked') === 'true';
+      if (!el.swBottom.disabled) el.swBottom.classList.add('is-calling');
+    } else { el.swBottom.disabled = true; }
+    setBottomLabel();
 
     // Direction et hasard : seulement pour A pendant la composition
     el.dir.classList.toggle('is-locked', ph !== 'compose');
@@ -468,15 +472,19 @@
   function show(ov) { ov.hidden = false; }
   function hide(ov) { ov.hidden = true; }
 
-  function handoff(to, kind, then) {
+  function handoff(to, kind, then, back) {
     $('#handoff-title').textContent = 'Au tour de ' + nameOf(to);
     $('#handoff-kicker').textContent = 'Passe-lui le téléphone.';
     $('#handoff-text').textContent = kind === 'review'
-      ? nameOf(other(to)) + ' te fait une proposition. Tu peux changer une roue.'
-      : nameOf(other(to)) + ' a changé une roue. La phrase attend ta réponse.';
+      ? nameOf(other(to)) + ' te propose une envie. Tu peux changer une roue avant de répondre.'
+      : nameOf(other(to)) + ' a changé ' + REEL_NAMES[changedReels()[0]] + '. Toujours envie ?';
     const go = $('#handoff-go');
     go.textContent = 'C’est moi, ' + nameOf(to);
     go.onclick = () => { hide(el.ovHandoff); then(); };
+    const bk = $('#handoff-back');
+    bk.hidden = !back;
+    bk.textContent = 'Oups, ' + nameOf(other(to)) + ' n’avait pas fini';
+    bk.onclick = back ? () => { hide(el.ovHandoff); back(); } : null;
     show(el.ovHandoff);
     go.focus({ preventScroll: true });
   }
@@ -522,7 +530,13 @@
       S.original = { idx: S.idx.slice(), custom: S.custom.slice(), dir: S.dir };
       setSwitch(el.swTop, true); sSwitchOn(); haptic(15);
       el.swTop.disabled = true;
-      setTimeout(() => handoff(other(S.proposer), 'review', () => { S.phase = 'review'; render(); }), 650);
+      el.swTop.classList.remove('is-calling');
+      setTimeout(() => handoff(other(S.proposer), 'review', () => { S.phase = 'review'; render(); }, () => {
+        // « Oups, je n’avais pas fini » : retour à la composition
+        S.original = null;
+        setSwitch(el.swTop, false);
+        render();
+      }), 650);
     } else if (S.phase === 'reconfirm') {
       setSwitch(el.swTop, true); sSwitchOn(); haptic(15);
       el.swTop.classList.remove('is-calling');
@@ -538,11 +552,15 @@
     if (m !== undefined) { reels[m].nope(); flashHint('Écris ' + REEL_NAMES[m] + ' ou choisis une autre case.'); return; }
     setSwitch(el.swBottom, true); sSwitchOn(); haptic(15);
     el.swBottom.disabled = true;
-    setBottomLabel(true);
+    el.swBottom.classList.remove('is-calling');
     if (changedReels().length) {
       setTimeout(() => handoff(S.proposer, 'reconfirm', () => {
         S.phase = 'reconfirm';
         setSwitch(el.swTop, false);
+        render();
+      }, () => {
+        // retour à l’ajustement
+        setSwitch(el.swBottom, false);
         render();
       }), 650);
     } else {
@@ -603,7 +621,7 @@
     const to = other(S.proposer);
     handoffNewTurn(to);
   });
-  $('#pass-cancel').addEventListener('click', () => hide(el.ovPass));
+  $('#pass-cancel').addEventListener('click', () => { hide(el.ovPass); if (S.phase === 'celebrate') show(el.ovParty); });
 
   function handoffNewTurn(to) {
     $('#handoff-title').textContent = 'Au tour de ' + nameOf(to);
@@ -612,6 +630,7 @@
     const go = $('#handoff-go');
     go.textContent = 'C’est moi, ' + nameOf(to);
     go.onclick = () => { hide(el.ovHandoff); startComposition(to); };
+    $('#handoff-back').hidden = true;
     show(el.ovHandoff);
   }
 
@@ -678,6 +697,11 @@
     confetti();
     save('names', S.names);
   }
+  $('#party-pass').addEventListener('click', () => {
+    hide(el.ovParty);
+    stopConfetti();
+    el.pass.click();
+  });
   $('#party-next').addEventListener('click', () => {
     hide(el.ovParty);
     stopConfetti();

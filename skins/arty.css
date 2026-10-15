@@ -4,6 +4,7 @@
    papier imprimées ; la phrase se lit de haut en bas, du switch « J’ai envie »
    au switch de réponse. */
 :root {
+  --call-color: var(--pink);
   --paper: #FFE45C;
   --paper-hi: #FFF08F;
   --pink: #FF48B0;
@@ -222,9 +223,6 @@ button { font: inherit; color: inherit; }
 .switch[aria-checked="true"] .sw-label { --ink-a: var(--pink); --ink-b: var(--blue); }
 .sw-owner { font-size: 13px; font-weight: 700; font-stretch: 90%; color: var(--blue); }
 
-.switch.is-waiting { opacity: .4; }
-.switch.is-idle { opacity: .32; }
-.switch.is-calling .track { animation: call 1.2s ease-in-out infinite; }
 @keyframes call {
   0%, 100% { transform: rotate(0); }
   20% { transform: rotate(-5deg); }
@@ -550,6 +548,7 @@ button { font: inherit; color: inherit; }
 }
 .handoff-kicker { font-weight: 850; font-stretch: 112%; font-size: 20px; color: var(--pink-soft); }
 .handoff-text { font-size: 18px; max-width: 30ch; }
+.overlay--handoff .link-btn { color: var(--paper); text-decoration-color: var(--pink); }
 .overlay--handoff .btn { margin-top: 12px; }
 
 /* On passe : page rose */

@@ -9,7 +9,7 @@ Jeu à deux sur un seul téléphone, en portrait. Une phrase d’envie se compos
 - Le début « J’ai envie » est un switch : c’est l’envie de la personne qui propose.
 - « que tu me / de te » est un sélecteur à deux positions.
 - Trois rouleaux : l’action, l’endroit, la manière.
-- La fin est un switch « Oui mais… » (par défaut) / « J’ai envie aussi » : c’est la réponse de l’autre personne.
+- La fin est un switch « J’ai envie aussi », grisé tant que l’autre personne ne l’a pas activé : c’est sa réponse.
 - Les deux switches ont le même dessin.
 
 ## Déroulé d’un tour (A propose, B répond)
@@ -35,6 +35,15 @@ Jeu à deux sur un seul téléphone, en portrait. Une phrase d’envie se compos
 
 Chaque rouleau a une dernière case « ✎ … à toi ». En la touchant, on écrit sa propre action, son endroit ou sa manière (40 caractères max), avec un aperçu de la phrase. Pour l’action, il faut écrire le verbe dans la bonne forme (indiqué dans l’aide). La case libre ne sort jamais au hasard.
 
+## Repères pour bien jouer (revue UX)
+
+- Un switch éteint garde son texte en grisé (« J’ai envie », « J’ai envie aussi ») et s’allume quand on l’active.
+- Le switch qu’on attend émet une onde : celui du haut pendant la composition et la reconfirmation, celui du bas pendant la réponse.
+- La consigne dit qui joue et quoi faire, avec le verbe « fais glisser » pour les roues.
+- Écran de passage : lien « Oups, … n’avait pas fini » pour revenir en arrière après un switch activé trop vite.
+- Écran de célébration : lien « Finalement, on passe » ; on peut changer d’avis jusqu’au bout.
+- La case libre s’annonce « touche pour écrire ton action / ton endroit / ta manière ».
+
 ## Sensations
 
 - Petit retour haptique et clic sonore très discret à chaque cran de rouleau.
@@ -54,7 +63,7 @@ Papier jaune citron avec grain, deux encres (rose fluo et bleu) qui se chevauche
 La façade d’une machine à sous en tôle lithographiée : rayons rouge et crème, plaques émaillées rivetées pour la consigne et les switches, borne bleu nuit avec rangée d’ampoules, hublots chromés et tambours crème ombrés, flèches rouges de ligne gagnante, manette rouge pour le hasard, touches de caisse enregistreuse pour « que tu me / de te », ticket d’entrée « changé ». Célébration : rayons qui tournent, phrase sur un ticket gagnant, étoiles et tickets. Typo : Abril Fatface (lettrage d’enseigne extrudé) + Merriweather.
 
 ### Red Corner — boudoir
-Velours bordeaux plissé, cadre doré à moulures, bougies qui vacillent (et s’embrasent quand on active un switch), écrin capitonné, rouleaux en cadres dorés avec tambours de velours satiné et filets d’or, sceau de cire « changé », feuille d’or sur les titres. Célébration : lumière dorée, pétales et étincelles, phrase sur une carte de visite. Typo : Cinzel pour le logo et les titres (lisible, capitales romaines), Bodoni Moda italique pour les rouleaux, Great Vibes pour « J’ai envie », Jost pour le reste.
+Velours bordeaux plissé, cadre doré à moulures, « que tu me / de te » sur une grande plaque de velours avec un curseur en feuille d’or qui glisse, médaillon doré pour le hasard, bougies qui vacillent (et s’embrasent quand on active un switch), écrin capitonné, rouleaux en cadres dorés avec tambours de velours satiné et filets d’or, sceau de cire « changé », feuille d’or sur les titres. Célébration : lumière dorée, pétales et étincelles, phrase sur une carte de visite. Typo : Cinzel pour le logo et les titres (lisible, capitales romaines), Bodoni Moda italique pour les rouleaux, Great Vibes pour « J’ai envie », Jost pour le reste.
 
 ## Fichiers
 
