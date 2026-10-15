@@ -8,10 +8,10 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,62..125,100..900;1,62..125,100..900&family=Bagel+Fat+One&family=Abril+Fatface&family=Merriweather:ital,opsz,wght@0,18..144,400..900;1,18..144,400..900&family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..900;1,6..96,400..900&family=Jost:wght@300..700&family=Great+Vibes&family=Cinzel:wght@400..900&display=swap">
-<link rel="stylesheet" href="base.css?v=20">
-<link rel="stylesheet" href="skins/arty.css?v=20" data-skin-sheet="arty">
-<link rel="stylesheet" href="skins/pomme.css?v=20" data-skin-sheet="pomme">
-<link rel="stylesheet" href="skins/redcorner.css?v=20" data-skin-sheet="redcorner">
+<link rel="stylesheet" href="base.css?v=21">
+<link rel="stylesheet" href="skins/arty.css?v=21" data-skin-sheet="arty">
+<link rel="stylesheet" href="skins/pomme.css?v=21" data-skin-sheet="pomme">
+<link rel="stylesheet" href="skins/redcorner.css?v=21" data-skin-sheet="redcorner">
 <script>
 /* Ambiance : celle du lien (?design=redcorner ou #redcorner), sinon celle mémorisée.
    Appliquée avant l’affichage pour éviter un flash. */
@@ -76,6 +76,7 @@
   </header>
 
   <p class="hint" id="hint" aria-live="polite"></p>
+  <p class="duo-status" id="duo-status" hidden></p>
 
   <button class="switch switch--top" id="sw-top" type="button" role="switch" aria-checked="false">
     <span class="track"><span class="knob"></span></span>
@@ -112,12 +113,12 @@
   <div class="sheet">
     <p class="poster-neon" aria-hidden="true">Red Corner</p>
     <h2 class="poster-title"><span class="ink" data-ink="Kiff">Kiff</span><span class="ink" data-ink="Kiff">Kiff</span><span class="poster-venue"> au Nostra</span></h2>
-    <p class="poster-sub">Un jeu à deux, sur un seul téléphone.</p>
+    <p class="poster-sub">Un jeu à deux, sur un ou deux téléphones.</p>
     <p class="poster-rules">L’un·e propose une envie, l’autre peut changer une roue. Rien ne se passe sans deux « j’ai envie ».</p>
     <form id="start-form" class="start-form">
       <label for="name0">Qui propose en premier ?</label>
       <input id="name0" maxlength="20" autocomplete="off" placeholder="Cerise">
-      <label for="name1">Et l’autre ?</label>
+      <div class="name1-row"><label for="name1">Et l’autre ?</label><button class="skin-link duo-link" id="duo-open" type="button" aria-haspopup="dialog">Sur son téléphone ?</button></div>
       <input id="name1" maxlength="20" autocomplete="off" placeholder="Pistache">
       <button class="piment-row" id="piment-home" type="button" aria-haspopup="dialog">
         <span class="piment-row-label">Piment</span>
@@ -126,6 +127,11 @@
       </button>
       <button class="btn" type="submit" id="start-go">C’est parti</button>
       <button class="link-btn resume-link" id="resume" type="button" hidden>Reprendre la partie en cours</button>
+      <div class="duo-home" id="duo-home" hidden>
+        <p class="duo-home-text" id="duo-home-text"></p>
+        <button class="btn" id="duo-resume" type="button">Reprendre la partie</button>
+        <button class="link-btn" id="duo-quit" type="button">Quitter la partie à deux</button>
+      </div>
       <div class="start-links">
         <button class="skin-link" id="skin-open" type="button" aria-haspopup="dialog">Ambiance : <span id="skin-current">Red Corner</span></button>
         <button class="skin-link" id="mute" type="button" aria-pressed="false">Son : <span id="mute-state">activé</span></button>
@@ -158,6 +164,53 @@
     <p class="piment-error" id="piment-error" hidden role="alert">Garde au moins un niveau coché.</p>
     <div class="row row--end">
       <button class="btn" id="piment-done" type="button">C’est choisi</button>
+    </div>
+  </div>
+</div>
+
+<!-- Deux téléphones : créer, inviter, rejoindre -->
+<div class="overlay overlay--edit overlay--skins overlay--duo" id="ov-duo" hidden role="dialog" aria-modal="true" aria-labelledby="duo-title">
+  <form class="sheet sheet--edit sheet--skins sheet--duo" id="duo-form" novalidate>
+    <h2 class="edit-label" id="duo-title">Sur deux téléphones</h2>
+    <p class="duo-text" id="duo-text"></p>
+    <div class="duo-qr" id="duo-qr" hidden></div>
+    <div class="duo-share" id="duo-share" hidden>
+      <button class="btn" id="duo-send" type="button">Envoyer le lien</button>
+      <button class="btn btn--line" id="duo-copy" type="button">Copier le lien</button>
+    </div>
+    <label class="duo-name-label" for="duo-name" id="duo-name-label">Ton prénom</label>
+    <input id="duo-name" maxlength="20" autocomplete="off" enterkeyhint="go">
+    <p class="duo-wait" id="duo-wait" hidden><span class="duo-dots" aria-hidden="true"><i></i><i></i><i></i></span> <span id="duo-wait-text"></span></p>
+    <p class="duo-error" id="duo-error" hidden role="alert"></p>
+    <div class="row">
+      <button class="link-btn" id="duo-cancel" type="button">Annuler</button>
+      <button class="btn" id="duo-go" type="submit">Créer la partie</button>
+    </div>
+  </form>
+</div>
+
+<!-- Deux téléphones : pendant que l’autre joue -->
+<div class="overlay overlay--handoff overlay--wait" id="ov-wait" hidden>
+  <div class="sheet">
+    <h2 class="handoff-title" id="wait-title"></h2>
+    <p class="handoff-kicker" id="wait-kicker"></p>
+    <p class="party-sentence wait-sentence" id="wait-sentence" hidden></p>
+    <p class="handoff-text" id="wait-text"></p>
+    <p class="duo-wait" id="wait-presence"><span class="duo-dots" aria-hidden="true"><i></i><i></i><i></i></span> <span id="wait-presence-text"></span></p>
+    <div class="wait-links">
+      <button class="link-btn" id="wait-pass" type="button">On passe</button>
+      <button class="link-btn" id="wait-home" type="button">Accueil</button>
+    </div>
+  </div>
+</div>
+
+<!-- Deux téléphones : petite nouvelle de l’autre téléphone -->
+<div class="overlay overlay--edit overlay--skins" id="ov-note" hidden role="alertdialog" aria-modal="true" aria-labelledby="note-title">
+  <div class="sheet sheet--edit sheet--skins">
+    <h2 class="edit-label" id="note-title"></h2>
+    <p class="duo-text" id="note-text"></p>
+    <div class="row row--end">
+      <button class="btn" id="note-ok" type="button">D’accord</button>
     </div>
   </div>
 </div>
@@ -213,7 +266,8 @@
   </div>
 </div>
 <!--/APP-->
-<script src="data.js?v=20"></script>
-<script src="app.js?v=20"></script>
+<script src="data.js?v=21"></script>
+<script src="duo.js?v=21"></script>
+<script src="app.js?v=21"></script>
 </body>
 </html>

@@ -1,6 +1,6 @@
 # Kiff Kiff — brief
 
-Jeu à deux sur un seul téléphone, en portrait. Une phrase d’envie se compose avec des rouleaux de machine à sous ; elle ne devient une envie partagée que quand les deux personnes ont dit « j’ai envie ».
+Jeu à deux sur un seul téléphone ou sur deux téléphones, en portrait. Une phrase d’envie se compose avec des rouleaux de machine à sous ; elle ne devient une envie partagée que quand les deux personnes ont dit « j’ai envie ».
 
 ## La phrase
 
@@ -22,6 +22,22 @@ Jeu à deux sur un seul téléphone, en portrait. Une phrase d’envie se compos
 4. **Célébration** animée (confettis, phrase finale). L’action a lieu hors du jeu. Puis les rôles s’inversent : B propose, A ajuste.
 
 **On passe** est disponible à tout moment, sans justification : la même personne propose autre chose, ou l’autre propose à son tour.
+
+## Deux téléphones
+
+Sur l’accueil, à côté de « Et l’autre ? », le lien « Sur son téléphone ? » ouvre le mode à deux téléphones.
+
+1. **Créer** : la première personne écrit son prénom et touche « Créer la partie ». Un QR code et un lien d’invitation s’affichent (« Envoyer le lien » ouvre le partage du téléphone, « Copier le lien » le copie).
+2. **Rejoindre** : l’autre scanne le QR code ou ouvre le lien, écrit son prénom, touche « Rejoindre ». La partie commence : la personne qui a invité propose en premier, les rouleaux sont tirés au hasard.
+3. **Jouer** : chaque téléphone ne montre les rouleaux qu’à la personne qui a la main. L’autre voit un écran d’attente : « Au tour de … » pendant la composition, « Envie envoyée » avec la phrase pendant la lecture, « Tu as changé … » pendant la reconfirmation. L’envie arrive sur l’autre téléphone avec un petit son, une vibration et les rouleaux qui tournent. La célébration s’affiche sur les deux téléphones en même temps.
+4. **On passe** reste disponible partout, y compris depuis l’écran d’attente ; l’autre téléphone reçoit « On passe. Pas besoin d’expliquer pourquoi. »
+5. **Accueil** pendant une partie à deux : « Reprendre la partie » ou « Quitter la partie à deux » (l’autre téléphone en est prévenu).
+
+- Recharger la page ou rouvrir le lien reprend la partie là où elle en était.
+- Une ligne prévient si l’autre téléphone n’est plus connecté ; tout reprend à son retour.
+- Ambiance et son restent propres à chaque téléphone ; le piment est commun et se règle par la personne qui compose.
+
+**Comment ça marche.** Pas de serveur à nous : les deux téléphones passent par un relais public gratuit (MQTT sur WebSocket sécurisé : HiveMQ, sinon EMQX, sinon Mosquitto). Tout ce qui passe par le relais est chiffré (AES-GCM) avec une clé qui n’existe que dans le lien d’invitation, après le « # » : le relais ne voit ni les prénoms ni les phrases. Les deux téléphones doivent avoir la même version des roues (sinon un message demande de recharger la page). Code : `duo.js` (liaison) et la partie « Deux téléphones » de `app.js` ; bibliothèques dans `vendor/` (mqtt.js 5.10.1 et qrcode-generator 1.4.4, licence MIT), chargées seulement quand on joue à deux.
 
 ## Grammaire
 
@@ -84,7 +100,9 @@ Boudoir du Nostra : logo « Kiff Kiff au Nostra », enseigne « Red Corner » au
 - `base.css` : mécanique commune (mise en page, rouleaux, switches).
 - `skins/arty.css`, `skins/pomme.css`, `skins/redcorner.css` : une feuille par ambiance.
 - `data.js` : les listes des rouleaux (à modifier pour changer les mots).
-- `app.js` : rouleaux, déroulé du tour, grammaire, sons, confettis, ambiances.
+- `app.js` : rouleaux, déroulé du tour, grammaire, sons, confettis, ambiances, mode deux téléphones.
+- `duo.js` : liaison chiffrée entre deux téléphones (relais public).
+- `vendor/` : mqtt.js et qrcode-generator, pour le mode deux téléphones.
 
 Aucune dépendance, aucun build : GitHub Pages sert les fichiers tels quels. À chaque mise à jour, augmenter le numéro `?v=` des fichiers dans `index.html` pour que les téléphones rechargent la nouvelle version.
 

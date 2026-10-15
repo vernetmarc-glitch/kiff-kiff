@@ -9,6 +9,10 @@
  *   reconfirm : le « J’ai envie » de A est grisé ; A le réactive → célébration.
  *   celebrate : puis les rôles s’inversent.
  * « On passe » est disponible à tout moment.
+ *
+ * Deux téléphones (duo.js) : chaque téléphone tient une place (0 invite, 1 rejoint).
+ * L’état de la partie est partagé ; le téléphone qui n’a pas la main affiche un écran
+ * d’attente au lieu de l’écran « passe le téléphone ».
  */
 (() => {
   'use strict';
@@ -52,7 +56,9 @@
     original: null,
     muted: load('muted', false),
     levels: parseLevels(window.KIFF_LEVELS || load('levels', [1, 2])),
-    started: false
+    started: false,
+    bottom: false,
+    pass: null
   };
   buildLists(S.levels);
   const nameOf = (i) => (S.names[i] || '').trim() || (i === 0 ? 'Cerise' : 'Pistache');
@@ -249,6 +255,7 @@
     }
 
     canMove() {
+      if (!myTurn()) return false;
       if (S.phase === 'compose') return true;
       if (S.phase === 'review') return !this.locked && !reels.some((o) => o !== this && o.busy);
       return false;
@@ -297,8 +304,10 @@
       this.animateTo(target, dur, ease.outBack);
     }
     settle() {
+      const remote = !!this._remote;
+      this._remote = false;
       S.idx[this.r] = this.index;
-      onReelSettled(this.r);
+      onReelSettled(this.r, remote);
     }
     setLocked(on) {
       this.locked = on;
@@ -491,9 +500,10 @@
   }
   const renderReels = () => reels.forEach((r) => r.render());
 
-  function onReelSettled(r) {
+  function onReelSettled(r, remote) {
     if (r === 0) { reels[1].render(); renderDir(); }
     render();
+    if (!remote && (S.phase === 'compose' || S.phase === 'review')) sync();
   }
 
   /* ---------- Overlays ---------- */
@@ -522,6 +532,7 @@
     S.proposer = proposer;
     S.phase = 'compose';
     S.original = null;
+    S.bottom = false;
     setSwitch(el.swTop, false);
     setSwitch(el.swBottom, false);
     render();
@@ -551,6 +562,7 @@
 
   el.swTop.addEventListener('click', () => {
     audio();
+    if (!myTurn()) return;
     if (S.phase === 'compose') {
       if (reels.some((r) => r.busy)) return;
       const m = missingFree();
@@ -559,6 +571,13 @@
       setSwitch(el.swTop, true); sSwitchOn(); haptic(15);
       el.swTop.disabled = true;
       el.swTop.classList.remove('is-calling');
+      if (duo) {
+        // Deux téléphones : l’envie part tout de suite sur l’autre téléphone
+        S.phase = 'review'; S.bottom = false;
+        sync();
+        setTimeout(() => { render(); renderWait(); }, 600);
+        return;
+      }
       setTimeout(() => handoff(other(S.proposer), 'review', () => { S.phase = 'review'; render(); }, () => {
         // « Oups, je n’avais pas fini » : retour à la composition
         S.original = null;
@@ -569,18 +588,32 @@
       setSwitch(el.swTop, true); sSwitchOn(); haptic(15);
       el.swTop.classList.remove('is-calling');
       el.swTop.disabled = true;
+      if (duo) { S.phase = 'celebrate'; sync(); }
       setTimeout(celebrate, 600);
     }
   });
 
   el.swBottom.addEventListener('click', () => {
     audio();
-    if (S.phase !== 'review' || reels.some((r) => r.busy)) return;
+    if (S.phase !== 'review' || !myTurn() || reels.some((r) => r.busy)) return;
     const m = missingFree();
     if (m !== undefined) { reels[m].nope(); flashHint('Écris ' + REEL_NAMES[m] + ' ou choisis une autre case.'); return; }
     setSwitch(el.swBottom, true); sSwitchOn(); haptic(15);
     el.swBottom.disabled = true;
     el.swBottom.classList.remove('is-calling');
+    if (duo) {
+      S.bottom = true;
+      if (changedReels().length) {
+        S.phase = 'reconfirm';
+        sync();
+        setTimeout(() => { setSwitch(el.swTop, false); render(); renderWait(); }, 600);
+      } else {
+        S.phase = 'celebrate';
+        sync();
+        setTimeout(celebrate, 600);
+      }
+      return;
+    }
     if (changedReels().length) {
       setTimeout(() => handoff(S.proposer, 'reconfirm', () => {
         S.phase = 'reconfirm';
@@ -614,16 +647,18 @@
     const b = e.target.closest('button'); if (!b) return;
     audio();
     if (S.phase !== 'compose') { sNope(); haptic(20); flashHint(S.phase === 'review' ? 'Le début de la phrase appartient à ' + nameOf(S.proposer) + '.' : ''); return; }
+    if (!myTurn()) return;
     if (S.dir === b.dataset.dir) return;
     S.dir = b.dataset.dir;
     sClick(); haptic(8);
     renderReels();
     render();
+    sync();
   });
 
   el.dice.addEventListener('click', () => {
     audio();
-    if (S.phase !== 'compose' || reels.some((r) => r.busy)) return;
+    if (S.phase !== 'compose' || !myTurn() || reels.some((r) => r.busy)) return;
     shuffle(true);
   });
 
@@ -643,10 +678,22 @@
     show(el.ovPass);
     sSwitchOff();
   });
-  $('#pass-same').addEventListener('click', () => { hide(el.ovPass); startComposition(S.proposer); });
+  function duoPass(to) {
+    S.pass = { by: duo.seat, n: (S.pass ? S.pass.n : 0) + 1 };
+    hide(el.ovParty); stopConfetti();
+    startComposition(to);
+    sync();
+    renderWait();
+  }
+  $('#pass-same').addEventListener('click', () => {
+    hide(el.ovPass);
+    if (duo) { duoPass(S.proposer); return; }
+    startComposition(S.proposer);
+  });
   $('#pass-other').addEventListener('click', () => {
     hide(el.ovPass);
     const to = other(S.proposer);
+    if (duo) { duoPass(to); return; }
     handoffNewTurn(to);
   });
   $('#pass-cancel').addEventListener('click', () => { hide(el.ovPass); if (S.phase === 'celebrate') show(el.ovParty); });
@@ -734,6 +781,7 @@
     hide(el.ovParty);
     stopConfetti();
     startComposition(other(S.proposer));
+    if (duo) { sync(); renderWait(); }
   });
 
   /* Confettis */
@@ -832,10 +880,11 @@
       S.idx[r] = i;
     });
     // Pendant une réponse, changer les listes fausserait la proposition : il faudra une nouvelle partie
-    if (S.started && S.phase !== 'compose') S.mustRestart = true;
+    if (S.started && S.phase !== 'compose' && !duo) S.mustRestart = true;
     renderReels();
     renderLevel();
     if (reels.length && !opts.silent) render();
+    if (!opts.remote) sync();
   }
   function renderLevel() {
     const b = $('#piment-open');
@@ -873,6 +922,444 @@
       if (reels.length) renderReels();
     });
   }
+
+  /* ---------- Deux téléphones ---------- */
+  // Empreinte des listes : les deux téléphones doivent avoir les mêmes roues
+  const DATA_V = (() => {
+    const s = JSON.stringify([D.actions, D.objets, D.manieres]);
+    let h = 5381;
+    for (let i = 0; i < s.length; i++) h = ((h * 33) ^ s.charCodeAt(i)) >>> 0;
+    return h.toString(36);
+  })();
+  // Une case se désigne par sa place dans la liste complète (stable quel que soit le piment)
+  const keyOf = (r, i) => (LISTS[r][i] && LISTS[r][i].free ? 'f' : SOURCE[r].indexOf(LISTS[r][i]));
+  function idxOf(r, k) {
+    if (k === 'f') return LISTS[r].length - 1;
+    const i = LISTS[r].indexOf(SOURCE[r][k]);
+    return i < 0 ? 0 : i;
+  }
+
+  let duo = null; // { conn, info, seat, id, seq, lastBy, stage, partnerOn, online, passN }
+  function myTurn() {
+    if (!duo) return true;
+    if (S.phase === 'compose' || S.phase === 'reconfirm') return S.proposer === duo.seat;
+    if (S.phase === 'review') return S.proposer !== duo.seat;
+    return true;
+  }
+
+  const loaded = {};
+  function loadScript(src) {
+    if (!loaded[src]) {
+      loaded[src] = new Promise((res, rej) => {
+        const sc = document.createElement('script');
+        sc.src = src;
+        sc.onload = res;
+        sc.onerror = () => { delete loaded[src]; rej(new Error(src)); };
+        document.head.appendChild(sc);
+      });
+    }
+    return loaded[src];
+  }
+  const loadDuoLibs = () => Promise.all([loadScript('vendor/mqtt.min.js?v=5.10.1'), loadScript('vendor/qrcode.js?v=1.4.4')]);
+
+  function snapshot() {
+    const keys = (idx) => idx.map((i, r) => keyOf(r, i));
+    return {
+      v: 1, dv: DATA_V,
+      names: S.names.slice(), levels: S.levels.slice(),
+      proposer: S.proposer, phase: S.phase, dir: S.dir,
+      keys: keys(S.idx), custom: S.custom.slice(),
+      original: S.original ? { keys: keys(S.original.idx), custom: S.original.custom.slice(), dir: S.original.dir } : null,
+      bottom: !!S.bottom, pass: S.pass || null
+    };
+  }
+  function pushState(extra) {
+    if (!duo || !duo.conn) return;
+    const st = Object.assign(snapshot(), extra || {});
+    duo.seq += 1;
+    st.seq = duo.seq;
+    st.by = duo.id;
+    duo.lastBy = duo.id;
+    duo.conn.publishState(st);
+  }
+  let syncT = 0;
+  function sync() {
+    if (!duo || duo.stage !== 'game') return;
+    clearTimeout(syncT);
+    syncT = setTimeout(() => pushState(), 80);
+  }
+
+  function sentenceFrom(o) {
+    const keep = S.custom;
+    S.custom = o.custom;
+    const p = parts(o.idx, o.dir);
+    S.custom = keep;
+    const s = ('J’ai envie ' + glue(p.dir, p.act) + ' ' + p.obj + ' ' + p.man).replace(/\s+/g, ' ').trim();
+    return /[!?…]$/.test(s) ? s : s + '.';
+  }
+
+  /* L’autre téléphone a changé l’état de la partie */
+  function onRemoteState(st) {
+    if (!duo || !st || st.v !== 1) return;
+    if (st.seq < duo.seq || (st.seq === duo.seq && String(st.by) <= String(duo.lastBy))) return;
+    duo.seq = st.seq;
+    duo.lastBy = st.by;
+    clearTimeout(duo.findT);
+    if (st.phase === 'ended') {
+      if (duo.stage === 'game') note('Fin de la partie à deux', nameOf(st.endBy === 0 ? 0 : 1) + ' a quitté la partie.', () => leaveDuo(false));
+      else duoError('ended');
+      return;
+    }
+    if (st.dv !== DATA_V) {
+      if (duo.stage === 'game') note('Pas la même version', 'Vos deux téléphones n’ont pas les mêmes roues. Rechargez la page sur les deux téléphones.');
+      else duoError('version');
+      return;
+    }
+    if (duo.stage === 'game') { applyGame(st, {}); return; }
+    duo.remote = st;
+    if (st.phase === 'lobby') {
+      if (duo.seat === 0) showInvite();
+      else showJoin(st);
+    } else if (duo.resume || duo.stage === 'invite') {
+      const wasInvite = duo.stage === 'invite';
+      enterGame(st, wasInvite);
+      if (wasInvite) { sSwitchOn(); haptic(30); }
+    } else {
+      showJoin(st);
+    }
+  }
+
+  function enterGame(st, spin) {
+    duo.stage = 'game';
+    hide($('#ov-duo'));
+    hide(el.ovStart);
+    $('#start-form').classList.remove('is-duo');
+    S.started = true;
+    S.mustRestart = false;
+    applyGame(st, { first: true, spin: !!spin });
+  }
+
+  function applyGame(st, opts) {
+    const prev = { phase: S.phase, proposer: S.proposer };
+    S.names = (st.names || ['', '']).slice();
+    const lv = parseLevels(st.levels);
+    if (lv.join() !== S.levels.join()) { S.levels = lv; save('levels', lv); buildLists(lv); renderLevel(); }
+    S.proposer = st.proposer;
+    S.phase = st.phase;
+    S.dir = st.dir === 'te' ? 'te' : 'me';
+    S.custom = (st.custom || ['', '', '']).slice();
+    S.bottom = !!st.bottom;
+    const idx = st.keys.map((k, r) => idxOf(r, k));
+    S.original = st.original ? { idx: st.original.keys.map((k, r) => idxOf(r, k)), custom: st.original.custom.slice(), dir: st.original.dir } : null;
+    const arrived = !opts.first && myTurn() && (S.phase !== prev.phase || S.proposer !== prev.proposer);
+    const spin = (arrived && S.phase === 'review') || !!opts.spin;
+    S.idx = idx.slice();
+    reels.forEach((rl, r) => {
+      if (spin) { rl._remote = true; rl.spinTo(idx[r], 1, 700 + r * 260); return; }
+      if (rl.index === idx[r] && !rl.busy) return;
+      rl.stop(); rl.drag = null;
+      const t = Math.round(rl.p) + shortest(rl.index, idx[r], rl.n);
+      rl.p = t; rl.lastTick = t;
+    });
+    setSwitch(el.swTop, S.phase === 'review' || S.phase === 'celebrate');
+    setSwitch(el.swBottom, (S.phase === 'review' && S.bottom) || S.phase === 'reconfirm' || S.phase === 'celebrate');
+
+    // « On passe » venu de l’autre téléphone
+    const pn = st.pass ? st.pass.n : 0;
+    if (opts.first || duo.passN == null) duo.passN = pn;
+    else if (pn > duo.passN) {
+      duo.passN = pn;
+      if (st.pass.by !== duo.seat) {
+        hide(el.ovPass);
+        note('On passe.', nameOf(st.pass.by) + ' a passé. Pas besoin d’expliquer pourquoi. ' +
+          (S.proposer === duo.seat ? 'C’est à toi de proposer.' : nameOf(S.proposer) + ' propose autre chose.'));
+      }
+    }
+    S.pass = st.pass || null;
+
+    if (S.phase === 'celebrate' && prev.phase !== 'celebrate') celebrate();
+    if (S.phase !== 'celebrate' && !el.ovParty.hidden) { hide(el.ovParty); stopConfetti(); }
+    if (!myTurn() && !el.ovEdit.hidden) { hide(el.ovEdit); editing = -1; }
+    if (arrived && S.phase !== 'celebrate') { sSwitchOn(); haptic(30); }
+    renderReels();
+    render();
+    renderWait();
+  }
+
+  /* Écran d’attente : pendant que l’autre téléphone a la main */
+  function renderWait() {
+    const ov = $('#ov-wait');
+    const waiting = !!duo && duo.stage === 'game' && el.ovStart.hidden &&
+      ['compose', 'review', 'reconfirm'].includes(S.phase) && !myTurn();
+    if (!waiting) { hide(ov); renderDuoStatus(); return; }
+    const A = nameOf(S.proposer), B = nameOf(other(S.proposer));
+    let title, kicker, text, sent = '';
+    if (S.phase === 'compose') {
+      title = 'Au tour de ' + A;
+      kicker = A + ' compose une envie.';
+      text = 'Elle arrivera ici dès que ' + A + ' aura dit « J’ai envie ».';
+    } else if (S.phase === 'review') {
+      title = 'Envie envoyée';
+      kicker = B + ' la lit.';
+      sent = S.original ? sentenceFrom(S.original) : sentence();
+      text = B + ' peut changer une roue avant de répondre.';
+    } else {
+      const ch = changedReels();
+      title = 'Au tour de ' + A;
+      kicker = 'Tu as changé ' + REEL_NAMES[ch.length ? ch[0] : 0] + '.';
+      sent = sentence();
+      text = A + ' doit redire « J’ai envie ».';
+    }
+    $('#wait-title').textContent = title;
+    $('#wait-kicker').textContent = kicker;
+    $('#wait-text').textContent = text;
+    const ws = $('#wait-sentence');
+    ws.hidden = !sent;
+    ws.textContent = sent;
+    show(ov);
+    renderDuoStatus();
+  }
+
+  /* Connexion : la mienne et celle de l’autre */
+  function renderDuoStatus() {
+    const line = $('#duo-status');
+    if (!duo || duo.stage !== 'game') { line.hidden = true; return; }
+    const B = nameOf(other(duo.seat));
+    let msg = '';
+    if (duo.online === false) msg = 'Connexion perdue. Je réessaie…';
+    else if (duo.partnerOn === false) msg = B + ' n’est plus connecté·e. Tout reprendra dès son retour.';
+    line.textContent = msg;
+    line.hidden = !msg;
+    const wp = $('#wait-presence');
+    $('#wait-presence-text').textContent = msg || (B + ' est connecté·e.');
+    wp.classList.toggle('is-off', !!msg);
+    const ht = $('#duo-home-text');
+    if (ht) ht.textContent = 'Partie à deux avec ' + B + (msg ? '. ' + msg : ', connecté·e.');
+  }
+
+  const duoHandlers = {
+    state: (st) => onRemoteState(st),
+    presence: (seat, on) => { if (duo) { duo.partnerOn = on; renderDuoStatus(); } },
+    status: (ok) => { if (duo) { duo.online = ok; renderDuoStatus(); } }
+  };
+
+  /* ---------- Feuille « deux téléphones » : créer, inviter, rejoindre ---------- */
+  const ovDuo = $('#ov-duo');
+  const duoName = $('#duo-name');
+  function duoSheet(o) {
+    $('#duo-title').textContent = o.title;
+    $('#duo-text').textContent = o.text || '';
+    $('#duo-text').hidden = !o.text;
+    $('#duo-qr').hidden = !o.qr;
+    $('#duo-share').hidden = !o.qr;
+    $('#duo-name-label').hidden = !o.name;
+    duoName.hidden = !o.name;
+    $('#duo-name-label').textContent = 'Ton prénom';
+    $('#duo-wait').hidden = !o.wait;
+    $('#duo-wait-text').textContent = o.wait || '';
+    $('#duo-error').hidden = !o.error;
+    $('#duo-error').textContent = o.error || '';
+    $('#duo-go').hidden = !o.go;
+    $('#duo-go').textContent = o.go || '';
+    $('#duo-go').disabled = false;
+    $('#duo-cancel').textContent = o.cancel || 'Annuler';
+    ovDuo.dataset.stage = o.stage;
+    show(ovDuo);
+  }
+  function openDuoSetup() {
+    duoName.value = S.names[0] || $('#name0').value.trim() || '';
+    duoName.placeholder = 'Cerise';
+    duoSheet({
+      stage: 'setup',
+      title: 'Sur deux téléphones',
+      text: 'Chacun·e joue sur son téléphone : l’un·e propose sur le sien, l’autre répond sur le sien. Tu crées la partie, puis tu invites l’autre.',
+      name: true, go: 'Créer la partie'
+    });
+    if (!KiffDuoOk()) duoError('support');
+  }
+  const KiffDuoOk = () => !!(window.KiffDuo && window.KiffDuo.supported());
+
+  async function createDuo() {
+    const name = duoName.value.replace(/\s+/g, ' ').trim().slice(0, 20);
+    duoSheet({ stage: 'creating', title: 'Sur deux téléphones', wait: 'J’ouvre la partie…', cancel: 'Annuler' });
+    try { await loadDuoLibs(); } catch (e) { duoError('net'); return; }
+    const id = window.KiffDuo.newId();
+    duo = { seat: 0, id, seq: 0, lastBy: '', stage: 'creating', partnerOn: null, online: true, passN: null };
+    let conn;
+    try { conn = await window.KiffDuo.create(id, duoHandlers); } catch (e) { duo = null; duoError('relay'); return; }
+    if (!duo || duo.id !== id) { conn.close(true); return; } // annulé entre-temps
+    duo.conn = conn;
+    duo.info = conn.info;
+    save('duo', { room: conn.info.room, key: conn.info.key, broker: conn.info.broker, seat: 0, id });
+    try { history.replaceState(null, '', window.KiffDuo.link(conn.info)); } catch (e) { /* rien */ }
+    S.names = [name, ''];
+    save('names', [name, S.names[1] || load('names', ['', ''])[1] || '']);
+    S.proposer = 0;
+    S.phase = 'lobby';
+    S.original = null; S.bottom = false; S.pass = null;
+    S.custom = ['', '', ''];
+    pushState();
+    showInvite();
+  }
+  function showInvite() {
+    duo.stage = 'invite';
+    const url = window.KiffDuo.link(duo.info);
+    $('#duo-qr').innerHTML = window.KiffDuo.qrSvg(url);
+    $('#duo-send').hidden = typeof navigator.share !== 'function';
+    duoSheet({
+      stage: 'invite',
+      title: 'Invite l’autre téléphone',
+      text: 'Fais scanner ce code par l’autre téléphone, ou envoie-lui le lien. La partie commence dès que l’autre l’ouvre.',
+      qr: true, wait: 'En attente de l’autre téléphone…', cancel: 'Annuler la partie'
+    });
+  }
+  function showJoin(st) {
+    duo.stage = 'join';
+    duo.remote = st;
+    duoName.value = load('duoName', '') || '';
+    duoName.placeholder = 'Pistache';
+    const A = (st.names && st.names[0] || '').trim() || 'Cerise';
+    duoSheet({
+      stage: 'join',
+      title: A + ' t’invite',
+      text: st.phase === 'lobby'
+        ? 'Kiff Kiff à deux téléphones : ' + A + ' propose sur son téléphone, tu réponds sur le tien. Écris ton prénom pour rejoindre la partie.'
+        : 'La partie de ' + A + ' est déjà commencée. Écris ton prénom pour la rejoindre.',
+      name: true, go: 'Rejoindre', cancel: 'Jouer sur ce téléphone seulement'
+    });
+    setTimeout(() => duoName.focus(), 80);
+  }
+  function joinGame() {
+    const st = duo.remote;
+    const name = duoName.value.replace(/\s+/g, ' ').trim().slice(0, 20);
+    save('duoName', name);
+    const next = Object.assign({}, st);
+    next.names = [(st.names && st.names[0]) || '', name];
+    if (st.phase === 'lobby') {
+      // La partie commence : rouleaux au hasard, la personne qui a invité propose
+      const lv = parseLevels(st.levels);
+      buildLists(lv);
+      next.phase = 'compose';
+      next.proposer = 0;
+      next.keys = [0, 1, 2].map((r) => keyOf(r, Math.floor(Math.random() * (LISTS[r].length - 1))));
+      next.original = null; next.bottom = false;
+    }
+    duo.resume = true;
+    save('duo', { room: duo.info.room, key: duo.info.key, broker: duo.info.broker, seat: duo.seat, id: duo.id });
+    enterGame(next);
+    pushState();
+  }
+
+  async function startJoin(info) {
+    const stored = load('duo', null);
+    const same = stored && stored.room === info.room && stored.key === info.key;
+    const seat = same ? stored.seat : 1;
+    const id = same && stored.id ? stored.id : (KiffDuoOk() ? window.KiffDuo.newId() : 'x');
+    hide(el.ovStart);
+    duoSheet({ stage: 'connecting', title: 'Kiff Kiff à deux', wait: 'Connexion à la partie…', cancel: 'Jouer sur ce téléphone seulement' });
+    if (!KiffDuoOk()) { duoError('support'); return; }
+    duo = { info, seat, id, seq: 0, lastBy: '', stage: 'connecting', resume: !!same, partnerOn: null, online: true, passN: null };
+    try { await loadDuoLibs(); } catch (e) { duoError('net'); return; }
+    try {
+      const conn = await window.KiffDuo.join(info, seat, id, duoHandlers);
+      if (!duo || duo.id !== id) { conn.close(false); return; }
+      duo.conn = conn;
+    } catch (e) { duoError('relay'); return; }
+    duo.findT = setTimeout(() => { if (duo && duo.stage === 'connecting') duoError('notfound'); }, 9000);
+  }
+
+  function duoError(kind) {
+    const msgs = {
+      support: 'Ce navigateur ne sait pas jouer à deux téléphones. Essaie avec Safari ou Chrome à jour.',
+      net: 'Je n’arrive pas à charger le mode deux téléphones. Vérifie la connexion internet et réessaie.',
+      relay: 'Je n’arrive pas à joindre le relais qui relie les deux téléphones. Vérifie la connexion internet et réessaie.',
+      notfound: 'Je ne trouve pas cette partie. Le lien est peut-être incomplet, ou la partie a été fermée.',
+      ended: 'Cette partie est terminée. Créez-en une nouvelle.',
+      version: 'Vos deux téléphones n’ont pas les mêmes roues. Rechargez la page sur les deux téléphones.'
+    };
+    const retry = kind === 'net' || kind === 'relay' || kind === 'notfound' || kind === 'version';
+    duoSheet({
+      stage: 'error', title: 'Sur deux téléphones', error: msgs[kind] || msgs.relay,
+      go: retry ? 'Réessayer' : '', cancel: 'Jouer sur ce téléphone seulement'
+    });
+    ovDuo.dataset.retry = kind;
+  }
+
+  async function leaveDuo(announce) {
+    const d = duo;
+    duo = null;
+    clearTimeout(syncT);
+    save('duo', null);
+    try { history.replaceState(null, '', location.pathname + location.search); } catch (e) { /* rien */ }
+    hide(ovDuo); hide($('#ov-wait')); hide($('#ov-note'));
+    if (d && d.conn) {
+      if (announce && d.stage === 'game') {
+        const st = Object.assign(snapshot(), { phase: 'ended', endBy: d.seat, seq: d.seq + 1, by: d.id });
+        d.conn.publishState(st);
+      }
+      d.conn.close(announce && d.stage !== 'game').catch(() => {});
+    }
+    renderDuoStatus();
+    // Retour à l’accueil, pour une partie sur un seul téléphone
+    S.started = false;
+    S.phase = 'start';
+    S.names = load('names', ['', '']);
+    hide(el.ovParty); stopConfetti();
+    openHome();
+  }
+
+  /* Petit message de l’autre téléphone */
+  let noteThen = null;
+  function note(title, text, then) {
+    $('#note-title').textContent = title;
+    $('#note-text').textContent = text;
+    noteThen = then || null;
+    show($('#ov-note'));
+    sSwitchOff(); haptic(20);
+  }
+  $('#note-ok').addEventListener('click', () => {
+    hide($('#ov-note'));
+    const t = noteThen; noteThen = null;
+    if (t) t();
+  });
+
+  $('#duo-form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    audio();
+    const stage = ovDuo.dataset.stage;
+    if (stage === 'setup') createDuo();
+    else if (stage === 'join' && duo && duo.remote) joinGame();
+    else if (stage === 'error') {
+      const kind = ovDuo.dataset.retry;
+      const info = duo && duo.info;
+      if (duo && duo.conn) duo.conn.close(false).catch(() => {});
+      duo = null;
+      if (info) startJoin(info); else if (kind === 'version') location.reload(); else openDuoSetup();
+    }
+  });
+  $('#duo-cancel').addEventListener('click', () => {
+    audio();
+    const stage = ovDuo.dataset.stage;
+    if (stage === 'setup') { hide(ovDuo); return; }
+    leaveDuo(stage === 'invite');
+  });
+  $('#duo-copy').addEventListener('click', async () => {
+    const url = duo && duo.info ? window.KiffDuo.link(duo.info) : '';
+    let ok = false;
+    try { await navigator.clipboard.writeText(url); ok = true; } catch (e) { ok = false; }
+    $('#duo-copy').textContent = ok ? 'Lien copié' : 'Copie impossible';
+    setTimeout(() => { $('#duo-copy').textContent = 'Copier le lien'; }, 1800);
+  });
+  $('#duo-send').addEventListener('click', () => {
+    if (!duo || !duo.info) return;
+    navigator.share({ title: 'Kiff Kiff', text: 'On joue à Kiff Kiff ? Ouvre ce lien sur ton téléphone.', url: window.KiffDuo.link(duo.info) }).catch(() => {});
+  });
+  $('#wait-pass').addEventListener('click', () => el.pass.click());
+  $('#wait-home').addEventListener('click', () => el.home.click());
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && duo && duo.conn) duo.conn.wake();
+  });
+  window.addEventListener('online', () => { if (duo && duo.conn) duo.conn.wake(); });
 
   /* ---------- Démarrage ---------- */
   function init() {
@@ -918,7 +1405,7 @@
     };
     $('#piment-open').addEventListener('click', () => {
       audio();
-      if (S.phase !== 'compose') {
+      if (S.phase !== 'compose' || !myTurn()) {
         sNope(); haptic(20);
         flashHint('Le piment se règle pendant la composition, avant de proposer.');
         return;
@@ -974,15 +1461,27 @@
       render();
     });
     // Retour à l’accueil depuis le jeu
-    el.home.addEventListener('click', () => {
-      audio();
-      $('#name0').value = S.names[0] || '';
-      $('#name1').value = S.names[1] || '';
-      $('#resume').hidden = !S.started || !!S.mustRestart;
-      $('#start-go').textContent = S.started ? 'Nouvelle partie' : 'C’est parti';
-      show(el.ovStart);
-      el.ovStart.scrollTop = 0;
-    });
+    el.home.addEventListener('click', () => { audio(); openHome(); });
+    // Deux téléphones
+    $('#duo-open').addEventListener('click', () => { audio(); openDuoSetup(); });
+    $('#duo-resume').addEventListener('click', () => { audio(); hide(el.ovStart); renderWait(); });
+    $('#duo-quit').addEventListener('click', () => { audio(); leaveDuo(true); });
+    const inv = window.KiffDuo && window.KiffDuo.parse(location.hash);
+    if (inv) startJoin(inv);
+  }
+
+  function openHome() {
+    const inDuo = !!duo && duo.stage === 'game';
+    $('#start-form').classList.toggle('is-duo', inDuo);
+    $('#duo-home').hidden = !inDuo;
+    $('#name0').value = S.names[0] || '';
+    $('#name1').value = S.names[1] || '';
+    $('#resume').hidden = inDuo || !S.started || !!S.mustRestart;
+    $('#start-go').textContent = S.started ? 'Nouvelle partie' : 'C’est parti';
+    show(el.ovStart);
+    el.ovStart.scrollTop = 0;
+    renderWait();
+    renderDuoStatus();
   }
 
   window.addEventListener('resize', renderReels);
