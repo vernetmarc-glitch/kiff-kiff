@@ -235,6 +235,7 @@ body {
 .reel-item.is-center { font-weight: 900; color: var(--navy-deep); }
 .reel-item.is-long { font-size: 15.5px; }
 .reel-item.is-xlong { font-size: 13.5px; letter-spacing: -.01em; }
+.reel-item.is-xxlong { font-size: 12.5px; letter-spacing: -.015em; }
 .reel-item.is-placeholder { color: var(--red); font-weight: 700; }
 
 .reel.is-locked { filter: grayscale(.85) brightness(.9); opacity: .55; }
@@ -389,6 +390,7 @@ body {
   .reel-item { font-size: 16.5px; }
   .reel-item.is-long { font-size: 14.5px; }
   .reel-item.is-xlong { font-size: 12.5px; }
+  .reel-item.is-xxlong { font-size: 11.5px; }
   .dir button { min-height: 36px; font-size: 14px; }
 }
 

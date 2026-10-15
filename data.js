@@ -60,7 +60,8 @@ window.ROUE_DATA = {
     { s: "déglingues", i: "déglinguer", lvl: 3 },
     { s: "démontes", i: "démonter", lvl: 3 },
     { s: "mordes", i: "mordre", lvl: 3 },
-    { s: "saccages", i: "saccager", lvl: 3 }
+    { s: "saccages", i: "saccager", lvl: 3 },
+    { s: "ken", i: "ken", lvl: 3 }
   ],
 
   objets: [
@@ -92,6 +93,7 @@ window.ROUE_DATA = {
     { t: "la commissure des lèvres", lvl: 2 },
     { t: "les poignets", lvl: 2 },
     { t: "la pointe de la langue", lvl: 2 },
+    { s: "tout mon corps", i: "tout ton corps", lvl: 2 },
 
     /* Brûlant */
     { s: "mon sexe chaud", i: "ton sexe chaud", lvl: 3 },
@@ -103,7 +105,8 @@ window.ROUE_DATA = {
     { t: "le bout du gland", lvl: 3 },
     { t: "la zone périnéale", lvl: 3 },
     { t: "le sphincter anal", lvl: 3 },
-    { t: "un appendice quelconque", lvl: 3 }
+    { t: "un appendice quelconque", lvl: 3 },
+    { t: "la DGSE (demi-gaule semi-exploitable)", lvl: 3 }
   ],
 
   manieres: [
@@ -137,6 +140,7 @@ window.ROUE_DATA = {
     { t: "les yeux bandés", lvl: 2 },
     { t: "en couinant", lvl: 2 },
     { t: "bien sagement", lvl: 2 },
+    { t: "de ouf !", lvl: 2 },
 
     /* Brûlant */
     { t: "comme un·e bon·ne chien·ne", lvl: 3 },

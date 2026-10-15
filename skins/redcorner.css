@@ -294,6 +294,7 @@ body:has(#ov-skins:not([hidden])) .deco-candles { display: none; }
 .reel-item.is-center { font-weight: 700; color: var(--gold-hi); text-shadow: 0 0 12px rgba(255, 190, 110, .35); }
 .reel-item.is-long { font-size: 17.5px; }
 .reel-item.is-xlong { font-size: 15.5px; letter-spacing: -.01em; }
+.reel-item.is-xxlong { font-size: 13.5px; letter-spacing: -.015em; }
 .reel-item.is-placeholder { color: var(--blush); font-weight: 400; }
 
 .reel.is-locked { filter: brightness(.5) saturate(.6); opacity: .7; }
@@ -429,6 +430,7 @@ body:has(#ov-skins:not([hidden])) .deco-candles { display: none; }
   .reel-item { font-size: 19px; }
   .reel-item.is-long { font-size: 16px; }
   .reel-item.is-xlong { font-size: 14px; }
+  .reel-item.is-xxlong { font-size: 12.5px; }
   .dir { height: 48px; }
   .dir button { font-size: 20px; }
   .sticker--dice { width: 48px; height: 48px; }

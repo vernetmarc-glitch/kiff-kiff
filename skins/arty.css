@@ -372,6 +372,8 @@ button { font: inherit; color: inherit; }
 .reel-item.is-long.is-center { font-stretch: 96%; }
 .reel-item.is-xlong { font-size: 15.5px; font-stretch: 86%; }
 .reel-item.is-xlong.is-center { font-stretch: 88%; }
+.reel-item.is-xxlong { font-size: 14px; font-stretch: 82%; }
+.reel-item.is-xxlong.is-center { font-stretch: 84%; }
 .reel-item.is-placeholder { font-style: italic; font-weight: 600; }
 
 /* Ombrage du tambour : la trame se resserre vers le haut et le bas,
@@ -641,6 +643,7 @@ button { font: inherit; color: inherit; }
   .reel-item { font-size: 19px; }
   .reel-item.is-long { font-size: 16px; }
   .reel-item.is-xlong { font-size: 14.5px; }
+  .reel-item.is-xxlong { font-size: 13px; }
   .dir button { min-height: 38px; font-size: 17px; }
   .sticker--dice { height: 40px; }
 }

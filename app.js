@@ -230,6 +230,7 @@
           const len = txt.length + (lvl > 1 ? lvl + 1 : 0);
           node.classList.toggle('is-long', len > 22 && len <= 28);
           node.classList.toggle('is-xlong', len > 28);
+          node.classList.toggle('is-xxlong', len > 36);
         }
         node.classList.toggle('is-placeholder', isPlaceholder(this.r, idx));
         node.classList.toggle('is-center', Math.abs(d) < 0.5);
