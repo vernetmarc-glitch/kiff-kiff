@@ -4,9 +4,10 @@ Branche `piment`. Jouable sur https://vernetmarc-glitch.github.io/roue-du-consen
 
 ## Ce qui change
 
-- **Niveau de piment 1, 2 ou 3** : sur l’accueil (trois piments à choisir, avec une phrase qui décrit le niveau) et dans le jeu (bouton piments dans la barre du haut, qui ouvre la même fenêtre). Il vaut pour toutes les ambiances.
-- Un niveau montre aussi tout ce qui est en dessous. Le niveau se règle pendant la composition ; pendant la réponse, il est bloqué pour ne pas changer la proposition dans le dos de l’autre.
-- Le niveau reste mémorisé sur le téléphone, et se passe dans le lien : `?piment=1`, `2` ou `3` (combinable : `?design=redcorner&piment=2`).
+- **Niveaux de piment à cocher séparément** : Tendre (1 piment), Pimenté (2), Brûlant (3). On peut en cocher un ou plusieurs, par exemple seulement Brûlant pour ne tirer que parmi les propositions à 3 piments. Au moins un reste coché. Valable pour toutes les ambiances.
+- **Accueil allégé** : une seule ligne « Piment » montre les niveaux cochés (groupes de piments allumés ou éteints) et ouvre la fenêtre de choix. Texte de règle raccourci.
+- **Dans le jeu** : le bouton piments de la barre du haut montre les niveaux cochés et ouvre la même fenêtre, pendant la composition seulement (pendant la réponse, c’est bloqué pour ne pas changer la proposition dans le dos de l’autre). Changer le piment depuis l’accueil au milieu d’une réponse oblige à lancer une nouvelle partie.
+- Mémorisé sur le téléphone, et passable dans le lien avec les niveaux cochés : `?piment=1`, `?piment=23`, `?piment=3`, `?piment=123` (combinable : `?design=redcorner&piment=3`).
 - Les manières peuvent changer avec le sens de la phrase : « que tu me … avec **ton** sexe » / « de te … avec **mon** sexe ».
 - **Red Corner devient le Red Corner du Nostra, soirée Décadanse** : logo « Kiff Kiff au Nostra », enseigne « Red Corner » au néon rouge sur l’accueil, « Kiff Kiff » sur une ligne, reflets de boule à facettes qui glissent sur le velours, « au Red Corner du Nostra » sur la célébration.
 
@@ -24,7 +25,7 @@ Branche `piment`. Jouable sur https://vernetmarc-glitch.github.io/roue-du-consen
 - Endroits (que tout le monde a, quel que soit son sexe) : l’entrejambe, le pubis, le périnée, la raie des fesses, l’anus, le point le plus sensible, tout ce qui dépasse.
 - Manières : comme un·e bon·ne petit·e chien·ne, en mode soumis·e, en mode dominant·e, avec ton/mon sexe, avec tes/mes tétons, à genoux, en me/te tirant les cheveux, jusqu’à ce que je supplie / tu supplies.
 
-Nombre de cases (actions / endroits / manières) : niveau 1 = 21 / 21 / 20, niveau 2 = 32 / 29 / 32, niveau 3 = 40 / 37 / 40.
+Nombre de cases par niveau seul (actions / endroits / manières) : Tendre = 21 / 21 / 20, Pimenté = 11 / 8 / 12, Brûlant = 8 / 8 / 8. Les niveaux cochés s’additionnent.
 
 ## Estampille
 

@@ -650,9 +650,10 @@ button { font: inherit; color: inherit; }
 }
 
 /* Piment */
-.piment-field legend { font-weight: 800; font-size: 15px; color: var(--blue); }
+.piment-row-label { font-weight: 800; font-size: 16px; font-stretch: 104%; }
 .piment-name { font-family: var(--f-ui); font-weight: 800; font-stretch: 104%; }
-.piment-desc { color: var(--violet); }
+.piment-error { color: #D81B60; }
+.sheet--edit .edit-hint { color: var(--blue); }
 
 /* Estampille piment sur chaque bande */
-.reel { --reel-chili: #FF48B0; --reel-chili-bg: var(--violet); }
+:root { --reel-chili: #FF48B0; --reel-chili-bg: var(--violet); }

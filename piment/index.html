@@ -8,10 +8,10 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,62..125,100..900;1,62..125,100..900&family=Bagel+Fat+One&family=Abril+Fatface&family=Merriweather:ital,opsz,wght@0,18..144,400..900;1,18..144,400..900&family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..900;1,6..96,400..900&family=Jost:wght@300..700&family=Great+Vibes&family=Cinzel:wght@400..900&display=swap">
-<link rel="stylesheet" href="base.css?v=12">
-<link rel="stylesheet" href="skins/arty.css?v=12" data-skin-sheet="arty">
-<link rel="stylesheet" href="skins/pomme.css?v=12" data-skin-sheet="pomme">
-<link rel="stylesheet" href="skins/redcorner.css?v=12" data-skin-sheet="redcorner">
+<link rel="stylesheet" href="base.css?v=13">
+<link rel="stylesheet" href="skins/arty.css?v=13" data-skin-sheet="arty">
+<link rel="stylesheet" href="skins/pomme.css?v=13" data-skin-sheet="pomme">
+<link rel="stylesheet" href="skins/redcorner.css?v=13" data-skin-sheet="redcorner">
 <script>
 /* Ambiance : celle du lien (?design=redcorner ou #redcorner), sinon celle mémorisée.
    Appliquée avant l’affichage pour éviter un flash. */
@@ -31,10 +31,14 @@
   }
   s = s || 'arty';
   document.documentElement.setAttribute('data-skin', s);
-  /* Piment imposé par le lien : ?piment=1, 2 ou 3 */
+  /* Piment imposé par le lien : ?piment=1, 23, 3, 123… (les niveaux cochés) */
   try {
-    var pm = parseInt(new URLSearchParams(location.search).get('piment'), 10);
-    if (pm >= 1 && pm <= 3) { window.KIFF_LEVEL = pm; try { localStorage.setItem('roue:level', JSON.stringify(pm)); } catch (e) {} }
+    var pm = (new URLSearchParams(location.search).get('piment') || '').replace(/[^123]/g, '');
+    if (pm) {
+      var lv = [1, 2, 3].filter(function (n) { return pm.indexOf(String(n)) >= 0; });
+      window.KIFF_LEVELS = lv;
+      try { localStorage.setItem('roue:levels', JSON.stringify(lv)); } catch (e) {}
+    }
   } catch (e) {}
   var l = document.querySelectorAll('[data-skin-sheet]');
   for (var i = 0; i < l.length; i++) l[i].disabled = l[i].getAttribute('data-skin-sheet') !== s;
@@ -109,17 +113,17 @@
     <p class="poster-neon" aria-hidden="true">Red Corner</p>
     <h2 class="poster-title"><span class="ink" data-ink="Kiff">Kiff</span><span class="ink" data-ink="Kiff">Kiff</span><span class="poster-venue"> au Nostra</span></h2>
     <p class="poster-sub">Un jeu à deux, sur un seul téléphone.</p>
-    <p class="poster-rules">L’un·e propose une envie avec les roues. L’autre peut en changer une. Rien ne se passe tant que les deux n’ont pas dit « j’ai envie ».</p>
+    <p class="poster-rules">L’un·e propose une envie, l’autre peut changer une roue. Rien ne se passe sans deux « j’ai envie ».</p>
     <form id="start-form" class="start-form">
       <label for="name0">Qui propose en premier ?</label>
       <input id="name0" maxlength="20" autocomplete="off" placeholder="Cerise">
       <label for="name1">Et l’autre ?</label>
       <input id="name1" maxlength="20" autocomplete="off" placeholder="Pistache">
-      <fieldset class="piment-field">
-        <legend>Piment</legend>
-        <div class="piment-choice" data-name="piment" role="radiogroup" aria-label="Niveau de piment"></div>
-        <p class="piment-desc"></p>
-      </fieldset>
+      <button class="piment-row" id="piment-home" type="button" aria-haspopup="dialog">
+        <span class="piment-row-label">Piment</span>
+        <span class="pgroups" id="piment-summary"></span>
+        <span class="piment-row-cta">Choisir</span>
+      </button>
       <button class="btn" type="submit" id="start-go">C’est parti</button>
       <button class="link-btn resume-link" id="resume" type="button" hidden>Reprendre la partie en cours</button>
       <div class="start-links">
@@ -148,10 +152,10 @@
 <!-- Niveau de piment -->
 <div class="overlay overlay--edit overlay--skins" id="ov-piment" hidden role="dialog" aria-modal="true" aria-labelledby="piment-title">
   <div class="sheet sheet--edit sheet--skins">
-    <h2 class="edit-label" id="piment-title">Niveau de piment</h2>
-    <div class="piment-choice piment-choice--sheet" data-name="piment2" role="radiogroup" aria-labelledby="piment-title"></div>
-    <p class="piment-desc"></p>
-    <p class="edit-hint">Choisissez-le ensemble : il vaut pour vous deux.</p>
+    <h2 class="edit-label" id="piment-title">Piment</h2>
+    <p class="edit-hint">Coche un ou plusieurs niveaux. Choisissez-les ensemble : ils valent pour vous deux.</p>
+    <div class="piment-list" id="piment-list" role="group" aria-labelledby="piment-title"></div>
+    <p class="piment-error" id="piment-error" hidden role="alert">Garde au moins un niveau coché.</p>
     <div class="row row--end">
       <button class="btn" id="piment-done" type="button">C’est choisi</button>
     </div>
@@ -209,7 +213,7 @@
   </div>
 </div>
 <!--/APP-->
-<script src="data.js?v=12"></script>
-<script src="app.js?v=12"></script>
+<script src="data.js?v=13"></script>
+<script src="app.js?v=13"></script>
 </body>
 </html>
