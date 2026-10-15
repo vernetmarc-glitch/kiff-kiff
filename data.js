@@ -22,7 +22,19 @@ window.ROUE_DATA = {
     { s: "pinces", i: "pincer" },
     { s: "suces", i: "sucer" },
     { s: "martèles", i: "marteler" },
-    { s: "déglingues", i: "déglinguer" }
+    { s: "déglingues", i: "déglinguer" },
+    { s: "mordilles", i: "mordiller" },
+    { s: "renifles", i: "renifler" },
+    { s: "bécotes", i: "bécoter" },
+    { s: "effleures", i: "effleurer" },
+    { s: "fasses la bise", i: "faire la bise", p: "à" },
+    { s: "murmures des secrets", i: "murmurer des secrets", p: "à" },
+    { s: "chantes une berceuse", i: "chanter une berceuse", p: "à" },
+    { s: "présentes tes respects", i: "présenter mes respects", p: "à" },
+    { s: "tapes du morse sur", i: "taper du morse sur" },
+    { s: "mettes de la chantilly sur", i: "mettre de la chantilly sur" },
+    { s: "dessines un cœur sur", i: "dessiner un cœur sur" },
+    { s: "fasses des bisous papillon sur", i: "faire des bisous papillon sur" }
   ],
   objets: [
     "la tête",
@@ -37,7 +49,19 @@ window.ROUE_DATA = {
     "le coude droit",
     "l’arrière du genou",
     "le dos",
-    "le lobe de l’oreille"
+    "le lobe de l’oreille",
+    "le nombril",
+    "les fesses",
+    "la nuque",
+    "la plante des pieds",
+    "le petit doigt",
+    "les sourcils",
+    "le bout du nez",
+    "la fossette gauche",
+    "le grain de beauté le plus proche",
+    "l’aura",
+    "le chakra du cœur",
+    "la moustache imaginaire"
   ],
   manieres: [
     "sans vergogne",
@@ -52,6 +76,18 @@ window.ROUE_DATA = {
     "délicatement",
     "comme un·e sauvage",
     "à la bonne franquette",
-    "en sautillant"
+    "en sautillant",
+    "en pouffant",
+    "au ralenti, façon cinéma",
+    "en faisant des bruits de dauphin",
+    "avec la solennité d’un notaire",
+    "avec des gants de vaisselle",
+    "comme si c’était la première fois",
+    "en récitant la liste de courses",
+    "sans les mains",
+    "en comptant en italien",
+    "comme un paresseux en vacances",
+    "en rougissant",
+    "avec une voix de documentaire"
   ]
 };

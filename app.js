@@ -202,7 +202,8 @@
         if (node._t !== txt) {
           node.textContent = txt;
           node._t = txt;
-          node.classList.toggle('is-long', txt.length > 22);
+          node.classList.toggle('is-long', txt.length > 22 && txt.length <= 28);
+          node.classList.toggle('is-xlong', txt.length > 28);
         }
         node.classList.toggle('is-placeholder', isPlaceholder(this.r, idx));
         node.classList.toggle('is-center', Math.abs(d) < 0.5);
