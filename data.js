@@ -84,7 +84,7 @@ window.ROUE_DATA = {
     { t: "la moustache" },
 
     /* Pimenté */
-    { t: "le boule", lvl: 2 },
+    { t: "le boul", lvl: 2 },
     { t: "le téton gauche", lvl: 2 },
     { t: "le téton droit", lvl: 2 },
     { t: "une zone moyennement érogène", lvl: 2 },
