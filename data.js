@@ -6,7 +6,8 @@
  *           i = forme après « de te » (infinitif)
  *           p = "à" quand l’action se construit avec « à » : la roue des endroits
  *               s’accorde alors toute seule (à la tête, au gros orteil, aux épaules).
- * Endroits : t = texte.
+ * Endroits : t = texte, ou s / i quand le possessif change avec le sens
+ *            (« que tu me … mon sexe » / « de te … ton sexe »).
  * Manières : t = texte identique dans les deux sens,
  *            ou s / i quand un possessif change avec le sens
  *            (« que tu me … avec ton sexe » / « de te … avec mon sexe »).
@@ -79,9 +80,9 @@ window.ROUE_DATA = {
     { t: "le dessous du pied" },
     { t: "l’annulaire" },
     { t: "le sourcil droit" },
-    { t: "l’aura" },
     { t: "le petit cœur" },
     { t: "la moustache" },
+    { t: "le creux rétro-auriculaire" },
 
     /* Pimenté */
     { t: "le boul", lvl: 2 },
@@ -93,30 +94,29 @@ window.ROUE_DATA = {
     { t: "la pointe de la langue", lvl: 2 },
 
     /* Brûlant */
-    { t: "le sexe chaud", lvl: 3 },
+    { s: "mon sexe chaud", i: "ton sexe chaud", lvl: 3 },
     { t: "l’entrecuisse", lvl: 3 },
     { t: "la raie", lvl: 3 },
-    { t: "tout ce qui dépasse", lvl: 3 },
     { t: "la porte arrière", lvl: 3 },
     { t: "le pare-choc", lvl: 3 },
     { t: "l’orifice de ton choix", lvl: 3 },
     { t: "le bout du gland", lvl: 3 },
     { t: "la zone périnéale", lvl: 3 },
-    { t: "le sphincter anal", lvl: 3 }
+    { t: "le sphincter anal", lvl: 3 },
+    { t: "un appendice quelconque", lvl: 3 }
   ],
 
   manieres: [
     { t: "avec application" },
     { t: "en chantonnant" },
     { t: "joyeusement" },
-    { t: "très lentement" },
-    { t: "avec amour" },
+    { t: "bien délicatement" },
+    { t: "avec tant d’amour" },
     { t: "vigoureusement" },
     { t: "en toute amitié" },
-    { t: "délicatement" },
+    { t: "avec lenteur et délectation" },
     { t: "à la bonne franquette" },
     { t: "en sautillant" },
-    { t: "en pouffant" },
     { t: "en slow motion" },
     { t: "en cancanant tel le dauphin" },
     { t: "et très solennellement" },

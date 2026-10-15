@@ -73,9 +73,9 @@
     if (/^les\s/i.test(o)) return 'aux ' + o.slice(4);
     return 'à ' + o;
   }
-  function objetForm(j, prep) {
+  function objetForm(j, prep, dir = S.dir) {
     const o = LISTS[1][j];
-    const base = o.free ? S.custom[1].trim() : o.t;
+    const base = o.free ? S.custom[1].trim() : (o.t || (dir === 'me' ? o.s : o.i));
     if (!base) return '';
     return prep === 'à' && !/^(à|au|aux)\s/i.test(base) ? withA(base) : base;
   }
@@ -96,7 +96,7 @@
     return {
       dir: dirForm(dir, act),
       act,
-      obj: objetForm(idx[1], actionPrep(idx[0])),
+      obj: objetForm(idx[1], actionPrep(idx[0]), dir),
       man: maniereForm(idx[2], dir)
     };
   }
