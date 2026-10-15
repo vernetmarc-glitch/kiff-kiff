@@ -47,6 +47,7 @@ window.ROUE_DATA = {
     { s: "mordilles", i: "mordiller", lvl: 2 },
     { s: "dévores", i: "dévorer", lvl: 2 },
     { s: "fesses", i: "fesser", lvl: 2 },
+    { s: "roules une pelle chaude", i: "rouler une pelle chaude", p: "à", lvl: 2 },
 
     /* Brûlant */
     { s: "circlues", i: "circlure", lvl: 3 },
@@ -106,7 +107,8 @@ window.ROUE_DATA = {
     { t: "la zone périnéale", lvl: 3 },
     { t: "le sphincter anal", lvl: 3 },
     { t: "un appendice quelconque", lvl: 3 },
-    { t: "la DGSE (demi-gaule semi-exploitable)", lvl: 3 }
+    { t: "la DGSE (demi-gaule semi-exploitable)", lvl: 3 },
+    { t: "l’appareil génital", lvl: 3 }
   ],
 
   manieres: [
