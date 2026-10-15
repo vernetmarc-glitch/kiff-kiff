@@ -32,7 +32,6 @@ window.ROUE_DATA = {
     { s: "chantes une berceuse", i: "chanter une berceuse", p: "à" },
     { s: "présentes tes respects", i: "présenter mes respects", p: "à" },
     { s: "tapes du morse sur", i: "taper du morse sur" },
-    { s: "mettes de la chantilly sur", i: "mettre de la chantilly sur" },
     { s: "dessines un cœur sur", i: "dessiner un cœur sur" },
     { s: "fasses des bisous papillon sur", i: "faire des bisous papillon sur" }
   ],
@@ -51,17 +50,16 @@ window.ROUE_DATA = {
     "le dos",
     "le lobe de l’oreille",
     "le nombril",
-    "les fesses",
+    "le fessier",
     "la nuque",
     "la plante des pieds",
-    "le petit doigt",
+    "l’annulaire",
     "les sourcils",
-    "le bout du nez",
-    "la fossette gauche",
+    "la fossette de ton choix",
     "le grain de beauté le plus proche",
     "l’aura",
     "le chakra du cœur",
-    "la moustache imaginaire"
+    "la moustache"
   ],
   manieres: [
     "sans vergogne",
@@ -78,15 +76,13 @@ window.ROUE_DATA = {
     "à la bonne franquette",
     "en sautillant",
     "en pouffant",
-    "au ralenti, façon cinéma",
-    "en faisant des bruits de dauphin",
-    "avec la solennité d’un notaire",
-    "avec des gants de vaisselle",
+    "en slow motion",
+    "en convainquant tel le dauphin",
+    "solennellement",
     "comme si c’était la première fois",
     "en récitant la liste de courses",
     "sans les mains",
     "en comptant en italien",
-    "comme un paresseux en vacances",
     "en rougissant",
     "avec une voix de documentaire"
   ]
