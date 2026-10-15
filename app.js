@@ -761,13 +761,16 @@
   }
 
   /* ---------- Ambiances ---------- */
-  const SKINS = ['zinzin', 'pomme', 'redcorner'];
+  const SKINS = ['arty', 'pomme', 'redcorner'];
+  const SKIN_NAMES = { arty: 'Arty', pomme: 'Pomme d’Amour', redcorner: 'Red Corner' };
   function currentSkin() {
     const s = document.documentElement.getAttribute('data-skin');
-    return SKINS.includes(s) ? s : 'zinzin';
+    return SKINS.includes(s) ? s : 'arty';
   }
   function applySkin(s) {
-    if (!SKINS.includes(s)) s = 'zinzin';
+    if (!SKINS.includes(s)) s = 'arty';
+    const cur = $('#skin-current');
+    if (cur) cur.textContent = SKIN_NAMES[s];
     document.documentElement.setAttribute('data-skin', s);
     document.querySelectorAll('[data-skin-sheet]').forEach((n) => { n.disabled = n.getAttribute('data-skin-sheet') !== s; });
     save('skin', s);
@@ -791,6 +794,18 @@
       r.checked = r.value === currentSkin();
       r.addEventListener('change', () => { if (r.checked) { audio(); applySkin(r.value); sClick(); haptic(8); } });
     });
+    const ovSkins = $('#ov-skins');
+    $('#skin-open').addEventListener('click', () => {
+      audio();
+      document.querySelectorAll('input[name="skin"]').forEach((r) => { r.checked = r.value === currentSkin(); });
+      show(ovSkins);
+      const checked = ovSkins.querySelector('input:checked');
+      if (checked) checked.focus({ preventScroll: true });
+    });
+    const closeSkins = () => { hide(ovSkins); $('#skin-open').focus({ preventScroll: true }); };
+    $('#skins-done').addEventListener('click', closeSkins);
+    ovSkins.addEventListener('click', (e) => { if (e.target === ovSkins) closeSkins(); });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !ovSkins.hidden) closeSkins(); });
     $('#name0').value = S.names[0] || '';
     $('#name1').value = S.names[1] || '';
     $('#start-form').addEventListener('submit', (e) => {

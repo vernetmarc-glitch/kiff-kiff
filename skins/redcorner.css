@@ -16,6 +16,7 @@
   --foil: linear-gradient(100deg, #8C6424 0%, #F6DDA0 22%, #C9963F 40%, #FFF0C4 52%, #B8873A 68%, #F2D38C 84%, #8C6424 100%);
 
   --f-display: "Bodoni Moda", "Didot", "Bodoni 72", Georgia, serif;
+  --f-title: "Cinzel", "Trajan Pro", "Optima", Georgia, serif;
   --f-script: "Great Vibes", "Snell Roundhand", "Apple Chancery", cursive;
   --f-ui: "Jost", "Futura", "Century Gothic", "Trebuchet MS", sans-serif;
 
@@ -87,7 +88,8 @@ body {
   bottom: max(20px, calc(env(safe-area-inset-bottom, 0px) + 12px));
 }
 body:has(#ov-start:not([hidden])) .deco-candles,
-body:has(#ov-edit:not([hidden])) .deco-candles { display: none; }
+body:has(#ov-edit:not([hidden])) .deco-candles,
+body:has(#ov-skins:not([hidden])) .deco-candles { display: none; }
 .candle {
   position: relative;
   width: 11px;
@@ -139,7 +141,7 @@ body:has(#ov-edit:not([hidden])) .deco-candles { display: none; }
 
 /* ---------- En-tête ---------- */
 .app { gap: 9px; padding-top: 20px; padding-left: max(22px, env(safe-area-inset-left, 0px)); padding-right: max(22px, env(safe-area-inset-right, 0px)); padding-bottom: 22px; }
-.logo { font-family: var(--f-display); font-style: italic; font-weight: 800; font-size: 34px; letter-spacing: -.01em; }
+.logo { font-family: var(--f-title); font-weight: 800; font-size: 27px; letter-spacing: .05em; font-variant-ligatures: none; }
 .sticker {
   height: 40px;
   border: 1.5px solid var(--gold);
@@ -317,8 +319,7 @@ body:has(#ov-edit:not([hidden])) .deco-candles { display: none; }
 @keyframes curtain { from { opacity: 0; filter: brightness(.3); } }
 .sheet { align-items: center; text-align: center; }
 
-.poster-title { align-items: center; font-family: var(--f-display); font-style: italic; font-weight: 800; font-size: clamp(78px, 27vw, 132px); line-height: .86; letter-spacing: -.03em; }
-.poster-title .ink:last-child { margin-left: 22%; }
+.poster-title { align-items: center; font-family: var(--f-title); font-weight: 800; font-size: clamp(58px, 20vw, 104px); line-height: .98; letter-spacing: .06em; font-variant-ligatures: none; }
 .poster-sub { font-family: var(--f-script); font-size: 30px; line-height: 1.1; color: var(--blush); }
 .poster-rules { font-size: 15.5px; font-weight: 300; line-height: 1.55; max-width: 32ch; align-self: center; }
 .start-form { text-align: left; }
@@ -340,7 +341,7 @@ body:has(#ov-edit:not([hidden])) .deco-candles { display: none; }
 .skin-opt input:checked ~ .skin-name { color: var(--gold-hi); }
 
 .overlay--handoff { background: radial-gradient(ellipse 80% 50% at 50% 40%, rgba(255, 176, 96, .2), transparent 70%), linear-gradient(var(--wine), var(--velvet-lo)); }
-.handoff-title { font-family: var(--f-display); font-style: italic; font-weight: 800; font-size: clamp(46px, 14vw, 72px); line-height: 1; }
+.handoff-title { font-family: var(--f-title); font-weight: 700; font-size: clamp(36px, 11vw, 58px); line-height: 1.08; letter-spacing: .04em; }
 .handoff-kicker { font-family: var(--f-script); font-size: 30px; color: var(--blush); }
 .handoff-text { font-size: 16.5px; font-weight: 300; line-height: 1.55; max-width: 28ch; }
 .overlay--handoff .btn { margin-top: 14px; }
@@ -363,7 +364,7 @@ body:has(#ov-edit:not([hidden])) .deco-candles { display: none; }
 .edit-hint { font-size: 13.5px; font-weight: 300; color: var(--blush); }
 
 .overlay--party { background: radial-gradient(circle at 50% 38%, rgba(255, 196, 120, .5), rgba(156, 26, 51, .2) 40%, transparent 70%), var(--velvet-bg); background-color: var(--velvet-lo); }
-.party-title { font-family: var(--f-display); font-style: italic; font-weight: 800; font-size: clamp(60px, 18vw, 96px); line-height: .95; animation: unveil 1.1s cubic-bezier(.2, .8, .2, 1) both; }
+.party-title { font-family: var(--f-title); font-weight: 800; font-size: clamp(44px, 14vw, 76px); line-height: 1; letter-spacing: .05em; font-variant-ligatures: none; animation: unveil 1.1s cubic-bezier(.2, .8, .2, 1) both; }
 @keyframes unveil { from { letter-spacing: .25em; opacity: 0; filter: blur(8px); } }
 .party-sentence {
   padding: 18px 22px;
@@ -383,7 +384,7 @@ body:has(#ov-edit:not([hidden])) .deco-candles { display: none; }
 
 /* Petits écrans */
 @media (max-height: 720px) {
-  .poster-title { font-size: clamp(62px, 22vw, 104px); }
+  .poster-title { font-size: clamp(48px, 16vw, 84px); }
   .poster-sub { font-size: 26px; }
 }
 @media (max-height: 660px) {

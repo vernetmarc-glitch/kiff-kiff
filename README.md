@@ -4,4 +4,9 @@ Jeu à deux sur un téléphone : trois rouleaux de machine à sous composent une
 
 Jouer : https://vernetmarc-glitch.github.io/roue-du-consentement/
 
+Ouvrir directement une ambiance :
+- Arty : https://vernetmarc-glitch.github.io/roue-du-consentement/?design=arty
+- Pomme d’Amour : https://vernetmarc-glitch.github.io/roue-du-consentement/?design=pomme
+- Red Corner : https://vernetmarc-glitch.github.io/roue-du-consentement/?design=redcorner
+
 Le fonctionnement complet est décrit dans [BRIEF.md](BRIEF.md). Pour changer les mots des roues, modifier `data.js`.

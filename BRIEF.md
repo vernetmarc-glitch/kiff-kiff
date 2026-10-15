@@ -43,24 +43,24 @@ Chaque rouleau a une dernière case « ✎ … à toi ». En la touchant, on éc
 
 ## Ambiances
 
-L’ambiance se choisit sur l’écran d’accueil et reste mémorisée sur le téléphone. Les règles et les mots sont les mêmes partout. Chaque roue a un ombrage en haut et en bas et des repères sur la ligne lue, pour qu’on comprenne qu’elle tourne.
+L’ambiance se choisit depuis le lien discret « Ambiance : … » sous le bouton de l’accueil (il ouvre une petite feuille avec les trois vignettes) et reste mémorisée sur le téléphone. On peut aussi l’imposer dans le lien : `?design=arty`, `?design=pomme` ou `?design=redcorner` (ou `#redcorner` en fin d’adresse). Les règles et les mots sont les mêmes partout. Chaque roue a un ombrage en haut et en bas et des repères sur la ligne lue, pour qu’on comprenne qu’elle tourne.
 
 Les ambiances ont été conçues avec deux skills de design publics, lus directement (sans lancer leurs programmes) : **impeccable** (méthode de refonte, liste des défauts « faits par IA » à éviter) et **UI/UX Pro Max** (base de styles, palettes et associations de polices).
 
-### Zinzin — fanzine risographe
+### Arty — fanzine risographe
 Papier jaune citron avec grain, deux encres (rose fluo et bleu) qui se chevauchent en violet, repérage décalé. Rouleaux en bandes de papier de travers, ombre en trame ; ombrage du tambour en trame qui se resserre. Bande verrouillée : il ne reste que le contour en pointillés. Tampon « changé ». Typo : Bagel Fat One + Archivo.
 
 ### Pomme d’Amour — machine à sous de fête foraine
 La façade d’une machine à sous en tôle lithographiée : rayons rouge et crème, plaques émaillées rivetées pour la consigne et les switches, borne bleu nuit avec rangée d’ampoules, hublots chromés et tambours crème ombrés, flèches rouges de ligne gagnante, manette rouge pour le hasard, touches de caisse enregistreuse pour « que tu me / de te », ticket d’entrée « changé ». Célébration : rayons qui tournent, phrase sur un ticket gagnant, étoiles et tickets. Typo : Abril Fatface (lettrage d’enseigne extrudé) + Merriweather.
 
 ### Red Corner — boudoir
-Velours bordeaux plissé, cadre doré à moulures, bougies qui vacillent (et s’embrasent quand on active un switch), écrin capitonné, rouleaux en cadres dorés avec tambours de velours satiné et filets d’or, sceau de cire « changé », feuille d’or sur les titres. Célébration : lumière dorée, pétales et étincelles, phrase sur une carte de visite. Typo : Bodoni Moda italique + Great Vibes pour « J’ai envie » + Jost.
+Velours bordeaux plissé, cadre doré à moulures, bougies qui vacillent (et s’embrasent quand on active un switch), écrin capitonné, rouleaux en cadres dorés avec tambours de velours satiné et filets d’or, sceau de cire « changé », feuille d’or sur les titres. Célébration : lumière dorée, pétales et étincelles, phrase sur une carte de visite. Typo : Cinzel pour le logo et les titres (lisible, capitales romaines), Bodoni Moda italique pour les rouleaux, Great Vibes pour « J’ai envie », Jost pour le reste.
 
 ## Fichiers
 
 - `index.html` : structure de l’écran, écrans superposés, sélecteur d’ambiance.
 - `base.css` : mécanique commune (mise en page, rouleaux, switches).
-- `skins/zinzin.css`, `skins/pomme.css`, `skins/redcorner.css` : une feuille par ambiance.
+- `skins/arty.css`, `skins/pomme.css`, `skins/redcorner.css` : une feuille par ambiance.
 - `data.js` : les listes des rouleaux (à modifier pour changer les mots).
 - `app.js` : rouleaux, déroulé du tour, grammaire, sons, confettis, ambiances.
 

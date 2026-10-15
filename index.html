@@ -7,17 +7,29 @@
 <title>Kiff Kiff</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,62..125,100..900;1,62..125,100..900&family=Bagel+Fat+One&family=Abril+Fatface&family=Merriweather:ital,opsz,wght@0,18..144,400..900;1,18..144,400..900&family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..900;1,6..96,400..900&family=Jost:wght@300..700&family=Great+Vibes&display=swap">
-<link rel="stylesheet" href="base.css?v=7">
-<link rel="stylesheet" href="skins/zinzin.css?v=7" data-skin-sheet="zinzin">
-<link rel="stylesheet" href="skins/pomme.css?v=7" data-skin-sheet="pomme">
-<link rel="stylesheet" href="skins/redcorner.css?v=7" data-skin-sheet="redcorner">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,62..125,100..900;1,62..125,100..900&family=Bagel+Fat+One&family=Abril+Fatface&family=Merriweather:ital,opsz,wght@0,18..144,400..900;1,18..144,400..900&family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..900;1,6..96,400..900&family=Jost:wght@300..700&family=Great+Vibes&family=Cinzel:wght@400..900&display=swap">
+<link rel="stylesheet" href="base.css?v=8">
+<link rel="stylesheet" href="skins/arty.css?v=8" data-skin-sheet="arty">
+<link rel="stylesheet" href="skins/pomme.css?v=8" data-skin-sheet="pomme">
+<link rel="stylesheet" href="skins/redcorner.css?v=8" data-skin-sheet="redcorner">
 <script>
-/* Applique l’ambiance mémorisée avant l’affichage, pour éviter un flash */
+/* Ambiance : celle du lien (?design=redcorner ou #redcorner), sinon celle mémorisée.
+   Appliquée avant l’affichage pour éviter un flash. */
 (function () {
-  var s = 'zinzin';
-  try { s = JSON.parse(localStorage.getItem('roue:skin')) || s; } catch (e) {}
-  if (!/^(zinzin|pomme|redcorner)$/.test(s)) s = 'zinzin';
+  var alias = { arty: 'arty', zinzin: 'arty', pomme: 'pomme', 'pomme-d-amour': 'pomme', pommedamour: 'pomme', redcorner: 'redcorner', 'red-corner': 'redcorner' };
+  var norm = function (v) { return alias[String(v || '').toLowerCase().replace(/[^a-z-]/g, '')]; };
+  var s, fromLink;
+  try {
+    var q = new URLSearchParams(location.search);
+    fromLink = norm(q.get('design') || q.get('ambiance')) || norm(location.hash.slice(1));
+  } catch (e) {}
+  if (fromLink) {
+    s = fromLink;
+    try { localStorage.setItem('roue:skin', JSON.stringify(s)); } catch (e) {}
+  } else {
+    try { s = norm(JSON.parse(localStorage.getItem('roue:skin'))); } catch (e) {}
+  }
+  s = s || 'arty';
   document.documentElement.setAttribute('data-skin', s);
   var l = document.querySelectorAll('[data-skin-sheet]');
   for (var i = 0; i < l.length; i++) l[i].disabled = l[i].getAttribute('data-skin-sheet') !== s;
@@ -88,16 +100,24 @@
       <input id="name0" maxlength="20" autocomplete="off" placeholder="Cerise">
       <label for="name1">Et l’autre ?</label>
       <input id="name1" maxlength="20" autocomplete="off" placeholder="Pistache">
-      <fieldset class="skins" id="skins">
-        <legend>Ambiance</legend>
-        <div class="skin-list">
-          <label class="skin-opt"><input type="radio" name="skin" value="zinzin"><span class="skin-swatch skin-swatch--zinzin"></span><span class="skin-name">Zinzin</span></label>
-          <label class="skin-opt"><input type="radio" name="skin" value="pomme"><span class="skin-swatch skin-swatch--pomme"></span><span class="skin-name">Pomme d’Amour</span></label>
-          <label class="skin-opt"><input type="radio" name="skin" value="redcorner"><span class="skin-swatch skin-swatch--redcorner"></span><span class="skin-name">Red Corner</span></label>
-        </div>
-      </fieldset>
       <button class="btn" type="submit">C’est parti</button>
+      <button class="skin-link" id="skin-open" type="button" aria-haspopup="dialog">Ambiance : <span id="skin-current">Arty</span></button>
     </form>
+  </div>
+</div>
+
+<!-- Choix de l’ambiance -->
+<div class="overlay overlay--edit overlay--skins" id="ov-skins" hidden role="dialog" aria-modal="true" aria-labelledby="skins-title">
+  <div class="sheet sheet--edit sheet--skins">
+    <h2 class="edit-label" id="skins-title">Choisis l’ambiance</h2>
+    <div class="skin-list" role="radiogroup" aria-labelledby="skins-title">
+      <label class="skin-opt"><input type="radio" name="skin" value="arty"><span class="skin-swatch skin-swatch--arty"></span><span class="skin-name">Arty</span></label>
+      <label class="skin-opt"><input type="radio" name="skin" value="pomme"><span class="skin-swatch skin-swatch--pomme"></span><span class="skin-name">Pomme d’Amour</span></label>
+      <label class="skin-opt"><input type="radio" name="skin" value="redcorner"><span class="skin-swatch skin-swatch--redcorner"></span><span class="skin-name">Red Corner</span></label>
+    </div>
+    <div class="row row--end">
+      <button class="btn" id="skins-done" type="button">C’est choisi</button>
+    </div>
   </div>
 </div>
 
@@ -149,7 +169,7 @@
   </div>
 </div>
 <!--/APP-->
-<script src="data.js?v=7"></script>
-<script src="app.js?v=7"></script>
+<script src="data.js?v=8"></script>
+<script src="app.js?v=8"></script>
 </body>
 </html>
