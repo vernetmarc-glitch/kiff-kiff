@@ -4,6 +4,12 @@
    papier imprimées ; la phrase se lit de haut en bas, du switch « J’ai envie »
    au switch de réponse. */
 :root {
+  --chili-color: #FF2E63;
+  --pill-line: var(--blue);
+  --pill-fg: var(--blue);
+  --pill-on-bg: var(--blue);
+  --pill-on-fg: var(--paper);
+  --chili-on-pill: var(--pink);
   --call-color: var(--pink);
   --paper: #FFE45C;
   --paper-hi: #FFF08F;
@@ -642,3 +648,12 @@ button { font: inherit; color: inherit; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
 }
+
+/* Piment */
+.piment-row-label { font-weight: 800; font-size: 16px; font-stretch: 104%; }
+.piment-name { font-family: var(--f-ui); font-weight: 800; font-stretch: 104%; }
+.piment-error { color: #D81B60; }
+.sheet--edit .edit-hint { color: var(--blue); }
+
+/* Estampille piment sur chaque bande */
+:root { --reel-chili: #FF48B0; --reel-chili-bg: var(--violet); }

@@ -3,6 +3,14 @@
    rayons rouge et crème, plaques émaillées rivetées, hublots chromés,
    une manette pour le hasard, des tickets d’entrée. */
 :root {
+  --chili-color: #FF4B52;
+  --pill-bg: var(--cream-hi);
+  --pill-line: var(--navy);
+  --pill-fg: var(--navy);
+  --pill-on-bg: var(--red);
+  --pill-on-line: var(--red-deep);
+  --pill-on-fg: var(--cream-hi);
+  --chili-on-pill: var(--cream-hi);
   --call-color: var(--red);
   --red: #D7262F;
   --red-deep: #9E1520;
@@ -66,7 +74,7 @@ body {
 
 /* ---------- En-tête ---------- */
 .app { gap: 9px; }
-.logo { font-size: 38px; letter-spacing: .01em; transform: rotate(-2deg); transform-origin: left center; }
+.logo { font-size: 31px; letter-spacing: .01em; transform: rotate(-2deg); transform-origin: left center; }
 .sticker {
   height: 40px;
   border: 0;
@@ -277,7 +285,7 @@ body {
 .poster-sub { font-weight: 900; font-style: italic; font-size: 17px; color: var(--red); }
 .poster-rules { font-size: 15.5px; line-height: 1.5; max-width: 34ch; align-self: center; }
 .start-form { text-align: left; }
-.start-form label, .skins legend { font-weight: 800; font-size: 14px; color: var(--navy); }
+.start-form label, .skins legend, .piment-row-label { font-weight: 800; font-size: 14px; color: var(--navy); }
 .start-form input, .sheet--edit input {
   padding: 0 14px;
   border: 0;
@@ -383,3 +391,15 @@ body {
   .reel-item.is-xlong { font-size: 12.5px; }
   .dir button { min-height: 36px; font-size: 14px; }
 }
+
+/* Piment */
+.piment-row { box-shadow: inset 0 0 0 2px var(--pill-line), 0 3px 0 var(--navy); border-radius: 10px; }
+.piment-toggle-body { box-shadow: inset 0 0 0 2px var(--pill-line), 0 3px 0 var(--navy); border-radius: 10px; }
+.piment-toggle input:checked + .piment-toggle-body { box-shadow: inset 0 0 0 2px var(--red-deep), 0 1px 0 var(--navy); transform: translateY(2px); }
+.piment-error { color: var(--red); }
+.piment-name { font-family: var(--f-ui); font-weight: 900; }
+.piment-tdesc { font-style: italic; }
+.piment-btn { background: var(--navy); }
+
+/* Estampille piment */
+:root { --reel-chili: var(--cream-hi); --reel-chili-bg: var(--red); }

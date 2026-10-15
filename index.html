@@ -8,10 +8,10 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,62..125,100..900;1,62..125,100..900&family=Bagel+Fat+One&family=Abril+Fatface&family=Merriweather:ital,opsz,wght@0,18..144,400..900;1,18..144,400..900&family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..900;1,6..96,400..900&family=Jost:wght@300..700&family=Great+Vibes&family=Cinzel:wght@400..900&display=swap">
-<link rel="stylesheet" href="base.css?v=10">
-<link rel="stylesheet" href="skins/arty.css?v=10" data-skin-sheet="arty">
-<link rel="stylesheet" href="skins/pomme.css?v=10" data-skin-sheet="pomme">
-<link rel="stylesheet" href="skins/redcorner.css?v=10" data-skin-sheet="redcorner">
+<link rel="stylesheet" href="base.css?v=14">
+<link rel="stylesheet" href="skins/arty.css?v=14" data-skin-sheet="arty">
+<link rel="stylesheet" href="skins/pomme.css?v=14" data-skin-sheet="pomme">
+<link rel="stylesheet" href="skins/redcorner.css?v=14" data-skin-sheet="redcorner">
 <script>
 /* Ambiance : celle du lien (?design=redcorner ou #redcorner), sinon celle mémorisée.
    Appliquée avant l’affichage pour éviter un flash. */
@@ -31,6 +31,15 @@
   }
   s = s || 'arty';
   document.documentElement.setAttribute('data-skin', s);
+  /* Piment imposé par le lien : ?piment=1, 23, 3, 123… (les niveaux cochés) */
+  try {
+    var pm = (new URLSearchParams(location.search).get('piment') || '').replace(/[^123]/g, '');
+    if (pm) {
+      var lv = [1, 2, 3].filter(function (n) { return pm.indexOf(String(n)) >= 0; });
+      window.KIFF_LEVELS = lv;
+      try { localStorage.setItem('roue:levels', JSON.stringify(lv)); } catch (e) {}
+    }
+  } catch (e) {}
   var l = document.querySelectorAll('[data-skin-sheet]');
   for (var i = 0; i < l.length; i++) l[i].disabled = l[i].getAttribute('data-skin-sheet') !== s;
 })();
@@ -38,18 +47,27 @@
 </head>
 <body>
 <!--APP-->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <symbol id="chili" viewBox="0 0 24 24">
+    <path d="M15.2 7.4c2.9.5 4.3 3.4 3.4 6.4-1.5 5.1-7.4 8.6-13.8 7.9 4-2.1 6.6-4.9 7.5-8.9.6-2.8 1-5.8 2.9-5.4z" fill="currentColor"/>
+    <path d="M13.6 8.1c1.3-1.2 3.4-1.3 4.8-.1" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+    <path d="M16 7.5c0-1.9.9-3.3 2.8-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+  </symbol>
+</svg>
 <div class="grain" aria-hidden="true"></div>
 <div class="deco" aria-hidden="true">
   <div class="deco-rays"></div>
   <div class="deco-frame"></div>
   <div class="deco-glow"></div>
+  <div class="deco-ball"></div>
   <div class="deco-candles"><span class="candle candle--tall"><i></i></span><span class="candle"><i></i></span><span class="candle candle--short"><i></i></span></div>
 </div>
 
 <div class="app" id="app">
   <header class="top">
-    <h1 class="logo" aria-label="Kiff Kiff"><span class="ink" data-ink="Kiff Kiff">Kiff Kiff</span></h1>
+    <h1 class="logo"><span class="ink" data-ink="Kiff Kiff">Kiff Kiff</span><span class="logo-sub"> au Nostra</span></h1>
     <div class="top-actions">
+      <button class="sticker piment-btn" id="piment-open" type="button" aria-haspopup="dialog"></button>
       <button class="sticker sticker--round" id="home" type="button" aria-label="Accueil : prénoms et réglages">
         <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M3.5 11.2 12 4l8.5 7.2" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/><path d="M6 10v9.5h4.5v-5h3v5H18V10" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linejoin="round"/></svg>
       </button>
@@ -92,14 +110,20 @@
 <!-- Accueil -->
 <div class="overlay overlay--start" id="ov-start">
   <div class="sheet">
-    <h2 class="poster-title"><span class="ink" data-ink="Kiff">Kiff</span><span class="ink" data-ink="Kiff">Kiff</span></h2>
+    <p class="poster-neon" aria-hidden="true">Red Corner</p>
+    <h2 class="poster-title"><span class="ink" data-ink="Kiff">Kiff</span><span class="ink" data-ink="Kiff">Kiff</span><span class="poster-venue"> au Nostra</span></h2>
     <p class="poster-sub">Un jeu à deux, sur un seul téléphone.</p>
-    <p class="poster-rules">L’un·e propose une envie avec les roues. L’autre peut en changer une. Rien ne se passe tant que les deux n’ont pas dit « j’ai envie ».</p>
+    <p class="poster-rules">L’un·e propose une envie, l’autre peut changer une roue. Rien ne se passe sans deux « j’ai envie ».</p>
     <form id="start-form" class="start-form">
       <label for="name0">Qui propose en premier ?</label>
       <input id="name0" maxlength="20" autocomplete="off" placeholder="Cerise">
       <label for="name1">Et l’autre ?</label>
       <input id="name1" maxlength="20" autocomplete="off" placeholder="Pistache">
+      <button class="piment-row" id="piment-home" type="button" aria-haspopup="dialog">
+        <span class="piment-row-label">Piment</span>
+        <span class="pgroups" id="piment-summary"></span>
+        <span class="piment-row-cta">Choisir</span>
+      </button>
       <button class="btn" type="submit" id="start-go">C’est parti</button>
       <button class="link-btn resume-link" id="resume" type="button" hidden>Reprendre la partie en cours</button>
       <div class="start-links">
@@ -121,6 +145,19 @@
     </div>
     <div class="row row--end">
       <button class="btn" id="skins-done" type="button">C’est choisi</button>
+    </div>
+  </div>
+</div>
+
+<!-- Niveau de piment -->
+<div class="overlay overlay--edit overlay--skins" id="ov-piment" hidden role="dialog" aria-modal="true" aria-labelledby="piment-title">
+  <div class="sheet sheet--edit sheet--skins">
+    <h2 class="edit-label" id="piment-title">Piment</h2>
+    <p class="edit-hint">Coche un ou plusieurs niveaux. Choisissez-les ensemble : ils valent pour vous deux.</p>
+    <div class="piment-list" id="piment-list" role="group" aria-labelledby="piment-title"></div>
+    <p class="piment-error" id="piment-error" hidden role="alert">Garde au moins un niveau coché.</p>
+    <div class="row row--end">
+      <button class="btn" id="piment-done" type="button">C’est choisi</button>
     </div>
   </div>
 </div>
@@ -168,6 +205,7 @@
   <canvas id="confetti" aria-hidden="true"></canvas>
   <div class="sheet">
     <h2 class="party-title"><span class="ink ink--flat" data-ink="Kiff Kiff !">Kiff Kiff !</span></h2>
+    <p class="party-venue">au Red Corner du Nostra</p>
     <p class="party-sentence" id="party-sentence"></p>
     <p class="party-text">Prenez votre temps. Revenez quand c’est fait.</p>
     <button class="btn btn--paper" id="party-next" type="button"></button>
@@ -175,7 +213,7 @@
   </div>
 </div>
 <!--/APP-->
-<script src="data.js?v=10"></script>
-<script src="app.js?v=10"></script>
+<script src="data.js?v=14"></script>
+<script src="app.js?v=14"></script>
 </body>
 </html>

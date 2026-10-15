@@ -2,6 +2,14 @@
    Un boudoir suranné : velours bordeaux, capitonné, moulures et dorures,
    lumière de bougies. Pimenté, mais chaleureux. */
 :root {
+  --chili-color: #FF3B55;
+  --pill-bg: rgba(43, 4, 12, .45);
+  --pill-line: var(--gold-lo);
+  --pill-fg: var(--cream);
+  --pill-on-bg: var(--foil);
+  --pill-on-line: var(--gold-hi);
+  --pill-on-fg: var(--velvet-lo);
+  --chili-on-pill: #B3001E;
   --call-color: var(--gold-hi);
   --velvet: #6B0F22;
   --velvet-hi: #9C1A33;
@@ -144,7 +152,7 @@ body:has(#ov-skins:not([hidden])) .deco-candles { display: none; }
 
 /* ---------- En-tête ---------- */
 .app { gap: 9px; padding-top: 20px; padding-left: max(22px, env(safe-area-inset-left, 0px)); padding-right: max(22px, env(safe-area-inset-right, 0px)); padding-bottom: 22px; }
-.logo { font-family: var(--f-title); font-weight: 800; font-size: 27px; letter-spacing: .05em; font-variant-ligatures: none; }
+.logo { font-family: var(--f-title); font-weight: 800; font-size: 23px; letter-spacing: .05em; font-variant-ligatures: none; display: flex; flex-direction: column; align-items: flex-start; }
 .sticker {
   height: 40px;
   border: 1.5px solid var(--gold);
@@ -339,7 +347,7 @@ body:has(#ov-skins:not([hidden])) .deco-candles { display: none; }
 .poster-sub { font-family: var(--f-script); font-size: 30px; line-height: 1.1; color: var(--blush); }
 .poster-rules { font-size: 15.5px; font-weight: 300; line-height: 1.55; max-width: 32ch; align-self: center; }
 .start-form { text-align: left; }
-.start-form label, .skins legend { font-size: 13px; font-weight: 500; letter-spacing: .08em; color: var(--gold); }
+.start-form label, .skins legend, .piment-row-label { font-size: 13px; font-weight: 500; letter-spacing: .08em; color: var(--gold); }
 .start-form input, .sheet--edit input {
   padding: 0 2px;
   border: 0;
@@ -401,11 +409,15 @@ body:has(#ov-skins:not([hidden])) .deco-candles { display: none; }
 /* Petits écrans */
 @media (max-height: 720px) {
   .poster-title { font-size: clamp(48px, 16vw, 84px); }
+  .poster-neon { font-size: 38px; }
+  .poster-event { font-size: 12px; }
   .poster-sub { font-size: 26px; }
 }
 @media (max-height: 660px) {
   .app { gap: 6px; padding-top: 14px; padding-bottom: 18px; }
-  .logo { font-size: 29px; }
+  .logo { font-size: 21px; }
+  .logo-sub { font-size: 18px; }
+  .poster-event { display: none; }
   .hint { font-size: 13.5px; }
   .sw-label { font-size: 34px; }
   .track { width: 66px; height: 38px; }
@@ -421,3 +433,93 @@ body:has(#ov-skins:not([hidden])) .deco-candles { display: none; }
   .dir button { font-size: 20px; }
   .sticker--dice { width: 48px; height: 48px; }
 }
+
+/* Piment */
+.piment-name { font-family: var(--f-display); font-style: italic; font-weight: 700; font-size: 15px; }
+.piment-tdesc { font-weight: 300; }
+.piment-row { border-radius: 999px; padding: 6px 18px; }
+.piment-row-cta { font-weight: 400; color: var(--gold-hi); text-decoration-color: var(--gold); }
+.piment-toggle input:checked + .piment-toggle-body .pgroup { background: var(--velvet-lo); }
+.piment-error { color: var(--blush); }
+.piment-btn .chili.is-on { filter: drop-shadow(0 0 4px rgba(255, 59, 85, .8)); }
+
+/* ---------- Le Red Corner du Nostra, soirée Décadanse ---------- */
+.logo-sub {
+  display: block;
+  align-self: flex-end;
+  margin: -3px -4px 0 0;
+  font-family: var(--f-script);
+  font-weight: 400;
+  font-size: 21px;
+  letter-spacing: 0;
+  line-height: .9;
+  color: var(--blush);
+  text-shadow: 0 0 10px rgba(255, 59, 85, .55);
+}
+/* Enseigne au néon rouge */
+.poster-neon {
+  display: block;
+  margin: 0 0 -6px;
+  font-family: var(--f-script);
+  font-size: 48px;
+  line-height: 1.1;
+  color: #FFE3E8;
+  text-shadow: 0 0 3px #FFB3C0, 0 0 9px #FF2A4A, 0 0 18px #FF0033, 0 0 34px #D1002A, 0 0 60px rgba(209, 0, 42, .7);
+  transform: rotate(-4deg);
+  animation: neon 6s linear infinite;
+}
+@keyframes neon {
+  0%, 18%, 22%, 25%, 53%, 57%, 100% { opacity: 1; }
+  20%, 24%, 55% { opacity: .55; text-shadow: 0 0 2px #FFB3C0, 0 0 6px #FF2A4A; }
+}
+.poster-venue {
+  display: block;
+  align-self: flex-end;
+  margin: -.12em 4% 0 0;
+  font-family: var(--f-script);
+  font-weight: 400;
+  font-size: .38em;
+  letter-spacing: 0;
+  line-height: 1;
+  color: var(--gold-hi);
+  text-shadow: 0 2px 0 rgba(43, 4, 12, .8);
+}
+.poster-event {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  align-self: stretch;
+  margin-top: 2px;
+  font-family: var(--f-title);
+  font-weight: 600;
+  font-size: 14px;
+  letter-spacing: .28em;
+  color: var(--gold);
+}
+.poster-event::before, .poster-event::after { content: ""; flex: 1; height: 1px; background: linear-gradient(90deg, transparent, var(--gold)); }
+.poster-event::after { background: linear-gradient(90deg, var(--gold), transparent); }
+.party-venue { display: block; margin-top: -10px; font-family: var(--f-script); font-size: 28px; line-height: 1.1; color: var(--blush); text-shadow: 0 0 12px rgba(255, 59, 85, .6); }
+/* Reflets de boule à facettes qui glissent sur le velours */
+.deco-ball {
+  display: block;
+  position: absolute;
+  inset: 0;
+  mix-blend-mode: screen;
+  opacity: .55;
+  background:
+    radial-gradient(circle, rgba(255, 240, 225, .7) 0 1.4px, transparent 2.4px) 0 0 / 97px 131px,
+    radial-gradient(circle, rgba(255, 180, 195, .55) 0 2px, transparent 3.2px) 40px 60px / 149px 173px,
+    radial-gradient(circle, rgba(255, 220, 160, .5) 0 1.2px, transparent 2px) 70px 20px / 61px 89px;
+  animation: facettes 38s linear infinite;
+}
+@keyframes facettes { to { background-position: 97px 131px, -109px 233px, 131px 198px; } }
+
+/* Accueil : « Kiff Kiff » sur une ligne, l’enseigne au néon au-dessus */
+.poster-title { flex-direction: row; flex-wrap: wrap; justify-content: center; column-gap: .28em; font-size: clamp(44px, 17vw, 74px); line-height: 1; }
+.poster-venue { flex-basis: 100%; text-align: right; margin: -.05em 6% 0 0; font-size: .5em; }
+@media (max-height: 720px) {
+  .poster-title { font-size: clamp(40px, 14vw, 60px); }
+}
+
+/* Estampille piment */
+:root { --reel-chili: #FF4D63; --reel-chili-bg: rgba(255, 59, 85, .16); --reel-chili-line: rgba(255, 77, 99, .7); --reel-chili-glow: rgba(255, 59, 85, .9); }
