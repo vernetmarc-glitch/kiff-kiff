@@ -26,7 +26,7 @@ Jeu à deux sur un seul téléphone, en portrait. Une phrase d’envie se compos
 ## Grammaire
 
 - « que tu me » → subjonctif (que tu me gratouilles) ; « de te » → infinitif (de te gratouiller). Chaque action a ses deux formes dans `data.js`.
-- Élision automatique : « que tu m’introduises », « de t’introduire ».
+- Élision automatique : « que tu m’intromettes », « de t’intromettre ».
 - Les actions construites avec « à » (faire gouzi-gouzi, faire rien du tout) accordent la roue des endroits : à la tête, au gros orteil, aux épaules.
 - « Faire rien du tout » est volontairement familier (« de te faire rien du tout au coude ») : la forme correcte « ne rien te faire » ne rentre pas après « de te ».
 - « Circlure » se conjugue comme conclure : que tu me circlues.
@@ -41,6 +41,7 @@ Trois niveaux qui se cochent indépendamment (au moins un) : **Tendre** (1 pimen
 - Lien : `?piment=12`, `?piment=3`, `?piment=123`…
 - Certaines manières changent de possessif selon le sens : « que tu me … avec ton sexe » / « de te … avec mon sexe ».
 - Chaque mot porte son niveau dans `data.js` (`lvl: 2` ou `lvl: 3`, rien = Tendre).
+- Les listes ont été revues par Marc dans l’Atelier des roues (une page d’édition à part) le 15 octobre 2026 : 43 tendres, 25 pimentées, 33 brûlantes au total.
 
 ## Texte libre
 

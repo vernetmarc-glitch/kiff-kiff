@@ -102,7 +102,8 @@
   }
   function sentence() {
     const p = parts();
-    return ('J’ai envie ' + glue(p.dir, p.act) + ' ' + p.obj + ' ' + p.man).replace(/\s+/g, ' ').trim() + '.';
+    const s = ('J’ai envie ' + glue(p.dir, p.act) + ' ' + p.obj + ' ' + p.man).replace(/\s+/g, ' ').trim();
+    return /[!?…]$/.test(s) ? s : s + '.';
   }
 
   function labelFor(r, i) {
