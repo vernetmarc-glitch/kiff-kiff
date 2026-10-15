@@ -31,6 +31,17 @@ Jeu à deux sur un seul téléphone, en portrait. Une phrase d’envie se compos
 - « Faire rien du tout » est volontairement familier (« de te faire rien du tout au coude ») : la forme correcte « ne rien te faire » ne rentre pas après « de te ».
 - « Circlure » se conjugue comme conclure : que tu me circlues.
 
+## Piment
+
+Trois niveaux qui se cochent indépendamment (au moins un) : **Tendre** (1 piment), **Pimenté** (2), **Brûlant** (3). Par défaut : Tendre et Pimenté.
+
+- Accueil : une ligne « Piment » montre les niveaux cochés et ouvre la fenêtre de choix.
+- Jeu : le bouton piments de la barre du haut ouvre la même fenêtre, pendant la composition seulement. Changer le piment depuis l’accueil au milieu d’une réponse oblige à lancer une nouvelle partie.
+- Dans les roues, les cases pimentées portent une pastille à 2 piments, les brûlantes une pastille à 3 piments.
+- Lien : `?piment=12`, `?piment=3`, `?piment=123`…
+- Certaines manières changent de possessif selon le sens : « que tu me … avec ton sexe » / « de te … avec mon sexe ».
+- Chaque mot porte son niveau dans `data.js` (`lvl: 2` ou `lvl: 3`, rien = Tendre).
+
 ## Texte libre
 
 Chaque rouleau a une dernière case « ✎ … à toi ». En la touchant, on écrit sa propre action, son endroit ou sa manière (40 caractères max), avec un aperçu de la phrase. Pour l’action, il faut écrire le verbe dans la bonne forme (indiqué dans l’aide). La case libre ne sort jamais au hasard.
@@ -53,7 +64,7 @@ Chaque rouleau a une dernière case « ✎ … à toi ». En la touchant, on éc
 
 ## Ambiances
 
-L’ambiance se choisit depuis le lien discret « Ambiance : … » sous le bouton de l’accueil (il ouvre une petite feuille avec les trois vignettes) et reste mémorisée sur le téléphone. On peut aussi l’imposer dans le lien : `?design=arty`, `?design=pomme` ou `?design=redcorner` (ou `#redcorner` en fin d’adresse). Les règles et les mots sont les mêmes partout. Chaque roue a un ombrage en haut et en bas et des repères sur la ligne lue, pour qu’on comprenne qu’elle tourne.
+Ambiance par défaut : Red Corner. L’ambiance se choisit depuis le lien discret « Ambiance : … » sous le bouton de l’accueil (il ouvre une petite feuille avec les trois vignettes) et reste mémorisée sur le téléphone. On peut aussi l’imposer dans le lien : `?design=arty`, `?design=pomme` ou `?design=redcorner` (ou `#redcorner` en fin d’adresse). Les règles et les mots sont les mêmes partout. Chaque roue a un ombrage en haut et en bas et des repères sur la ligne lue, pour qu’on comprenne qu’elle tourne.
 
 Les ambiances ont été conçues avec deux skills de design publics, lus directement (sans lancer leurs programmes) : **impeccable** (méthode de refonte, liste des défauts « faits par IA » à éviter) et **UI/UX Pro Max** (base de styles, palettes et associations de polices).
 
@@ -63,8 +74,8 @@ Papier jaune citron avec grain, deux encres (rose fluo et bleu) qui se chevauche
 ### Pomme d’Amour — machine à sous de fête foraine
 La façade d’une machine à sous en tôle lithographiée : rayons rouge et crème, plaques émaillées rivetées pour la consigne et les switches, borne bleu nuit avec rangée d’ampoules, hublots chromés et tambours crème ombrés, flèches rouges de ligne gagnante, manette rouge pour le hasard, touches de caisse enregistreuse pour « que tu me / de te », ticket d’entrée « changé ». Célébration : rayons qui tournent, phrase sur un ticket gagnant, étoiles et tickets. Typo : Abril Fatface (lettrage d’enseigne extrudé) + Merriweather.
 
-### Red Corner — boudoir
-Velours bordeaux plissé, cadre doré à moulures, « que tu me / de te » sur une grande plaque de velours avec un curseur en feuille d’or qui glisse, médaillon doré pour le hasard, bougies qui vacillent (et s’embrasent quand on active un switch), écrin capitonné, rouleaux en cadres dorés avec tambours de velours satiné et filets d’or, sceau de cire « changé », feuille d’or sur les titres. Célébration : lumière dorée, pétales et étincelles, phrase sur une carte de visite. Typo : Cinzel pour le logo et les titres (lisible, capitales romaines), Bodoni Moda italique pour les rouleaux, Great Vibes pour « J’ai envie », Jost pour le reste.
+### Red Corner — le Red Corner du Nostra
+Boudoir du Nostra : logo « Kiff Kiff au Nostra », enseigne « Red Corner » au néon rouge sur l’accueil, reflets de boule à facettes sur le velours, célébration signée « au Red Corner du Nostra ». Velours bordeaux plissé, cadre doré à moulures, « que tu me / de te » sur une grande plaque de velours avec un curseur en feuille d’or qui glisse, médaillon doré pour le hasard, bougies qui vacillent (et s’embrasent quand on active un switch), écrin capitonné, rouleaux en cadres dorés avec tambours de velours satiné et filets d’or, sceau de cire « changé », feuille d’or sur les titres. Célébration : lumière dorée, pétales et étincelles, phrase sur une carte de visite. Typo : Cinzel pour le logo et les titres (lisible, capitales romaines), Bodoni Moda italique pour les rouleaux, Great Vibes pour « J’ai envie », Jost pour le reste.
 
 ## Fichiers
 

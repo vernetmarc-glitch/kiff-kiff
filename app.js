@@ -25,7 +25,7 @@
   function parseLevels(v) {
     const arr = Array.isArray(v) ? v : String(v == null ? '' : v).split('');
     const out = [1, 2, 3].filter((n) => arr.map(Number).includes(n));
-    return out.length ? out : [1];
+    return out.length ? out : [1, 2];
   }
   function buildLists(levels) {
     for (let r = 0; r < 3; r++) LISTS[r] = SOURCE[r].filter((x) => levels.includes(x.lvl || 1)).concat([FREE[r]]);
@@ -51,7 +51,7 @@
     custom: ['', '', ''],
     original: null,
     muted: load('muted', false),
-    levels: parseLevels(window.KIFF_LEVELS || load('levels', [1])),
+    levels: parseLevels(window.KIFF_LEVELS || load('levels', [1, 2])),
     started: false
   };
   buildLists(S.levels);
@@ -855,10 +855,10 @@
   const SKIN_NAMES = { arty: 'Arty', pomme: 'Pomme d’Amour', redcorner: 'Red Corner' };
   function currentSkin() {
     const s = document.documentElement.getAttribute('data-skin');
-    return SKINS.includes(s) ? s : 'arty';
+    return SKINS.includes(s) ? s : 'redcorner';
   }
   function applySkin(s) {
-    if (!SKINS.includes(s)) s = 'arty';
+    if (!SKINS.includes(s)) s = 'redcorner';
     const cur = $('#skin-current');
     if (cur) cur.textContent = SKIN_NAMES[s];
     document.documentElement.setAttribute('data-skin', s);

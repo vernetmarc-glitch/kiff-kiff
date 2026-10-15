@@ -3,15 +3,15 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#FFE45C">
+<meta name="theme-color" content="#2B040C">
 <title>Kiff Kiff</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,62..125,100..900;1,62..125,100..900&family=Bagel+Fat+One&family=Abril+Fatface&family=Merriweather:ital,opsz,wght@0,18..144,400..900;1,18..144,400..900&family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..900;1,6..96,400..900&family=Jost:wght@300..700&family=Great+Vibes&family=Cinzel:wght@400..900&display=swap">
-<link rel="stylesheet" href="base.css?v=14">
-<link rel="stylesheet" href="skins/arty.css?v=14" data-skin-sheet="arty">
-<link rel="stylesheet" href="skins/pomme.css?v=14" data-skin-sheet="pomme">
-<link rel="stylesheet" href="skins/redcorner.css?v=14" data-skin-sheet="redcorner">
+<link rel="stylesheet" href="base.css?v=15">
+<link rel="stylesheet" href="skins/arty.css?v=15" data-skin-sheet="arty">
+<link rel="stylesheet" href="skins/pomme.css?v=15" data-skin-sheet="pomme">
+<link rel="stylesheet" href="skins/redcorner.css?v=15" data-skin-sheet="redcorner">
 <script>
 /* Ambiance : celle du lien (?design=redcorner ou #redcorner), sinon celle mémorisée.
    Appliquée avant l’affichage pour éviter un flash. */
@@ -29,7 +29,7 @@
   } else {
     try { s = norm(JSON.parse(localStorage.getItem('roue:skin'))); } catch (e) {}
   }
-  s = s || 'arty';
+  s = s || 'redcorner';
   document.documentElement.setAttribute('data-skin', s);
   /* Piment imposé par le lien : ?piment=1, 23, 3, 123… (les niveaux cochés) */
   try {
@@ -127,7 +127,7 @@
       <button class="btn" type="submit" id="start-go">C’est parti</button>
       <button class="link-btn resume-link" id="resume" type="button" hidden>Reprendre la partie en cours</button>
       <div class="start-links">
-        <button class="skin-link" id="skin-open" type="button" aria-haspopup="dialog">Ambiance : <span id="skin-current">Arty</span></button>
+        <button class="skin-link" id="skin-open" type="button" aria-haspopup="dialog">Ambiance : <span id="skin-current">Red Corner</span></button>
         <button class="skin-link" id="mute" type="button" aria-pressed="false">Son : <span id="mute-state">activé</span></button>
       </div>
     </form>
@@ -213,7 +213,7 @@
   </div>
 </div>
 <!--/APP-->
-<script src="data.js?v=14"></script>
-<script src="app.js?v=14"></script>
+<script src="data.js?v=15"></script>
+<script src="app.js?v=15"></script>
 </body>
 </html>
