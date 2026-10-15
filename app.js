@@ -17,11 +17,14 @@
   const $ = (s) => document.querySelector(s);
   const mod = (a, n) => ((a % n) + n) % n;
 
-  const LISTS = [
-    D.actions.concat([{ free: true }]),
-    D.objets.map((t) => ({ t })).concat([{ free: true }]),
-    D.manieres.map((t) => ({ t })).concat([{ free: true }])
-  ];
+  /* Piment : les roues ne montrent que les cases de niveau inférieur ou égal */
+  const FREE = [{ free: true }, { free: true }, { free: true }];
+  const SOURCE = [D.actions, D.objets, D.manieres].map((l) => l.map((x) => (typeof x === 'string' ? { t: x } : x)));
+  const LISTS = [[], [], []];
+  const clampLevel = (n) => Math.min(3, Math.max(1, parseInt(n, 10) || 1));
+  function buildLists(level) {
+    for (let r = 0; r < 3; r++) LISTS[r] = SOURCE[r].filter((x) => (x.lvl || 1) <= level).concat([FREE[r]]);
+  }
   const PLACEHOLDER = ['touche pour écrire ton action', 'touche pour écrire ton endroit', 'touche pour écrire ta manière'];
   const REEL_NAMES = ['l’action', 'l’endroit', 'la manière'];
 
@@ -42,8 +45,11 @@
     idx: [0, 0, 0],
     custom: ['', '', ''],
     original: null,
-    muted: load('muted', false)
+    muted: load('muted', false),
+    level: clampLevel(window.KIFF_LEVEL || load('level', 1)),
+    started: false
   };
+  buildLists(S.level);
   const nameOf = (i) => (S.names[i] || '').trim() || (i === 0 ? 'Cerise' : 'Pistache');
   const other = (i) => 1 - i;
 
@@ -68,7 +74,11 @@
     if (!base) return '';
     return prep === 'à' && !/^(à|au|aux)\s/i.test(base) ? withA(base) : base;
   }
-  const maniereForm = (k) => (LISTS[2][k].free ? S.custom[2].trim() : LISTS[2][k].t);
+  function maniereForm(k, dir = S.dir) {
+    const m = LISTS[2][k];
+    if (m.free) return S.custom[2].trim();
+    return m.t || (dir === 'me' ? m.s : m.i);
+  }
   function dirForm(dir, act) {
     const el = !!act && VOWEL.test(act);
     if (dir === 'me') return el ? 'que tu m’' : 'que tu me';
@@ -82,7 +92,7 @@
       dir: dirForm(dir, act),
       act,
       obj: objetForm(idx[1], actionPrep(idx[0])),
-      man: maniereForm(idx[2])
+      man: maniereForm(idx[2], dir)
     };
   }
   function sentence() {
@@ -165,7 +175,6 @@
   class Reel {
     constructor(r) {
       this.r = r;
-      this.n = LISTS[r].length;
       this.el = document.querySelector('[data-reel="' + r + '"]');
       this.strip = this.el.querySelector('.reel-strip');
       this.nodes = [];
@@ -183,6 +192,7 @@
       this.bind();
       this.render();
     }
+    get n() { return LISTS[this.r].length; }
     get index() { return mod(Math.round(this.p), this.n); }
     get busy() { return !!this.raf || !!this.drag; }
     itemH() { return parseFloat(getComputedStyle(this.el).getPropertyValue('--item-h')) || 38; }
@@ -784,6 +794,38 @@
     confRaf = requestAnimationFrame(frame);
   }
 
+  /* ---------- Piment ---------- */
+  const CHILIS = (n) => [1, 2, 3].map((k) => '<svg class="chili' + (k <= n ? ' is-on' : '') + '" viewBox="0 0 24 24" aria-hidden="true"><use href="#chili"/></svg>').join('');
+  function setLevel(n, opts = {}) {
+    n = clampLevel(n);
+    const prev = LISTS.map((l, r) => l[S.idx[r]]);
+    S.level = n;
+    save('level', n);
+    buildLists(n);
+    reels.forEach((rl, r) => {
+      let i = LISTS[r].indexOf(prev[r]);
+      if (i < 0) i = Math.floor(Math.random() * (LISTS[r].length - 1));
+      rl.stop();
+      rl.p = i;
+      rl.lastTick = i;
+      S.idx[r] = i;
+    });
+    renderReels();
+    renderLevel();
+    if (reels.length && !opts.silent) render();
+  }
+  function renderLevel() {
+    const lv = D.niveaux[S.level - 1];
+    const b = $('#piment-open');
+    if (b) {
+      b.innerHTML = '<span class="chilis">' + CHILIS(S.level) + '</span>';
+      b.setAttribute('aria-label', 'Piment : ' + lv.nom + '. Changer le niveau');
+    }
+    document.querySelectorAll('input[name="piment"], input[name="piment2"]').forEach((r) => { r.checked = +r.value === S.level; });
+    document.querySelectorAll('.piment-desc').forEach((p) => { p.textContent = lv.desc; });
+    document.documentElement.dataset.piment = S.level;
+  }
+
   /* ---------- Ambiances ---------- */
   const SKINS = ['arty', 'pomme', 'redcorner'];
   const SKIN_NAMES = { arty: 'Arty', pomme: 'Pomme d’Amour', redcorner: 'Red Corner' };
@@ -814,6 +856,36 @@
     render();
 
     applySkin(currentSkin());
+    /* Piment : choix sur l’accueil et dans le jeu */
+    document.querySelectorAll('.piment-choice').forEach((box) => {
+      const name = box.dataset.name;
+      box.innerHTML = D.niveaux.map((lv) =>
+        '<label class="piment-opt"><input type="radio" name="' + name + '" value="' + lv.n + '"><span class="piment-pill"><span class="chilis">' + CHILIS(lv.n) + '</span><span class="piment-name">' + lv.nom + '</span></span></label>'
+      ).join('');
+      box.querySelectorAll('input').forEach((r) => r.addEventListener('change', () => {
+        if (!r.checked) return;
+        audio(); sClick(); haptic(8);
+        setLevel(+r.value, { silent: S.phase === 'start' });
+      }));
+    });
+    renderLevel();
+    const ovPiment = $('#ov-piment');
+    $('#piment-open').addEventListener('click', () => {
+      audio();
+      if (S.phase !== 'compose') {
+        sNope(); haptic(20);
+        flashHint('Le piment se règle pendant la composition, avant de proposer.');
+        return;
+      }
+      renderLevel();
+      show(ovPiment);
+      const c = ovPiment.querySelector('input:checked');
+      if (c) c.focus({ preventScroll: true });
+    });
+    const closePiment = () => { hide(ovPiment); $('#piment-open').focus({ preventScroll: true }); };
+    $('#piment-done').addEventListener('click', closePiment);
+    ovPiment.addEventListener('click', (e) => { if (e.target === ovPiment) closePiment(); });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !ovPiment.hidden) closePiment(); });
     document.querySelectorAll('input[name="skin"]').forEach((r) => {
       r.checked = r.value === currentSkin();
       r.addEventListener('change', () => { if (r.checked) { audio(); applySkin(r.value); sClick(); haptic(8); } });
