@@ -77,7 +77,7 @@ window.ROUE_DATA = {
     "en sautillant",
     "en pouffant",
     "en slow motion",
-    "en convainquant tel le dauphin",
+    "en cancanant tel le dauphin",
     "solennellement",
     "comme si c’était la première fois",
     "en récitant la liste de courses",
