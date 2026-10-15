@@ -94,6 +94,15 @@ La façade d’une machine à sous en tôle lithographiée : rayons rouge et cr�
 ### Red Corner — le Red Corner du Nostra
 Boudoir du Nostra : logo « Kiff Kiff au Nostra », enseigne « Red Corner » au néon rouge sur l’accueil, reflets de boule à facettes sur le velours, célébration signée « au Red Corner du Nostra ». Velours bordeaux plissé, cadre doré à moulures, « que tu me / de te » sur une grande plaque de velours avec un curseur en feuille d’or qui glisse, médaillon doré pour le hasard, bougies qui vacillent (et s’embrasent quand on active un switch), écrin capitonné, rouleaux en cadres dorés avec tambours de velours satiné et filets d’or, sceau de cire « changé », feuille d’or sur les titres. Célébration : lumière dorée, pétales et étincelles, phrase sur une carte de visite. Typo : Cinzel pour le logo et les titres (lisible, capitales romaines), Bodoni Moda italique pour les rouleaux, Great Vibes pour « J’ai envie », Jost pour le reste.
 
+## Appli sur l’écran d’accueil
+
+Kiff Kiff s’installe comme une appli (web app) : icône sur l’écran d’accueil, ouverture en plein écran sans barre de navigateur, et jeu sur un téléphone possible hors ligne une fois la page ouverte une première fois.
+
+- Android (Chrome, Samsung Internet, Edge) : le lien « Installer l’appli » apparaît sur l’accueil quand le navigateur le permet ; sinon menu ⋮ puis « Ajouter à l’écran d’accueil » ou « Installer l’application ».
+- iPhone : le lien « Installer l’appli » explique le geste (Partager, puis « Sur l’écran d’accueil »).
+- Le logo : deux K en miroir (kif-kif, pareil des deux côtés) dont les bras forment un losange doré autour d’un cœur rose néon, sur le velours du Red Corner. Fichiers dans `icons/` (SVG source, PNG 192 et 512, versions « maskable » pour les icônes rondes d’Android, icône Apple, favicon).
+- `manifest.webmanifest` décrit l’appli ; `sw.js` garde une copie des fichiers (réseau d’abord, copie si pas de réseau).
+
 ## Fichiers
 
 - `index.html` : structure de l’écran, écrans superposés, sélecteur d’ambiance.
@@ -103,6 +112,7 @@ Boudoir du Nostra : logo « Kiff Kiff au Nostra », enseigne « Red Corner » au
 - `app.js` : rouleaux, déroulé du tour, grammaire, sons, confettis, ambiances, mode deux téléphones.
 - `duo.js` : liaison chiffrée entre deux téléphones (relais public).
 - `vendor/` : mqtt.js et qrcode-generator, pour le mode deux téléphones.
+- `manifest.webmanifest`, `sw.js`, `icons/` : l’appli sur l’écran d’accueil.
 
 Aucune dépendance, aucun build : GitHub Pages sert les fichiers tels quels. À chaque mise à jour, augmenter le numéro `?v=` des fichiers dans `index.html` pour que les téléphones rechargent la nouvelle version.
 

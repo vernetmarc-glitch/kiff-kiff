@@ -1484,6 +1484,39 @@
     renderDuoStatus();
   }
 
+  /* ---------- Appli sur l’écran d’accueil ---------- */
+  function setupInstall() {
+    if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+      navigator.serviceWorker.register('sw.js').catch(() => {});
+    }
+    const btn = $('#install');
+    const standalone = () => (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true;
+    if (standalone()) return;
+    let deferred = null;
+    // Android (Chrome, Edge, Samsung) : le navigateur propose l’installation, on la garde pour le bouton
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferred = e;
+      btn.hidden = false;
+    });
+    window.addEventListener('appinstalled', () => { deferred = null; btn.hidden = true; });
+    // iPhone : pas d’installation automatique, on explique le geste
+    const ios = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    if (ios) btn.hidden = false;
+    btn.addEventListener('click', async () => {
+      audio();
+      if (deferred) {
+        deferred.prompt();
+        try { await deferred.userChoice; } catch (e) { /* rien */ }
+        deferred = null;
+        btn.hidden = true;
+      } else if (ios) {
+        note('Installer Kiff Kiff', 'Dans Safari, touche le bouton Partager (le carré avec une flèche), puis « Sur l’écran d’accueil ».');
+      }
+    });
+  }
+
   window.addEventListener('resize', renderReels);
   init();
+  setupInstall();
 })();

@@ -13,4 +13,6 @@ Régler le piment dans le lien : `&piment=3` (Brûlant seulement), `&piment=123`
 
 Pour jouer chacun·e sur son téléphone : sur l’accueil, « Sur son téléphone ? », puis faire scanner le QR code à l’autre.
 
+Pour l’installer sur Android : ouvrir le lien dans Chrome, puis « Installer l’appli » sur l’accueil (ou menu ⋮ > « Ajouter à l’écran d’accueil »).
+
 Le fonctionnement complet est décrit dans [BRIEF.md](BRIEF.md). Pour changer les mots des roues, modifier `data.js`.
