@@ -46,7 +46,7 @@ window.ROUE_DATA = {
     { s: "suces", i: "sucer", lvl: 2 },
     { s: "déglingues", i: "déglinguer", lvl: 2 },
     { s: "circlues", i: "circlure", lvl: 3 },
-    { s: "introduises un appendice dans", i: "introduire un appendice dans", lvl: 3 },
+    { s: "pénètres", i: "pénétrer", lvl: 3 },
     { s: "fasses un suçon sur", i: "faire un suçon sur", lvl: 2 },
     { s: "mettes un glaçon sur", i: "mettre un glaçon sur", lvl: 2 },
     { s: "enduises d’huile", i: "enduire d’huile", lvl: 2 },
