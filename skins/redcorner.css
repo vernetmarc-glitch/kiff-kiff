@@ -347,7 +347,7 @@ body:has(#ov-skins:not([hidden])) .deco-candles { display: none; }
 .poster-sub { font-family: var(--f-script); font-size: 30px; line-height: 1.1; color: var(--blush); }
 .poster-rules { font-size: 15.5px; font-weight: 300; line-height: 1.55; max-width: 32ch; align-self: center; }
 .start-form { text-align: left; }
-.start-form label, .skins legend, .piment-field legend { font-size: 13px; font-weight: 500; letter-spacing: .08em; color: var(--gold); }
+.start-form label, .skins legend, .piment-row-label { font-size: 13px; font-weight: 500; letter-spacing: .08em; color: var(--gold); }
 .start-form input, .sheet--edit input {
   padding: 0 2px;
   border: 0;
@@ -436,7 +436,11 @@ body:has(#ov-skins:not([hidden])) .deco-candles { display: none; }
 
 /* Piment */
 .piment-name { font-family: var(--f-display); font-style: italic; font-weight: 700; font-size: 15px; }
-.piment-desc { font-weight: 300; color: var(--blush); }
+.piment-tdesc { font-weight: 300; }
+.piment-row { border-radius: 999px; padding: 6px 18px; }
+.piment-row-cta { font-weight: 400; color: var(--gold-hi); text-decoration-color: var(--gold); }
+.piment-toggle input:checked + .piment-toggle-body .pgroup { background: var(--velvet-lo); }
+.piment-error { color: var(--blush); }
 .piment-btn .chili.is-on { filter: drop-shadow(0 0 4px rgba(255, 59, 85, .8)); }
 
 /* ---------- Le Red Corner du Nostra, soirée Décadanse ---------- */
@@ -518,4 +522,4 @@ body:has(#ov-skins:not([hidden])) .deco-candles { display: none; }
 }
 
 /* Estampille piment */
-.reel { --reel-chili: #FF4D63; --reel-chili-bg: rgba(255, 59, 85, .16); --reel-chili-line: rgba(255, 77, 99, .7); --reel-chili-glow: rgba(255, 59, 85, .9); }
+:root { --reel-chili: #FF4D63; --reel-chili-bg: rgba(255, 59, 85, .16); --reel-chili-line: rgba(255, 77, 99, .7); --reel-chili-glow: rgba(255, 59, 85, .9); }

@@ -21,9 +21,14 @@
   const FREE = [{ free: true }, { free: true }, { free: true }];
   const SOURCE = [D.actions, D.objets, D.manieres].map((l) => l.map((x) => (typeof x === 'string' ? { t: x } : x)));
   const LISTS = [[], [], []];
-  const clampLevel = (n) => Math.min(3, Math.max(1, parseInt(n, 10) || 1));
-  function buildLists(level) {
-    for (let r = 0; r < 3; r++) LISTS[r] = SOURCE[r].filter((x) => (x.lvl || 1) <= level).concat([FREE[r]]);
+  /* Niveaux actifs : on coche 1, 2 et/ou 3 indépendamment (au moins un) */
+  function parseLevels(v) {
+    const arr = Array.isArray(v) ? v : String(v == null ? '' : v).split('');
+    const out = [1, 2, 3].filter((n) => arr.map(Number).includes(n));
+    return out.length ? out : [1];
+  }
+  function buildLists(levels) {
+    for (let r = 0; r < 3; r++) LISTS[r] = SOURCE[r].filter((x) => levels.includes(x.lvl || 1)).concat([FREE[r]]);
   }
   const PLACEHOLDER = ['touche pour écrire ton action', 'touche pour écrire ton endroit', 'touche pour écrire ta manière'];
   const REEL_NAMES = ['l’action', 'l’endroit', 'la manière'];
@@ -46,10 +51,10 @@
     custom: ['', '', ''],
     original: null,
     muted: load('muted', false),
-    level: clampLevel(window.KIFF_LEVEL || load('level', 1)),
+    levels: parseLevels(window.KIFF_LEVELS || load('levels', [1])),
     started: false
   };
-  buildLists(S.level);
+  buildLists(S.levels);
   const nameOf = (i) => (S.names[i] || '').trim() || (i === 0 ? 'Cerise' : 'Pistache');
   const other = (i) => 1 - i;
 
@@ -806,13 +811,16 @@
   }
 
   /* ---------- Piment ---------- */
-  const CHILIS = (n) => [1, 2, 3].map((k) => '<svg class="chili' + (k <= n ? ' is-on' : '') + '" viewBox="0 0 24 24" aria-hidden="true"><use href="#chili"/></svg>').join('');
-  function setLevel(n, opts = {}) {
-    n = clampLevel(n);
+  const CHILI = '<svg class="chili is-on" viewBox="0 0 24 24" aria-hidden="true"><use href="#chili"/></svg>';
+  const levelGroups = () => [1, 2, 3].map((n) =>
+    '<span class="pgroup pgroup--' + n + (S.levels.includes(n) ? ' is-on' : '') + '">' + CHILI.repeat(n) + '</span>').join('');
+  const levelNames = () => S.levels.map((n) => D.niveaux[n - 1].nom).join(' + ');
+  function setLevels(levels, opts = {}) {
+    levels = parseLevels(levels);
     const prev = LISTS.map((l, r) => l[S.idx[r]]);
-    S.level = n;
-    save('level', n);
-    buildLists(n);
+    S.levels = levels;
+    save('levels', levels);
+    buildLists(levels);
     reels.forEach((rl, r) => {
       let i = LISTS[r].indexOf(prev[r]);
       if (i < 0) i = Math.floor(Math.random() * (LISTS[r].length - 1));
@@ -821,20 +829,25 @@
       rl.lastTick = i;
       S.idx[r] = i;
     });
+    // Pendant une réponse, changer les listes fausserait la proposition : il faudra une nouvelle partie
+    if (S.started && S.phase !== 'compose') S.mustRestart = true;
     renderReels();
     renderLevel();
     if (reels.length && !opts.silent) render();
   }
   function renderLevel() {
-    const lv = D.niveaux[S.level - 1];
     const b = $('#piment-open');
     if (b) {
-      b.innerHTML = '<span class="chilis">' + CHILIS(S.level) + '</span>';
-      b.setAttribute('aria-label', 'Piment : ' + lv.nom + '. Changer le niveau');
+      b.innerHTML = '<span class="pgroups">' + levelGroups() + '</span>';
+      b.setAttribute('aria-label', 'Piment : ' + levelNames() + '. Changer');
     }
-    document.querySelectorAll('input[name="piment"], input[name="piment2"]').forEach((r) => { r.checked = +r.value === S.level; });
-    document.querySelectorAll('.piment-desc').forEach((p) => { p.textContent = lv.desc; });
-    document.documentElement.dataset.piment = S.level;
+    const h = $('#piment-home');
+    if (h) {
+      $('#piment-summary').innerHTML = levelGroups();
+      h.setAttribute('aria-label', 'Piment : ' + levelNames() + '. Choisir les niveaux');
+    }
+    document.querySelectorAll('#ov-piment input[type="checkbox"]').forEach((c) => { c.checked = S.levels.includes(+c.value); });
+    document.documentElement.dataset.piment = S.levels.join('');
   }
 
   /* ---------- Ambiances ---------- */
@@ -867,20 +880,40 @@
     render();
 
     applySkin(currentSkin());
-    /* Piment : choix sur l’accueil et dans le jeu */
-    document.querySelectorAll('.piment-choice').forEach((box) => {
-      const name = box.dataset.name;
-      box.innerHTML = D.niveaux.map((lv) =>
-        '<label class="piment-opt"><input type="radio" name="' + name + '" value="' + lv.n + '"><span class="piment-pill"><span class="chilis">' + CHILIS(lv.n) + '</span><span class="piment-name">' + lv.nom + '</span></span></label>'
-      ).join('');
-      box.querySelectorAll('input').forEach((r) => r.addEventListener('change', () => {
-        if (!r.checked) return;
-        audio(); sClick(); haptic(8);
-        setLevel(+r.value, { silent: S.phase === 'start' });
-      }));
-    });
-    renderLevel();
+    /* Piment : niveaux à cocher, depuis l’accueil ou le jeu */
     const ovPiment = $('#ov-piment');
+    const list = $('#piment-list');
+    list.innerHTML = D.niveaux.map((lv) =>
+      '<label class="piment-toggle"><input type="checkbox" value="' + lv.n + '">' +
+      '<span class="piment-toggle-body"><span class="pgroup pgroup--' + lv.n + ' is-on">' + CHILI.repeat(lv.n) + '</span>' +
+      '<span class="piment-toggle-text"><span class="piment-name">' + lv.nom + '</span><span class="piment-tdesc">' + lv.desc + '</span></span>' +
+      '<span class="piment-check" aria-hidden="true"></span></span></label>'
+    ).join('');
+    list.querySelectorAll('input').forEach((c) => c.addEventListener('change', () => {
+      audio();
+      const next = [...list.querySelectorAll('input:checked')].map((x) => +x.value);
+      if (!next.length) {
+        c.checked = true;
+        sNope(); haptic(20);
+        const err = $('#piment-error');
+        err.hidden = false;
+        clearTimeout(err._t);
+        err._t = setTimeout(() => { err.hidden = true; }, 2400);
+        return;
+      }
+      sClick(); haptic(8);
+      setLevels(next, { silent: S.phase === 'start' });
+    }));
+    renderLevel();
+    let pimentFrom = null;
+    const openPiment = (from) => {
+      pimentFrom = from;
+      renderLevel();
+      $('#piment-error').hidden = true;
+      show(ovPiment);
+      const c = ovPiment.querySelector('input');
+      if (c) c.focus({ preventScroll: true });
+    };
     $('#piment-open').addEventListener('click', () => {
       audio();
       if (S.phase !== 'compose') {
@@ -888,12 +921,14 @@
         flashHint('Le piment se règle pendant la composition, avant de proposer.');
         return;
       }
-      renderLevel();
-      show(ovPiment);
-      const c = ovPiment.querySelector('input:checked');
-      if (c) c.focus({ preventScroll: true });
+      openPiment($('#piment-open'));
     });
-    const closePiment = () => { hide(ovPiment); $('#piment-open').focus({ preventScroll: true }); };
+    $('#piment-home').addEventListener('click', () => { audio(); openPiment($('#piment-home')); });
+    const closePiment = () => {
+      hide(ovPiment);
+      if (S.mustRestart) { $('#resume').hidden = true; $('#start-go').textContent = 'Nouvelle partie'; }
+      if (pimentFrom) pimentFrom.focus({ preventScroll: true });
+    };
     $('#piment-done').addEventListener('click', closePiment);
     ovPiment.addEventListener('click', (e) => { if (e.target === ovPiment) closePiment(); });
     document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !ovPiment.hidden) closePiment(); });
@@ -926,6 +961,7 @@
       audio();
       readNames();
       S.started = true;
+      S.mustRestart = false;
       startComposition(0);
       setTimeout(() => shuffle(false), 250);
     });
@@ -940,7 +976,7 @@
       audio();
       $('#name0').value = S.names[0] || '';
       $('#name1').value = S.names[1] || '';
-      $('#resume').hidden = !S.started;
+      $('#resume').hidden = !S.started || !!S.mustRestart;
       $('#start-go').textContent = S.started ? 'Nouvelle partie' : 'C’est parti';
       show(el.ovStart);
       el.ovStart.scrollTop = 0;

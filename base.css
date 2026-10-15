@@ -300,35 +300,83 @@ button { font: inherit; color: inherit; }
 .chilis { display: inline-flex; align-items: center; gap: 0; }
 .chili { width: 15px; height: 15px; flex: none; color: inherit; opacity: .28; transition: opacity .25s, transform .3s cubic-bezier(.3, 1.6, .5, 1); }
 .chili.is-on { opacity: 1; color: var(--chili-color, currentColor); }
-.piment-btn { height: 40px; padding: 0 9px; border-radius: 999px; }
-.piment-btn .chili { width: 14px; height: 14px; margin: 0 -1px; }
-:root[data-piment="3"] .piment-btn .chili.is-on { animation: sizzle 1.6s ease-in-out infinite; }
-:root[data-piment="3"] .piment-btn .chili.is-on:nth-child(2) { animation-delay: .2s; }
-:root[data-piment="3"] .piment-btn .chili.is-on:nth-child(3) { animation-delay: .4s; }
-@keyframes sizzle { 0%, 100% { transform: rotate(0) scale(1); } 50% { transform: rotate(-8deg) scale(1.12); } }
+.piment-btn { height: 40px; padding: 0 7px; border-radius: 999px; }
 
-.piment-field { width: 100%; margin: 8px 0 0; padding: 0; border: 0; min-width: 0; }
-.piment-field legend { padding: 0; margin-bottom: 6px; }
-.piment-choice { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
-.piment-opt { position: relative; cursor: pointer; }
-.piment-opt input { position: absolute; opacity: 0; width: 1px; height: 1px; }
-.piment-pill {
-  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px;
-  min-height: 52px;
-  padding: 6px 4px;
+/* Groupes de piments : un groupe par niveau, éteint s’il n’est pas coché */
+.pgroups { display: inline-flex; align-items: center; gap: 4px; }
+.pgroup {
+  display: inline-flex; align-items: center;
+  padding: 2px 4px;
+  border-radius: 999px;
+  color: var(--reel-chili, var(--chili-color, currentColor));
+  background: var(--reel-chili-bg, transparent);
+  box-shadow: inset 0 0 0 1px var(--reel-chili-line, transparent);
+  transition: opacity .25s, filter .25s;
+}
+.pgroup .chili { width: 13px; height: 13px; margin: 0 -2px; opacity: 1; }
+.pgroup:not(.is-on) { opacity: .28; filter: grayscale(1); }
+.piment-btn .pgroups { gap: 2px; }
+.piment-btn .pgroup:not(.is-on) { display: none; }
+.piment-btn .pgroup { padding: 1px 2px; }
+.piment-btn .pgroup .chili { width: 10px; height: 10px; margin: 0 -1.5px; }
+
+/* Accueil : une seule ligne qui invite à choisir */
+.piment-row {
+  display: flex; align-items: center; gap: 10px;
+  width: 100%;
+  min-height: 48px;
+  margin-top: 10px;
+  padding: 6px 14px;
+  border: 0;
   border-radius: 14px;
   background: var(--pill-bg, transparent);
   color: var(--pill-fg, currentColor);
   box-shadow: inset 0 0 0 2px var(--pill-line, currentColor);
-  transition: background .25s, color .25s, transform .25s;
+  text-align: left;
+  cursor: pointer;
 }
-.piment-pill .chili { width: 16px; height: 16px; }
-.piment-name { font-size: 13.5px; font-weight: 700; line-height: 1.1; }
-.piment-opt input:checked + .piment-pill { background: var(--pill-on-bg, currentColor); color: var(--pill-on-fg, inherit); box-shadow: inset 0 0 0 2px var(--pill-on-line, transparent); transform: translateY(-1px); }
-.piment-opt input:checked + .piment-pill .chili.is-on { color: var(--chili-on-pill, var(--chili-color, currentColor)); }
-.piment-opt input:focus-visible + .piment-pill { outline: 2px dashed currentColor; outline-offset: 3px; }
-.piment-desc { margin: 6px 0 0; font-size: 13.5px; line-height: 1.35; opacity: .9; }
-.sheet--skins .piment-desc { margin-top: -4px; }
+.piment-row-label { font-weight: 700; font-size: 15px; }
+.piment-row .pgroups { flex: 1; }
+.piment-row-cta { font-size: 13.5px; font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
+
+/* Feuille : trois niveaux à cocher */
+.piment-list { display: flex; flex-direction: column; gap: 10px; }
+.piment-toggle { position: relative; display: block; cursor: pointer; }
+.piment-toggle input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.piment-toggle-body {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: var(--pill-bg, transparent);
+  color: var(--pill-fg, currentColor);
+  box-shadow: inset 0 0 0 2px var(--pill-line, currentColor);
+  transition: background .25s, color .25s;
+}
+.piment-toggle-body .pgroup { flex: none; min-width: 52px; justify-content: center; }
+.piment-toggle-body .pgroup .chili { width: 16px; height: 16px; }
+.piment-toggle-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.piment-toggle .piment-name { font-size: 16px; font-weight: 800; line-height: 1.15; }
+.piment-tdesc { font-size: 13px; line-height: 1.3; opacity: .85; }
+.piment-check {
+  flex: none;
+  width: 24px; height: 24px;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 2px currentColor;
+  display: grid; place-items: center;
+}
+.piment-check::after {
+  content: "";
+  width: 11px; height: 6px;
+  border: solid currentColor;
+  border-width: 0 0 2.5px 2.5px;
+  transform: translateY(-1px) rotate(-45deg) scale(0);
+  transition: transform .25s cubic-bezier(.3, 1.6, .5, 1);
+}
+.piment-toggle input:checked + .piment-toggle-body { background: var(--pill-on-bg, currentColor); color: var(--pill-on-fg, inherit); box-shadow: inset 0 0 0 2px var(--pill-on-line, transparent); }
+.piment-toggle input:checked + .piment-toggle-body .piment-check::after { transform: translateY(-1px) rotate(-45deg) scale(1); }
+.piment-toggle input:not(:checked) + .piment-toggle-body .pgroup { opacity: .45; }
+.piment-toggle input:focus-visible + .piment-toggle-body { outline: 2px dashed currentColor; outline-offset: 3px; }
+.piment-error { margin: -2px 0 0; font-size: 14px; font-weight: 700; }
 
 /* Estampille piment dans les roues */
 .reel-chilis {
@@ -356,9 +404,7 @@ button { font: inherit; color: inherit; }
   :root .start-form input { min-height: 42px; }
   :root .start-form .btn { margin-top: 12px; min-height: 50px; }
   :root .skin-link { margin-top: 0; padding: 6px 10px; }
-  :root #ov-start .piment-field { margin-top: 4px; }
-  :root #ov-start .piment-pill { min-height: 44px; padding: 4px; }
-  :root #ov-start .piment-desc { font-size: 12.5px; margin-top: 4px; }
+  :root #ov-start .piment-row { margin-top: 6px; min-height: 44px; }
   :root[data-skin="arty"] .poster-title { font-size: 74px; }
   :root[data-skin="pomme"] .poster-title { font-size: 70px; }
   :root[data-skin="redcorner"] .poster-title { font-size: 54px; }
