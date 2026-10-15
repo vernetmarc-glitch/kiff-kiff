@@ -20,7 +20,7 @@ Branche `piment`. Jouable sur https://vernetmarc-glitch.github.io/roue-du-consen
 - Ajouts — actions : lécher, mordre, dévorer, fesser, faire un suçon sur, mettre un glaçon sur, enduire d’huile, verser du chocolat sur, frotter ; endroits : les tétons, l’intérieur des cuisses, le creux des reins, le bas du ventre, les lèvres, les poignets ; manières : goulûment, en twerkant, du bout des lèvres, les yeux dans les yeux, les yeux bandés, avec ta/ma langue, avec de l’huile, en gémissant doucement, avec un glaçon dans la bouche.
 
 **Niveau 3 — Brûlant** (estampillé de 3 piments)
-- Depuis l’existant — actions : introduire un appendice dans, circlure ; endroits : le sexe.
+- Depuis l’existant — actions : pénétrer (remplace « introduire un appendice dans »), circlure ; endroits : le sexe.
 - Actions : laper, écarter, attacher, téter, branler, doigter.
 - Endroits (que tout le monde a, quel que soit son sexe) : l’entrejambe, le pubis, le périnée, la raie des fesses, l’anus, le point le plus sensible, tout ce qui dépasse.
 - Manières : comme un·e bon·ne petit·e chien·ne, en mode soumis·e, en mode dominant·e, avec ton/mon sexe, avec tes/mes tétons, à genoux, en me/te tirant les cheveux, jusqu’à ce que je supplie / tu supplies.
