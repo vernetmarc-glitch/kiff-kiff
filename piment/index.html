@@ -1,0 +1,216 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#FFE45C">
+<title>Kiff Kiff</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,62..125,100..900;1,62..125,100..900&family=Bagel+Fat+One&family=Abril+Fatface&family=Merriweather:ital,opsz,wght@0,18..144,400..900;1,18..144,400..900&family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..900;1,6..96,400..900&family=Jost:wght@300..700&family=Great+Vibes&family=Cinzel:wght@400..900&display=swap">
+<link rel="stylesheet" href="base.css?v=11">
+<link rel="stylesheet" href="skins/arty.css?v=11" data-skin-sheet="arty">
+<link rel="stylesheet" href="skins/pomme.css?v=11" data-skin-sheet="pomme">
+<link rel="stylesheet" href="skins/redcorner.css?v=11" data-skin-sheet="redcorner">
+<script>
+/* Ambiance : celle du lien (?design=redcorner ou #redcorner), sinon celle mémorisée.
+   Appliquée avant l’affichage pour éviter un flash. */
+(function () {
+  var alias = { arty: 'arty', zinzin: 'arty', pomme: 'pomme', 'pomme-d-amour': 'pomme', pommedamour: 'pomme', redcorner: 'redcorner', 'red-corner': 'redcorner' };
+  var norm = function (v) { return alias[String(v || '').toLowerCase().replace(/[^a-z-]/g, '')]; };
+  var s, fromLink;
+  try {
+    var q = new URLSearchParams(location.search);
+    fromLink = norm(q.get('design') || q.get('ambiance')) || norm(location.hash.slice(1));
+  } catch (e) {}
+  if (fromLink) {
+    s = fromLink;
+    try { localStorage.setItem('roue:skin', JSON.stringify(s)); } catch (e) {}
+  } else {
+    try { s = norm(JSON.parse(localStorage.getItem('roue:skin'))); } catch (e) {}
+  }
+  s = s || 'arty';
+  document.documentElement.setAttribute('data-skin', s);
+  /* Piment imposé par le lien : ?piment=1, 2 ou 3 */
+  try {
+    var pm = parseInt(new URLSearchParams(location.search).get('piment'), 10);
+    if (pm >= 1 && pm <= 3) { window.KIFF_LEVEL = pm; try { localStorage.setItem('roue:level', JSON.stringify(pm)); } catch (e) {} }
+  } catch (e) {}
+  var l = document.querySelectorAll('[data-skin-sheet]');
+  for (var i = 0; i < l.length; i++) l[i].disabled = l[i].getAttribute('data-skin-sheet') !== s;
+})();
+</script>
+</head>
+<body>
+<!--APP-->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <symbol id="chili" viewBox="0 0 24 24">
+    <path d="M15.2 7.4c2.9.5 4.3 3.4 3.4 6.4-1.5 5.1-7.4 8.6-13.8 7.9 4-2.1 6.6-4.9 7.5-8.9.6-2.8 1-5.8 2.9-5.4z" fill="currentColor"/>
+    <path d="M13.6 8.1c1.3-1.2 3.4-1.3 4.8-.1" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+    <path d="M16 7.5c0-1.9.9-3.3 2.8-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+  </symbol>
+</svg>
+<div class="grain" aria-hidden="true"></div>
+<div class="deco" aria-hidden="true">
+  <div class="deco-rays"></div>
+  <div class="deco-frame"></div>
+  <div class="deco-glow"></div>
+  <div class="deco-ball"></div>
+  <div class="deco-candles"><span class="candle candle--tall"><i></i></span><span class="candle"><i></i></span><span class="candle candle--short"><i></i></span></div>
+</div>
+
+<div class="app" id="app">
+  <header class="top">
+    <h1 class="logo"><span class="ink" data-ink="Kiff Kiff">Kiff Kiff</span><span class="logo-sub"> au Nostra</span></h1>
+    <div class="top-actions">
+      <button class="sticker piment-btn" id="piment-open" type="button" aria-haspopup="dialog"></button>
+      <button class="sticker sticker--round" id="home" type="button" aria-label="Accueil : prénoms et réglages">
+        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M3.5 11.2 12 4l8.5 7.2" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/><path d="M6 10v9.5h4.5v-5h3v5H18V10" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linejoin="round"/></svg>
+      </button>
+      <button class="sticker sticker--pass" id="pass" type="button">On passe</button>
+    </div>
+  </header>
+
+  <p class="hint" id="hint" aria-live="polite"></p>
+
+  <button class="switch switch--top" id="sw-top" type="button" role="switch" aria-checked="false">
+    <span class="track"><span class="knob"></span></span>
+    <span class="sw-text"><span class="sw-label ink" data-ink="J’ai envie">J’ai envie</span><span class="sw-owner" id="owner-top"></span></span>
+  </button>
+
+  <section class="press" id="cabinet" aria-label="La phrase">
+    <div class="press-row">
+      <div class="dir" id="dir" data-dir="me" role="group" aria-label="Qui fait l’action">
+        <button type="button" data-dir="me" aria-pressed="true">que tu me</button>
+        <span class="dir-or" aria-hidden="true">/</span>
+        <button type="button" data-dir="te" aria-pressed="false">de te</button>
+      </div>
+      <button class="sticker sticker--dice" id="dice" type="button" aria-label="Au hasard">
+        <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="4.5" fill="none" stroke="currentColor" stroke-width="2.2"/><g fill="currentColor"><circle cx="8.2" cy="8.2" r="1.6"/><circle cx="15.8" cy="15.8" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="15.8" cy="8.2" r="1.6"/><circle cx="8.2" cy="15.8" r="1.6"/></g></svg>
+        <span>Hasard</span>
+      </button>
+    </div>
+    <div class="strips">
+      <div class="reel strip strip--pink" data-reel="0" tabindex="0" role="spinbutton" aria-label="Action"><div class="reel-strip"></div><span class="reel-shade" aria-hidden="true"></span><span class="stamp" aria-hidden="true">changé</span></div>
+      <div class="reel strip strip--blue" data-reel="1" tabindex="0" role="spinbutton" aria-label="Endroit"><div class="reel-strip"></div><span class="reel-shade" aria-hidden="true"></span><span class="stamp" aria-hidden="true">changé</span></div>
+      <div class="reel strip strip--pink2" data-reel="2" tabindex="0" role="spinbutton" aria-label="Manière"><div class="reel-strip"></div><span class="reel-shade" aria-hidden="true"></span><span class="stamp" aria-hidden="true">changé</span></div>
+    </div>
+  </section>
+
+  <button class="switch switch--bottom" id="sw-bottom" type="button" role="switch" aria-checked="false">
+    <span class="track"><span class="knob"></span></span>
+    <span class="sw-text"><span class="sw-label ink" id="bottom-label" data-ink="J’ai envie aussi">J’ai envie aussi</span><span class="sw-owner" id="owner-bottom"></span></span>
+  </button>
+</div>
+
+<!-- Accueil -->
+<div class="overlay overlay--start" id="ov-start">
+  <div class="sheet">
+    <p class="poster-neon" aria-hidden="true">Red Corner</p>
+    <h2 class="poster-title"><span class="ink" data-ink="Kiff">Kiff</span><span class="ink" data-ink="Kiff">Kiff</span><span class="poster-venue"> au Nostra</span></h2>
+    <p class="poster-event">Soirée Décadanse</p>
+    <p class="poster-sub">Un jeu à deux, sur un seul téléphone.</p>
+    <p class="poster-rules">L’un·e propose une envie avec les roues. L’autre peut en changer une. Rien ne se passe tant que les deux n’ont pas dit « j’ai envie ».</p>
+    <form id="start-form" class="start-form">
+      <label for="name0">Qui propose en premier ?</label>
+      <input id="name0" maxlength="20" autocomplete="off" placeholder="Cerise">
+      <label for="name1">Et l’autre ?</label>
+      <input id="name1" maxlength="20" autocomplete="off" placeholder="Pistache">
+      <fieldset class="piment-field">
+        <legend>Piment</legend>
+        <div class="piment-choice" data-name="piment" role="radiogroup" aria-label="Niveau de piment"></div>
+        <p class="piment-desc"></p>
+      </fieldset>
+      <button class="btn" type="submit" id="start-go">C’est parti</button>
+      <button class="link-btn resume-link" id="resume" type="button" hidden>Reprendre la partie en cours</button>
+      <div class="start-links">
+        <button class="skin-link" id="skin-open" type="button" aria-haspopup="dialog">Ambiance : <span id="skin-current">Arty</span></button>
+        <button class="skin-link" id="mute" type="button" aria-pressed="false">Son : <span id="mute-state">activé</span></button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Choix de l’ambiance -->
+<div class="overlay overlay--edit overlay--skins" id="ov-skins" hidden role="dialog" aria-modal="true" aria-labelledby="skins-title">
+  <div class="sheet sheet--edit sheet--skins">
+    <h2 class="edit-label" id="skins-title">Choisis l’ambiance</h2>
+    <div class="skin-list" role="radiogroup" aria-labelledby="skins-title">
+      <label class="skin-opt"><input type="radio" name="skin" value="arty"><span class="skin-swatch skin-swatch--arty"></span><span class="skin-name">Arty</span></label>
+      <label class="skin-opt"><input type="radio" name="skin" value="pomme"><span class="skin-swatch skin-swatch--pomme"></span><span class="skin-name">Pomme d’Amour</span></label>
+      <label class="skin-opt"><input type="radio" name="skin" value="redcorner"><span class="skin-swatch skin-swatch--redcorner"></span><span class="skin-name">Red Corner</span></label>
+    </div>
+    <div class="row row--end">
+      <button class="btn" id="skins-done" type="button">C’est choisi</button>
+    </div>
+  </div>
+</div>
+
+<!-- Niveau de piment -->
+<div class="overlay overlay--edit overlay--skins" id="ov-piment" hidden role="dialog" aria-modal="true" aria-labelledby="piment-title">
+  <div class="sheet sheet--edit sheet--skins">
+    <h2 class="edit-label" id="piment-title">Niveau de piment</h2>
+    <div class="piment-choice piment-choice--sheet" data-name="piment2" role="radiogroup" aria-labelledby="piment-title"></div>
+    <p class="piment-desc"></p>
+    <p class="edit-hint">Choisissez-le ensemble : il vaut pour vous deux.</p>
+    <div class="row row--end">
+      <button class="btn" id="piment-done" type="button">C’est choisi</button>
+    </div>
+  </div>
+</div>
+
+<!-- Passage du téléphone -->
+<div class="overlay overlay--handoff" id="ov-handoff" hidden>
+  <div class="sheet">
+    <h2 class="handoff-title" id="handoff-title"></h2>
+    <p class="handoff-kicker" id="handoff-kicker">Passe-lui le téléphone.</p>
+    <p class="handoff-text" id="handoff-text"></p>
+    <button class="btn btn--paper" id="handoff-go" type="button"></button>
+    <button class="link-btn" id="handoff-back" type="button" hidden></button>
+  </div>
+</div>
+
+<!-- On passe -->
+<div class="overlay overlay--pass" id="ov-pass" hidden>
+  <div class="sheet">
+    <h2 class="pass-title"><span class="ink" data-ink="On passe.">On passe.</span></h2>
+    <p class="pass-text">Pas besoin d’expliquer pourquoi.</p>
+    <div class="stack">
+      <button class="btn" id="pass-same" type="button"></button>
+      <button class="btn btn--line" id="pass-other" type="button"></button>
+      <button class="link-btn" id="pass-cancel" type="button">Finalement, on continue</button>
+    </div>
+  </div>
+</div>
+
+<!-- Texte libre -->
+<div class="overlay overlay--edit" id="ov-edit" hidden>
+  <form class="sheet sheet--edit" id="edit-form">
+    <label class="edit-label" for="edit-input" id="edit-label">À toi d’écrire</label>
+    <p class="edit-preview" id="edit-preview"></p>
+    <input id="edit-input" maxlength="40" autocomplete="off" enterkeyhint="done">
+    <p class="edit-hint" id="edit-hint"></p>
+    <div class="row">
+      <button class="link-btn" id="edit-cancel" type="button">Annuler</button>
+      <button class="btn" type="submit">Valider</button>
+    </div>
+  </form>
+</div>
+
+<!-- Célébration -->
+<div class="overlay overlay--party" id="ov-party" hidden>
+  <canvas id="confetti" aria-hidden="true"></canvas>
+  <div class="sheet">
+    <h2 class="party-title"><span class="ink ink--flat" data-ink="Kiff Kiff !">Kiff Kiff !</span></h2>
+    <p class="party-venue">au Red Corner du Nostra</p>
+    <p class="party-sentence" id="party-sentence"></p>
+    <p class="party-text">Prenez votre temps. Revenez quand c’est fait.</p>
+    <button class="btn btn--paper" id="party-next" type="button"></button>
+    <button class="link-btn" id="party-pass" type="button">Finalement, on passe</button>
+  </div>
+</div>
+<!--/APP-->
+<script src="data.js?v=11"></script>
+<script src="app.js?v=11"></script>
+</body>
+</html>
