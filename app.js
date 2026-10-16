@@ -553,8 +553,7 @@
   $('#offer-but').addEventListener('click', () => {
     audio();
     if (S.phase !== 'review' || !myTurn()) return;
-    const A = nameOf(S.proposer);
-    $('#one-text').textContent = 'Tu peux changer une seule chose : une roue, ou « que tu me / de te ». Choisis-la bien. Les choix de ' + A + ' restent surlignés, et le bouton ↺ sur ce que tu as changé ramène son envie.';
+    $('#one-text').textContent = 'Tu peux changer une seule chose : une roue, ou « que tu me / de te ». Choisis-la bien.';
     show(el.ovOne);
     sClick(); haptic(8);
     $('#one-ok').focus({ preventScroll: true });
