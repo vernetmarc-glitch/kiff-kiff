@@ -41,6 +41,7 @@ Sur un seul téléphone, chaque modale commence par « Passe le téléphone à �
 - « que tu me » → subjonctif (que tu me gratouilles) ; « de te » → infinitif (de te gratouiller). Chaque action a ses deux formes dans `data.js`.
 - Élision automatique : « que tu m’intromettes », « de t’intromettre ».
 - Les actions construites avec « à » (faire gouzi-gouzi, faire rien du tout, rouler une pelle chaude) accordent la roue des endroits : à la tête, au gros orteil, aux épaules.
+- Une action qui finit par « de » (ou « à ») dans son texte, comme « glisser la langue le long de », laisse la préposition à la roue des endroits, qui fait la contraction toute seule : du bas du dos, des fesses, d’un genou, d’une épaule, de l’oreille, de ton cou (aussi en texte libre). Aucune case à cocher.
 - « Faire rien du tout » est volontairement familier (« de te faire rien du tout au coude ») : la forme correcte « ne rien te faire » ne rentre pas après « de te ».
 - « Circlure » se conjugue comme conclure : que tu me circlues.
 

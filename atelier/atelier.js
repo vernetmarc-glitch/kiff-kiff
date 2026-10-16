@@ -174,7 +174,7 @@
   function renderWords() {
     $$('.wheels button').forEach((b) => b.setAttribute('aria-selected', b.dataset.roue === roue ? 'true' : 'false'));
     $('#words-help').textContent = roue === 'action'
-      ? 'Écris le verbe comme après « que tu me » ; la forme « de te » se propose toute seule (corrige-la si besoin).'
+      ? 'Écris le verbe comme après « que tu me » ; la forme « de te » se propose toute seule (corrige-la si besoin). Une action peut finir par « de » (« glisses la langue le long de ») : l’endroit s’accorde tout seul (du bas du dos, des fesses, d’une épaule).'
       : 'Coche « change selon le sens » quand un possessif change : « que tu me … mon petit cœur » / « de te … ton petit cœur ».';
     $('#groups').innerHTML = NIV.map((n) => {
       const list = words[roue].filter((x) => x.lvl === n.n);

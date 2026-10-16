@@ -68,21 +68,42 @@
   const VOWEL = /^[aeiouyàâäéèêëîïôöûüùœæh]/i;
   const isFree = (r, i) => !!LISTS[r][i].free;
 
-  function actionForm(i, dir) {
+  /* Une action qui finit par « de » ou « à » (« … le long de ») laisse la préposition
+     à l’endroit, qui fait la contraction : du bas du dos, des fesses, d’une épaule. */
+  const PREP_TAIL = /\s+(de|d[’']|à)$/i;
+  function actionRaw(i, dir) {
     const a = LISTS[0][i];
     if (a.free) return S.custom[0].trim();
-    return dir === 'me' ? a.s : a.i;
+    return (dir === 'me' ? a.s : a.i) || '';
   }
-  const actionPrep = (i) => (LISTS[0][i].free ? '' : (LISTS[0][i].p || ''));
+  function actionForm(i, dir) {
+    return actionRaw(i, dir).replace(PREP_TAIL, '');
+  }
+  function actionPrep(i) {
+    const a = LISTS[0][i];
+    if (!a.free && a.p) return a.p;
+    const m = PREP_TAIL.exec(a.free ? S.custom[0].trim() : (a.s || a.i || ''));
+    if (!m) return '';
+    return m[1].toLowerCase() === 'à' ? 'à' : 'de';
+  }
   function withA(o) {
     if (/^le\s/i.test(o)) return 'au ' + o.slice(3);
     if (/^les\s/i.test(o)) return 'aux ' + o.slice(4);
     return 'à ' + o;
   }
+  function withDe(o) {
+    if (/^(le|au)\s/i.test(o)) return 'du ' + o.slice(3);
+    if (/^(les|aux)\s/i.test(o)) return 'des ' + o.slice(o.indexOf(' ') + 1);
+    if (/^à\s/i.test(o)) return withDe(o.slice(2).trim());
+    if (/^(du|des|de)\s/i.test(o) || /^d[’']/i.test(o)) return o;
+    if (/^[aeiouyàâäéèêëîïôöûüùœæ]/i.test(o)) return 'd’' + o;
+    return 'de ' + o;
+  }
   function objetForm(j, prep, dir = S.dir) {
     const o = LISTS[1][j];
     const base = o.free ? S.custom[1].trim() : (o.t || (dir === 'me' ? o.s : o.i));
     if (!base) return '';
+    if (prep === 'de') return withDe(base);
     return prep === 'à' && !/^(à|au|aux)\s/i.test(base) ? withA(base) : base;
   }
   function maniereForm(k, dir = S.dir) {
