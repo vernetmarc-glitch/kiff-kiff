@@ -823,14 +823,43 @@
     confetti();
     save('names', S.names);
   }
-  /* « Ça vous a plu ? » : un café pour les roues */
-  const ovCoffee = $('#ov-coffee');
-  $('#party-coffee').addEventListener('click', () => { audio(); sClick(); haptic(8); show(ovCoffee); $('#coffee-go').focus({ preventScroll: true }); });
-  const closeCoffee = () => { hide(ovCoffee); $('#party-coffee').focus({ preventScroll: true }); };
-  $('#coffee-no').addEventListener('click', () => { audio(); sSwitchOff(); closeCoffee(); });
-  $('#coffee-go').addEventListener('click', () => { sParty(); haptic(20); setTimeout(() => hide(ovCoffee), 400); });
-  ovCoffee.addEventListener('click', (e) => { if (e.target === ovCoffee) closeCoffee(); });
-  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !ovCoffee.hidden) closeCoffee(); });
+  /* « Je veux dealer du Kiff !! » : partager le jeu, ou offrir un café */
+  const APP_URL = 'https://vernetmarc-glitch.github.io/roue-du-consentement/';
+  const DEAL_TEXT = 'Tiens, je crois que ça te fera pas de mal : Kiff Kiff, un petit jeu à deux pour pimenter un peu les choses.';
+  const ovDeal = $('#ov-deal');
+  $('#party-deal').addEventListener('click', () => {
+    audio(); sClick(); haptic(8);
+    $('#deal-done').hidden = true;
+    show(ovDeal);
+    $('#deal-share').focus({ preventScroll: true });
+  });
+  const closeDeal = () => { hide(ovDeal); $('#party-deal').focus({ preventScroll: true }); };
+  $('#deal-close').addEventListener('click', () => { audio(); closeDeal(); });
+  ovDeal.addEventListener('click', (e) => { if (e.target === ovDeal) closeDeal(); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !ovDeal.hidden) closeDeal(); });
+  $('#deal-share').addEventListener('click', async () => {
+    audio();
+    const done = $('#deal-done');
+    if (typeof navigator.share === 'function') {
+      try {
+        await navigator.share({ title: 'Kiff Kiff', text: DEAL_TEXT, url: APP_URL });
+        sSwitchOn(); haptic(15);
+        done.textContent = 'Kiff dealé. Merci pour elle, ou pour lui.';
+        done.hidden = false;
+      } catch (e) { /* partage annulé */ }
+      return;
+    }
+    // Sans partage natif : on copie le message avec le lien
+    try {
+      await navigator.clipboard.writeText(DEAL_TEXT + ' ' + APP_URL);
+      done.textContent = 'Message copié : colle-le à qui tu veux.';
+    } catch (e) {
+      done.textContent = DEAL_TEXT + ' ' + APP_URL;
+    }
+    done.hidden = false;
+    sClick(); haptic(8);
+  });
+  $('#coffee-go').addEventListener('click', () => { sParty(); haptic(20); });
   $('#party-pass').addEventListener('click', () => {
     hide(el.ovParty);
     stopConfetti();

@@ -437,13 +437,15 @@ body[data-phase="adjust"] .act-main:not(.is-done) { opacity: .92; }
 .offer-back { align-self: center; font-size: 14px; opacity: .85; }
 
 /* ---------- Célébration : « Ça vous a plu ? » ---------- */
-.party-coffee { margin-top: 6px; font-size: 14px; opacity: .9; }
+.party-deal { margin-top: 10px; }
+.deal-done { margin: -4px 0 0 !important; font-size: 14px; font-weight: 600; text-align: center; overflow-wrap: anywhere; }
+.deal-money { margin-top: 10px !important; }
 .sheet--coffee { gap: 12px; }
 .sheet--coffee .duo-text { font-size: 15.5px; line-height: 1.5; }
 .coffee-wink { font-style: italic; }
 a.btn { text-decoration: none; align-self: stretch; margin-top: 4px; }
 .coffee-no { align-self: center; font-size: 14px; }
-body:has(#ov-coffee:not([hidden])) .deco-candles { display: none; }
+body:has(#ov-deal:not([hidden])) .deco-candles { display: none; }
 
 /* ---------- Accueil : trois écrans qui glissent ---------- */
 .overlay--start { align-items: stretch; }
