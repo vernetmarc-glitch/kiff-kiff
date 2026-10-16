@@ -748,13 +748,13 @@
   });
   $('#pass-cancel').addEventListener('click', () => { hide(el.ovPass); if (S.phase === 'celebrate') show(el.ovParty); });
 
-  function handoffNewTurn(to) {
+  function handoffNewTurn(to, text, then) {
     $('#handoff-title').textContent = 'Au tour de ' + nameOf(to);
     $('#handoff-kicker').textContent = 'Passe-lui le téléphone.';
-    $('#handoff-text').textContent = 'C’est toi qui proposes maintenant.';
+    $('#handoff-text').textContent = text || 'C’est toi qui proposes maintenant.';
     const go = $('#handoff-go');
     go.textContent = 'C’est moi, ' + nameOf(to);
-    go.onclick = () => { hide(el.ovHandoff); startComposition(to); };
+    go.onclick = () => { hide(el.ovHandoff); startComposition(to); if (then) then(); };
     $('#handoff-back').hidden = true;
     show(el.ovHandoff);
   }
@@ -1286,7 +1286,7 @@
       stage: 'join',
       title: A + ' t’invite',
       text: st.phase === 'lobby'
-        ? 'Kiff Kiff à deux téléphones : ' + A + ' propose sur son téléphone, tu réponds sur le tien. Écris ton prénom pour rejoindre la partie.'
+        ? 'Kiff Kiff à deux téléphones : chacun·e joue sur le sien, et c’est toi qui proposes en premier. Écris ton prénom pour rejoindre la partie.'
         : 'La partie de ' + A + ' est déjà commencée. Écris ton prénom pour la rejoindre.',
       name: true, go: 'Rejoindre', cancel: 'Jouer sur ce téléphone seulement'
     });
@@ -1299,17 +1299,17 @@
     const next = Object.assign({}, st);
     next.names = [(st.names && st.names[0]) || '', name];
     if (st.phase === 'lobby') {
-      // La partie commence : rouleaux au hasard, la personne qui a invité propose
+      // La partie commence : rouleaux au hasard, la personne invitée propose en premier
       const lv = parseLevels(st.levels);
       buildLists(lv);
       next.phase = 'compose';
-      next.proposer = 0;
+      next.proposer = 1;
       next.keys = [0, 1, 2].map((r) => keyOf(r, Math.floor(Math.random() * (LISTS[r].length - 1))));
       next.original = null; next.bottom = false;
     }
     duo.resume = true;
     save('duo', { room: duo.info.room, key: duo.info.key, broker: duo.info.broker, seat: duo.seat, id: duo.id });
-    enterGame(next);
+    enterGame(next, next.proposer === duo.seat);
     pushState();
   }
 
@@ -1586,8 +1586,9 @@
     const toRules = () => {
       readNames();
       if (where === 'duo') S.names[1] = '';
-      $('#rule-a').textContent = nameOf(0);
-      $('#rule-b').textContent = where === 'duo' ? 'L’autre' : nameOf(1);
+      // La deuxième personne propose en premier
+      $('#rule-a').textContent = where === 'duo' ? 'L’autre' : nameOf(1);
+      $('#rule-b').textContent = nameOf(0);
       $('#piment-go').textContent = where === 'duo' ? 'Inviter l’autre téléphone' : 'C’est parti';
       save('where', where);
       sClick(); haptic(8);
@@ -1684,8 +1685,11 @@
     hide(el.ovStart);
     S.started = true;
     S.mustRestart = false;
-    startComposition(0);
-    setTimeout(() => shuffle(false), 300);
+    // La deuxième personne propose en premier : on lui passe le téléphone
+    S.proposer = 1;
+    S.phase = 'compose';
+    render();
+    handoffNewTurn(1, 'C’est toi qui proposes en premier.', () => setTimeout(() => shuffle(false), 250));
   }
 
   function openHome() {

@@ -5,9 +5,9 @@ Jeu à deux sur un seul téléphone ou sur deux téléphones, en portrait. Une p
 ## Accueil : quatre écrans qui glissent
 
 1. **Accueil** : le titre et une seule phrase qui dit le but du jeu (« Trois roues pour se proposer des envies, et ne vivre que celles dont vous avez envie tous les deux. »), puis « Commencer ». En bas : ambiance, son, installer l’appli. « Reprendre la partie en cours » quand une partie est en cours.
-2. **Qui joue ?** : le prénom de la personne qui tient le téléphone (elle propose en premier), puis « L’autre joue… » **sur ce téléphone** (on écrit son prénom, puis « Suivant ») ou **sur son téléphone** (l’écran glisse tout de suite : on l’invitera à la fin).
+2. **Qui joue ?** : le prénom de la personne qui tient le téléphone, puis « L’autre joue… » **sur ce téléphone** (on écrit son prénom, puis « Suivant ») ou **sur son téléphone** (l’écran glisse tout de suite : on l’invitera à la fin).
 3. **Le principe**, en trois lignes numérotées, avec les vrais prénoms, puis « Compris ».
-4. **Quels piments ?** : les trois niveaux (Tendre, Pimenté, Brûlant) se cochent directement, indépendamment (au moins un), puis « C’est parti » lance la partie, ou « Inviter l’autre téléphone » ouvre l’invitation (QR code et lien) quand l’autre joue sur son téléphone.
+4. **Quels piments ?** : les trois niveaux (Tendre, Pimenté, Brûlant) se cochent directement, indépendamment (au moins un), puis « C’est parti » lance la partie (c’est **la deuxième personne qui propose en premier** : « Au tour de …, passe-lui le téléphone »), ou « Inviter l’autre téléphone » ouvre l’invitation (QR code et lien) quand l’autre joue sur son téléphone.
 
 Chaque écran glisse vers le suivant dès la réponse ; quatre points en haut montrent où on en est. Pour revenir en arrière : glisser le doigt vers la droite (l’écran suit le doigt), ou « Retour ». Le bouton maison du jeu ramène au premier écran.
 
