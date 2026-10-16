@@ -818,6 +818,14 @@
     confetti();
     save('names', S.names);
   }
+  /* « Ça vous a plu ? » : un café pour les roues */
+  const ovCoffee = $('#ov-coffee');
+  $('#party-coffee').addEventListener('click', () => { audio(); sClick(); haptic(8); show(ovCoffee); $('#coffee-go').focus({ preventScroll: true }); });
+  const closeCoffee = () => { hide(ovCoffee); $('#party-coffee').focus({ preventScroll: true }); };
+  $('#coffee-no').addEventListener('click', () => { audio(); sSwitchOff(); closeCoffee(); });
+  $('#coffee-go').addEventListener('click', () => { sParty(); haptic(20); setTimeout(() => hide(ovCoffee), 400); });
+  ovCoffee.addEventListener('click', (e) => { if (e.target === ovCoffee) closeCoffee(); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !ovCoffee.hidden) closeCoffee(); });
   $('#party-pass').addEventListener('click', () => {
     hide(el.ovParty);
     stopConfetti();
