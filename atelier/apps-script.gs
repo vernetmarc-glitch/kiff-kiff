@@ -1,9 +1,10 @@
 /* Kiff Kiff — base de données de l’atelier (Google Apps Script lié à une feuille Google Sheets).
  *
- * Mise en place (une seule fois) :
- *   1. Ouvrir une nouvelle feuille Google Sheets (sheets.new), la nommer « Kiff Kiff — données ».
- *   2. Menu Extensions > Apps Script. Effacer le code présent, coller tout ce fichier.
- *   3. Remplacer le mot de passe ci-dessous, puis Enregistrer.
+ * Mise en place (une seule fois), depuis un ordinateur :
+ *   1. Aller sur script.google.com > Nouveau projet (ou, depuis une feuille Google Sheets,
+ *      menu Extensions > Apps Script). Effacer le code présent, coller tout ce fichier.
+ *   3. Remplacer le mot de passe ci-dessous, Enregistrer, puis choisir la fonction « preparer »
+ *      et cliquer Exécuter (Google demande l’autorisation : Paramètres avancés > Accéder au projet).
  *   4. Déployer > Nouveau déploiement > type « Application Web »
  *        Exécuter en tant que : moi · Qui a accès : Tout le monde > Déployer > Autoriser l’accès.
  *   5. Copier l’adresse de l’application Web (elle finit par /exec).
@@ -42,8 +43,30 @@ function sortie(objet) {
   return ContentService.createTextOutput(JSON.stringify(objet)).setMimeType(ContentService.MimeType.JSON);
 }
 
+/* La feuille de données : celle d’où le script a été ouvert (Extensions › Apps Script),
+   ou, pour un script créé directement sur script.google.com, une feuille
+   « Kiff Kiff — données » créée toute seule dans ton Drive au premier appel. */
+function classeurDonnees() {
+  const actif = SpreadsheetApp.getActiveSpreadsheet();
+  if (actif) return actif;
+  const props = PropertiesService.getScriptProperties();
+  const id = props.getProperty('feuille');
+  if (id) { try { return SpreadsheetApp.openById(id); } catch (err) { /* feuille supprimée : on en recrée une */ } }
+  const neuf = SpreadsheetApp.create('Kiff Kiff — données');
+  props.setProperty('feuille', neuf.getId());
+  return neuf;
+}
+
+/* À lancer une fois depuis l’éditeur (bouton Exécuter) pour donner les autorisations
+   et créer la feuille. Son adresse s’affiche dans le journal d’exécution. */
+function preparer() {
+  const c = classeurDonnees();
+  feuille('mots', ENT_MOTS); feuille('compteurs', ENT_COMPTEURS); feuille('choix', ENT_CHOIX);
+  Logger.log('Feuille de données : ' + c.getUrl());
+}
+
 function feuille(nom, entetes) {
-  const classeur = SpreadsheetApp.getActiveSpreadsheet();
+  const classeur = classeurDonnees();
   let f = classeur.getSheetByName(nom);
   if (!f) {
     f = classeur.insertSheet(nom);
