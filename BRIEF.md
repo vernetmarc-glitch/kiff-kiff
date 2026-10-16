@@ -97,12 +97,28 @@ Kiff Kiff s’installe comme une appli (web app) : icône sur l’écran d’acc
 - Le logo : deux K en miroir (kif-kif, pareil des deux côtés) dont les bras forment un losange doré autour d’un cœur rose néon, sur le velours du Red Corner. Fichiers dans `icons/` (SVG source, PNG 192 et 512, versions « maskable » pour les icônes rondes d’Android, icône Apple, favicon).
 - `manifest.webmanifest` décrit l’appli ; `sw.js` garde une copie des fichiers (réseau d’abord, copie si pas de réseau).
 
+## L’atelier (statistiques et mots)
+
+Page de travail : https://vernetmarc-glitch.github.io/roue-du-consentement/atelier/ (remplace l’ancien « Atelier des roues » en artifact).
+
+- **Statistiques** : kiff kiff trouvés, parties jouées, envies proposées, « on passe », taux d’envies devenues kiff kiff ; pour chaque roue, le mot le plus choisi et les cinq suivants, parmi les kiff kiff ou parmi les envies proposées.
+- **Les mots** : les trois roues, rangées par niveau de piment. Chaque mot se modifie, change de niveau (1, 2, 3), se supprime ; un bouton « Ajouter » par niveau. Pour les actions, la forme « de te » se propose toute seule à partir de « que tu me » (gratouilles → gratouiller, fasses → faire…) et se corrige à la main ; case « avec « à » ». Pour les endroits et les manières, case « change selon le sens » (mon / ton…). « Enregistrer dans l’appli » envoie la liste : les téléphones l’ont à leur prochaine partie.
+- **Réglages** : adresse du script Google et mot de passe de l’atelier (gardés dans le navigateur), guide de mise en place.
+
+**Comment ça marche.** Les données vivent dans une feuille Google Sheets de Marc, derrière un petit script Google Apps Script (`atelier/apps-script.gs`, publié en « application Web »). La feuille a trois onglets créés tout seuls : « mots » (la liste des roues), « compteurs », « choix » (pour chaque roue, combien de fois chaque mot a été proposé et a fini en kiff kiff). L’adresse du script se met dans `config.js` (`KIFF_API`) ; tant qu’elle est vide, le jeu n’envoie rien et garde `data.js`.
+
+- Ce que les téléphones envoient : « partie » (une partie lancée), « envie » (une envie proposée, avec le mot de chaque roue), « kiff » (un kiff kiff, avec le mot de chaque roue), « passe ». Jamais de prénom ni de texte écrit à la main (il devient « (texte libre) »). Sur deux téléphones, seul le téléphone qui agit envoie, pour ne pas compter deux fois.
+- Les mots : chaque téléphone demande la liste à l’ouverture, la garde pour la fois suivante, et l’applique avant de commencer une partie (jamais au milieu). `data.js` reste la liste de secours, hors ligne ou si la feuille ne répond pas.
+- L’enregistrement des mots demande le mot de passe écrit en haut du script.
+
 ## Fichiers
 
 - `index.html` : structure de l’écran, écrans superposés, sélecteur d’ambiance.
 - `base.css` : mécanique commune (mise en page, rouleaux, switches).
 - `skins/arty.css`, `skins/pomme.css`, `skins/redcorner.css` : une feuille par ambiance.
-- `data.js` : les listes des rouleaux (à modifier pour changer les mots).
+- `data.js` : les listes des rouleaux de secours (les mots se modifient dans l’atelier).
+- `config.js` : adresse du script Google de l’atelier.
+- `atelier/` : la page de l’atelier et le script Google à copier.
 - `app.js` : rouleaux, déroulé du tour, grammaire, sons, confettis, ambiances, mode deux téléphones.
 - `duo.js` : liaison chiffrée entre deux téléphones (relais public).
 - `vendor/` : mqtt.js et qrcode-generator, pour le mode deux téléphones.

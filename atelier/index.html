@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#3A0510">
+<meta name="robots" content="noindex">
+<title>Kiff Kiff · l’atelier</title>
+<link rel="icon" href="../icons/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500..800&family=Jost:wght@300..700&family=Baskervville:ital,wght@0,400..700;1,400..700&display=swap">
+<link rel="stylesheet" href="atelier.css?v=1">
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <symbol id="chili" viewBox="0 0 24 24">
+    <path d="M15.2 7.4c2.9.5 4.3 3.4 3.4 6.4-1.5 5.1-7.4 8.6-13.8 7.9 4-2.1 6.6-4.9 7.5-8.9.6-2.8 1-5.8 2.9-5.4z" fill="currentColor"/>
+    <path d="M13.6 8.1c1.3-1.2 3.4-1.3 4.8-.1" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+    <path d="M16 7.5c0-1.9.9-3.3 2.8-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+  </symbol>
+</svg>
+
+<header class="top">
+  <a class="brand" href="../"><img src="../icons/icon-192.png" alt="" width="40" height="40"><span><b>Kiff Kiff</b> l’atelier</span></a>
+  <nav class="tabs" role="tablist" aria-label="Sections">
+    <button role="tab" id="tab-stats" aria-controls="panel-stats" aria-selected="true">Statistiques</button>
+    <button role="tab" id="tab-mots" aria-controls="panel-mots" aria-selected="false">Les mots</button>
+    <button role="tab" id="tab-reglages" aria-controls="panel-reglages" aria-selected="false">Réglages</button>
+  </nav>
+</header>
+
+<main>
+  <p class="banner" id="banner" hidden></p>
+
+  <!-- Statistiques -->
+  <section class="panel" id="panel-stats" role="tabpanel" aria-labelledby="tab-stats">
+    <div class="counters" id="counters">
+      <div class="counter counter--main"><span class="n" id="c-kiff">–</span><span class="l">kiff kiff trouvés</span></div>
+      <div class="counter"><span class="n" id="c-partie">–</span><span class="l">parties jouées</span></div>
+      <div class="counter"><span class="n" id="c-envie">–</span><span class="l">envies proposées</span></div>
+      <div class="counter"><span class="n" id="c-passe">–</span><span class="l">« on passe »</span></div>
+    </div>
+    <p class="note" id="rate"></p>
+    <div class="by" role="group" aria-label="Classer selon">
+      <span>Les plus choisies, parmi</span>
+      <button class="chip" data-by="kiffs" aria-pressed="true">les kiff kiff</button>
+      <button class="chip" data-by="envies" aria-pressed="false">les envies proposées</button>
+    </div>
+    <div class="tops" id="tops"></div>
+    <div class="row-end"><span class="note" id="stats-time"></span><button class="btn btn--line" id="refresh" type="button">Actualiser</button></div>
+  </section>
+
+  <!-- Les mots -->
+  <section class="panel" id="panel-mots" role="tabpanel" aria-labelledby="tab-mots" hidden>
+    <div class="wheels" role="tablist" aria-label="Roue">
+      <button role="tab" data-roue="action" aria-selected="true">Actions <span class="count" data-count="action"></span></button>
+      <button role="tab" data-roue="endroit" aria-selected="false">Endroits <span class="count" data-count="endroit"></span></button>
+      <button role="tab" data-roue="maniere" aria-selected="false">Manières <span class="count" data-count="maniere"></span></button>
+    </div>
+    <p class="note" id="words-help"></p>
+    <div id="groups"></div>
+    <div class="savebar" id="savebar">
+      <span id="dirty">Aucune modification</span>
+      <button class="btn" id="save" type="button" disabled>Enregistrer dans l’appli</button>
+    </div>
+  </section>
+
+  <!-- Réglages -->
+  <section class="panel" id="panel-reglages" role="tabpanel" aria-labelledby="tab-reglages" hidden>
+    <div class="card">
+      <h2>Connexion</h2>
+      <label for="api">Adresse de l’application Web Google</label>
+      <input id="api" type="url" placeholder="https://script.google.com/macros/s/…/exec" autocomplete="off" spellcheck="false">
+      <label for="pwd">Mot de passe de l’atelier</label>
+      <input id="pwd" type="password" autocomplete="current-password" placeholder="celui écrit dans le script">
+      <div class="row-end"><span class="note" id="conn"></span><button class="btn" id="test" type="button">Vérifier</button></div>
+      <p class="note">Ces deux réglages restent dans ce navigateur. L’adresse doit aussi être mise dans <code>config.js</code> pour que les téléphones envoient leurs comptes.</p>
+    </div>
+    <div class="card">
+      <h2>Mise en place, une seule fois</h2>
+      <ol class="steps">
+        <li>Ouvre une nouvelle feuille Google Sheets (<a href="https://sheets.new" target="_blank" rel="noopener">sheets.new</a>) et nomme-la « Kiff Kiff — données ».</li>
+        <li>Menu <b>Extensions › Apps Script</b>. Efface le code présent et colle celui-ci : <button class="btn btn--small" id="copy-code" type="button">Copier le code</button></li>
+        <li>En haut du code, remplace <code>change-moi</code> par ton mot de passe, puis <b>Enregistrer</b>.</li>
+        <li><b>Déployer › Nouveau déploiement</b>, type <b>Application Web</b>. Exécuter en tant que : <b>moi</b>. Qui a accès : <b>Tout le monde</b>. Puis <b>Déployer</b> et autorise l’accès (Google prévient que l’appli n’est pas vérifiée : <i>Paramètres avancés › Accéder au projet</i>).</li>
+        <li>Copie l’adresse de l’application Web (elle finit par <code>/exec</code>), colle-la ci-dessus avec ton mot de passe, puis <b>Vérifier</b>.</li>
+        <li>Va dans <b>Les mots</b> et touche <b>Enregistrer dans l’appli</b> : la feuille reçoit la liste actuelle.</li>
+      </ol>
+      <p class="note">Les téléphones envoient seulement des comptes : une partie lancée, une envie proposée, un kiff kiff, un « on passe », et pour une envie le mot de chaque roue. Jamais de prénom ni de texte écrit à la main.</p>
+    </div>
+  </section>
+</main>
+
+<script src="../data.js"></script>
+<script src="../config.js"></script>
+<script src="atelier.js?v=1"></script>
+</body>
+</html>

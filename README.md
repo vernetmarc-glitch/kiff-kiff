@@ -15,4 +15,6 @@ Pour jouer chacun·e sur son téléphone : à l’écran « Qui joue ? », chois
 
 Pour l’installer sur Android : ouvrir le lien dans Chrome, puis « Installer l’appli » sur l’accueil (ou menu ⋮ > « Ajouter à l’écran d’accueil »).
 
+L’atelier (statistiques des parties et mots des roues) : https://vernetmarc-glitch.github.io/roue-du-consentement/atelier/
+
 Le fonctionnement complet est décrit dans [BRIEF.md](BRIEF.md). Pour changer les mots des roues, modifier `data.js`.

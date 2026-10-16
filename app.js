@@ -547,6 +547,7 @@
     if (!myTurn() || (offerKind === 'offer' && S.phase !== 'review') || (offerKind === 'reconfirm' && S.phase !== 'reconfirm')) return;
     hideOffer();
     sSwitchOn(); haptic(15);
+    report('kiff', choiceLabels());
     if (duo) { S.phase = 'celebrate'; sync(); }
     setTimeout(celebrate, 220);
   });
@@ -622,6 +623,7 @@
   /* A propose son envie */
   function propose() {
     if (S.phase !== 'compose' || !myTurn() || reels.some((r) => r.busy) || blockedByFree()) return;
+    report('envie', choiceLabels());
     S.original = { idx: S.idx.slice(), custom: S.custom.slice(), dir: S.dir };
     S.phase = 'review';
     sSwitchOn(); haptic(15);
@@ -634,6 +636,7 @@
     if (S.phase !== 'adjust' || !myTurn() || reels.some((r) => r.busy) || blockedByFree()) return;
     sSwitchOn(); haptic(15);
     if (!changes().length) {
+      report('kiff', choiceLabels());
       if (duo) { S.phase = 'celebrate'; sync(); }
       setTimeout(celebrate, 220);
       return;
@@ -725,6 +728,7 @@
   }
   $('#pass-same').addEventListener('click', () => {
     hide(el.ovPass);
+    report('passe');
     hide(el.ovParty); stopConfetti();
     if (duo) { duoPass(S.proposer); return; }
     const A = S.proposer;
@@ -734,6 +738,7 @@
   });
   $('#pass-other').addEventListener('click', () => {
     hide(el.ovPass);
+    report('passe');
     hide(el.ovParty); stopConfetti();
     const to = other(S.proposer);
     if (duo) { duoPass(to); return; }
@@ -974,12 +979,13 @@
 
   /* ---------- Deux téléphones ---------- */
   // Empreinte des listes : les deux téléphones doivent avoir les mêmes roues
-  const DATA_V = (() => {
+  function dataVersion() {
     const s = JSON.stringify([D.actions, D.objets, D.manieres]);
     let h = 5381;
     for (let i = 0; i < s.length; i++) h = ((h * 33) ^ s.charCodeAt(i)) >>> 0;
     return h.toString(36);
-  })();
+  }
+  let DATA_V = dataVersion();
   // Une case se désigne par sa place dans la liste complète (stable quel que soit le piment)
   const keyOf = (r, i) => (LISTS[r][i] && LISTS[r][i].free ? 'f' : SOURCE[r].indexOf(LISTS[r][i]));
   function idxOf(r, k) {
@@ -1072,7 +1078,7 @@
     } else if (duo.resume || duo.stage === 'invite') {
       const wasInvite = duo.stage === 'invite';
       enterGame(st, wasInvite);
-      if (wasInvite) { sSwitchOn(); haptic(30); }
+      if (wasInvite) { sSwitchOn(); haptic(30); report('partie'); }
     } else {
       showJoin(st);
     }
@@ -1236,6 +1242,7 @@
   const KiffDuoOk = () => !!(window.KiffDuo && window.KiffDuo.supported());
 
   async function createDuo(given) {
+    applyPendingMots();
     const name = (given != null ? given : duoName.value).replace(/\s+/g, ' ').trim().slice(0, 20);
     duoSheet({ stage: 'creating', title: 'Sur deux téléphones', wait: 'J’ouvre la partie…', cancel: 'Annuler' });
     try { await loadDuoLibs(); } catch (e) { duoError('net'); return; }
@@ -1314,6 +1321,9 @@
     hide(el.ovStart);
     duoSheet({ stage: 'connecting', title: 'Kiff Kiff à deux', wait: 'Connexion à la partie…', cancel: 'Jouer sur ce téléphone seulement' });
     if (!KiffDuoOk()) { duoError('support'); return; }
+    // Les deux téléphones doivent avoir les mêmes mots : on attend un instant ceux de l’atelier
+    await Promise.race([motsReady, new Promise((r) => setTimeout(r, 4000))]);
+    applyPendingMots();
     duo = { info, seat, id, seq: 0, lastBy: '', stage: 'connecting', resume: !!same, partnerOn: null, online: true, passN: null };
     try { await loadDuoLibs(); } catch (e) { duoError('net'); return; }
     try {
@@ -1416,6 +1426,62 @@
     if (document.visibilityState === 'visible' && duo && duo.conn) duo.conn.wake();
   });
   window.addEventListener('online', () => { if (duo && duo.conn) duo.conn.wake(); });
+
+  /* ---------- Atelier en ligne : comptes anonymes et mots modifiés ---------- */
+  const API = window.KIFF_API || '';
+  // Ce qui est envoyé : le type d’événement et, pour une envie ou un kiff kiff, le mot de chaque roue.
+  // Jamais de prénom ni de texte écrit à la main.
+  function report(type, choix) {
+    if (!API) return;
+    try {
+      fetch(API, { method: 'POST', mode: 'no-cors', keepalive: true, body: JSON.stringify({ action: 'event', type, choix: choix || null }) }).catch(() => {});
+    } catch (e) { /* rien */ }
+  }
+  function choiceLabels() {
+    return [0, 1, 2].map((r) => {
+      const x = LISTS[r][S.idx[r]];
+      if (!x || x.free) return '(texte libre)';
+      return x.s || x.t || '';
+    });
+  }
+  function validMots(m) {
+    const ok = (l, act) => Array.isArray(l) && l.length > 2 && l.every((x) => x && (act ? typeof x.s === 'string' && typeof x.i === 'string' : typeof (x.t || x.s) === 'string'));
+    return !!m && ok(m.actions, true) && ok(m.objets) && ok(m.manieres);
+  }
+  let pendingMots = null;
+  const motsReady = new Promise((resolve) => {
+    if (!API) { resolve(); return; }
+    const ctl = window.AbortController ? new AbortController() : null;
+    const t = setTimeout(() => { if (ctl) ctl.abort(); resolve(); }, 6000);
+    fetch(API + '?action=mots', ctl ? { signal: ctl.signal } : {})
+      .then((r) => r.json())
+      .then((res) => {
+        clearTimeout(t);
+        if (res && res.ok && validMots(res.mots) && res.version !== window.KIFF_MOTS_VERSION) {
+          save('mots', { api: API, version: res.version, mots: res.mots });
+          pendingMots = res;
+          if (!S.started && !duo && reels.length) applyPendingMots();
+        }
+        resolve();
+      })
+      .catch(() => { clearTimeout(t); resolve(); });
+  });
+  function applyPendingMots() {
+    if (!pendingMots) return;
+    const res = pendingMots;
+    pendingMots = null;
+    D.actions = res.mots.actions; D.objets = res.mots.objets; D.manieres = res.mots.manieres;
+    window.KIFF_MOTS_VERSION = res.version;
+    const norm = (l) => l.map((x) => (typeof x === 'string' ? { t: x } : x));
+    SOURCE[0] = norm(D.actions); SOURCE[1] = norm(D.objets); SOURCE[2] = norm(D.manieres);
+    buildLists(S.levels);
+    S.idx = LISTS.map((l) => Math.floor(Math.random() * (l.length - 1)));
+    S.custom = ['', '', ''];
+    reels.forEach((rl, r) => { rl.stop(); rl.p = S.idx[r]; rl.lastTick = S.idx[r]; });
+    DATA_V = dataVersion();
+    renderReels();
+    render();
+  }
 
   /* ---------- Démarrage ---------- */
   function init() {
@@ -1613,6 +1679,8 @@
     if (instant) { void box.offsetWidth; box.classList.remove('is-instant'); }
   }
   function launchGame() {
+    applyPendingMots();
+    report('partie');
     hide(el.ovStart);
     S.started = true;
     S.mustRestart = false;
