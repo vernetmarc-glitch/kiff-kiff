@@ -1136,7 +1136,7 @@
 
   function enterGame(st, spin) {
     duo.stage = 'game';
-    hide($('#ov-duo'));
+    hide($('#ov-duo')); hide($('#ov-invited'));
     hide(el.ovStart);
     $('#steps').classList.remove('is-duo');
     S.started = true;
@@ -1251,7 +1251,12 @@
 
   const duoHandlers = {
     state: (st) => onRemoteState(st),
-    presence: (seat, on) => { if (duo) { duo.partnerOn = on; renderDuoStatus(); } },
+    presence: (seat, on) => {
+      if (!duo) return;
+      duo.partnerOn = on;
+      renderDuoStatus();
+      if (duo.stage === 'invite') $('#duo-wait-text').textContent = on ? 'L’autre téléphone est là : il découvre le jeu…' : 'En attente de l’autre téléphone…';
+    },
     status: (ok) => { if (duo) { duo.online = ok; renderDuoStatus(); } }
   };
 
@@ -1276,6 +1281,7 @@
     $('#duo-go').disabled = false;
     $('#duo-cancel').textContent = o.cancel || 'Annuler';
     ovDuo.dataset.stage = o.stage;
+    if (!ovInv.hidden) hide(ovInv);
     show(ovDuo);
   }
   function openDuoSetup() {
@@ -1322,13 +1328,43 @@
     duoSheet({
       stage: 'invite',
       title: 'Invite l’autre téléphone',
-      text: 'Fais scanner ce code par l’autre téléphone, ou envoie-lui le lien. La partie commence dès que l’autre l’ouvre.',
+      text: 'Fais scanner ce code par l’autre téléphone, ou envoie-lui le lien. L’autre découvre le jeu en trois écrans, et la partie commence dès qu’il ou elle la rejoint.',
       qr: true, wait: 'En attente de l’autre téléphone…', cancel: 'Annuler la partie'
     });
   }
+  /* La personne invitée ne connaît peut-être pas le jeu : trois écrans avant de rejoindre */
+  const ovInv = $('#ov-invited');
+  let invSteps = null;
+  function showInvited(st) {
+    const A = (st.names && st.names[0] || '').trim() || 'Cerise';
+    document.querySelectorAll('#ov-invited .inv-a').forEach((b) => { b.textContent = A; });
+    $('#inv-name-help').textContent = A + ' verra ton prénom sur son téléphone.';
+    const lv = parseLevels(st.levels);
+    $('#inv-piments').innerHTML = 'Piments choisis par ' + esc(A) + '&nbsp;: ' +
+      lv.map((n) => '<span class="inv-piment"><span class="pgroup pgroup--' + n + ' is-on">' + CHILI.repeat(n) + '</span> ' + esc(D.niveaux[n - 1].nom) + '</span>').join(' ');
+    if (!ovInv.hidden) return; // déjà là : on garde l’écran en cours de lecture
+    if (!invSteps) invSteps = makeSteps($('#inv-steps'), $('#inv-dots'), ovInv);
+    hide(ovDuo);
+    $('#inv-name').value = load('duoName', '') || '';
+    invSteps.go(0, true);
+    show(ovInv);
+  }
+  $('#inv-go').addEventListener('click', () => { audio(); sClick(); haptic(8); invSteps.go(1); });
+  $('#inv-ok').addEventListener('click', () => { audio(); sClick(); haptic(8); invSteps.go(2); });
+  $('#inv-form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    audio();
+    if (!duo || !duo.remote) return;
+    document.activeElement && document.activeElement.blur();
+    hide(ovInv);
+    joinGame($('#inv-name').value);
+  });
+  $('#inv-solo').addEventListener('click', () => { audio(); hide(ovInv); leaveDuo(false); });
+
   function showJoin(st) {
     duo.stage = 'join';
     duo.remote = st;
+    if (st.phase === 'lobby') { showInvited(st); return; }
     duoName.value = load('duoName', '') || '';
     duoName.placeholder = 'Pistache';
     const A = (st.names && st.names[0] || '').trim() || 'Cerise';
@@ -1342,9 +1378,9 @@
     });
     setTimeout(() => duoName.focus(), 80);
   }
-  function joinGame() {
+  function joinGame(given) {
     const st = duo.remote;
-    const name = duoName.value.replace(/\s+/g, ' ').trim().slice(0, 20);
+    const name = (given != null ? given : duoName.value).replace(/\s+/g, ' ').trim().slice(0, 20);
     save('duoName', name);
     const next = Object.assign({}, st);
     next.names = [(st.names && st.names[0]) || '', name];
@@ -1407,7 +1443,7 @@
     clearTimeout(syncT);
     save('duo', null);
     try { history.replaceState(null, '', location.pathname + location.search); } catch (e) { /* rien */ }
-    hide(ovDuo); hide($('#ov-wait')); hide($('#ov-note'));
+    hide(ovDuo); hide($('#ov-wait')); hide($('#ov-note')); hide($('#ov-invited'));
     if (d && d.conn) {
       if (announce && d.stage === 'game') {
         const st = Object.assign(snapshot(), { phase: 'ended', endBy: d.seat, seq: d.seq + 1, by: d.id });
@@ -1656,8 +1692,7 @@
     });
     $('#start-form').addEventListener('submit', (e) => { e.preventDefault(); audio(); toRules(); });
     $('#rules-ok').addEventListener('click', () => { audio(); sClick(); haptic(8); goStep(3); });
-    setupSwipe();
-    document.querySelectorAll('.step-back').forEach((b) => b.addEventListener('click', () => { audio(); goStep(Math.max(0, step - 1)); }));
+    homeSteps = makeSteps($('#steps'), $('#step-dots'), el.ovStart);
     renderLevel();
     // Reprendre la partie : garde le tour en cours, applique les prénoms éventuellement changés
     $('#resume').addEventListener('click', () => {
@@ -1677,12 +1712,26 @@
   }
 
   /* ---------- Accueil : écrans successifs ---------- */
-  let step = 0;
   let where = 'here';
-  // Glisser le doigt vers la droite ramène à l’écran précédent (le doigt entraîne l’écran)
-  function setupSwipe() {
-    const box = $('#steps');
+  /* Écrans qui glissent : un « paquet » d’écrans (#steps, #inv-steps), ses points et son fond */
+  function makeSteps(box, dots, ov) {
     const track = box.querySelector('.steps-track');
+    const st = { cur: 0, go };
+    function go(n, instant) {
+      st.cur = n;
+      if (instant) box.classList.add('is-instant');
+      box.style.setProperty('--step', n);
+      box.dataset.step = n;
+      box.querySelectorAll('.step').forEach((sec) => {
+        const on = +sec.dataset.step === n;
+        sec.inert = !on;
+        sec.setAttribute('aria-hidden', on ? 'false' : 'true');
+      });
+      dots.querySelectorAll('i').forEach((d, k) => d.classList.toggle('is-on', k === n));
+      ov.scrollTop = 0;
+      if (instant) { void box.offsetWidth; box.classList.remove('is-instant'); }
+    }
+    // Glisser le doigt vers la droite ramène à l’écran précédent (le doigt entraîne l’écran)
     let sx = 0, sy = 0, dx = 0, on = false, decided = false, horiz = false;
     box.addEventListener('touchstart', (e) => {
       if (e.touches.length !== 1) { on = false; return; }
@@ -1700,8 +1749,8 @@
       }
       if (!horiz) return;
       // vers la droite : on suit le doigt (avec résistance au premier écran) ; vers la gauche : on résiste
-      dx = ddx > 0 ? (step === 0 ? ddx / 4 : ddx) : ddx / 5;
-      track.style.transform = 'translateX(calc(' + (-step * 100) + '% + ' + dx.toFixed(1) + 'px))';
+      dx = ddx > 0 ? (st.cur === 0 ? ddx / 4 : ddx) : ddx / 5;
+      track.style.transform = 'translateX(calc(' + (-st.cur * 100) + '% + ' + dx.toFixed(1) + 'px))';
     }, { passive: true });
     const end = () => {
       if (!on) return;
@@ -1709,26 +1758,15 @@
       if (!horiz) return;
       box.classList.remove('is-dragging');
       track.style.transform = '';
-      if (dx > Math.min(90, box.clientWidth * 0.22) && step > 0) { audio(); sClick(); haptic(8); goStep(step - 1); }
+      if (dx > Math.min(90, box.clientWidth * 0.22) && st.cur > 0) { audio(); sClick(); haptic(8); go(st.cur - 1); }
     };
     box.addEventListener('touchend', end);
     box.addEventListener('touchcancel', end);
+    box.querySelectorAll('.step-back').forEach((b) => b.addEventListener('click', () => { audio(); go(Math.max(0, st.cur - 1)); }));
+    return st;
   }
-  function goStep(n, instant) {
-    const box = $('#steps');
-    step = n;
-    if (instant) box.classList.add('is-instant');
-    box.style.setProperty('--step', n);
-    box.dataset.step = n;
-    box.querySelectorAll('.step').forEach((sec) => {
-      const on = +sec.dataset.step === n;
-      sec.inert = !on;
-      sec.setAttribute('aria-hidden', on ? 'false' : 'true');
-    });
-    document.querySelectorAll('#step-dots i').forEach((d, k) => d.classList.toggle('is-on', k === n));
-    el.ovStart.scrollTop = 0;
-    if (instant) { void box.offsetWidth; box.classList.remove('is-instant'); }
-  }
+  let homeSteps = null;
+  const goStep = (n, instant) => homeSteps.go(n, instant);
   function launchGame() {
     applyPendingMots();
     report('partie');

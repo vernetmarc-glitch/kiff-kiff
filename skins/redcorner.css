@@ -100,6 +100,7 @@ body {
   transform-origin: right bottom;
 }
 body:has(#ov-start:not([hidden])) .deco-candles,
+body:has(#ov-invited:not([hidden])) .deco-candles,
 body:has(#ov-edit:not([hidden])) .deco-candles,
 body:has(#ov-skins:not([hidden])) .deco-candles { display: none; }
 .candle {
@@ -538,3 +539,6 @@ body:has(#ov-piment:not([hidden])) .deco-candles { display: none; }
 .press-row.is-changed > .stamp--dir { transform: rotate(-12deg) scale(1); }
 .where-label { font-size: 13px; font-weight: 500; letter-spacing: .08em; color: var(--gold); }
 .overlay--party .party-foot { padding-bottom: 44px; }
+
+.inv-from { color: var(--cream); font-size: 17px; }
+.inv-from b, .overlay--invited .rules li b { color: var(--gold-hi); font-weight: 500; }

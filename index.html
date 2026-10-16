@@ -17,10 +17,10 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,62..125,100..900;1,62..125,100..900&family=Bagel+Fat+One&family=Abril+Fatface&family=Merriweather:ital,opsz,wght@0,18..144,400..900;1,18..144,400..900&family=Baskervville:ital,wght@0,400..700;1,400..700&family=Jost:wght@300..700&family=Great+Vibes&family=Cinzel:wght@400..900&display=swap">
-<link rel="stylesheet" href="base.css?v=37">
-<link rel="stylesheet" href="skins/arty.css?v=37" data-skin-sheet="arty">
-<link rel="stylesheet" href="skins/pomme.css?v=37" data-skin-sheet="pomme">
-<link rel="stylesheet" href="skins/redcorner.css?v=37" data-skin-sheet="redcorner">
+<link rel="stylesheet" href="base.css?v=38">
+<link rel="stylesheet" href="skins/arty.css?v=38" data-skin-sheet="arty">
+<link rel="stylesheet" href="skins/pomme.css?v=38" data-skin-sheet="pomme">
+<link rel="stylesheet" href="skins/redcorner.css?v=38" data-skin-sheet="redcorner">
 <script>
 /* Ambiance : celle du lien (?design=redcorner ou #redcorner), sinon celle mémorisée.
    Appliquée avant l’affichage pour éviter un flash. */
@@ -183,6 +183,50 @@
           <button class="btn" id="piment-go" type="button">C’est parti</button>
           <button class="link-btn step-back" type="button">Retour</button>
         </div>
+      </section>
+    </div>
+  </div>
+</div>
+
+<!-- Invitation : trois écrans pour la personne qui rejoint une partie à deux sans connaître le jeu -->
+<div class="overlay overlay--start overlay--invited" id="ov-invited" hidden>
+  <div class="step-dots" id="inv-dots" aria-hidden="true"><i class="is-on"></i><i></i><i></i></div>
+  <div class="steps" id="inv-steps" data-step="0">
+    <div class="steps-track">
+      <section class="step" data-step="0" aria-labelledby="inv-title">
+        <div class="sheet welcome">
+          <p class="poster-neon" aria-hidden="true">Red Corner</p>
+          <h2 class="poster-title" id="inv-title"><span class="ink" data-ink="Kiff">Kiff</span><span class="ink" data-ink="Kiff">Kiff</span><span class="poster-venue"> au Nostra</span></h2>
+          <p class="inv-from"><b class="inv-a">Cerise</b> t’invite à jouer, chacun·e sur son téléphone.</p>
+          <p class="poster-sub">Trois roues pour se proposer des envies, et ne vivre que celles dont vous avez envie tous les deux.</p>
+          <button class="btn" id="inv-go" type="button">Comment on joue&nbsp;?</button>
+        </div>
+      </section>
+
+      <section class="step" data-step="1" aria-labelledby="inv-rules-title">
+        <div class="sheet step-sheet">
+          <h2 class="step-title" id="inv-rules-title">Le principe</h2>
+          <ol class="rules">
+            <li><b>Tu commences</b>&nbsp;: tu fais tourner trois roues, «&nbsp;J’ai envie que tu me…&nbsp;», et tu proposes l’envie à <b class="inv-a">Cerise</b>.</li>
+            <li><b class="inv-a">Cerise</b> répond sur son téléphone&nbsp;: «&nbsp;J’ai envie aussi&nbsp;», ou «&nbsp;Oui, mais…&nbsp;» en changeant une seule chose. Puis c’est son tour de proposer.</li>
+            <li>Rien ne se passe sans deux «&nbsp;j’ai envie&nbsp;». Chacun·e peut passer à tout moment, sans se justifier.</li>
+          </ol>
+          <p class="step-text inv-piments" id="inv-piments"></p>
+          <button class="btn" id="inv-ok" type="button">Compris</button>
+          <button class="link-btn step-back" type="button">Retour</button>
+        </div>
+      </section>
+
+      <section class="step" data-step="2" aria-labelledby="inv-name-title">
+        <form class="sheet step-sheet start-form" id="inv-form" novalidate>
+          <h2 class="step-title" id="inv-name-title">Et toi&nbsp;?</h2>
+          <label for="inv-name">Ton prénom</label>
+          <input id="inv-name" maxlength="20" autocomplete="off" placeholder="Pistache" enterkeyhint="go">
+          <p class="step-text" id="inv-name-help">Cerise le verra sur son téléphone.</p>
+          <button class="btn" type="submit" id="inv-join">Rejoindre la partie</button>
+          <button class="link-btn" type="button" id="inv-solo">Jouer sur ce téléphone seulement</button>
+          <button class="link-btn step-back" type="button">Retour</button>
+        </form>
       </section>
     </div>
   </div>
@@ -357,9 +401,9 @@
   </div>
 </div>
 <!--/APP-->
-<script src="data.js?v=37"></script>
-<script src="config.js?v=37"></script>
-<script src="duo.js?v=37"></script>
-<script src="app.js?v=37"></script>
+<script src="data.js?v=38"></script>
+<script src="config.js?v=38"></script>
+<script src="duo.js?v=38"></script>
+<script src="app.js?v=38"></script>
 </body>
 </html>

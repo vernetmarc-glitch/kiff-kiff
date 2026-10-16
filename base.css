@@ -580,12 +580,21 @@ body:has(#ov-deal:not([hidden])) .deco-candles { display: none; }
 .wait-sentence { align-self: stretch; }
 .wait-links { display: flex; gap: 6px 18px; flex-wrap: wrap; margin-top: 4px; margin-left: -10px; }
 
+/* Invitation : la personne qui rejoint découvre le jeu */
+.inv-from { align-self: stretch; margin: 0; font-size: 18px; line-height: 1.4; text-wrap: balance; }
+.inv-piments { line-height: 1.9; }
+.inv-piment { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; margin: 0 4px; }
+#inv-name-help { margin-top: 0 !important; font-size: 14px; opacity: .85; }
+
 /* Accueil sur petit écran : tout tient sans faire défiler */
 @media (max-height: 700px) {
   :root .overlay--start { padding-top: 14px; padding-bottom: 14px; }
-  :root #ov-start .sheet { gap: 8px; }
+  :root #ov-start .sheet, :root #ov-invited .sheet { gap: 8px; }
+  :root #ov-invited .rules li { font-size: 15.5px; }
+  :root #ov-invited .rules { gap: 10px; }
   :root .poster-rules { font-size: 14px; line-height: 1.4; }
   :root .start-form { gap: 3px; margin-top: 0; }
+  :root #ov-invited .start-form { gap: 6px; margin-top: auto; }
   :root .start-form label { margin-top: 4px; font-size: 13px; }
   :root .name1-row { margin-top: 4px; }
   :root .name1-row label { margin-top: 0; }

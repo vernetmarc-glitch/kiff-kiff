@@ -667,3 +667,6 @@ button { font: inherit; color: inherit; }
 .overlay--offer .btn--line { color: var(--paper); box-shadow: inset 0 0 0 3px var(--paper); }
 :root { --orig-hl: rgba(255, 228, 92, .85); --orig-line: var(--pink); --mark-bg: var(--pink); }
 .where-label { font-weight: 800; color: var(--blue); }
+
+.inv-from { font-weight: 700; color: var(--violet); }
+.inv-from b { color: var(--blue); font-weight: 850; }

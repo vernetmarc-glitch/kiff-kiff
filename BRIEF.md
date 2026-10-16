@@ -8,6 +8,11 @@ Jeu à deux sur un seul téléphone ou sur deux téléphones, en portrait. Une p
 2. **Qui joue ?** : le prénom de la personne qui tient le téléphone, puis « L’autre joue… » **sur ce téléphone** (on écrit son prénom, puis « Suivant ») ou **sur son téléphone** (l’écran glisse tout de suite : on l’invitera à la fin).
 3. **Le principe**, en trois lignes numérotées, avec les vrais prénoms, puis « Compris ».
 4. **Quels piments ?** : les trois niveaux (Tendre, Pimenté, Brûlant) se cochent directement, indépendamment (au moins un), puis « C’est parti » lance la partie (c’est **la deuxième personne qui propose en premier** : « Au tour de …, passe-lui le téléphone »), ou « Inviter l’autre téléphone » ouvre l’invitation (QR code et lien) quand l’autre joue sur son téléphone.
+5. **La personne invitée** (qui ne connaît pas forcément le jeu) arrive par le lien ou le QR code sur trois écrans qui glissent, avec retour au doigt :
+   1. « Kiff Kiff » : « *A* t’invite à jouer, chacun·e sur son téléphone », et la phrase du jeu ; bouton « Comment on joue ? ».
+   2. « Le principe » : tu commences (trois roues, « J’ai envie que tu me… »), *A* répond sur son téléphone (« J’ai envie aussi » ou « Oui, mais… », une seule chose changée), puis c’est son tour ; rien ne se passe sans deux « j’ai envie », on passe quand on veut. Les piments choisis par *A* sont rappelés. Bouton « Compris ».
+   3. « Et toi ? » : son prénom (« *A* le verra sur son téléphone »), puis « Rejoindre la partie », qui lance la partie. Lien « Jouer sur ce téléphone seulement ».
+   Pendant ce temps, le téléphone de *A* affiche « L’autre téléphone est là : il découvre le jeu… ».
 
 Chaque écran glisse vers le suivant dès la réponse ; quatre points en haut montrent où on en est. Pour revenir en arrière : glisser le doigt vers la droite (l’écran suit le doigt), ou « Retour ». Le bouton maison du jeu ramène au premier écran.
 
