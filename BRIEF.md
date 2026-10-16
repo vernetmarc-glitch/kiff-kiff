@@ -50,9 +50,9 @@ Trois niveaux qui se cochent indépendamment (au moins un) : **Tendre** (1 pimen
 - Jeu : le bouton piments de la barre du haut ouvre la même fenêtre, pendant la composition seulement. Changer le piment depuis l’accueil au milieu d’une réponse oblige à lancer une nouvelle partie.
 - Dans les roues, les cases pimentées portent une pastille à 2 piments, les brûlantes une pastille à 3 piments.
 - Lien : `?piment=12`, `?piment=3`, `?piment=123`…
-- Certaines manières et certains endroits changent de possessif selon le sens : « que tu me … avec ton sexe » / « de te … avec mon sexe » ; « que tu me caresses mon sexe chaud » / « de te caresser ton sexe chaud », « tout mon corps » / « tout ton corps ».
+- Certaines manières et certains endroits changent de possessif selon le sens : « que tu me … avec ton sexe » / « de te … avec mon sexe » ; « que tu me caresses mon sexe chaud » / « de te caresser ton sexe chaud », « tout mon corps » / « tout ton corps », « mon petit cœur » / « ton petit cœur ».
 - Chaque mot porte son niveau dans `data.js` (`lvl: 2` ou `lvl: 3`, rien = Tendre).
-- Les listes ont été revues par Marc dans l’Atelier des roues (une page d’édition à part) le 15 octobre 2026 (quatre passes) : 53 tendres, 28 pimentées, 36 brûlantes au total.
+- Les listes ont été revues par Marc dans l’Atelier des roues (une page d’édition à part) le 16 octobre 2026 (cinquième passe) : 53 tendres, 28 pimentées, 36 brûlantes au total.
 
 ## Texte libre
 
