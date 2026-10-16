@@ -446,6 +446,8 @@ body[data-phase="adjust"] .act-main:not(.is-done) { opacity: .92; }
   transition: transform .5s cubic-bezier(.3, .9, .25, 1);
 }
 .steps.is-instant .steps-track, .steps.is-instant .step { transition: none !important; }
+.steps.is-dragging .steps-track { transition: none; }
+.steps.is-dragging .step { visibility: visible !important; transition: none; }
 .step { flex: 0 0 100%; min-width: 0; display: flex; justify-content: center; align-items: center; transition: visibility 0s; }
 .step[inert] { visibility: hidden; transition: visibility 0s .5s; }
 .step > .sheet { margin: auto 0; }
@@ -472,6 +474,28 @@ body[data-phase="adjust"] .act-main:not(.is-done) { opacity: .92; }
 .step-sheet > .btn { align-self: stretch; margin-top: 6px; }
 .step-sheet > .link-btn { align-self: center; }
 .step-back { font-size: 14px; opacity: .85; padding-top: 0; }
+.welcome .poster-sub { text-wrap: balance; }
+.welcome > .btn { align-self: stretch; margin-top: 18px; }
+.welcome > .resume-link { margin-top: 0; }
+.where-label { margin-top: 14px !important; font-weight: 700; font-size: 15px; }
+.where { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 6px; }
+.where-btn {
+  min-height: 52px;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 14px;
+  background: var(--pill-bg, transparent);
+  color: var(--pill-fg, currentColor);
+  box-shadow: inset 0 0 0 2px var(--pill-line, currentColor);
+  font-weight: 700; font-size: 15px; line-height: 1.2;
+  cursor: pointer;
+  transition: background .25s, color .25s, transform .15s;
+}
+.where-btn:active { transform: scale(.97); }
+.where-btn[aria-pressed="true"] { background: var(--pill-on-bg, currentColor); color: var(--pill-on-fg, inherit); box-shadow: inset 0 0 0 2px var(--pill-on-line, transparent); }
+.where-btn:focus-visible { outline: 2px dashed currentColor; outline-offset: 3px; }
+.name1-box { display: flex; flex-direction: column; gap: 6px; width: 100%; align-self: stretch; }
+.name1-box[hidden] { display: none; }
 .choices { display: flex; flex-direction: column; gap: 12px; width: 100%; }
 .piment-choice {
   display: flex; align-items: center; gap: 14px;
@@ -541,7 +565,6 @@ body[data-phase="adjust"] .act-main:not(.is-done) { opacity: .92; }
 @media (max-height: 700px) {
   :root .overlay--start { padding-top: 14px; padding-bottom: 14px; }
   :root #ov-start .sheet { gap: 8px; }
-  :root .poster-sub { display: none; }
   :root .poster-rules { font-size: 14px; line-height: 1.4; }
   :root .start-form { gap: 3px; margin-top: 0; }
   :root .start-form label { margin-top: 4px; font-size: 13px; }

@@ -17,10 +17,10 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,62..125,100..900;1,62..125,100..900&family=Bagel+Fat+One&family=Abril+Fatface&family=Merriweather:ital,opsz,wght@0,18..144,400..900;1,18..144,400..900&family=Baskervville:ital,wght@0,400..700;1,400..700&family=Jost:wght@300..700&family=Great+Vibes&family=Cinzel:wght@400..900&display=swap">
-<link rel="stylesheet" href="base.css?v=29">
-<link rel="stylesheet" href="skins/arty.css?v=29" data-skin-sheet="arty">
-<link rel="stylesheet" href="skins/pomme.css?v=29" data-skin-sheet="pomme">
-<link rel="stylesheet" href="skins/redcorner.css?v=29" data-skin-sheet="redcorner">
+<link rel="stylesheet" href="base.css?v=30">
+<link rel="stylesheet" href="skins/arty.css?v=30" data-skin-sheet="arty">
+<link rel="stylesheet" href="skins/pomme.css?v=30" data-skin-sheet="pomme">
+<link rel="stylesheet" href="skins/redcorner.css?v=30" data-skin-sheet="redcorner">
 <script>
 /* Ambiance : celle du lien (?design=redcorner ou #redcorner), sinon celle mémorisée.
    Appliquée avant l’affichage pour éviter un flash. */
@@ -88,7 +88,7 @@
   <p class="duo-status" id="duo-status" hidden></p>
 
   <p class="switch switch--top is-static" id="sw-top" aria-checked="true">
-    <span class="sw-text"><span class="sw-label ink" data-ink="J’ai envie">J’ai envie</span><span class="sw-owner" id="owner-top"></span></span>
+    <span class="sw-text"><span class="sw-label ink" data-ink="J’ai envie…">J’ai envie…</span><span class="sw-owner" id="owner-top"></span></span>
   </p>
 
   <section class="press" id="cabinet" aria-label="La phrase">
@@ -117,38 +117,51 @@
   </div>
 </div>
 
-<!-- Accueil : trois écrans qui glissent (prénoms, principe, piment) -->
+<!-- Accueil : quatre écrans qui glissent (accueil, joueurs, principe, piment) -->
 <div class="overlay overlay--start" id="ov-start">
-  <div class="step-dots" id="step-dots" aria-hidden="true"><i class="is-on"></i><i></i><i></i></div>
+  <div class="step-dots" id="step-dots" aria-hidden="true"><i class="is-on"></i><i></i><i></i><i></i></div>
   <div class="steps" id="steps" data-step="0">
     <div class="steps-track">
-      <section class="step" data-step="0" aria-label="Les prénoms">
-        <div class="sheet">
+      <section class="step" data-step="0" aria-label="Kiff Kiff">
+        <div class="sheet welcome">
           <p class="poster-neon" aria-hidden="true">Red Corner</p>
           <h2 class="poster-title"><span class="ink" data-ink="Kiff">Kiff</span><span class="ink" data-ink="Kiff">Kiff</span><span class="poster-venue"> au Nostra</span></h2>
-          <p class="poster-sub">Un jeu à deux, sur un ou deux téléphones.</p>
-          <form id="start-form" class="start-form">
-            <label for="name0">Qui propose en premier ?</label>
-            <input id="name0" maxlength="20" autocomplete="off" placeholder="Cerise" enterkeyhint="next">
-            <div class="name1-row"><label for="name1">Et l’autre ?</label><button class="skin-link duo-link" id="duo-open" type="button" aria-haspopup="dialog">Sur son téléphone ?</button></div>
-            <input id="name1" maxlength="20" autocomplete="off" placeholder="Pistache" enterkeyhint="go">
-            <button class="btn" type="submit" id="start-go">Suivant</button>
-            <button class="link-btn resume-link" id="resume" type="button" hidden>Reprendre la partie en cours</button>
-            <div class="duo-home" id="duo-home" hidden>
-              <p class="duo-home-text" id="duo-home-text"></p>
-              <button class="btn" id="duo-resume" type="button">Reprendre la partie</button>
-              <button class="link-btn" id="duo-quit" type="button">Quitter la partie à deux</button>
-            </div>
-            <div class="start-links">
-              <button class="skin-link" id="skin-open" type="button" aria-haspopup="dialog">Ambiance : <span id="skin-current">Red Corner</span></button>
-              <button class="skin-link" id="mute" type="button" aria-pressed="false">Son : <span id="mute-state">activé</span></button>
-              <button class="skin-link" id="install" type="button" hidden>Installer <span>l’appli</span></button>
-            </div>
-          </form>
+          <p class="poster-sub">Trois roues pour se proposer des envies, et ne vivre que celles dont vous avez envie tous les deux.</p>
+          <button class="btn" id="welcome-go" type="button">Commencer</button>
+          <button class="link-btn resume-link" id="resume" type="button" hidden>Reprendre la partie en cours</button>
+          <div class="duo-home" id="duo-home" hidden>
+            <p class="duo-home-text" id="duo-home-text"></p>
+            <button class="btn" id="duo-resume" type="button">Reprendre la partie</button>
+            <button class="link-btn" id="duo-quit" type="button">Quitter la partie à deux</button>
+          </div>
+          <div class="start-links">
+            <button class="skin-link" id="skin-open" type="button" aria-haspopup="dialog">Ambiance : <span id="skin-current">Red Corner</span></button>
+            <button class="skin-link" id="mute" type="button" aria-pressed="false">Son : <span id="mute-state">activé</span></button>
+            <button class="skin-link" id="install" type="button" hidden>Installer <span>l’appli</span></button>
+          </div>
         </div>
       </section>
 
-      <section class="step" data-step="1" aria-labelledby="rules-title">
+      <section class="step" data-step="1" aria-labelledby="players-title">
+        <form class="sheet step-sheet start-form" id="start-form" novalidate>
+          <h2 class="step-title" id="players-title">Qui joue&nbsp;?</h2>
+          <label for="name0">Ton prénom (tu proposes en premier)</label>
+          <input id="name0" maxlength="20" autocomplete="off" placeholder="Cerise" enterkeyhint="next">
+          <p class="where-label" id="where-label">L’autre joue…</p>
+          <div class="where" role="group" aria-labelledby="where-label">
+            <button class="where-btn" type="button" data-where="here" aria-pressed="true">Sur ce téléphone</button>
+            <button class="where-btn" type="button" data-where="duo" aria-pressed="false">Sur son téléphone</button>
+          </div>
+          <div class="name1-box" id="name1-box">
+            <label for="name1">Son prénom</label>
+            <input id="name1" maxlength="20" autocomplete="off" placeholder="Pistache" enterkeyhint="go">
+          </div>
+          <button class="btn" type="submit" id="start-go">Suivant</button>
+          <button class="link-btn step-back" type="button">Retour</button>
+        </form>
+      </section>
+
+      <section class="step" data-step="2" aria-labelledby="rules-title">
         <div class="sheet step-sheet">
           <h2 class="step-title" id="rules-title">Le principe</h2>
           <ol class="rules">
@@ -161,7 +174,7 @@
         </div>
       </section>
 
-      <section class="step" data-step="2" aria-labelledby="pick-title">
+      <section class="step" data-step="3" aria-labelledby="pick-title">
         <div class="sheet step-sheet">
           <h2 class="step-title" id="pick-title">Quels piments&nbsp;?</h2>
           <p class="step-text">Touche les niveaux que vous voulez dans les roues.</p>
@@ -328,8 +341,8 @@
   </div>
 </div>
 <!--/APP-->
-<script src="data.js?v=29"></script>
-<script src="duo.js?v=29"></script>
-<script src="app.js?v=29"></script>
+<script src="data.js?v=30"></script>
+<script src="duo.js?v=30"></script>
+<script src="app.js?v=30"></script>
 </body>
 </html>

@@ -536,3 +536,4 @@ body:has(#ov-piment:not([hidden])) .deco-candles { display: none; }
 .stamp .stamp-txt { display: none; }
 .stamp svg { width: 26px; height: 26px; }
 .press-row.is-changed > .stamp--dir { transform: rotate(-12deg) scale(1); }
+.where-label { font-size: 13px; font-weight: 500; letter-spacing: .08em; color: var(--gold); }

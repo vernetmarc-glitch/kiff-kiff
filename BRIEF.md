@@ -2,19 +2,20 @@
 
 Jeu à deux sur un seul téléphone ou sur deux téléphones, en portrait. Une phrase d’envie se compose avec des rouleaux de machine à sous ; elle ne devient une envie partagée que quand les deux personnes ont dit « j’ai envie ».
 
-## Accueil : trois écrans qui glissent
+## Accueil : quatre écrans qui glissent
 
-1. **Les prénoms** : « Qui propose en premier ? » et « Et l’autre ? » (ou « Sur son téléphone ? » pour jouer à deux téléphones), puis « Suivant ». En bas : ambiance, son, installer l’appli.
-2. **Le principe**, en trois lignes numérotées, avec les vrais prénoms, puis « Compris ».
-3. **Quels piments ?** : les trois niveaux (Tendre, Pimenté, Brûlant) se cochent directement sur l’écran, indépendamment (au moins un, par exemple Brûlant seul), puis « C’est parti » lance la partie.
+1. **Accueil** : le titre et une seule phrase qui dit le but du jeu (« Trois roues pour se proposer des envies, et ne vivre que celles dont vous avez envie tous les deux. »), puis « Commencer ». En bas : ambiance, son, installer l’appli. « Reprendre la partie en cours » quand une partie est en cours.
+2. **Qui joue ?** : le prénom de la personne qui tient le téléphone (elle propose en premier), puis « L’autre joue… » **sur ce téléphone** (on écrit son prénom, puis « Suivant ») ou **sur son téléphone** (l’écran glisse tout de suite : on l’invitera à la fin).
+3. **Le principe**, en trois lignes numérotées, avec les vrais prénoms, puis « Compris ».
+4. **Quels piments ?** : les trois niveaux (Tendre, Pimenté, Brûlant) se cochent directement, indépendamment (au moins un), puis « C’est parti » lance la partie, ou « Inviter l’autre téléphone » ouvre l’invitation (QR code et lien) quand l’autre joue sur son téléphone.
 
-Chaque écran glisse vers le suivant dès la réponse (le dernier dès « C’est parti ») ; trois points en haut montrent où on en est ; « Retour » revient d’un écran. Le bouton maison du jeu ramène au premier écran, avec « Reprendre la partie en cours ».
+Chaque écran glisse vers le suivant dès la réponse ; quatre points en haut montrent où on en est. Pour revenir en arrière : glisser le doigt vers la droite (l’écran suit le doigt), ou « Retour ». Le bouton maison du jeu ramène au premier écran.
 
 ## La phrase
 
 **J’ai envie** · [que tu me | de te] · [action] · [endroit] · [manière]
 
-- « J’ai envie » est le début fixe de la phrase, au nom de la personne qui propose.
+- « J’ai envie… » est le début fixe de la phrase, au nom de la personne qui propose.
 - « que tu me / de te » est un sélecteur à deux positions.
 - Trois rouleaux : l’action, l’endroit, la manière.
 - En bas, un seul bouton pour la personne qui a la main.

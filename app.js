@@ -1074,7 +1074,7 @@
     duo.stage = 'game';
     hide($('#ov-duo'));
     hide(el.ovStart);
-    $('#start-form').classList.remove('is-duo');
+    $('#steps').classList.remove('is-duo');
     S.started = true;
     S.mustRestart = false;
     applyGame(st, { first: true, spin: !!spin });
@@ -1227,8 +1227,8 @@
   }
   const KiffDuoOk = () => !!(window.KiffDuo && window.KiffDuo.supported());
 
-  async function createDuo() {
-    const name = duoName.value.replace(/\s+/g, ' ').trim().slice(0, 20);
+  async function createDuo(given) {
+    const name = (given != null ? given : duoName.value).replace(/\s+/g, ' ').trim().slice(0, 20);
     duoSheet({ stage: 'creating', title: 'Sur deux téléphones', wait: 'J’ouvre la partie…', cancel: 'Annuler' });
     try { await loadDuoLibs(); } catch (e) { duoError('net'); return; }
     const id = window.KiffDuo.newId();
@@ -1444,7 +1444,11 @@
     };
     pimentList($('#piment-list'), $('#piment-error'));
     pimentList($('#piment-home-list'), $('#piment-home-error'));
-    $('#piment-go').addEventListener('click', () => { audio(); sSwitchOn(); haptic(12); launchGame(); });
+    $('#piment-go').addEventListener('click', () => {
+      audio(); sSwitchOn(); haptic(12);
+      if (where === 'duo') createDuo(S.names[0] || '');
+      else launchGame();
+    });
     renderLevel();
     let pimentFrom = null;
     const openPiment = (from) => {
@@ -1466,7 +1470,7 @@
     });
     const closePiment = () => {
       hide(ovPiment);
-      if (S.mustRestart) { $('#resume').hidden = true; $('#start-go').textContent = 'Nouvelle partie'; }
+      if (S.mustRestart) { $('#resume').hidden = true; $('#welcome-go').textContent = 'Nouvelle partie'; }
       if (pimentFrom) pimentFrom.focus({ preventScroll: true });
     };
     $('#piment-done').addEventListener('click', closePiment);
@@ -1495,20 +1499,39 @@
       save('names', S.names);
       document.activeElement && document.activeElement.blur();
     };
-    /* Accueil en trois écrans : prénoms → principe → piment → la partie commence */
-    $('#name0').addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') { e.preventDefault(); $('#name1').focus(); }
-    });
-    $('#start-form').addEventListener('submit', (e) => {
-      e.preventDefault();
-      audio();
+    /* Accueil en quatre écrans : accueil → joueurs → principe → piment → la partie commence */
+    $('#welcome-go').addEventListener('click', () => { audio(); sClick(); haptic(8); goStep(1); });
+    // L’autre joue sur ce téléphone (on écrit son prénom) ou sur le sien (on l’invitera)
+    const setWhere = (w) => {
+      where = w;
+      document.querySelectorAll('.where-btn').forEach((b) => b.setAttribute('aria-pressed', b.dataset.where === w ? 'true' : 'false'));
+      $('#name1-box').hidden = w !== 'here';
+      $('#start-go').hidden = w !== 'here';
+    };
+    setWhere(load('where', 'here') === 'duo' ? 'duo' : 'here');
+    const toRules = () => {
       readNames();
+      if (where === 'duo') S.names[1] = '';
       $('#rule-a').textContent = nameOf(0);
-      $('#rule-b').textContent = nameOf(1);
+      $('#rule-b').textContent = where === 'duo' ? 'L’autre' : nameOf(1);
+      $('#piment-go').textContent = where === 'duo' ? 'Inviter l’autre téléphone' : 'C’est parti';
+      save('where', where);
       sClick(); haptic(8);
-      goStep(1);
+      goStep(2);
+    };
+    document.querySelectorAll('.where-btn').forEach((b) => b.addEventListener('click', () => {
+      audio();
+      setWhere(b.dataset.where);
+      if (where === 'duo') { toRules(); return; }  // réponse donnée : on glisse tout de suite
+      sClick(); haptic(8);
+      setTimeout(() => $('#name1').focus(), 60);
+    }));
+    $('#name0').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') { e.preventDefault(); if (where === 'here') $('#name1').focus(); else document.activeElement.blur(); }
     });
-    $('#rules-ok').addEventListener('click', () => { audio(); sClick(); haptic(8); goStep(2); });
+    $('#start-form').addEventListener('submit', (e) => { e.preventDefault(); audio(); toRules(); });
+    $('#rules-ok').addEventListener('click', () => { audio(); sClick(); haptic(8); goStep(3); });
+    setupSwipe();
     document.querySelectorAll('.step-back').forEach((b) => b.addEventListener('click', () => { audio(); goStep(Math.max(0, step - 1)); }));
     renderLevel();
     // Reprendre la partie : garde le tour en cours, applique les prénoms éventuellement changés
@@ -1521,7 +1544,6 @@
     // Retour à l’accueil depuis le jeu
     el.home.addEventListener('click', () => { audio(); openHome(); });
     // Deux téléphones
-    $('#duo-open').addEventListener('click', () => { audio(); openDuoSetup(); });
     $('#duo-resume').addEventListener('click', () => { audio(); hide(el.ovStart); renderWait(); });
     $('#duo-quit').addEventListener('click', () => { audio(); leaveDuo(true); });
     goStep(0, true);
@@ -1531,6 +1553,42 @@
 
   /* ---------- Accueil : écrans successifs ---------- */
   let step = 0;
+  let where = 'here';
+  // Glisser le doigt vers la droite ramène à l’écran précédent (le doigt entraîne l’écran)
+  function setupSwipe() {
+    const box = $('#steps');
+    const track = box.querySelector('.steps-track');
+    let sx = 0, sy = 0, dx = 0, on = false, decided = false, horiz = false;
+    box.addEventListener('touchstart', (e) => {
+      if (e.touches.length !== 1) { on = false; return; }
+      sx = e.touches[0].clientX; sy = e.touches[0].clientY;
+      dx = 0; on = true; decided = false; horiz = false;
+    }, { passive: true });
+    box.addEventListener('touchmove', (e) => {
+      if (!on) return;
+      const ddx = e.touches[0].clientX - sx, ddy = e.touches[0].clientY - sy;
+      if (!decided) {
+        if (Math.abs(ddx) < 10 && Math.abs(ddy) < 10) return;
+        decided = true;
+        horiz = Math.abs(ddx) > Math.abs(ddy) * 1.3;
+        if (horiz) box.classList.add('is-dragging');
+      }
+      if (!horiz) return;
+      // vers la droite : on suit le doigt (avec résistance au premier écran) ; vers la gauche : on résiste
+      dx = ddx > 0 ? (step === 0 ? ddx / 4 : ddx) : ddx / 5;
+      track.style.transform = 'translateX(calc(' + (-step * 100) + '% + ' + dx.toFixed(1) + 'px))';
+    }, { passive: true });
+    const end = () => {
+      if (!on) return;
+      on = false;
+      if (!horiz) return;
+      box.classList.remove('is-dragging');
+      track.style.transform = '';
+      if (dx > Math.min(90, box.clientWidth * 0.22) && step > 0) { audio(); sClick(); haptic(8); goStep(step - 1); }
+    };
+    box.addEventListener('touchend', end);
+    box.addEventListener('touchcancel', end);
+  }
   function goStep(n, instant) {
     const box = $('#steps');
     step = n;
@@ -1556,12 +1614,13 @@
 
   function openHome() {
     const inDuo = !!duo && duo.stage === 'game';
-    $('#start-form').classList.toggle('is-duo', inDuo);
+    $('#steps').classList.toggle('is-duo', inDuo);
     $('#duo-home').hidden = !inDuo;
+    $('#welcome-go').hidden = inDuo;
     $('#name0').value = S.names[0] || '';
     $('#name1').value = S.names[1] || '';
     $('#resume').hidden = inDuo || !S.started || !!S.mustRestart;
-    $('#start-go').textContent = S.started ? 'Nouvelle partie' : 'Suivant';
+    $('#welcome-go').textContent = S.started ? 'Nouvelle partie' : 'Commencer';
     goStep(0, true);
     show(el.ovStart);
     el.ovStart.scrollTop = 0;

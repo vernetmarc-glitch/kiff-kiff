@@ -11,7 +11,7 @@ Ouvrir directement une ambiance :
 
 Régler le piment dans le lien : `&piment=3` (Brûlant seulement), `&piment=123` (tout), etc.
 
-Pour jouer chacun·e sur son téléphone : sur l’accueil, « Sur son téléphone ? », puis faire scanner le QR code à l’autre.
+Pour jouer chacun·e sur son téléphone : à l’écran « Qui joue ? », choisir « L’autre joue… sur son téléphone », puis faire scanner le QR code à l’autre.
 
 Pour l’installer sur Android : ouvrir le lien dans Chrome, puis « Installer l’appli » sur l’accueil (ou menu ⋮ > « Ajouter à l’écran d’accueil »).
 
