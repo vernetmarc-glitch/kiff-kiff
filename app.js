@@ -1,12 +1,12 @@
 /* Kiff Kiff — logique du jeu.
  *
  * Déroulé d’un tour (A propose, B répond) :
- *   compose   : A règle la direction et les trois rouleaux, puis active « J’ai envie ».
- *   review    : B peut changer UN rouleau (les deux autres se verrouillent dès qu’un change).
- *               B active « J’ai envie aussi ».
- *                 - rien n’a changé  → célébration
- *                 - un rouleau a changé → reconfirm
- *   reconfirm : le « J’ai envie » de A est grisé ; A le réactive → célébration.
+ *   compose   : A règle « que tu me / de te » et les trois rouleaux, puis « Proposer à B ».
+ *   review    : B lit l’envie dans une modale : « J’ai envie aussi » → célébration,
+ *               « Oui, mais… » → adjust, ou « On passe ».
+ *   adjust    : B change UNE chose (une roue, ou le sens) ; les choix de A restent surlignés.
+ *               « J’ai fini ma modification » → reconfirm.
+ *   reconfirm : A lit l’envie ajustée dans une modale : « J’ai envie » → célébration, ou « On passe ».
  *   celebrate : puis les rôles s’inversent.
  * « On passe » est disponible à tout moment.
  *
@@ -224,7 +224,11 @@
         const lvl = LISTS[this.r][idx].lvl || 1;
         const key = txt + '|' + lvl;
         if (node._t !== key) {
-          node.textContent = txt;
+          node.textContent = '';
+          const tx = document.createElement('span');
+          tx.className = 'reel-txt';
+          tx.textContent = txt;
+          node.appendChild(tx);
           // Estampille piment : 2 ou 3 piments à côté des cases pimentées et brûlantes
           if (lvl > 1) {
             const tag = document.createElement('span');
@@ -239,13 +243,16 @@
           node.classList.toggle('is-xxlong', len > 36);
         }
         node.classList.toggle('is-placeholder', isPlaceholder(this.r, idx));
+        // Pendant l’ajustement, les choix d’origine restent repérables
+        node.classList.toggle('is-original', S.phase === 'adjust' && !!S.original && S.original.idx[this.r] === idx);
         node.classList.toggle('is-center', Math.abs(d) < 0.5);
         const vis = Math.abs(a) < Math.PI / 2;
         node.style.opacity = vis ? Math.pow(Math.cos(a), 2).toFixed(3) : '0';
         node.style.transform = 'translateY(' + (Math.sin(a) * R).toFixed(2) + 'px) rotateX(' + (-a * 57.2958).toFixed(2) + 'deg)';
       }
       const cur = LISTS[this.r][this.index];
-      this.el.setAttribute('aria-valuetext', labelFor(this.r, this.index) + ((cur.lvl || 1) > 1 ? (cur.lvl === 3 ? ', brûlant' : ', pimenté') : ''));
+      const orig = S.phase === 'adjust' && S.original && S.original.idx[this.r] === this.index;
+      this.el.setAttribute('aria-valuetext', labelFor(this.r, this.index) + ((cur.lvl || 1) > 1 ? (cur.lvl === 3 ? ', brûlant' : ', pimenté') : '') + (orig ? ', choix de ' + nameOf(S.proposer) : ''));
       const t = Math.round(this.p);
       if (t !== this.lastTick) {
         this.lastTick = t;
@@ -257,7 +264,7 @@
     canMove() {
       if (!myTurn()) return false;
       if (S.phase === 'compose') return true;
-      if (S.phase === 'review') return !this.locked && !reels.some((o) => o !== this && o.busy);
+      if (S.phase === 'adjust') return !this.locked && !reels.some((o) => o !== this && o.busy);
       return false;
     }
     nope() {
@@ -267,7 +274,7 @@
       sNope(); haptic(20);
       clearTimeout(this._nopeT);
       this._nopeT = setTimeout(() => this.el.classList.remove('show-lock'), 1400);
-      if (S.phase === 'review' && this.locked) flashHint('Une seule roue par tour. Remets l’autre en place pour changer celle-ci.');
+      if (S.phase === 'adjust' && this.locked) flashHint('Une seule modification par tour. Reviens à l’envie de ' + nameOf(S.proposer) + ' pour changer celle-ci.');
     }
     stop() { if (this.raf) cancelAnimationFrame(this.raf); this.raf = 0; }
 
@@ -385,13 +392,13 @@
   /* ---------- Éléments ---------- */
   const el = {
     hint: $('#hint'),
-    swTop: $('#sw-top'), swBottom: $('#sw-bottom'),
-    ownerTop: $('#owner-top'), ownerBottom: $('#owner-bottom'),
-    bottomLabel: $('#bottom-label'),
+    swTop: $('#sw-top'),
+    ownerTop: $('#owner-top'),
+    actMain: $('#act-main'), actAlt: $('#act-alt'),
     dir: $('#dir'), dice: $('#dice'), cabinet: $('#cabinet'),
     mute: $('#mute'), pass: $('#pass'), home: $('#home'),
     ovStart: $('#ov-start'), ovHandoff: $('#ov-handoff'), ovPass: $('#ov-pass'),
-    ovEdit: $('#ov-edit'), ovParty: $('#ov-party')
+    ovEdit: $('#ov-edit'), ovParty: $('#ov-party'), ovOffer: $('#ov-offer'), ovOne: $('#ov-one')
   };
 
   /* ---------- Comparaison avec la proposition d’origine ---------- */
@@ -400,6 +407,13 @@
     if (!S.original) return [];
     return [0, 1, 2].filter((r) => reelValue(r) !== reelValue(r, S.original.idx, S.original.custom));
   }
+  // La réponse ne change qu’une chose : une roue, ou le sens « que tu me / de te »
+  function changes() {
+    const ch = changedReels();
+    if (S.original && S.dir !== S.original.dir) ch.push('dir');
+    return ch;
+  }
+  const CHANGE_NAMES = { 0: 'l’action', 1: 'l’endroit', 2: 'la manière', dir: 'le sens de la phrase' };
 
   /* ---------- Rendu ---------- */
   function renderDir() {
@@ -409,6 +423,7 @@
       const d = b.dataset.dir;
       b.textContent = dirForm(d, actionForm(a0, d));
       b.setAttribute('aria-pressed', d === S.dir ? 'true' : 'false');
+      b.classList.toggle('is-original', S.phase === 'adjust' && !!S.original && S.original.dir === d);
     });
   }
 
@@ -423,22 +438,16 @@
   function renderHint() {
     const A = esc(nameOf(S.proposer));
     const B = esc(nameOf(other(S.proposer)));
-    const ch = changedReels();
+    const ch = changes();
     let h = '';
-    if (S.phase === 'compose') h = '<b>' + A + '</b>, fais glisser les roues pour composer ton envie, puis active « J’ai envie ».';
-    else if (S.phase === 'review' && !ch.length) h = '<b>' + B + '</b>, tu peux changer une roue. Si la phrase te va, active « J’ai envie aussi ».';
-    else if (S.phase === 'review') h = 'Tu as changé ' + REEL_NAMES[ch[0]] + ' : ' + A + ' devra redire « J’ai envie ». <button class="undo" type="button" id="undo">Annuler mon changement</button>';
-    else if (S.phase === 'reconfirm') h = '<b>' + A + '</b>, ' + B + ' a changé ' + REEL_NAMES[changedReels()[0]] + '. Toujours envie ? Sinon, « On passe ».';
+    if (S.phase === 'compose') h = '<b>' + A + '</b>, compose ton envie : fais glisser les roues.';
+    else if (S.phase === 'adjust' && !ch.length) h = '<b>' + B + '</b>, change une seule chose : une roue, ou « que tu me / de te ». Les choix de ' + A + ' sont surlignés.';
+    else if (S.phase === 'adjust') h = 'Tu as changé ' + CHANGE_NAMES[ch[0]] + '. <button class="undo" type="button" id="undo">Revenir à l’envie de ' + A + '</button>';
     el.hint.innerHTML = h;
     const u = $('#undo');
-    if (u) u.addEventListener('click', undoChange);
+    if (u) u.addEventListener('click', () => { audio(); resetAdjust(); });
   }
 
-  function setBottomLabel() {
-    /* Le libellé reste « J’ai envie aussi » : grisé tant que l’autre n’a pas dit oui */
-    el.bottomLabel.textContent = 'J’ai envie aussi';
-    el.bottomLabel.dataset.ink = 'J’ai envie aussi';
-  }
   function pulse() {
     document.body.classList.remove('is-pulse');
     void document.body.offsetWidth;
@@ -447,50 +456,32 @@
     pulse.t = setTimeout(() => document.body.classList.remove('is-pulse'), 950);
   }
 
-  function setSwitch(sw, on) { sw.setAttribute('aria-checked', on ? 'true' : 'false'); }
-
   function render() {
     const ph = S.phase;
-    const A = nameOf(S.proposer);
     const B = nameOf(other(S.proposer));
-    const ch = changedReels();
+    const ch = changes();
     document.body.dataset.phase = ph;
+    el.ownerTop.textContent = nameOf(S.proposer);
 
-    // Switch du haut : l’envie de A
-    el.ownerTop.textContent = A;
-    el.swTop.classList.remove('is-waiting', 'is-calling', 'is-idle');
-    if (ph === 'compose') {
-      setSwitch(el.swTop, false); el.swTop.disabled = false;
-      if (!el.swTop.disabled) el.swTop.classList.add('is-calling');
-    } else if (ph === 'review') {
-      setSwitch(el.swTop, !ch.length);
-      el.swTop.disabled = true;
-      if (ch.length) { el.swTop.classList.add('is-waiting'); el.ownerTop.textContent = A + ' devra le redire'; }
-    } else if (ph === 'reconfirm') {
-      el.swTop.disabled = false;
-      if (el.swTop.getAttribute('aria-checked') !== 'true') el.swTop.classList.add('is-calling');
-    }
+    // En bas : un seul bouton pour la personne qui a la main (et « On passe » pendant l’ajustement)
+    el.actAlt.hidden = ph !== 'adjust';
+    if (ph === 'compose') { el.actMain.textContent = 'Proposer à ' + B; el.actMain.disabled = false; }
+    else if (ph === 'adjust') { el.actMain.textContent = ch.length ? 'Modification faite' : 'J’ai envie aussi'; el.actMain.disabled = false; }
+    else { el.actMain.disabled = true; }
+    el.actMain.classList.toggle('is-done', ph === 'adjust' && ch.length > 0);
+    el.pass.hidden = ph === 'adjust';
 
-    // Switch du bas : la réponse de B
-    el.ownerBottom.textContent = B;
-    el.swBottom.classList.remove('is-idle', 'is-calling');
-    if (ph === 'compose') { setSwitch(el.swBottom, false); el.swBottom.disabled = true; el.swBottom.classList.add('is-idle'); }
-    else if (ph === 'review') {
-      el.swBottom.disabled = el.swBottom.getAttribute('aria-checked') === 'true';
-      if (!el.swBottom.disabled) el.swBottom.classList.add('is-calling');
-    } else { el.swBottom.disabled = true; }
-    setBottomLabel();
-
-    // Direction et hasard : seulement pour A pendant la composition
-    el.dir.classList.toggle('is-locked', ph !== 'compose');
+    // « que tu me / de te » : à la composition, ou comme unique changement de l’ajustement
+    const dirFree = ph === 'compose' || (ph === 'adjust' && (!ch.length || ch.includes('dir')));
+    el.dir.classList.toggle('is-locked', !dirFree);
+    el.dir.classList.toggle('is-changed', ph === 'adjust' && ch.includes('dir'));
     el.dice.hidden = ph !== 'compose';
 
-    // Verrous des rouleaux
     reels.forEach((rl) => {
-      let lock = ph !== 'compose';
-      if (ph === 'review') lock = ch.length > 0 && !ch.includes(rl.r);
+      let lock = !(ph === 'compose' || ph === 'adjust');
+      if (ph === 'adjust') lock = ch.length > 0 && !ch.includes(rl.r);
       rl.setLocked(lock);
-      rl.el.classList.toggle('is-changed', (ph === 'review' || ph === 'reconfirm') && ch.includes(rl.r));
+      rl.el.classList.toggle('is-changed', (ph === 'adjust' || ph === 'reconfirm') && ch.includes(rl.r));
     });
 
     renderDir();
@@ -503,29 +494,83 @@
   function onReelSettled(r, remote) {
     if (r === 0) { reels[1].render(); renderDir(); }
     render();
-    if (!remote && (S.phase === 'compose' || S.phase === 'review')) sync();
+    if (!remote && (S.phase === 'compose' || S.phase === 'adjust')) sync();
   }
 
   /* ---------- Overlays ---------- */
   function show(ov) { ov.hidden = false; }
   function hide(ov) { ov.hidden = true; }
 
-  function handoff(to, kind, then, back) {
-    $('#handoff-title').textContent = 'Au tour de ' + nameOf(to);
-    $('#handoff-kicker').textContent = 'Passe-lui le téléphone.';
-    $('#handoff-text').textContent = kind === 'review'
-      ? nameOf(other(to)) + ' te propose une envie. Tu peux changer une roue avant de répondre.'
-      : nameOf(other(to)) + ' a changé ' + REEL_NAMES[changedReels()[0]] + '. Toujours envie ?';
-    const go = $('#handoff-go');
-    go.textContent = 'C’est moi, ' + nameOf(to);
-    go.onclick = () => { hide(el.ovHandoff); then(); };
-    const bk = $('#handoff-back');
-    bk.hidden = !back;
-    bk.textContent = 'Oups, ' + nameOf(other(to)) + ' n’avait pas fini';
-    bk.onclick = back ? () => { hide(el.ovHandoff); back(); } : null;
-    show(el.ovHandoff);
-    go.focus({ preventScroll: true });
+  /* La phrase, avec la partie changée surlignée */
+  function sentenceHtml(marks = []) {
+    const p = parts();
+    const m = (t, on) => (on && t ? '<mark>' + esc(t) + '</mark>' : esc(t));
+    const head = m(p.dir, marks.includes('dir')) + (p.dir.endsWith('’') ? '' : ' ') + m(p.act, marks.includes(0));
+    const s = ('J’ai envie ' + head + ' ' + m(p.obj, marks.includes(1)) + ' ' + m(p.man, marks.includes(2))).replace(/\s+/g, ' ').trim();
+    return s + (/[!?…]$/.test(p.man.trim()) ? '' : '.');
   }
+
+  /* ---------- Modales du tour ---------- */
+  // offer : l’envie de A présentée à B · reconfirm : l’envie ajustée présentée à A
+  let offerKind = '';
+  function showOffer(kind) {
+    offerKind = kind;
+    const A = nameOf(S.proposer), B = nameOf(other(S.proposer));
+    const to = kind === 'offer' ? B : A;
+    const kick = $('#offer-kicker');
+    kick.textContent = duo ? '' : 'Passe le téléphone à ' + to + '.';
+    kick.hidden = !!duo;
+    $('#offer-title').textContent = kind === 'offer' ? 'L’envie de ' + A : B + ' a ajusté ton envie';
+    $('#offer-sentence').innerHTML = sentenceHtml(kind === 'reconfirm' ? changes() : []);
+    $('#offer-yes').textContent = kind === 'offer' ? 'J’ai envie aussi' : 'J’ai envie';
+    $('#offer-but').hidden = kind !== 'offer';
+    const back = $('#offer-back');
+    back.hidden = !!duo;
+    back.textContent = 'Oups, ' + (kind === 'offer' ? A : B) + ' n’avait pas fini';
+    hide(el.ovOne);
+    show(el.ovOffer);
+    $('#offer-yes').focus({ preventScroll: true });
+  }
+  function hideOffer() { hide(el.ovOffer); hide(el.ovOne); offerKind = ''; }
+
+  $('#offer-yes').addEventListener('click', () => {
+    audio();
+    if (!myTurn() || (offerKind === 'offer' && S.phase !== 'review') || (offerKind === 'reconfirm' && S.phase !== 'reconfirm')) return;
+    hideOffer();
+    sSwitchOn(); haptic(15);
+    if (duo) { S.phase = 'celebrate'; sync(); }
+    setTimeout(celebrate, 220);
+  });
+  $('#offer-but').addEventListener('click', () => {
+    audio();
+    if (S.phase !== 'review' || !myTurn()) return;
+    const A = nameOf(S.proposer);
+    $('#one-text').textContent = 'Tu peux changer une seule chose : une roue, ou « que tu me / de te ». Choisis-la bien. Les choix de ' + A + ' restent surlignés, et tu peux revenir à son envie à tout moment.';
+    show(el.ovOne);
+    sClick(); haptic(8);
+    $('#one-ok').focus({ preventScroll: true });
+  });
+  $('#one-back').addEventListener('click', () => { audio(); hide(el.ovOne); });
+  $('#one-ok').addEventListener('click', () => {
+    audio();
+    if (S.phase !== 'review' || !myTurn()) return;
+    hideOffer();
+    S.phase = 'adjust';
+    renderReels();
+    render();
+    sync();
+    sClick(); haptic(8);
+  });
+  $('#offer-pass').addEventListener('click', () => el.pass.click());
+  $('#offer-back').addEventListener('click', () => {
+    audio();
+    const kind = offerKind;
+    hideOffer();
+    if (kind === 'offer') { S.phase = 'compose'; S.original = null; }
+    else S.phase = 'adjust';
+    renderReels();
+    render();
+  });
 
   /* ---------- Actions ---------- */
   function startComposition(proposer) {
@@ -533,8 +578,7 @@
     S.phase = 'compose';
     S.original = null;
     S.bottom = false;
-    setSwitch(el.swTop, false);
-    setSwitch(el.swBottom, false);
+    hideOffer();
     render();
   }
 
@@ -559,83 +603,57 @@
   function missingFree() {
     return [0, 1, 2].find((r) => isPlaceholder(r, S.idx[r]));
   }
-
-  el.swTop.addEventListener('click', () => {
-    audio();
-    if (!myTurn()) return;
-    if (S.phase === 'compose') {
-      if (reels.some((r) => r.busy)) return;
-      const m = missingFree();
-      if (m !== undefined) { reels[m].nope(); flashHint('Écris ' + REEL_NAMES[m] + ' ou choisis une autre case.'); return; }
-      S.original = { idx: S.idx.slice(), custom: S.custom.slice(), dir: S.dir };
-      setSwitch(el.swTop, true); sSwitchOn(); haptic(15);
-      el.swTop.disabled = true;
-      el.swTop.classList.remove('is-calling');
-      if (duo) {
-        // Deux téléphones : l’envie part tout de suite sur l’autre téléphone
-        S.phase = 'review'; S.bottom = false;
-        sync();
-        setTimeout(() => { render(); renderWait(); }, 600);
-        return;
-      }
-      setTimeout(() => handoff(other(S.proposer), 'review', () => { S.phase = 'review'; render(); }, () => {
-        // « Oups, je n’avais pas fini » : retour à la composition
-        S.original = null;
-        setSwitch(el.swTop, false);
-        render();
-      }), 650);
-    } else if (S.phase === 'reconfirm') {
-      setSwitch(el.swTop, true); sSwitchOn(); haptic(15);
-      el.swTop.classList.remove('is-calling');
-      el.swTop.disabled = true;
-      if (duo) { S.phase = 'celebrate'; sync(); }
-      setTimeout(celebrate, 600);
-    }
-  });
-
-  el.swBottom.addEventListener('click', () => {
-    audio();
-    if (S.phase !== 'review' || !myTurn() || reels.some((r) => r.busy)) return;
+  function blockedByFree() {
     const m = missingFree();
-    if (m !== undefined) { reels[m].nope(); flashHint('Écris ' + REEL_NAMES[m] + ' ou choisis une autre case.'); return; }
-    setSwitch(el.swBottom, true); sSwitchOn(); haptic(15);
-    el.swBottom.disabled = true;
-    el.swBottom.classList.remove('is-calling');
-    if (duo) {
-      S.bottom = true;
-      if (changedReels().length) {
-        S.phase = 'reconfirm';
-        sync();
-        setTimeout(() => { setSwitch(el.swTop, false); render(); renderWait(); }, 600);
-      } else {
-        S.phase = 'celebrate';
-        sync();
-        setTimeout(celebrate, 600);
-      }
+    if (m === undefined) return false;
+    reels[m].nope();
+    flashHint('Écris ' + REEL_NAMES[m] + ' ou choisis une autre case.');
+    return true;
+  }
+
+  /* A propose son envie */
+  function propose() {
+    if (S.phase !== 'compose' || !myTurn() || reels.some((r) => r.busy) || blockedByFree()) return;
+    S.original = { idx: S.idx.slice(), custom: S.custom.slice(), dir: S.dir };
+    S.phase = 'review';
+    sSwitchOn(); haptic(15);
+    render();
+    if (duo) { sync(); renderWait(); return; }
+    setTimeout(() => showOffer('offer'), 300);
+  }
+  /* B a fini d’ajuster (ou dit finalement oui tel quel) */
+  function finishAdjust() {
+    if (S.phase !== 'adjust' || !myTurn() || reels.some((r) => r.busy) || blockedByFree()) return;
+    sSwitchOn(); haptic(15);
+    if (!changes().length) {
+      if (duo) { S.phase = 'celebrate'; sync(); }
+      setTimeout(celebrate, 220);
       return;
     }
-    if (changedReels().length) {
-      setTimeout(() => handoff(S.proposer, 'reconfirm', () => {
-        S.phase = 'reconfirm';
-        setSwitch(el.swTop, false);
-        render();
-      }, () => {
-        // retour à l’ajustement
-        setSwitch(el.swBottom, false);
-        render();
-      }), 650);
-    } else {
-      setTimeout(celebrate, 600);
-    }
+    S.phase = 'reconfirm';
+    render();
+    if (duo) { sync(); renderWait(); return; }
+    setTimeout(() => showOffer('reconfirm'), 300);
+  }
+  el.actMain.addEventListener('click', () => {
+    audio();
+    if (S.phase === 'compose') propose();
+    else if (S.phase === 'adjust') finishAdjust();
   });
+  el.actAlt.addEventListener('click', () => el.pass.click());
 
-  function undoChange() {
-    const ch = changedReels();
-    if (!ch.length) return;
-    const r = ch[0];
-    S.custom[r] = S.original.custom[r];
-    reels[r].animateTo(Math.round(reels[r].p) + shortest(reels[r].index, S.original.idx[r], reels[r].n), 380, ease.outBack);
+  /* Revenir à l’envie d’origine, pour éventuellement changer autre chose */
+  function resetAdjust() {
+    if (S.phase !== 'adjust' || !S.original) return;
+    S.dir = S.original.dir;
+    S.custom = S.original.custom.slice();
+    reels.forEach((rl, r) => {
+      if (rl.index !== S.original.idx[r]) rl.animateTo(Math.round(rl.p) + shortest(rl.index, S.original.idx[r], rl.n), 380, ease.outBack);
+    });
     sSwitchOff();
+    renderReels();
+    render();
+    sync();
   }
   function shortest(from, to, n) {
     let d = mod(to - from, n);
@@ -646,8 +664,13 @@
   el.dir.addEventListener('click', (e) => {
     const b = e.target.closest('button'); if (!b) return;
     audio();
-    if (S.phase !== 'compose') { sNope(); haptic(20); flashHint(S.phase === 'review' ? 'Le début de la phrase appartient à ' + nameOf(S.proposer) + '.' : ''); return; }
     if (!myTurn()) return;
+    const A = nameOf(S.proposer);
+    if (S.phase === 'adjust') {
+      const ch = changes();
+      if (ch.length && !ch.includes('dir')) { sNope(); haptic(20); flashHint('Une seule modification par tour. Reviens à l’envie de ' + A + ' pour changer le sens.'); return; }
+      if (isFree(0, S.idx[0])) { sNope(); haptic(20); flashHint('Avec une action écrite à la main, le sens ne peut pas changer.'); return; }
+    } else if (S.phase !== 'compose') { sNope(); haptic(20); return; }
     if (S.dir === b.dataset.dir) return;
     S.dir = b.dataset.dir;
     sClick(); haptic(8);
@@ -687,13 +710,20 @@
   }
   $('#pass-same').addEventListener('click', () => {
     hide(el.ovPass);
+    hide(el.ovParty); stopConfetti();
     if (duo) { duoPass(S.proposer); return; }
-    startComposition(S.proposer);
+    const A = S.proposer;
+    // Si c’est l’autre qui tient le téléphone, on le rend à A
+    if (S.phase === 'review' || S.phase === 'adjust') { hideOffer(); handoffNewTurn(A); return; }
+    startComposition(A);
   });
   $('#pass-other').addEventListener('click', () => {
     hide(el.ovPass);
+    hide(el.ovParty); stopConfetti();
     const to = other(S.proposer);
     if (duo) { duoPass(to); return; }
+    hideOffer();
+    if (S.phase === 'review' || S.phase === 'adjust') { startComposition(to); return; }
     handoffNewTurn(to);
   });
   $('#pass-cancel').addEventListener('click', () => { hide(el.ovPass); if (S.phase === 'celebrate') show(el.ovParty); });
@@ -764,6 +794,7 @@
   /* Célébration */
   function celebrate() {
     S.phase = 'celebrate';
+    document.body.dataset.phase = 'celebrate';
     $('#party-sentence').textContent = sentence();
     $('#party-next').textContent = 'C’est fait ! À ' + nameOf(other(S.proposer)) + ' de proposer';
     show(el.ovParty);
@@ -892,11 +923,11 @@
       b.innerHTML = '<span class="pgroups">' + levelGroups() + '</span>';
       b.setAttribute('aria-label', 'Piment : ' + levelNames() + '. Changer');
     }
-    const h = $('#piment-home');
-    if (h) {
-      $('#piment-summary').innerHTML = levelGroups();
-      h.setAttribute('aria-label', 'Piment : ' + levelNames() + '. Choisir les niveaux');
-    }
+    // Accueil : le choix qui correspond aux niveaux cochés est mis en avant
+    const key = S.levels.join('');
+    document.querySelectorAll('#piment-choices .piment-choice').forEach((c) => {
+      c.setAttribute('aria-pressed', c.dataset.levels === key ? 'true' : 'false');
+    });
     document.querySelectorAll('#ov-piment input[type="checkbox"]').forEach((c) => { c.checked = S.levels.includes(+c.value); });
     document.documentElement.dataset.piment = S.levels.join('');
   }
@@ -943,7 +974,7 @@
   function myTurn() {
     if (!duo) return true;
     if (S.phase === 'compose' || S.phase === 'reconfirm') return S.proposer === duo.seat;
-    if (S.phase === 'review') return S.proposer !== duo.seat;
+    if (S.phase === 'review' || S.phase === 'adjust') return S.proposer !== duo.seat;
     return true;
   }
 
@@ -1052,7 +1083,7 @@
     const idx = st.keys.map((k, r) => idxOf(r, k));
     S.original = st.original ? { idx: st.original.keys.map((k, r) => idxOf(r, k)), custom: st.original.custom.slice(), dir: st.original.dir } : null;
     const arrived = !opts.first && myTurn() && (S.phase !== prev.phase || S.proposer !== prev.proposer);
-    const spin = (arrived && S.phase === 'review') || !!opts.spin;
+    const spin = !!opts.spin;
     S.idx = idx.slice();
     reels.forEach((rl, r) => {
       if (spin) { rl._remote = true; rl.spinTo(idx[r], 1, 700 + r * 260); return; }
@@ -1061,8 +1092,6 @@
       const t = Math.round(rl.p) + shortest(rl.index, idx[r], rl.n);
       rl.p = t; rl.lastTick = t;
     });
-    setSwitch(el.swTop, S.phase === 'review' || S.phase === 'celebrate');
-    setSwitch(el.swBottom, (S.phase === 'review' && S.bottom) || S.phase === 'reconfirm' || S.phase === 'celebrate');
 
     // « On passe » venu de l’autre téléphone
     const pn = st.pass ? st.pass.n : 0;
@@ -1083,6 +1112,10 @@
     if (arrived && S.phase !== 'celebrate') { sSwitchOn(); haptic(30); }
     renderReels();
     render();
+    // La proposition (ou l’envie ajustée) arrive dans une modale
+    const want = myTurn() && S.phase === 'review' ? 'offer' : (myTurn() && S.phase === 'reconfirm' ? 'reconfirm' : '');
+    if (want && (offerKind !== want || el.ovOffer.hidden)) showOffer(want);
+    else if (!want && offerKind) hideOffer();
     renderWait();
   }
 
@@ -1090,25 +1123,30 @@
   function renderWait() {
     const ov = $('#ov-wait');
     const waiting = !!duo && duo.stage === 'game' && el.ovStart.hidden &&
-      ['compose', 'review', 'reconfirm'].includes(S.phase) && !myTurn();
+      ['compose', 'review', 'adjust', 'reconfirm'].includes(S.phase) && !myTurn();
     if (!waiting) { hide(ov); renderDuoStatus(); return; }
     const A = nameOf(S.proposer), B = nameOf(other(S.proposer));
     let title, kicker, text, sent = '';
     if (S.phase === 'compose') {
       title = 'Au tour de ' + A;
       kicker = A + ' compose une envie.';
-      text = 'Elle arrivera ici dès que ' + A + ' aura dit « J’ai envie ».';
+      text = 'Elle arrivera ici dès que ' + A + ' la proposera.';
     } else if (S.phase === 'review') {
       title = 'Envie envoyée';
       kicker = B + ' la lit.';
       sent = S.original ? sentenceFrom(S.original) : sentence();
-      text = B + ' peut changer une roue avant de répondre.';
+      text = B + ' peut dire « J’ai envie aussi », ou changer une chose avant de répondre.';
+    } else if (S.phase === 'adjust') {
+      title = B + ' ajuste ton envie';
+      kicker = B + ' change une seule chose.';
+      sent = S.original ? sentenceFrom(S.original) : sentence();
+      text = 'Tu verras la nouvelle version ici, et tu pourras dire oui ou passer.';
     } else {
-      const ch = changedReels();
+      const ch = changes();
       title = 'Au tour de ' + A;
-      kicker = 'Tu as changé ' + REEL_NAMES[ch.length ? ch[0] : 0] + '.';
+      kicker = 'Tu as changé ' + CHANGE_NAMES[ch.length ? ch[0] : 0] + '.';
       sent = sentence();
-      text = A + ' doit redire « J’ai envie ».';
+      text = A + ' relit l’envie ajustée.';
     }
     $('#wait-title').textContent = title;
     $('#wait-kicker').textContent = kicker;
@@ -1415,6 +1453,8 @@
     $('#piment-home').addEventListener('click', () => { audio(); openPiment($('#piment-home')); });
     const closePiment = () => {
       hide(ovPiment);
+      // Choisi depuis le dernier écran de l’accueil : la partie commence
+      if (pimentFrom === $('#piment-home') && !el.ovStart.hidden && step === 2) { launchGame(); return; }
       if (S.mustRestart) { $('#resume').hidden = true; $('#start-go').textContent = 'Nouvelle partie'; }
       if (pimentFrom) pimentFrom.focus({ preventScroll: true });
     };
@@ -1443,21 +1483,41 @@
       S.names = [$('#name0').value.trim(), $('#name1').value.trim()];
       save('names', S.names);
       document.activeElement && document.activeElement.blur();
-      hide(el.ovStart);
     };
+    /* Accueil en trois écrans : prénoms → principe → piment → la partie commence */
+    $('#name0').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') { e.preventDefault(); $('#name1').focus(); }
+    });
     $('#start-form').addEventListener('submit', (e) => {
       e.preventDefault();
       audio();
       readNames();
-      S.started = true;
-      S.mustRestart = false;
-      startComposition(0);
-      setTimeout(() => shuffle(false), 250);
+      $('#rule-a').textContent = nameOf(0);
+      $('#rule-b').textContent = nameOf(1);
+      sClick(); haptic(8);
+      goStep(1);
     });
+    $('#rules-ok').addEventListener('click', () => { audio(); sClick(); haptic(8); goStep(2); });
+    document.querySelectorAll('.step-back').forEach((b) => b.addEventListener('click', () => { audio(); goStep(Math.max(0, step - 1)); }));
+    const choices = $('#piment-choices');
+    choices.innerHTML = PRESETS.map((p) =>
+      '<button class="piment-choice" type="button" data-levels="' + p.levels.join('') + '" aria-pressed="false">' +
+      '<span class="pgroup pgroup--' + p.levels.length + ' is-on">' + CHILI.repeat(p.levels[p.levels.length - 1]) + '</span>' +
+      '<span class="piment-toggle-text"><span class="piment-name">' + p.name + '</span><span class="piment-tdesc">' + p.desc + '</span></span>' +
+      '</button>'
+    ).join('');
+    choices.querySelectorAll('.piment-choice').forEach((c) => c.addEventListener('click', () => {
+      audio();
+      setLevels(c.dataset.levels.split('').map(Number), { silent: true });
+      sSwitchOn(); haptic(12);
+      launchGame();
+    }));
+    renderLevel();
     // Reprendre la partie : garde le tour en cours, applique les prénoms éventuellement changés
     $('#resume').addEventListener('click', () => {
       audio();
       readNames();
+      hide(el.ovStart);
       render();
     });
     // Retour à l’accueil depuis le jeu
@@ -1466,8 +1526,39 @@
     $('#duo-open').addEventListener('click', () => { audio(); openDuoSetup(); });
     $('#duo-resume').addEventListener('click', () => { audio(); hide(el.ovStart); renderWait(); });
     $('#duo-quit').addEventListener('click', () => { audio(); leaveDuo(true); });
+    goStep(0, true);
     const inv = window.KiffDuo && window.KiffDuo.parse(location.hash);
     if (inv) startJoin(inv);
+  }
+
+  /* ---------- Accueil : écrans successifs ---------- */
+  const PRESETS = [
+    { levels: [1], name: 'Tendre', desc: 'Câlins, chatouilles et bêtises.' },
+    { levels: [1, 2], name: 'Pimenté', desc: 'Tendre, et ça commence à chauffer.' },
+    { levels: [1, 2, 3], name: 'Brûlant', desc: 'Tout, jusqu’au plus cochon.' }
+  ];
+  let step = 0;
+  function goStep(n, instant) {
+    const box = $('#steps');
+    step = n;
+    if (instant) box.classList.add('is-instant');
+    box.style.setProperty('--step', n);
+    box.dataset.step = n;
+    box.querySelectorAll('.step').forEach((sec) => {
+      const on = +sec.dataset.step === n;
+      sec.inert = !on;
+      sec.setAttribute('aria-hidden', on ? 'false' : 'true');
+    });
+    document.querySelectorAll('#step-dots i').forEach((d, k) => d.classList.toggle('is-on', k === n));
+    el.ovStart.scrollTop = 0;
+    if (instant) { void box.offsetWidth; box.classList.remove('is-instant'); }
+  }
+  function launchGame() {
+    hide(el.ovStart);
+    S.started = true;
+    S.mustRestart = false;
+    startComposition(0);
+    setTimeout(() => shuffle(false), 300);
   }
 
   function openHome() {
@@ -1477,7 +1568,8 @@
     $('#name0').value = S.names[0] || '';
     $('#name1').value = S.names[1] || '';
     $('#resume').hidden = inDuo || !S.started || !!S.mustRestart;
-    $('#start-go').textContent = S.started ? 'Nouvelle partie' : 'C’est parti';
+    $('#start-go').textContent = S.started ? 'Nouvelle partie' : 'Suivant';
+    goStep(0, true);
     show(el.ovStart);
     el.ovStart.scrollTop = 0;
     renderWait();

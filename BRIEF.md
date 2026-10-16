@@ -2,42 +2,37 @@
 
 Jeu à deux sur un seul téléphone ou sur deux téléphones, en portrait. Une phrase d’envie se compose avec des rouleaux de machine à sous ; elle ne devient une envie partagée que quand les deux personnes ont dit « j’ai envie ».
 
+## Accueil : trois écrans qui glissent
+
+1. **Les prénoms** : « Qui propose en premier ? » et « Et l’autre ? » (ou « Sur son téléphone ? » pour jouer à deux téléphones), puis « Suivant ». En bas : ambiance, son, installer l’appli.
+2. **Le principe**, en trois lignes numérotées, avec les vrais prénoms, puis « Compris ».
+3. **Jusqu’où ça pique ?** : Tendre, Pimenté (Tendre + Pimenté) ou Brûlant (tout). Toucher un choix lance la partie. Lien « Choisir niveau par niveau » pour cocher les niveaux à la main (par exemple Brûlant seul).
+
+Chaque écran glisse vers le suivant dès la réponse ; trois points en haut montrent où on en est ; « Retour » revient d’un écran. Le bouton maison du jeu ramène au premier écran, avec « Reprendre la partie en cours ».
+
 ## La phrase
 
 **J’ai envie** · [que tu me | de te] · [action] · [endroit] · [manière]
 
-- Le début « J’ai envie » est un switch : c’est l’envie de la personne qui propose.
+- « J’ai envie » est le début fixe de la phrase, au nom de la personne qui propose.
 - « que tu me / de te » est un sélecteur à deux positions.
 - Trois rouleaux : l’action, l’endroit, la manière.
-- La fin est un switch « J’ai envie aussi », grisé tant que l’autre personne ne l’a pas activé : c’est sa réponse.
-- Les deux switches ont le même dessin.
+- En bas, un seul bouton pour la personne qui a la main.
 
 ## Déroulé d’un tour (A propose, B répond)
 
-1. **A compose** : règle « que tu me / de te » et les trois rouleaux (ou bouton Hasard), puis active « J’ai envie ». Écran « passe le téléphone ».
-2. **B ajuste** : peut changer **un seul** rouleau. Dès qu’un rouleau change, les deux autres se verrouillent et le « J’ai envie » de A passe en grisé. B ne peut pas toucher au sélecteur « que tu me / de te ». B peut annuler son changement.
-3. **B active « J’ai envie aussi »**.
-   - Si rien n’a changé : célébration.
-   - Si un rouleau a changé : écran « passe le téléphone », A doit réactiver « J’ai envie », puis célébration.
-4. **Célébration** animée (confettis, phrase finale). L’action a lieu hors du jeu. Puis les rôles s’inversent : B propose, A ajuste.
+1. **A compose** : règle « que tu me / de te » et les trois rouleaux (ou bouton Hasard), puis touche **« Proposer à B »**. L’écran ne s’adresse qu’à A.
+2. **B lit l’envie** dans une modale, la phrase en grand (« L’envie de A ») :
+   - **« J’ai envie aussi »** → célébration ;
+   - **« Oui, mais… »** → une petite fenêtre explique qu’on ne peut changer qu’une seule chose, puis B arrive sur l’écran de modification ;
+   - **« On passe »**.
+3. **B modifie une seule chose** : une roue, ou le sens « que tu me / de te ». Les choix de A restent surlignés dans les roues pour les retrouver. Dès qu’une chose change, le reste se verrouille ; « Revenir à l’envie de A » remet tout comme A l’avait proposé (et permet de changer autre chose). En bas : **« Modification faite »** (ou « J’ai envie aussi » si rien n’a changé) et **« On passe »**.
+4. **A relit l’envie ajustée** dans une modale (« B a ajusté ton envie », la partie changée surlignée) : **« J’ai envie »** → célébration, ou **« On passe »**.
+5. **Célébration** animée (confettis, phrase finale), puis les rôles s’inversent : B propose, A répond.
+
+Sur un seul téléphone, chaque modale commence par « Passe le téléphone à … » et offre un lien « Oups, … n’avait pas fini » pour revenir en arrière.
 
 **On passe** est disponible à tout moment, sans justification : la même personne propose autre chose, ou l’autre propose à son tour.
-
-## Deux téléphones
-
-Sur l’accueil, à côté de « Et l’autre ? », le lien « Sur son téléphone ? » ouvre le mode à deux téléphones.
-
-1. **Créer** : la première personne écrit son prénom et touche « Créer la partie ». Un QR code et un lien d’invitation s’affichent (« Envoyer le lien » ouvre le partage du téléphone, « Copier le lien » le copie).
-2. **Rejoindre** : l’autre scanne le QR code ou ouvre le lien, écrit son prénom, touche « Rejoindre ». La partie commence : la personne qui a invité propose en premier, les rouleaux sont tirés au hasard.
-3. **Jouer** : chaque téléphone ne montre les rouleaux qu’à la personne qui a la main. L’autre voit un écran d’attente : « Au tour de … » pendant la composition, « Envie envoyée » avec la phrase pendant la lecture, « Tu as changé … » pendant la reconfirmation. L’envie arrive sur l’autre téléphone avec un petit son, une vibration et les rouleaux qui tournent. La célébration s’affiche sur les deux téléphones en même temps.
-4. **On passe** reste disponible partout, y compris depuis l’écran d’attente ; l’autre téléphone reçoit « On passe. Pas besoin d’expliquer pourquoi. »
-5. **Accueil** pendant une partie à deux : « Reprendre la partie » ou « Quitter la partie à deux » (l’autre téléphone en est prévenu).
-
-- Recharger la page ou rouvrir le lien reprend la partie là où elle en était.
-- Une ligne prévient si l’autre téléphone n’est plus connecté ; tout reprend à son retour.
-- Ambiance et son restent propres à chaque téléphone ; le piment est commun et se règle par la personne qui compose.
-
-**Comment ça marche.** Pas de serveur à nous : les deux téléphones passent par un relais public gratuit (MQTT sur WebSocket sécurisé : HiveMQ, sinon EMQX, sinon Mosquitto). Tout ce qui passe par le relais est chiffré (AES-GCM) avec une clé qui n’existe que dans le lien d’invitation, après le « # » : le relais ne voit ni les prénoms ni les phrases. Les deux téléphones doivent avoir la même version des roues (sinon un message demande de recharger la page). Code : `duo.js` (liaison) et la partie « Deux téléphones » de `app.js` ; bibliothèques dans `vendor/` (mqtt.js 5.10.1 et qrcode-generator 1.4.4, licence MIT), chargées seulement quand on joue à deux.
 
 ## Grammaire
 
@@ -65,18 +60,15 @@ Chaque rouleau a une dernière case « ✎ … à toi ». En la touchant, on éc
 
 ## Repères pour bien jouer (revue UX)
 
-- Un switch éteint garde son texte en grisé (« J’ai envie », « J’ai envie aussi ») et s’allume quand on l’active.
-- Le switch qu’on attend émet une onde : celui du haut pendant la composition et la reconfirmation, celui du bas pendant la réponse.
 - La consigne dit qui joue et quoi faire, avec le verbe « fais glisser » pour les roues.
-- Écran de passage : lien « Oups, … n’avait pas fini » pour revenir en arrière après un switch activé trop vite.
 - Écran de célébration : lien « Finalement, on passe » ; on peut changer d’avis jusqu’au bout.
 - La case libre s’annonce « touche pour écrire ton action / ton endroit / ta manière ».
-- Bouton « Accueil » (maison) dans la barre du haut : il rouvre l’écran d’accueil pour changer les prénoms, l’ambiance ou le son. On y trouve « Reprendre la partie en cours » ou « Nouvelle partie ».
+- Bouton « Accueil » (maison) dans la barre du haut : il rouvre le premier écran d’accueil pour changer les prénoms, l’ambiance ou le son. On y trouve « Reprendre la partie en cours » ou « Nouvelle partie ».
 
 ## Sensations
 
 - Petit retour haptique et clic sonore très discret à chaque cran de rouleau.
-- Petit son discret à l’activation des switches, petit arpège à la célébration.
+- Petit son discret quand une envie part ou arrive, petit arpège à la célébration.
 - Lien « Son : activé / coupé » sur l’écran d’accueil pour couper le son. Haptique : Android via l’API vibration ; iPhone via l’astuce du switch natif de Safari (iOS 18 et plus, au mieux).
 
 ## Ambiances

@@ -17,10 +17,10 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,62..125,100..900;1,62..125,100..900&family=Bagel+Fat+One&family=Abril+Fatface&family=Merriweather:ital,opsz,wght@0,18..144,400..900;1,18..144,400..900&family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..900;1,6..96,400..900&family=Jost:wght@300..700&family=Great+Vibes&family=Cinzel:wght@400..900&display=swap">
-<link rel="stylesheet" href="base.css?v=22">
-<link rel="stylesheet" href="skins/arty.css?v=22" data-skin-sheet="arty">
-<link rel="stylesheet" href="skins/pomme.css?v=22" data-skin-sheet="pomme">
-<link rel="stylesheet" href="skins/redcorner.css?v=22" data-skin-sheet="redcorner">
+<link rel="stylesheet" href="base.css?v=23">
+<link rel="stylesheet" href="skins/arty.css?v=23" data-skin-sheet="arty">
+<link rel="stylesheet" href="skins/pomme.css?v=23" data-skin-sheet="pomme">
+<link rel="stylesheet" href="skins/redcorner.css?v=23" data-skin-sheet="redcorner">
 <script>
 /* Ambiance : celle du lien (?design=redcorner ou #redcorner), sinon celle mémorisée.
    Appliquée avant l’affichage pour éviter un flash. */
@@ -87,10 +87,9 @@
   <p class="hint" id="hint" aria-live="polite"></p>
   <p class="duo-status" id="duo-status" hidden></p>
 
-  <button class="switch switch--top" id="sw-top" type="button" role="switch" aria-checked="false">
-    <span class="track"><span class="knob"></span></span>
+  <p class="switch switch--top is-static" id="sw-top" aria-checked="true">
     <span class="sw-text"><span class="sw-label ink" data-ink="J’ai envie">J’ai envie</span><span class="sw-owner" id="owner-top"></span></span>
-  </button>
+  </p>
 
   <section class="press" id="cabinet" aria-label="La phrase">
     <div class="press-row">
@@ -111,42 +110,65 @@
     </div>
   </section>
 
-  <button class="switch switch--bottom" id="sw-bottom" type="button" role="switch" aria-checked="false">
-    <span class="track"><span class="knob"></span></span>
-    <span class="sw-text"><span class="sw-label ink" id="bottom-label" data-ink="J’ai envie aussi">J’ai envie aussi</span><span class="sw-owner" id="owner-bottom"></span></span>
-  </button>
+  <div class="actions" id="actions">
+    <button class="btn act-main" id="act-main" type="button">Proposer</button>
+    <button class="btn btn--line act-alt" id="act-alt" type="button" hidden>On passe</button>
+  </div>
 </div>
 
-<!-- Accueil -->
+<!-- Accueil : trois écrans qui glissent (prénoms, principe, piment) -->
 <div class="overlay overlay--start" id="ov-start">
-  <div class="sheet">
-    <p class="poster-neon" aria-hidden="true">Red Corner</p>
-    <h2 class="poster-title"><span class="ink" data-ink="Kiff">Kiff</span><span class="ink" data-ink="Kiff">Kiff</span><span class="poster-venue"> au Nostra</span></h2>
-    <p class="poster-sub">Un jeu à deux, sur un ou deux téléphones.</p>
-    <p class="poster-rules">L’un·e propose une envie, l’autre peut changer une roue. Rien ne se passe sans deux « j’ai envie ».</p>
-    <form id="start-form" class="start-form">
-      <label for="name0">Qui propose en premier ?</label>
-      <input id="name0" maxlength="20" autocomplete="off" placeholder="Cerise">
-      <div class="name1-row"><label for="name1">Et l’autre ?</label><button class="skin-link duo-link" id="duo-open" type="button" aria-haspopup="dialog">Sur son téléphone ?</button></div>
-      <input id="name1" maxlength="20" autocomplete="off" placeholder="Pistache">
-      <button class="piment-row" id="piment-home" type="button" aria-haspopup="dialog">
-        <span class="piment-row-label">Piment</span>
-        <span class="pgroups" id="piment-summary"></span>
-        <span class="piment-row-cta">Choisir</span>
-      </button>
-      <button class="btn" type="submit" id="start-go">C’est parti</button>
-      <button class="link-btn resume-link" id="resume" type="button" hidden>Reprendre la partie en cours</button>
-      <div class="duo-home" id="duo-home" hidden>
-        <p class="duo-home-text" id="duo-home-text"></p>
-        <button class="btn" id="duo-resume" type="button">Reprendre la partie</button>
-        <button class="link-btn" id="duo-quit" type="button">Quitter la partie à deux</button>
-      </div>
-      <div class="start-links">
-        <button class="skin-link" id="skin-open" type="button" aria-haspopup="dialog">Ambiance : <span id="skin-current">Red Corner</span></button>
-        <button class="skin-link" id="mute" type="button" aria-pressed="false">Son : <span id="mute-state">activé</span></button>
-        <button class="skin-link" id="install" type="button" hidden>Installer <span>l’appli</span></button>
-      </div>
-    </form>
+  <div class="step-dots" id="step-dots" aria-hidden="true"><i class="is-on"></i><i></i><i></i></div>
+  <div class="steps" id="steps" data-step="0">
+    <div class="steps-track">
+      <section class="step" data-step="0" aria-label="Les prénoms">
+        <div class="sheet">
+          <p class="poster-neon" aria-hidden="true">Red Corner</p>
+          <h2 class="poster-title"><span class="ink" data-ink="Kiff">Kiff</span><span class="ink" data-ink="Kiff">Kiff</span><span class="poster-venue"> au Nostra</span></h2>
+          <p class="poster-sub">Un jeu à deux, sur un ou deux téléphones.</p>
+          <form id="start-form" class="start-form">
+            <label for="name0">Qui propose en premier ?</label>
+            <input id="name0" maxlength="20" autocomplete="off" placeholder="Cerise" enterkeyhint="next">
+            <div class="name1-row"><label for="name1">Et l’autre ?</label><button class="skin-link duo-link" id="duo-open" type="button" aria-haspopup="dialog">Sur son téléphone ?</button></div>
+            <input id="name1" maxlength="20" autocomplete="off" placeholder="Pistache" enterkeyhint="go">
+            <button class="btn" type="submit" id="start-go">Suivant</button>
+            <button class="link-btn resume-link" id="resume" type="button" hidden>Reprendre la partie en cours</button>
+            <div class="duo-home" id="duo-home" hidden>
+              <p class="duo-home-text" id="duo-home-text"></p>
+              <button class="btn" id="duo-resume" type="button">Reprendre la partie</button>
+              <button class="link-btn" id="duo-quit" type="button">Quitter la partie à deux</button>
+            </div>
+            <div class="start-links">
+              <button class="skin-link" id="skin-open" type="button" aria-haspopup="dialog">Ambiance : <span id="skin-current">Red Corner</span></button>
+              <button class="skin-link" id="mute" type="button" aria-pressed="false">Son : <span id="mute-state">activé</span></button>
+              <button class="skin-link" id="install" type="button" hidden>Installer <span>l’appli</span></button>
+            </div>
+          </form>
+        </div>
+      </section>
+
+      <section class="step" data-step="1" aria-labelledby="rules-title">
+        <div class="sheet step-sheet">
+          <h2 class="step-title" id="rules-title">Le principe</h2>
+          <ol class="rules">
+            <li><b id="rule-a">Cerise</b> compose une envie avec trois roues.</li>
+            <li><b id="rule-b">Pistache</b> dit «&nbsp;J’ai envie aussi&nbsp;», ou «&nbsp;Oui, mais…&nbsp;» et change une seule chose.</li>
+            <li>Rien ne se passe sans deux «&nbsp;j’ai envie&nbsp;». On peut passer à tout moment, sans se justifier.</li>
+          </ol>
+          <button class="btn" id="rules-ok" type="button">Compris</button>
+          <button class="link-btn step-back" type="button">Retour</button>
+        </div>
+      </section>
+
+      <section class="step" data-step="2" aria-labelledby="pick-title">
+        <div class="sheet step-sheet">
+          <h2 class="step-title" id="pick-title">Jusqu’où ça&nbsp;pique&nbsp;?</h2>
+          <div class="choices" id="piment-choices" role="group" aria-labelledby="pick-title"></div>
+          <button class="link-btn choices-custom" id="piment-home" type="button" aria-haspopup="dialog">Choisir niveau par niveau</button>
+          <button class="link-btn step-back" type="button">Retour</button>
+        </div>
+      </section>
+    </div>
   </div>
 </div>
 
@@ -236,6 +258,33 @@
   </div>
 </div>
 
+<!-- La proposition (pour B) ou l’envie ajustée (pour A) -->
+<div class="overlay overlay--handoff overlay--offer" id="ov-offer" hidden role="dialog" aria-modal="true" aria-labelledby="offer-title">
+  <div class="sheet">
+    <p class="handoff-kicker" id="offer-kicker"></p>
+    <h2 class="handoff-title" id="offer-title"></h2>
+    <p class="party-sentence offer-sentence" id="offer-sentence"></p>
+    <div class="stack">
+      <button class="btn" id="offer-yes" type="button">J’ai envie aussi</button>
+      <button class="btn btn--line" id="offer-but" type="button">Oui, mais…</button>
+      <button class="link-btn" id="offer-pass" type="button">On passe</button>
+    </div>
+    <button class="link-btn offer-back" id="offer-back" type="button" hidden></button>
+  </div>
+</div>
+
+<!-- « Oui, mais… » : une seule modification -->
+<div class="overlay overlay--edit overlay--skins" id="ov-one" hidden role="dialog" aria-modal="true" aria-labelledby="one-title">
+  <div class="sheet sheet--edit sheet--skins">
+    <h2 class="edit-label" id="one-title">Une seule modification</h2>
+    <p class="duo-text" id="one-text"></p>
+    <div class="row">
+      <button class="link-btn" id="one-back" type="button">Retour</button>
+      <button class="btn" id="one-ok" type="button">Compris</button>
+    </div>
+  </div>
+</div>
+
 <!-- On passe -->
 <div class="overlay overlay--pass" id="ov-pass" hidden>
   <div class="sheet">
@@ -276,8 +325,8 @@
   </div>
 </div>
 <!--/APP-->
-<script src="data.js?v=22"></script>
-<script src="duo.js?v=22"></script>
-<script src="app.js?v=22"></script>
+<script src="data.js?v=23"></script>
+<script src="duo.js?v=23"></script>
+<script src="app.js?v=23"></script>
 </body>
 </html>

@@ -660,3 +660,9 @@ button { font: inherit; color: inherit; }
 
 /* Estampille piment sur chaque bande */
 :root { --reel-chili: #FF48B0; --reel-chili-bg: var(--violet); }
+
+/* Accueil en écrans, tour de jeu par modales */
+.step-title { font-family: var(--f-display); font-size: 42px; color: var(--blue); }
+.rules li b { color: var(--blue); }
+.overlay--offer .btn--line { color: var(--paper); box-shadow: inset 0 0 0 3px var(--paper); }
+:root { --orig-hl: rgba(255, 228, 92, .85); --orig-line: var(--pink); --mark-bg: var(--pink); }

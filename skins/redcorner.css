@@ -525,3 +525,13 @@ body:has(#ov-skins:not([hidden])) .deco-candles { display: none; }
 
 /* Estampille piment */
 :root { --reel-chili: #FF4D63; --reel-chili-bg: rgba(255, 59, 85, .16); --reel-chili-line: rgba(255, 77, 99, .7); --reel-chili-glow: rgba(255, 59, 85, .9); }
+
+/* Accueil en écrans, tour de jeu par modales */
+.step-title { font-family: var(--f-script); font-size: 48px; font-weight: 400; color: var(--gold-hi); }
+.rules li b { color: var(--gold-hi); font-weight: 500; }
+.actions { padding-right: 44px; }
+body:has(#ov-one:not([hidden])) .deco-candles,
+body:has(#ov-note:not([hidden])) .deco-candles,
+body:has(#ov-duo:not([hidden])) .deco-candles,
+body:has(#ov-piment:not([hidden])) .deco-candles { display: none; }
+:root { --orig-hl: rgba(246, 221, 160, .38); --orig-line: var(--gold-hi); --mark-bg: rgba(233, 166, 176, .55); }

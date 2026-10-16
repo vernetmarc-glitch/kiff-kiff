@@ -408,3 +408,15 @@ body {
 
 /* Deux téléphones : le bouton « Copier le lien » sur la feuille crème */
 .sheet--duo .btn--line { background: transparent; color: var(--navy); box-shadow: inset 0 0 0 3px var(--navy); }
+
+/* Accueil en écrans, tour de jeu par modales */
+.step-title {
+  font-family: var(--f-display); font-size: 44px; line-height: 1;
+  color: var(--cream-hi);
+  text-shadow:
+    -1.5px -1.5px 0 var(--red), 1.5px -1.5px 0 var(--red), -1.5px 1.5px 0 var(--red), 1.5px 1.5px 0 var(--red),
+    0 2px 0 var(--red), 2px 0 0 var(--red), -2px 0 0 var(--red), 0 -2px 0 var(--red),
+    2px 3px 0 var(--navy), 3px 4px 0 var(--navy), 4px 5px 0 var(--navy);
+}
+.actions .btn--line { background: linear-gradient(var(--cream-hi), var(--cream)); color: var(--navy); box-shadow: inset 0 0 0 3px var(--navy), 0 3px 0 var(--navy); }
+:root { --orig-hl: rgba(240, 176, 40, .7); --orig-line: var(--red); --mark-bg: rgba(240, 176, 40, .6); }
