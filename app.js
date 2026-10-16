@@ -325,7 +325,7 @@
     bind() {
       const el = this.el;
       el.addEventListener('pointerdown', (e) => {
-        if (e.button > 0) return;
+        if (e.button > 0 || e.target.closest('.stamp')) return;
         audio();
         if (!this.canMove()) { this.nope(); return; }
         this.stop();
@@ -368,6 +368,7 @@
       }, { passive: false });
 
       el.addEventListener('keydown', (e) => {
+        if (e.target !== el) return;
         if (e.key === 'ArrowDown') { e.preventDefault(); this.step(1); }
         else if (e.key === 'ArrowUp') { e.preventDefault(); this.step(-1); }
         else if ((e.key === 'Enter' || e.key === ' ') && isFree(this.r, this.index)) {
@@ -419,7 +420,7 @@
   function renderDir() {
     const a0 = reels[0] ? reels[0].index : S.idx[0];
     el.dir.dataset.dir = S.dir;
-    el.dir.querySelectorAll('button').forEach((b) => {
+    el.dir.querySelectorAll('button[data-dir]').forEach((b) => {
       const d = b.dataset.dir;
       b.textContent = dirForm(d, actionForm(a0, d));
       b.setAttribute('aria-pressed', d === S.dir ? 'true' : 'false');
@@ -475,6 +476,7 @@
     const dirFree = ph === 'compose' || (ph === 'adjust' && (!ch.length || ch.includes('dir')));
     el.dir.classList.toggle('is-locked', !dirFree);
     el.dir.classList.toggle('is-changed', ph === 'adjust' && ch.includes('dir'));
+    el.dir.parentElement.classList.toggle('is-changed', ph === 'adjust' && ch.includes('dir'));
     el.dice.hidden = ph !== 'compose';
 
     reels.forEach((rl) => {
@@ -482,6 +484,13 @@
       if (ph === 'adjust') lock = ch.length > 0 && !ch.includes(rl.r);
       rl.setLocked(lock);
       rl.el.classList.toggle('is-changed', (ph === 'adjust' || ph === 'reconfirm') && ch.includes(rl.r));
+    });
+
+    // Le bouton « annuler » prend la place du badge « changé », sur ce qui a changé
+    document.querySelectorAll('.stamp').forEach((st) => {
+      const on = ph === 'adjust' && !!st.closest('.is-changed');
+      st.tabIndex = on ? 0 : -1;
+      st.setAttribute('aria-hidden', on ? 'false' : 'true');
     });
 
     renderDir();
@@ -545,7 +554,7 @@
     audio();
     if (S.phase !== 'review' || !myTurn()) return;
     const A = nameOf(S.proposer);
-    $('#one-text').textContent = 'Tu peux changer une seule chose : une roue, ou « que tu me / de te ». Choisis-la bien. Les choix de ' + A + ' restent surlignés, et tu peux revenir à son envie à tout moment.';
+    $('#one-text').textContent = 'Tu peux changer une seule chose : une roue, ou « que tu me / de te ». Choisis-la bien. Les choix de ' + A + ' restent surlignés, et le bouton ↺ sur ce que tu as changé ramène son envie.';
     show(el.ovOne);
     sClick(); haptic(8);
     $('#one-ok').focus({ preventScroll: true });
@@ -641,6 +650,13 @@
     else if (S.phase === 'adjust') finishAdjust();
   });
   el.actAlt.addEventListener('click', () => el.pass.click());
+  document.querySelectorAll('.stamp').forEach((st) => st.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (S.phase !== 'adjust' || !st.closest('.is-changed')) return;
+    audio();
+    haptic(10);
+    resetAdjust();
+  }));
 
   /* Revenir à l’envie d’origine, pour éventuellement changer autre chose */
   function resetAdjust() {
@@ -662,7 +678,7 @@
   }
 
   el.dir.addEventListener('click', (e) => {
-    const b = e.target.closest('button'); if (!b) return;
+    const b = e.target.closest('button[data-dir]'); if (!b) return;
     audio();
     if (!myTurn()) return;
     const A = nameOf(S.proposer);

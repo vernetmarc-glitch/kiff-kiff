@@ -17,10 +17,10 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,62..125,100..900;1,62..125,100..900&family=Bagel+Fat+One&family=Abril+Fatface&family=Merriweather:ital,opsz,wght@0,18..144,400..900;1,18..144,400..900&family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..900;1,6..96,400..900&family=Jost:wght@300..700&family=Great+Vibes&family=Cinzel:wght@400..900&display=swap">
-<link rel="stylesheet" href="base.css?v=23">
-<link rel="stylesheet" href="skins/arty.css?v=23" data-skin-sheet="arty">
-<link rel="stylesheet" href="skins/pomme.css?v=23" data-skin-sheet="pomme">
-<link rel="stylesheet" href="skins/redcorner.css?v=23" data-skin-sheet="redcorner">
+<link rel="stylesheet" href="base.css?v=24">
+<link rel="stylesheet" href="skins/arty.css?v=24" data-skin-sheet="arty">
+<link rel="stylesheet" href="skins/pomme.css?v=24" data-skin-sheet="pomme">
+<link rel="stylesheet" href="skins/redcorner.css?v=24" data-skin-sheet="redcorner">
 <script>
 /* Ambiance : celle du lien (?design=redcorner ou #redcorner), sinon celle mémorisée.
    Appliquée avant l’affichage pour éviter un flash. */
@@ -98,15 +98,16 @@
         <span class="dir-or" aria-hidden="true">/</span>
         <button type="button" data-dir="te" aria-pressed="false">de te</button>
       </div>
+      <button class="stamp stamp--dir" type="button" tabindex="-1" aria-label="Annuler ce changement"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 12a7.5 7.5 0 1 0 2.4-5.5" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/><path d="M4 3.8v4.6h4.6" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="stamp-txt">annuler</span></button>
       <button class="sticker sticker--dice" id="dice" type="button" aria-label="Au hasard">
         <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="4.5" fill="none" stroke="currentColor" stroke-width="2.2"/><g fill="currentColor"><circle cx="8.2" cy="8.2" r="1.6"/><circle cx="15.8" cy="15.8" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="15.8" cy="8.2" r="1.6"/><circle cx="8.2" cy="15.8" r="1.6"/></g></svg>
         <span>Hasard</span>
       </button>
     </div>
     <div class="strips">
-      <div class="reel strip strip--pink" data-reel="0" tabindex="0" role="spinbutton" aria-label="Action"><div class="reel-strip"></div><span class="reel-shade" aria-hidden="true"></span><span class="stamp" aria-hidden="true">changé</span></div>
-      <div class="reel strip strip--blue" data-reel="1" tabindex="0" role="spinbutton" aria-label="Endroit"><div class="reel-strip"></div><span class="reel-shade" aria-hidden="true"></span><span class="stamp" aria-hidden="true">changé</span></div>
-      <div class="reel strip strip--pink2" data-reel="2" tabindex="0" role="spinbutton" aria-label="Manière"><div class="reel-strip"></div><span class="reel-shade" aria-hidden="true"></span><span class="stamp" aria-hidden="true">changé</span></div>
+      <div class="reel strip strip--pink" data-reel="0" tabindex="0" role="spinbutton" aria-label="Action"><div class="reel-strip"></div><span class="reel-shade" aria-hidden="true"></span><button class="stamp" type="button" tabindex="-1" aria-label="Annuler ce changement"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 12a7.5 7.5 0 1 0 2.4-5.5" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/><path d="M4 3.8v4.6h4.6" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="stamp-txt">annuler</span></button></div>
+      <div class="reel strip strip--blue" data-reel="1" tabindex="0" role="spinbutton" aria-label="Endroit"><div class="reel-strip"></div><span class="reel-shade" aria-hidden="true"></span><button class="stamp" type="button" tabindex="-1" aria-label="Annuler ce changement"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 12a7.5 7.5 0 1 0 2.4-5.5" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/><path d="M4 3.8v4.6h4.6" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="stamp-txt">annuler</span></button></div>
+      <div class="reel strip strip--pink2" data-reel="2" tabindex="0" role="spinbutton" aria-label="Manière"><div class="reel-strip"></div><span class="reel-shade" aria-hidden="true"></span><button class="stamp" type="button" tabindex="-1" aria-label="Annuler ce changement"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 12a7.5 7.5 0 1 0 2.4-5.5" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/><path d="M4 3.8v4.6h4.6" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="stamp-txt">annuler</span></button></div>
     </div>
   </section>
 
@@ -325,8 +326,8 @@
   </div>
 </div>
 <!--/APP-->
-<script src="data.js?v=23"></script>
-<script src="duo.js?v=23"></script>
-<script src="app.js?v=23"></script>
+<script src="data.js?v=24"></script>
+<script src="duo.js?v=24"></script>
+<script src="app.js?v=24"></script>
 </body>
 </html>

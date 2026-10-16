@@ -162,6 +162,15 @@ button { font: inherit; color: inherit; }
   transition: transform .35s cubic-bezier(.3, 1.8, .5, 1);
 }
 .reel.is-changed .stamp { transform: rotate(8deg) scale(1); }
+/* Le badge est aussi le bouton « annuler » pendant l’ajustement */
+button.stamp { display: inline-flex; align-items: center; justify-content: center; gap: 4px; margin: 0; font: inherit; cursor: default; -webkit-appearance: none; appearance: none; }
+.stamp svg { width: 1.05em; height: 1.05em; flex: none; }
+body[data-phase="adjust"] .is-changed > .stamp { pointer-events: auto; cursor: pointer; }
+body[data-phase="adjust"] .is-changed > .stamp:active { filter: brightness(1.15); }
+.stamp:focus-visible { outline: 2px dashed currentColor; outline-offset: 2px; }
+/* Pour « que tu me / de te » : le bouton prend la place du dé, absent pendant l’ajustement */
+.press-row > .stamp--dir { position: relative; inset: auto; flex: none; display: none; }
+.press-row.is-changed > .stamp--dir { display: inline-flex; transform: rotate(8deg) scale(1); }
 .reel.is-nope { animation: nope .32s ease; }
 @keyframes nope {
   20% { translate: -7px 0; }

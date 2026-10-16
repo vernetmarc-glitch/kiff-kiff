@@ -535,3 +535,6 @@ body:has(#ov-note:not([hidden])) .deco-candles,
 body:has(#ov-duo:not([hidden])) .deco-candles,
 body:has(#ov-piment:not([hidden])) .deco-candles { display: none; }
 :root { --orig-hl: rgba(246, 221, 160, .38); --orig-line: var(--gold-hi); --mark-bg: rgba(233, 166, 176, .55); }
+.stamp .stamp-txt { display: none; }
+.stamp svg { width: 26px; height: 26px; }
+.press-row.is-changed > .stamp--dir { transform: rotate(-12deg) scale(1); }

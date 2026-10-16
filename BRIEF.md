@@ -26,7 +26,7 @@ Chaque écran glisse vers le suivant dès la réponse ; trois points en haut mon
    - **« J’ai envie aussi »** → célébration ;
    - **« Oui, mais… »** → une petite fenêtre explique qu’on ne peut changer qu’une seule chose, puis B arrive sur l’écran de modification ;
    - **« On passe »**.
-3. **B modifie une seule chose** : une roue, ou le sens « que tu me / de te ». Les choix de A restent surlignés dans les roues pour les retrouver. Dès qu’une chose change, le reste se verrouille ; « Revenir à l’envie de A » remet tout comme A l’avait proposé (et permet de changer autre chose). En bas : **« Modification faite »** (ou « J’ai envie aussi » si rien n’a changé) et **« On passe »**.
+3. **B modifie une seule chose** : une roue, ou le sens « que tu me / de te ». Les choix de A restent surlignés dans les roues pour les retrouver. Dès qu’une chose change, le reste se verrouille, et un petit bouton ↺ « annuler » apparaît à la place du badge « changé », sur la roue changée (ou à côté de « que tu me / de te ») : il remet tout comme A l’avait proposé et permet de changer autre chose. Le même retour existe en lien dans la consigne. En bas : **« Modification faite »** (ou « J’ai envie aussi » si rien n’a changé) et **« On passe »**.
 4. **A relit l’envie ajustée** dans une modale (« B a ajusté ton envie », la partie changée surlignée) : **« J’ai envie »** → célébration, ou **« On passe »**.
 5. **Célébration** animée (confettis, phrase finale), puis les rôles s’inversent : B propose, A répond.
 
