@@ -823,7 +823,7 @@
     confetti();
     save('names', S.names);
   }
-  /* « Je veux dealer du Kiff !! » : partager le jeu, ou offrir un café */
+  /* « Vous avez kiffé ? Faites tourner ! » : partager le jeu, ou offrir un café */
   const APP_URL = 'https://vernetmarc-glitch.github.io/roue-du-consentement/';
   const DEAL_TEXT = 'Tiens, je crois que ça te fera pas de mal : Kiff Kiff, un petit jeu à deux pour pimenter un peu les choses.';
   const ovDeal = $('#ov-deal');
