@@ -17,10 +17,10 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,62..125,100..900;1,62..125,100..900&family=Bagel+Fat+One&family=Abril+Fatface&family=Merriweather:ital,opsz,wght@0,18..144,400..900;1,18..144,400..900&family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..900;1,6..96,400..900&family=Jost:wght@300..700&family=Great+Vibes&family=Cinzel:wght@400..900&display=swap">
-<link rel="stylesheet" href="base.css?v=25">
-<link rel="stylesheet" href="skins/arty.css?v=25" data-skin-sheet="arty">
-<link rel="stylesheet" href="skins/pomme.css?v=25" data-skin-sheet="pomme">
-<link rel="stylesheet" href="skins/redcorner.css?v=25" data-skin-sheet="redcorner">
+<link rel="stylesheet" href="base.css?v=26">
+<link rel="stylesheet" href="skins/arty.css?v=26" data-skin-sheet="arty">
+<link rel="stylesheet" href="skins/pomme.css?v=26" data-skin-sheet="pomme">
+<link rel="stylesheet" href="skins/redcorner.css?v=26" data-skin-sheet="redcorner">
 <script>
 /* Ambiance : celle du lien (?design=redcorner ou #redcorner), sinon celle mémorisée.
    Appliquée avant l’affichage pour éviter un flash. */
@@ -163,9 +163,11 @@
 
       <section class="step" data-step="2" aria-labelledby="pick-title">
         <div class="sheet step-sheet">
-          <h2 class="step-title" id="pick-title">Jusqu’où ça&nbsp;pique&nbsp;?</h2>
-          <div class="choices" id="piment-choices" role="group" aria-labelledby="pick-title"></div>
-          <button class="link-btn choices-custom" id="piment-home" type="button" aria-haspopup="dialog">Choisir niveau par niveau</button>
+          <h2 class="step-title" id="pick-title">Quels piments&nbsp;?</h2>
+          <p class="step-text">Touche les niveaux que vous voulez dans les roues.</p>
+          <div class="piment-list" id="piment-home-list" role="group" aria-labelledby="pick-title"></div>
+          <p class="piment-error" id="piment-home-error" hidden role="alert">Garde au moins un niveau coché.</p>
+          <button class="btn" id="piment-go" type="button">C’est parti</button>
           <button class="link-btn step-back" type="button">Retour</button>
         </div>
       </section>
@@ -326,8 +328,8 @@
   </div>
 </div>
 <!--/APP-->
-<script src="data.js?v=25"></script>
-<script src="duo.js?v=25"></script>
-<script src="app.js?v=25"></script>
+<script src="data.js?v=26"></script>
+<script src="duo.js?v=26"></script>
+<script src="app.js?v=26"></script>
 </body>
 </html>

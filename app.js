@@ -938,12 +938,7 @@
       b.innerHTML = '<span class="pgroups">' + levelGroups() + '</span>';
       b.setAttribute('aria-label', 'Piment : ' + levelNames() + '. Changer');
     }
-    // Accueil : le choix qui correspond aux niveaux cochés est mis en avant
-    const key = S.levels.join('');
-    document.querySelectorAll('#piment-choices .piment-choice').forEach((c) => {
-      c.setAttribute('aria-pressed', c.dataset.levels === key ? 'true' : 'false');
-    });
-    document.querySelectorAll('#ov-piment input[type="checkbox"]').forEach((c) => { c.checked = S.levels.includes(+c.value); });
+    document.querySelectorAll('.piment-list input[type="checkbox"]').forEach((c) => { c.checked = S.levels.includes(+c.value); });
     document.documentElement.dataset.piment = S.levels.join('');
   }
 
@@ -1424,28 +1419,32 @@
     applySkin(currentSkin());
     /* Piment : niveaux à cocher, depuis l’accueil ou le jeu */
     const ovPiment = $('#ov-piment');
-    const list = $('#piment-list');
-    list.innerHTML = D.niveaux.map((lv) =>
-      '<label class="piment-toggle"><input type="checkbox" value="' + lv.n + '">' +
-      '<span class="piment-toggle-body"><span class="pgroup pgroup--' + lv.n + ' is-on">' + CHILI.repeat(lv.n) + '</span>' +
-      '<span class="piment-toggle-text"><span class="piment-name">' + lv.nom + '</span><span class="piment-tdesc">' + lv.desc + '</span></span>' +
-      '<span class="piment-check" aria-hidden="true"></span></span></label>'
-    ).join('');
-    list.querySelectorAll('input').forEach((c) => c.addEventListener('change', () => {
-      audio();
-      const next = [...list.querySelectorAll('input:checked')].map((x) => +x.value);
-      if (!next.length) {
-        c.checked = true;
-        sNope(); haptic(20);
-        const err = $('#piment-error');
-        err.hidden = false;
-        clearTimeout(err._t);
-        err._t = setTimeout(() => { err.hidden = true; }, 2400);
-        return;
-      }
-      sClick(); haptic(8);
-      setLevels(next, { silent: S.phase === 'start' });
-    }));
+    // Les mêmes trois niveaux à cocher : sur l’écran d’accueil et dans la fenêtre du jeu
+    const pimentList = (list, err) => {
+      list.innerHTML = D.niveaux.map((lv) =>
+        '<label class="piment-toggle"><input type="checkbox" value="' + lv.n + '">' +
+        '<span class="piment-toggle-body"><span class="pgroup pgroup--' + lv.n + ' is-on">' + CHILI.repeat(lv.n) + '</span>' +
+        '<span class="piment-toggle-text"><span class="piment-name">' + lv.nom + '</span><span class="piment-tdesc">' + lv.desc + '</span></span>' +
+        '<span class="piment-check" aria-hidden="true"></span></span></label>'
+      ).join('');
+      list.querySelectorAll('input').forEach((c) => c.addEventListener('change', () => {
+        audio();
+        const next = [...list.querySelectorAll('input:checked')].map((x) => +x.value);
+        if (!next.length) {
+          c.checked = true;
+          sNope(); haptic(20);
+          err.hidden = false;
+          clearTimeout(err._t);
+          err._t = setTimeout(() => { err.hidden = true; }, 2400);
+          return;
+        }
+        sClick(); haptic(8);
+        setLevels(next, { silent: S.phase === 'start' || !el.ovStart.hidden });
+      }));
+    };
+    pimentList($('#piment-list'), $('#piment-error'));
+    pimentList($('#piment-home-list'), $('#piment-home-error'));
+    $('#piment-go').addEventListener('click', () => { audio(); sSwitchOn(); haptic(12); launchGame(); });
     renderLevel();
     let pimentFrom = null;
     const openPiment = (from) => {
@@ -1465,11 +1464,8 @@
       }
       openPiment($('#piment-open'));
     });
-    $('#piment-home').addEventListener('click', () => { audio(); openPiment($('#piment-home')); });
     const closePiment = () => {
       hide(ovPiment);
-      // Choisi depuis le dernier écran de l’accueil : la partie commence
-      if (pimentFrom === $('#piment-home') && !el.ovStart.hidden && step === 2) { launchGame(); return; }
       if (S.mustRestart) { $('#resume').hidden = true; $('#start-go').textContent = 'Nouvelle partie'; }
       if (pimentFrom) pimentFrom.focus({ preventScroll: true });
     };
@@ -1514,19 +1510,6 @@
     });
     $('#rules-ok').addEventListener('click', () => { audio(); sClick(); haptic(8); goStep(2); });
     document.querySelectorAll('.step-back').forEach((b) => b.addEventListener('click', () => { audio(); goStep(Math.max(0, step - 1)); }));
-    const choices = $('#piment-choices');
-    choices.innerHTML = PRESETS.map((p) =>
-      '<button class="piment-choice" type="button" data-levels="' + p.levels.join('') + '" aria-pressed="false">' +
-      '<span class="pgroup pgroup--' + p.levels.length + ' is-on">' + CHILI.repeat(p.levels[p.levels.length - 1]) + '</span>' +
-      '<span class="piment-toggle-text"><span class="piment-name">' + p.name + '</span><span class="piment-tdesc">' + p.desc + '</span></span>' +
-      '</button>'
-    ).join('');
-    choices.querySelectorAll('.piment-choice').forEach((c) => c.addEventListener('click', () => {
-      audio();
-      setLevels(c.dataset.levels.split('').map(Number), { silent: true });
-      sSwitchOn(); haptic(12);
-      launchGame();
-    }));
     renderLevel();
     // Reprendre la partie : garde le tour en cours, applique les prénoms éventuellement changés
     $('#resume').addEventListener('click', () => {
@@ -1547,11 +1530,6 @@
   }
 
   /* ---------- Accueil : écrans successifs ---------- */
-  const PRESETS = [
-    { levels: [1], name: 'Tendre', desc: 'Câlins, chatouilles et bêtises.' },
-    { levels: [1, 2], name: 'Pimenté', desc: 'Tendre, et ça commence à chauffer.' },
-    { levels: [1, 2, 3], name: 'Brûlant', desc: 'Tout, jusqu’au plus cochon.' }
-  ];
   let step = 0;
   function goStep(n, instant) {
     const box = $('#steps');

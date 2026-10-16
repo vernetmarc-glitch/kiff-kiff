@@ -492,11 +492,13 @@ body[data-phase="adjust"] .act-main:not(.is-done) { opacity: .92; }
 .piment-choice .pgroup .chili { width: 17px; height: 17px; }
 .piment-choice .piment-name { font-size: 18px; font-weight: 800; line-height: 1.15; }
 .piment-choice:focus-visible { outline: 2px dashed currentColor; outline-offset: 3px; }
-.choices-custom { align-self: center; font-size: 14.5px; }
+.step-text { align-self: stretch; text-align: center; font-size: 15.5px; margin-top: -4px !important; }
+.step-sheet > .piment-list { align-self: stretch; gap: 12px; }
+.step-sheet .piment-toggle-body { padding: 14px 14px; }
 
 /* ---------- Deux téléphones ---------- */
 .duo-status { margin: -6px 0 0; font-size: 13.5px; font-style: italic; opacity: .9; }
-.start-form.is-duo > label, .start-form.is-duo > input, .start-form.is-duo #piment-home,
+.start-form.is-duo > label, .start-form.is-duo > input,
 .start-form.is-duo #start-go, .start-form.is-duo #resume, .start-form.is-duo .name1-row { display: none; }
 .name1-row { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-top: 8px; }
 .name1-row label { margin: 0; }

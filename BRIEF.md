@@ -6,9 +6,9 @@ Jeu à deux sur un seul téléphone ou sur deux téléphones, en portrait. Une p
 
 1. **Les prénoms** : « Qui propose en premier ? » et « Et l’autre ? » (ou « Sur son téléphone ? » pour jouer à deux téléphones), puis « Suivant ». En bas : ambiance, son, installer l’appli.
 2. **Le principe**, en trois lignes numérotées, avec les vrais prénoms, puis « Compris ».
-3. **Jusqu’où ça pique ?** : Tendre, Pimenté (Tendre + Pimenté) ou Brûlant (tout). Toucher un choix lance la partie. Lien « Choisir niveau par niveau » pour cocher les niveaux à la main (par exemple Brûlant seul).
+3. **Quels piments ?** : les trois niveaux (Tendre, Pimenté, Brûlant) se cochent directement sur l’écran, indépendamment (au moins un, par exemple Brûlant seul), puis « C’est parti » lance la partie.
 
-Chaque écran glisse vers le suivant dès la réponse ; trois points en haut montrent où on en est ; « Retour » revient d’un écran. Le bouton maison du jeu ramène au premier écran, avec « Reprendre la partie en cours ».
+Chaque écran glisse vers le suivant dès la réponse (le dernier dès « C’est parti ») ; trois points en haut montrent où on en est ; « Retour » revient d’un écran. Le bouton maison du jeu ramène au premier écran, avec « Reprendre la partie en cours ».
 
 ## La phrase
 
