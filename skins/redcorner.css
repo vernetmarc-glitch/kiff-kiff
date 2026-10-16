@@ -24,7 +24,8 @@
 
   --foil: linear-gradient(100deg, #8C6424 0%, #F6DDA0 22%, #C9963F 40%, #FFF0C4 52%, #B8873A 68%, #F2D38C 84%, #8C6424 100%);
 
-  --f-display: "Bodoni Moda", "Didot", "Bodoni 72", Georgia, serif;
+  /* Romain du roi : Baskervville (ANRT), cousine libre du caractère de Louis XIV, pour les roues et la phrase */
+  --f-display: "Baskervville", "Baskerville", "Baskerville Old Face", Georgia, serif;
   --f-title: "Cinzel", "Trajan Pro", "Optima", Georgia, serif;
   --f-script: "Great Vibes", "Snell Roundhand", "Apple Chancery", cursive;
   --f-ui: "Jost", "Futura", "Century Gothic", "Trebuchet MS", sans-serif;
@@ -236,10 +237,9 @@ body:has(#ov-skins:not([hidden])) .deco-candles { display: none; }
   min-height: 0;
   padding: 0 4px 2px;
   font-family: var(--f-display);
-  font-style: italic;
   font-weight: 700;
-  font-size: 22px;
-  letter-spacing: -.01em;
+  font-size: 21px;
+  letter-spacing: 0;
   color: var(--cream);
   opacity: .72;
   transition: color .35s, opacity .35s;
@@ -286,9 +286,8 @@ body:has(#ov-skins:not([hidden])) .deco-candles { display: none; }
 }
 .reel-item {
   font-family: var(--f-display);
-  font-style: italic;
   font-weight: 500;
-  font-size: 21px;
+  font-size: 20px;
   color: var(--cream);
 }
 .reel-item.is-center { font-weight: 700; color: var(--gold-hi); text-shadow: 0 0 12px rgba(255, 190, 110, .35); }
@@ -356,7 +355,7 @@ body:has(#ov-skins:not([hidden])) .deco-candles { display: none; }
   border-radius: 0;
   background: transparent;
   color: var(--cream);
-  font: italic 600 23px var(--f-display);
+  font: 500 22px var(--f-display);
 }
 .start-form input::placeholder, .sheet--edit input::placeholder { color: var(--blush); opacity: .55; }
 .start-form input:focus, .sheet--edit input:focus { border-bottom-color: var(--gold-hi); box-shadow: 0 1px 0 var(--gold-hi); }
@@ -397,7 +396,6 @@ body:has(#ov-skins:not([hidden])) .deco-candles { display: none; }
   background: linear-gradient(#FBF1E1, var(--cream));
   color: var(--wine);
   font-family: var(--f-display);
-  font-style: italic;
   font-weight: 600;
   font-size: clamp(19px, 5.6vw, 24px);
   line-height: 1.3;
@@ -437,7 +435,7 @@ body:has(#ov-skins:not([hidden])) .deco-candles { display: none; }
 }
 
 /* Piment */
-.piment-name { font-family: var(--f-display); font-style: italic; font-weight: 700; font-size: 15px; }
+.piment-name { font-family: var(--f-display); font-weight: 700; font-size: 15.5px; }
 .piment-tdesc { font-weight: 300; }
 .piment-row { border-radius: 999px; padding: 6px 18px; }
 .piment-row-cta { font-weight: 400; color: var(--gold-hi); text-decoration-color: var(--gold); }
