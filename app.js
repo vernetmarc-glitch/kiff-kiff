@@ -1997,6 +1997,7 @@
     $('#name1').value = S.names[1] || '';
     $('#steps').classList.remove('is-duo');
     $('#duo-home').hidden = true;
+    $('#welcome-go').classList.remove('btn--line');
     renderDuoStatus();
     renderGames();
   }
