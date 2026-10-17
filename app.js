@@ -1088,7 +1088,7 @@
       room: duo.info.room, key: duo.info.key, broker: duo.info.broker, seat: duo.seat, id: duo.id,
       names: (st.names || ['', '']).slice(0, 2), turn: turnFor(st, duo.seat), t: Date.now()
     });
-    save('parties', list.slice(0, 12));
+    save('parties', list.slice(0, 40));
   }
   const forgetGame = (room) => save('parties', games().filter((g) => g.room !== room));
   function myTurn() {
@@ -1158,7 +1158,7 @@
     duo.lastBy = st.by;
     clearTimeout(duo.findT);
     if (st.phase === 'ended') {
-      if (duo.stage === 'game') note('Fin de la partie à deux', nameOf(st.endBy === 0 ? 0 : 1) + ' a quitté la partie.', () => leaveDuo(false));
+      if (duo.stage === 'game') note('Fin de la partie à deux', nameOf(st.endBy === 0 ? 0 : 1) + ' a arrêté la partie.', () => leaveDuo(false));
       else duoError('ended');
       return;
     }
@@ -1295,7 +1295,7 @@
     $('#wait-nudge').textContent = 'Prévenir ' + B;
     $('#wait-later').hidden = !away;
     const ht = $('#duo-home-text');
-    if (ht) ht.textContent = 'Partie à deux avec ' + B + (msg ? '. ' + msg : ', connecté·e.');
+    if (ht) ht.textContent = 'En cours : partie à deux avec ' + B + (msg ? '. ' + msg : ', connecté·e.');
   }
 
   const duoHandlers = {
@@ -1737,7 +1737,8 @@
       document.activeElement && document.activeElement.blur();
     };
     /* Accueil en quatre écrans : accueil → joueurs → principe → piment → la partie commence */
-    $('#welcome-go').addEventListener('click', () => { audio(); sClick(); haptic(8); goStep(1); });
+    // Une nouvelle partie ne touche pas aux autres : celle qui était ouverte attend dans la liste
+    $('#welcome-go').addEventListener('click', () => { audio(); sClick(); haptic(8); if (duo) parkDuo(); goStep(1); });
     // L’autre joue sur ce téléphone (on écrit son prénom) ou sur le sien (on l’invitera)
     const setWhere = (w) => {
       where = w;
@@ -1781,8 +1782,19 @@
     // Retour à l’accueil depuis le jeu
     el.home.addEventListener('click', () => { audio(); openHome(); });
     // Deux téléphones
-    $('#duo-resume').addEventListener('click', () => { audio(); hide(el.ovStart); renderWait(); });
-    $('#duo-quit').addEventListener('click', () => { audio(); leaveDuo(true); });
+    $('#duo-resume').addEventListener('click', () => {
+      audio();
+      hide(el.ovStart);
+      const want = myTurn() && S.phase === 'review' ? 'offer' : (myTurn() && S.phase === 'reconfirm' ? 'reconfirm' : '');
+      if (want) showOffer(want);
+      renderWait();
+    });
+    $('#duo-quit').addEventListener('click', () => {
+      audio();
+      if (!quitT) { quitArmed(true); sClick(); haptic(8); return; }
+      quitArmed(false);
+      leaveDuo(true);
+    });
     goStep(0, true);
     const inv = window.KiffDuo && window.KiffDuo.parse(location.hash);
     if (inv) startJoin(inv);
@@ -1862,7 +1874,9 @@
   function renderGames() {
     const box = $('#games');
     const cur = duo && duo.stage === 'game' && duo.info ? duo.info.room : '';
-    const list = games().filter((g) => g.room !== cur).slice(0, 4);
+    const rank = { me: 0, party: 1, other: 2, lobby: 3 };
+    const list = games().filter((g) => g.room !== cur)
+      .sort((a, b) => ((rank[a.turn] ?? 2) - (rank[b.turn] ?? 2)) || ((b.t || 0) - (a.t || 0)));
     box.hidden = !list.length;
     $('#games-list').innerHTML = list.map((g) => {
       const B = ((g.names || [])[1 - g.seat] || '').trim();
@@ -1892,11 +1906,30 @@
     save('parties', next);
     if (!el.ovStart.hidden) renderGames();
   }
+  // La partie ouverte passe dans la liste : on se déconnecte sans rien annoncer
+  function parkDuo() {
+    if (!duo) return;
+    const d = duo;
+    duo = null;
+    clearTimeout(syncT);
+    if (d.conn) d.conn.close(false).catch(() => {});
+    try { history.replaceState(null, '', location.pathname + location.search); } catch (e) { /* rien */ }
+    hide($('#ov-wait')); hide($('#ov-note')); hide(el.ovParty); stopConfetti();
+    hideOffer();
+    S.started = false;
+    S.phase = 'start';
+    S.names = load('names', ['', '']);
+    $('#name0').value = S.names[0] || '';
+    $('#name1').value = S.names[1] || '';
+    $('#steps').classList.remove('is-duo');
+    $('#duo-home').hidden = true;
+    renderDuoStatus();
+    renderGames();
+  }
   function openGame(room) {
     const g = findGame(room);
     if (!g) return;
-    if (duo) { const d = duo; duo = null; clearTimeout(syncT); if (d.conn) d.conn.close(false).catch(() => {}); }
-    hide($('#ov-wait'));
+    parkDuo();
     startJoin({ broker: g.broker, room: g.room, key: g.key });
   }
   $('#games-list').addEventListener('click', (e) => {
@@ -1908,15 +1941,31 @@
     openGame(b.dataset.room);
   });
 
+  // « Arrêter cette partie » prévient l’autre et l’efface : un second toucher confirme
+  let quitT = 0;
+  function quitArmed(on) {
+    clearTimeout(quitT);
+    quitT = 0;
+    const b = $('#duo-quit');
+    if (!b) return;
+    const B = duo && duo.stage === 'game' ? nameOf(other(duo.seat)) : 'l’autre';
+    b.textContent = on ? 'Touche encore : ' + B + ' sera prévenu·e' : 'Arrêter cette partie';
+    b.classList.toggle('is-armed', on);
+    if (on) quitT = setTimeout(() => quitArmed(false), 4000);
+  }
+
   function openHome() {
     const inDuo = !!duo && duo.stage === 'game';
     $('#steps').classList.toggle('is-duo', inDuo);
     $('#duo-home').hidden = !inDuo;
-    $('#welcome-go').hidden = inDuo;
-    $('#name0').value = S.names[0] || '';
-    $('#name1').value = S.names[1] || '';
+    const own = inDuo ? load('names', ['', '']) : S.names; // pendant une partie à deux, S.names est celle de la partie
+    $('#name0').value = own[0] || '';
+    $('#name1').value = own[1] || '';
     $('#resume').hidden = inDuo || !S.started || !!S.mustRestart;
     $('#welcome-go').textContent = S.started ? 'Nouvelle partie' : 'Commencer';
+    $('#welcome-go').classList.toggle('btn--line', inDuo);
+    quitArmed(false);
+    if (inDuo && offerKind) hideOffer(); // elle reviendra avec « Reprendre la partie »
     goStep(0, true);
     show(el.ovStart);
     el.ovStart.scrollTop = 0;
