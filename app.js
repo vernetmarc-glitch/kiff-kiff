@@ -901,13 +901,18 @@
   const APP_URL = 'https://vernetmarc-glitch.github.io/roue-du-consentement/';
   const DEAL_TEXT = 'Tiens, je crois que ça te fera pas de mal : Kiff Kiff, un petit jeu à deux pour pimenter un peu les choses.';
   const ovDeal = $('#ov-deal');
-  $('#party-deal').addEventListener('click', () => {
+  // Depuis la célébration, ou depuis le lien discret de l’accueil
+  let dealFrom = null;
+  const openDeal = (e) => {
     audio(); sClick(); haptic(8);
+    dealFrom = e.currentTarget;
     $('#deal-done').hidden = true;
     show(ovDeal);
     $('#deal-share').focus({ preventScroll: true });
-  });
-  const closeDeal = () => { hide(ovDeal); $('#party-deal').focus({ preventScroll: true }); };
+  };
+  $('#party-deal').addEventListener('click', openDeal);
+  $('#home-deal').addEventListener('click', openDeal);
+  const closeDeal = () => { hide(ovDeal); if (dealFrom) dealFrom.focus({ preventScroll: true }); };
   $('#deal-close').addEventListener('click', () => { audio(); closeDeal(); });
   ovDeal.addEventListener('click', (e) => { if (e.target === ovDeal) closeDeal(); });
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !ovDeal.hidden) closeDeal(); });
