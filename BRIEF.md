@@ -94,6 +94,15 @@ La façade d’une machine à sous en tôle lithographiée : rayons rouge et cr�
 ### Red Corner — le Red Corner du Nostra
 Boudoir du Nostra : logo « Kiff Kiff au Nostra », enseigne « Red Corner » au néon rouge sur l’accueil, reflets de boule à facettes sur le velours, célébration signée « au Red Corner du Nostra ». Velours bordeaux plissé, cadre doré à moulures, « que tu me / de te » sur une grande plaque de velours avec un curseur en feuille d’or qui glisse, médaillon doré pour le hasard, bougies qui vacillent (et s’embrasent quand on active un switch), écrin capitonné, rouleaux en cadres dorés avec tambours de velours satiné et filets d’or, sceau de cire « changé », feuille d’or sur les titres. Célébration : lumière dorée, pétales et étincelles, phrase sur une carte de visite. Typo : Cinzel pour le logo et les titres (lisible, capitales romaines), Baskervville droit pour les rouleaux, « que tu me / de te » et la phrase (reprise libre, par l’ANRT, de la famille du Romain du Roi de Louis XIV, plus lisible que le Bodoni italique d’avant ; le vrai Romain du Roi numérique existe chez Newglyph, payant), Great Vibes pour « J’ai envie », Jost pour le reste.
 
+## Jouer à distance, chacun·e à son rythme
+
+- Sur deux téléphones, pas besoin d’être connectés en même temps. Le relais public sert quand les deux sont là ; chaque coup est aussi rangé, chiffré par les téléphones, dans l’onglet « parties » de la feuille de l’atelier (illisible dans la feuille). Une partie sans nouvelle depuis 120 jours est effacée.
+- **Vos parties à deux** : l’accueil liste les parties du téléphone (« Avec Lou · À toi de jouer », « Au tour de Lou », « Kiff kiff trouvé », « Personne n’a encore rejoint »), mises à jour depuis la feuille. Un toucher reprend la partie là où elle en est, même ouverte depuis l’icône ; × la retire de la liste.
+- Invitation : « Plus tard » ferme la fenêtre sans annuler (la partie attend sur l’accueil) ; « Annuler la partie » l’arrête pour de bon.
+- Écran d’attente : quand l’autre n’est pas connecté·e, bouton « Prévenir Lou » (partage du téléphone : « À toi de jouer sur Kiff Kiff ! » + le lien) et « Tu peux fermer l’appli : la partie vous attend ».
+- Chaque case voyage avec son texte : si les mots de l’atelier changent entre deux coups, la partie garde les siens.
+- Côté Google : après une mise à jour du script, le recoller et faire Déployer › Gérer les déploiements › Nouvelle version (même adresse). Les étapes sont dans Réglages de l’atelier.
+
 ## Appli sur l’écran d’accueil
 
 Kiff Kiff s’installe comme une appli (web app) : icône sur l’écran d’accueil, ouverture en plein écran sans barre de navigateur, et jeu sur un téléphone possible hors ligne une fois la page ouverte une première fois.
@@ -126,7 +135,7 @@ Page de travail : https://vernetmarc-glitch.github.io/roue-du-consentement/ateli
 - `config.js` : adresse du script Google de l’atelier.
 - `atelier/` : la page de l’atelier et le script Google à copier.
 - `app.js` : rouleaux, déroulé du tour, grammaire, sons, confettis, ambiances, mode deux téléphones.
-- `duo.js` : liaison chiffrée entre deux téléphones (relais public).
+- `duo.js` : liaison chiffrée entre deux téléphones (relais public) et mémoire des parties dans la feuille de l’atelier.
 - `vendor/` : mqtt.js et qrcode-generator, pour le mode deux téléphones.
 - `manifest.webmanifest`, `sw.js`, `icons/` : l’appli sur l’écran d’accueil.
 

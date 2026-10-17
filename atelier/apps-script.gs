@@ -9,8 +9,9 @@
  *        Exécuter en tant que : moi · Qui a accès : Tout le monde > Déployer > Autoriser l’accès.
  *   5. Copier l’adresse de l’application Web (elle finit par /exec).
  *
- * Les onglets « mots », « compteurs » et « choix » se créent tout seuls.
- * Rien de personnel n’est reçu : ni prénom, ni texte écrit à la main, seulement des comptes.
+ * Les onglets « mots », « compteurs », « choix » et « parties » se créent tout seuls.
+ * Les comptes ne contiennent rien de personnel. L’onglet « parties » garde la dernière étape
+ * des parties à deux téléphones, chiffrée par les téléphones : illisible ici, même pour toi.
  */
 const MOT_DE_PASSE = 'change-moi';
 
@@ -19,11 +20,14 @@ const TYPES = ['partie', 'envie', 'kiff', 'passe'];
 const ENT_MOTS = ['roue', 'niveau', 'que tu me', 'de te', 'avec à', 'ordre'];
 const ENT_COMPTEURS = ['compteur', 'valeur'];
 const ENT_CHOIX = ['roue', 'mot', 'envies', 'kiffs'];
+const ENT_PARTIES = ['partie', 'etat', 'seq', 'maj'];
+const GARDER_JOURS = 120; // une partie sans nouvelle depuis si longtemps est effacée
 
 function doGet(e) {
   const action = (e && e.parameter && e.parameter.action) || '';
   if (action === 'mots') return sortie(lireMots());
   if (action === 'stats') return sortie(lireStats());
+  if (action === 'partie') return sortie(lireParties(e.parameter.p));
   return sortie({ ok: true, appli: 'kiffkiff' });
 }
 
@@ -31,6 +35,7 @@ function doPost(e) {
   let corps = {};
   try { corps = JSON.parse((e && e.postData && e.postData.contents) || '{}'); } catch (err) { return sortie({ ok: false, erreur: 'json' }); }
   if (corps.action === 'event') return sortie(noterEvenement(corps));
+  if (corps.action === 'partie') return sortie(ecrirePartie(corps));
   if (corps.action === 'check') return sortie({ ok: String(corps.motDePasse || '') === MOT_DE_PASSE });
   if (corps.action === 'save') {
     if (String(corps.motDePasse || '') !== MOT_DE_PASSE) return sortie({ ok: false, erreur: 'mot de passe' });
@@ -61,7 +66,7 @@ function classeurDonnees() {
    et créer la feuille. Son adresse s’affiche dans le journal d’exécution. */
 function preparer() {
   const c = classeurDonnees();
-  feuille('mots', ENT_MOTS); feuille('compteurs', ENT_COMPTEURS); feuille('choix', ENT_CHOIX);
+  feuille('mots', ENT_MOTS); feuille('compteurs', ENT_COMPTEURS); feuille('choix', ENT_CHOIX); feuille('parties', ENT_PARTIES);
   Logger.log('Feuille de données : ' + c.getUrl());
 }
 
@@ -179,4 +184,48 @@ function lireStats() {
     .filter(function (l) { return l[0] && l[1] !== ''; })
     .map(function (l) { return { roue: l[0], mot: String(l[1]), envies: Number(l[2]) || 0, kiffs: Number(l[3]) || 0 }; });
   return { ok: true, compteurs: compteurs, choix: choix };
+}
+
+/* ---------- Les parties à deux téléphones (états chiffrés) ---------- */
+const ID_PARTIE = /^[a-z2-9]{12}$/;
+
+function lireParties(liste) {
+  const ids = String(liste || '').split(',').filter(function (x) { return ID_PARTIE.test(x); }).slice(0, 30);
+  const res = {};
+  if (!ids.length) return { ok: true, parties: res };
+  const v = feuille('parties', ENT_PARTIES).getDataRange().getValues();
+  for (let j = 1; j < v.length; j++) {
+    if (ids.indexOf(String(v[j][0])) >= 0) res[v[j][0]] = { etat: String(v[j][1]).replace(/^k/, ''), seq: Number(v[j][2]) || 0 };
+  }
+  return { ok: true, parties: res };
+}
+
+function ecrirePartie(c) {
+  const id = String(c.partie || '');
+  const etat = String(c.etat || '');
+  const seq = Number(c.seq) || 0;
+  if (!ID_PARTIE.test(id) || !etat || etat.length > 45000 || !/^[A-Za-z0-9_-]+$/.test(etat)) return { ok: false, erreur: 'partie' };
+  const verrou = LockService.getScriptLock();
+  verrou.waitLock(15000);
+  try {
+    const f = feuille('parties', ENT_PARTIES);
+    const v = f.getDataRange().getValues();
+    let k = -1;
+    for (let j = 1; j < v.length; j++) if (String(v[j][0]) === id) { k = j; break; }
+    // « k » devant : la feuille ne doit jamais prendre l’état pour un nombre ou une formule
+    if (k < 0) f.appendRow([id, 'k' + etat, seq, new Date()]);
+    else if (seq > (Number(v[k][2]) || 0)) f.getRange(k + 1, 2, 1, 3).setValues([['k' + etat, seq, new Date()]]);
+    else return { ok: true, ancien: true };
+    // De temps en temps, on efface les parties abandonnées depuis longtemps
+    if (Math.random() < 0.03) {
+      const limite = Date.now() - GARDER_JOURS * 864e5;
+      for (let j = v.length - 1; j >= 1; j--) {
+        const d = v[j][3] instanceof Date ? v[j][3].getTime() : 0;
+        if (d && d < limite && j !== k) f.deleteRow(j + 1);
+      }
+    }
+    return { ok: true };
+  } finally {
+    verrou.releaseLock();
+  }
 }

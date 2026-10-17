@@ -619,3 +619,21 @@ body:has(#ov-deal:not([hidden])) .deco-candles { display: none; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
 }
+
+/* Accueil : les parties à deux en cours (jouées chacun·e à son rythme) */
+.games { align-self: stretch; margin-top: 14px; }
+.games-title { margin: 0 0 6px; font-size: 13px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; opacity: .75; text-align: center; }
+.games-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.game { display: flex; align-items: stretch; border-radius: 14px; box-shadow: inset 0 0 0 1.5px color-mix(in srgb, currentColor 32%, transparent); background: color-mix(in srgb, currentColor 6%, transparent); }
+.game.is-mine { box-shadow: inset 0 0 0 2.5px currentColor; background: color-mix(in srgb, currentColor 11%, transparent); }
+.game-btn { flex: 1; min-width: 0; min-height: 52px; display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 1px; padding: 8px 4px 8px 14px; border: 0; background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+.game-who { font-weight: 700; font-size: 16px; line-height: 1.2; }
+.game-turn { font-size: 14px; opacity: .8; }
+.game.is-mine .game-turn { opacity: 1; font-weight: 700; }
+.game.is-mine .game-turn::before { content: ""; display: inline-block; width: 8px; height: 8px; margin-right: 6px; border-radius: 50%; background: currentColor; vertical-align: 1px; }
+.game-x { flex: none; width: 44px; border: 0; background: none; color: inherit; font-size: 22px; line-height: 1; opacity: .5; cursor: pointer; }
+.game-x:hover { opacity: .9; }
+
+/* Attente : prévenir l’autre, fermer l’appli sans rien perdre */
+.wait-nudge { margin-top: 6px; }
+.wait-later { margin: 0; font-size: 14px; line-height: 1.4; opacity: .85; }

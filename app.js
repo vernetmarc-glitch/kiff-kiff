@@ -1036,15 +1036,61 @@
     return h.toString(36);
   }
   let DATA_V = dataVersion();
-  // Une case se désigne par sa place dans la liste complète (stable quel que soit le piment)
-  const keyOf = (r, i) => (LISTS[r][i] && LISTS[r][i].free ? 'f' : SOURCE[r].indexOf(LISTS[r][i]));
+  // Une case voyage avec son contenu (et non sa place) : les mots de l’atelier peuvent changer
+  // entre deux coups d’une partie jouée à distance, la partie garde les siens.
+  const FIELDS = ['s', 'i', 't', 'p'];
+  const sameItem = (a, b) => FIELDS.every((f) => (a[f] || '') === (b[f] || ''));
+  function keyOf(r, i) {
+    const x = LISTS[r][i];
+    if (!x || x.free) return 'f';
+    const o = {};
+    FIELDS.concat('lvl').forEach((f) => { if (x[f] != null) o[f] = x[f]; });
+    return o;
+  }
   function idxOf(r, k) {
     if (k === 'f') return LISTS[r].length - 1;
-    const i = LISTS[r].indexOf(SOURCE[r][k]);
-    return i < 0 ? 0 : i;
+    if (typeof k === 'number') { const i = LISTS[r].indexOf(SOURCE[r][k]); return i < 0 ? 0 : i; } // ancien format
+    if (!k || typeof k !== 'object') return 0;
+    let i = LISTS[r].findIndex((x) => !x.free && sameItem(x, k));
+    if (i < 0) {
+      // Mot retiré depuis (ou hors des piments choisis) : on le garde, le temps de cette partie
+      const x = {};
+      FIELDS.concat('lvl').forEach((f) => { if (k[f] != null) x[f] = String(k[f]); });
+      if (x.lvl) x.lvl = +x.lvl;
+      if (!SOURCE[r].some((y) => sameItem(y, x))) SOURCE[r].push(x);
+      LISTS[r].splice(LISTS[r].length - 1, 0, x);
+      i = LISTS[r].length - 2;
+    }
+    return i;
   }
 
   let duo = null; // { conn, info, seat, id, seq, lastBy, stage, partnerOn, online, passN }
+
+  /* Mes parties à deux : chaque téléphone se souvient des siennes, pour jouer chacun·e à son rythme.
+     { room, key, broker, seat, id, names: [a, b], turn: 'me' | 'other' | 'party' | 'lobby', t } */
+  function games() {
+    const g = load('parties', null);
+    if (Array.isArray(g)) return g;
+    const old = load('duo', null); // avant la liste : une seule partie retenue
+    return old && old.room ? [{ room: old.room, key: old.key, broker: old.broker, seat: old.seat, id: old.id, names: ['', ''], turn: 'other', t: Date.now() }] : [];
+  }
+  const findGame = (room) => games().find((g) => g.room === room) || null;
+  function turnFor(st, seat) {
+    if (st.phase === 'lobby') return 'lobby';
+    if (st.phase === 'celebrate') return 'party';
+    if (st.phase === 'compose' || st.phase === 'reconfirm') return st.proposer === seat ? 'me' : 'other';
+    return st.proposer !== seat ? 'me' : 'other';
+  }
+  function rememberGame(st) {
+    if (!duo || !duo.info || !st) return;
+    const list = games().filter((g) => g.room !== duo.info.room);
+    list.unshift({
+      room: duo.info.room, key: duo.info.key, broker: duo.info.broker, seat: duo.seat, id: duo.id,
+      names: (st.names || ['', '']).slice(0, 2), turn: turnFor(st, duo.seat), t: Date.now()
+    });
+    save('parties', list.slice(0, 12));
+  }
+  const forgetGame = (room) => save('parties', games().filter((g) => g.room !== room));
   function myTurn() {
     if (!duo) return true;
     if (S.phase === 'compose' || S.phase === 'reconfirm') return S.proposer === duo.seat;
@@ -1086,6 +1132,7 @@
     st.by = duo.id;
     duo.lastBy = duo.id;
     duo.conn.publishState(st);
+    rememberGame(st);
   }
   let syncT = 0;
   function sync() {
@@ -1113,11 +1160,6 @@
     if (st.phase === 'ended') {
       if (duo.stage === 'game') note('Fin de la partie à deux', nameOf(st.endBy === 0 ? 0 : 1) + ' a quitté la partie.', () => leaveDuo(false));
       else duoError('ended');
-      return;
-    }
-    if (st.dv !== DATA_V) {
-      if (duo.stage === 'game') note('Pas la même version', 'Vos deux téléphones n’ont pas les mêmes roues. Rechargez la page sur les deux téléphones.');
-      else duoError('version');
       return;
     }
     if (duo.stage === 'game') { applyGame(st, {}); return; }
@@ -1154,6 +1196,8 @@
     S.dir = st.dir === 'te' ? 'te' : 'me';
     S.custom = (st.custom || ['', '', '']).slice();
     S.bottom = !!st.bottom;
+    // Deux passes : un mot ajouté pour la partie ne décale pas les autres cases
+    [st.keys, st.original && st.original.keys].forEach((ks) => { if (ks) ks.forEach((k, r) => idxOf(r, k)); });
     const idx = st.keys.map((k, r) => idxOf(r, k));
     S.original = st.original ? { idx: st.original.keys.map((k, r) => idxOf(r, k)), custom: st.original.custom.slice(), dir: st.original.dir } : null;
     const arrived = !opts.first && myTurn() && (S.phase !== prev.phase || S.proposer !== prev.proposer);
@@ -1179,6 +1223,7 @@
       }
     }
     S.pass = st.pass || null;
+    rememberGame(st);
 
     if (S.phase === 'celebrate' && prev.phase !== 'celebrate') celebrate();
     if (S.phase !== 'celebrate' && !el.ovParty.hidden) { hide(el.ovParty); stopConfetti(); }
@@ -1239,12 +1284,16 @@
     const B = nameOf(other(duo.seat));
     let msg = '';
     if (duo.online === false) msg = 'Connexion perdue. Je réessaie…';
-    else if (duo.partnerOn === false) msg = B + ' n’est plus connecté·e. Tout reprendra dès son retour.';
+    else if (duo.partnerOn === false) msg = B + ' n’est pas connecté·e : la partie l’attendra.';
     line.textContent = msg;
     line.hidden = !msg;
     const wp = $('#wait-presence');
-    $('#wait-presence-text').textContent = msg || (B + ' est connecté·e.');
-    wp.classList.toggle('is-off', !!msg);
+    const away = duo.partnerOn !== true;
+    $('#wait-presence-text').textContent = duo.online === false ? msg : (away ? B + ' n’est pas là pour l’instant.' : B + ' est connecté·e.');
+    wp.classList.toggle('is-off', away || duo.online === false);
+    $('#wait-nudge').hidden = !away;
+    $('#wait-nudge').textContent = 'Prévenir ' + B;
+    $('#wait-later').hidden = !away;
     const ht = $('#duo-home-text');
     if (ht) ht.textContent = 'Partie à deux avec ' + B + (msg ? '. ' + msg : ', connecté·e.');
   }
@@ -1281,6 +1330,7 @@
     $('#duo-go').disabled = false;
     $('#duo-cancel').textContent = o.cancel || 'Annuler';
     ovDuo.dataset.stage = o.stage;
+    ovDuo.dataset.retry = '';
     if (!ovInv.hidden) hide(ovInv);
     show(ovDuo);
   }
@@ -1318,6 +1368,7 @@
     S.original = null; S.bottom = false; S.pass = null;
     S.custom = ['', '', ''];
     pushState();
+    rememberGame({ phase: 'lobby', names: [name, ''] });
     showInvite();
   }
   function showInvite() {
@@ -1328,8 +1379,8 @@
     duoSheet({
       stage: 'invite',
       title: 'Invite l’autre téléphone',
-      text: 'Fais scanner ce code par l’autre téléphone, ou envoie-lui le lien. L’autre découvre le jeu en trois écrans, et la partie commence dès qu’il ou elle la rejoint.',
-      qr: true, wait: 'En attente de l’autre téléphone…', cancel: 'Annuler la partie'
+      text: 'Fais scanner ce code par l’autre téléphone, ou envoie-lui le lien. L’autre découvre le jeu en trois écrans, puis rejoint la partie. Pas besoin d’attendre ici : la partie t’attendra sur l’accueil.',
+      qr: true, wait: duo.partnerOn ? 'L’autre téléphone est là : il découvre le jeu…' : 'En attente de l’autre téléphone…', go: 'Plus tard', cancel: 'Annuler la partie'
     });
   }
   /* La personne invitée ne connaît peut-être pas le jeu : trois écrans avant de rejoindre */
@@ -1400,24 +1451,29 @@
   }
 
   async function startJoin(info) {
-    const stored = load('duo', null);
-    const same = stored && stored.room === info.room && stored.key === info.key;
+    const stored = findGame(info.room);
+    const same = !!stored && stored.key === info.key;
     const seat = same ? stored.seat : 1;
     const id = same && stored.id ? stored.id : (KiffDuoOk() ? window.KiffDuo.newId() : 'x');
     hide(el.ovStart);
-    duoSheet({ stage: 'connecting', title: 'Kiff Kiff à deux', wait: 'Connexion à la partie…', cancel: 'Jouer sur ce téléphone seulement' });
+    try { history.replaceState(null, '', window.KiffDuo.link(info)); } catch (e) { /* rien */ }
+    duoSheet({ stage: 'connecting', title: 'Kiff Kiff à deux', wait: same ? 'Je retrouve la partie…' : 'Connexion à la partie…', cancel: same ? 'Revenir à l’accueil' : 'Jouer sur ce téléphone seulement' });
     if (!KiffDuoOk()) { duoError('support'); return; }
     // Les deux téléphones doivent avoir les mêmes mots : on attend un instant ceux de l’atelier
     await Promise.race([motsReady, new Promise((r) => setTimeout(r, 4000))]);
     applyPendingMots();
     duo = { info, seat, id, seq: 0, lastBy: '', stage: 'connecting', resume: !!same, partnerOn: null, online: true, passN: null };
+    const d = duo;
+    // La dernière étape gardée dans la feuille : pour quand l’autre a joué pendant notre absence
+    const fromStore = window.KiffDuo.storeLoad([info]);
     try { await loadDuoLibs(); } catch (e) { duoError('net'); return; }
     try {
       const conn = await window.KiffDuo.join(info, seat, id, duoHandlers);
-      if (!duo || duo.id !== id) { conn.close(false); return; }
+      if (duo !== d) { conn.close(false); return; }
       duo.conn = conn;
     } catch (e) { duoError('relay'); return; }
-    duo.findT = setTimeout(() => { if (duo && duo.stage === 'connecting') duoError('notfound'); }, 9000);
+    fromStore.then((m) => { if (duo === d && m[info.room]) onRemoteState(m[info.room]); });
+    duo.findT = setTimeout(() => { if (duo === d && duo.stage === 'connecting') duoError('notfound'); }, 12000);
   }
 
   function duoError(kind) {
@@ -1430,26 +1486,29 @@
       version: 'Vos deux téléphones n’ont pas les mêmes roues. Rechargez la page sur les deux téléphones.'
     };
     const retry = kind === 'net' || kind === 'relay' || kind === 'notfound' || kind === 'version';
+    if (kind === 'ended' && duo && duo.info) forgetGame(duo.info.room);
     duoSheet({
       stage: 'error', title: 'Sur deux téléphones', error: msgs[kind] || msgs.relay,
-      go: retry ? 'Réessayer' : '', cancel: 'Jouer sur ce téléphone seulement'
+      go: retry ? 'Réessayer' : '', cancel: duo && duo.resume && kind !== 'ended' ? 'Revenir à l’accueil' : 'Jouer sur ce téléphone seulement'
     });
     ovDuo.dataset.retry = kind;
   }
 
-  async function leaveDuo(announce) {
+  // announce : prévenir l’autre que la partie s’arrête ; keep : la garder pour plus tard (accueil)
+  async function leaveDuo(announce, keep) {
     const d = duo;
     duo = null;
     clearTimeout(syncT);
     save('duo', null);
+    if (d && d.info && !keep) forgetGame(d.info.room);
     try { history.replaceState(null, '', location.pathname + location.search); } catch (e) { /* rien */ }
     hide(ovDuo); hide($('#ov-wait')); hide($('#ov-note')); hide($('#ov-invited'));
     if (d && d.conn) {
-      if (announce && d.stage === 'game') {
+      if (announce && (d.stage === 'game' || d.stage === 'invite')) {
         const st = Object.assign(snapshot(), { phase: 'ended', endBy: d.seat, seq: d.seq + 1, by: d.id });
         d.conn.publishState(st);
       }
-      d.conn.close(announce && d.stage !== 'game').catch(() => {});
+      d.conn.close(false).catch(() => {});
     }
     renderDuoStatus();
     // Retour à l’accueil, pour une partie sur un seul téléphone
@@ -1480,6 +1539,7 @@
     audio();
     const stage = ovDuo.dataset.stage;
     if (stage === 'setup') createDuo();
+    else if (stage === 'invite') leaveDuo(false, true);
     else if (stage === 'join' && duo && duo.remote) joinGame();
     else if (stage === 'error') {
       const kind = ovDuo.dataset.retry;
@@ -1493,7 +1553,8 @@
     audio();
     const stage = ovDuo.dataset.stage;
     if (stage === 'setup') { hide(ovDuo); return; }
-    leaveDuo(stage === 'invite');
+    if (stage === 'invite') { leaveDuo(true); return; }
+    leaveDuo(false, !!(duo && duo.resume) && ovDuo.dataset.retry !== 'ended');
   });
   $('#duo-copy').addEventListener('click', async () => {
     const url = duo && duo.info ? window.KiffDuo.link(duo.info) : '';
@@ -1507,6 +1568,22 @@
     navigator.share({ title: 'Kiff Kiff', text: 'On joue à Kiff Kiff ? Ouvre ce lien sur ton téléphone.', url: window.KiffDuo.link(duo.info) }).catch(() => {});
   });
   $('#wait-pass').addEventListener('click', () => el.pass.click());
+  // Prévenir l’autre que c’est son tour : par le partage du téléphone (WhatsApp, SMS…)
+  $('#wait-nudge').addEventListener('click', async () => {
+    if (!duo || !duo.info) return;
+    audio(); sClick(); haptic(8);
+    const btn = $('#wait-nudge');
+    const url = window.KiffDuo.link(duo.info);
+    const text = 'À toi de jouer sur Kiff Kiff !';
+    if (typeof navigator.share === 'function') {
+      try { await navigator.share({ title: 'Kiff Kiff', text, url }); } catch (e) { /* annulé */ }
+      return;
+    }
+    let ok = false;
+    try { await navigator.clipboard.writeText(text + ' ' + url); ok = true; } catch (e) { ok = false; }
+    btn.textContent = ok ? 'Message copié : colle-le-lui' : 'Copie impossible';
+    setTimeout(() => renderDuoStatus(), 2200);
+  });
   $('#wait-home').addEventListener('click', () => el.home.click());
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible' && duo && duo.conn) duo.conn.wake();
@@ -1709,6 +1786,7 @@
     goStep(0, true);
     const inv = window.KiffDuo && window.KiffDuo.parse(location.hash);
     if (inv) startJoin(inv);
+    else { renderGames(); refreshGames(); }
   }
 
   /* ---------- Accueil : écrans successifs ---------- */
@@ -1780,6 +1858,56 @@
     handoffNewTurn(1, 'C’est toi qui proposes en premier.', () => setTimeout(() => shuffle(false), 250));
   }
 
+  /* Accueil : les parties à deux en cours, avec à qui c’est le tour */
+  function renderGames() {
+    const box = $('#games');
+    const cur = duo && duo.stage === 'game' && duo.info ? duo.info.room : '';
+    const list = games().filter((g) => g.room !== cur).slice(0, 4);
+    box.hidden = !list.length;
+    $('#games-list').innerHTML = list.map((g) => {
+      const B = ((g.names || [])[1 - g.seat] || '').trim();
+      const who = B ? 'Avec ' + B : (g.seat === 0 ? 'Invitation envoyée' : 'Partie à deux');
+      const turn = g.turn === 'me' ? 'À toi de jouer'
+        : g.turn === 'party' ? 'Kiff kiff trouvé'
+        : g.turn === 'lobby' ? (g.seat === 0 ? 'Personne n’a encore rejoint' : 'À rejoindre')
+        : 'Au tour de ' + (B || 'l’autre');
+      return '<li class="game' + (g.turn === 'me' ? ' is-mine' : '') + '"><button class="game-btn" type="button" data-room="' + esc(g.room) + '">' +
+        '<span class="game-who">' + esc(who) + '</span><span class="game-turn">' + esc(turn) + '</span></button>' +
+        '<button class="game-x" type="button" data-forget="' + esc(g.room) + '" aria-label="Retirer cette partie de la liste">×</button></li>';
+    }).join('');
+  }
+  // Les nouvelles des parties : la feuille garde la dernière étape de chacune
+  let gamesT = 0;
+  async function refreshGames() {
+    const list = games();
+    if (!list.length || !window.KiffDuo || Date.now() - gamesT < 4000) return;
+    gamesT = Date.now();
+    const found = await window.KiffDuo.storeLoad(list.map((g) => ({ room: g.room, key: g.key, broker: g.broker })));
+    const next = games().map((g) => {
+      const st = found[g.room];
+      if (!st) return g;
+      if (st.phase === 'ended') return null;
+      return Object.assign({}, g, { names: (st.names || g.names || ['', '']).slice(0, 2), turn: turnFor(st, g.seat) });
+    }).filter(Boolean);
+    save('parties', next);
+    if (!el.ovStart.hidden) renderGames();
+  }
+  function openGame(room) {
+    const g = findGame(room);
+    if (!g) return;
+    if (duo) { const d = duo; duo = null; clearTimeout(syncT); if (d.conn) d.conn.close(false).catch(() => {}); }
+    hide($('#ov-wait'));
+    startJoin({ broker: g.broker, room: g.room, key: g.key });
+  }
+  $('#games-list').addEventListener('click', (e) => {
+    const b = e.target.closest('button');
+    if (!b) return;
+    audio();
+    if (b.dataset.forget) { forgetGame(b.dataset.forget); renderGames(); return; }
+    sClick(); haptic(8);
+    openGame(b.dataset.room);
+  });
+
   function openHome() {
     const inDuo = !!duo && duo.stage === 'game';
     $('#steps').classList.toggle('is-duo', inDuo);
@@ -1792,6 +1920,8 @@
     goStep(0, true);
     show(el.ovStart);
     el.ovStart.scrollTop = 0;
+    renderGames();
+    refreshGames();
     renderWait();
     renderDuoStatus();
   }

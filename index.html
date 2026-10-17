@@ -17,10 +17,10 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,62..125,100..900;1,62..125,100..900&family=Bagel+Fat+One&family=Abril+Fatface&family=Merriweather:ital,opsz,wght@0,18..144,400..900;1,18..144,400..900&family=Baskervville:ital,wght@0,400..700;1,400..700&family=Jost:wght@300..700&family=Great+Vibes&family=Cinzel:wght@400..900&display=swap">
-<link rel="stylesheet" href="base.css?v=38">
-<link rel="stylesheet" href="skins/arty.css?v=38" data-skin-sheet="arty">
-<link rel="stylesheet" href="skins/pomme.css?v=38" data-skin-sheet="pomme">
-<link rel="stylesheet" href="skins/redcorner.css?v=38" data-skin-sheet="redcorner">
+<link rel="stylesheet" href="base.css?v=39">
+<link rel="stylesheet" href="skins/arty.css?v=39" data-skin-sheet="arty">
+<link rel="stylesheet" href="skins/pomme.css?v=39" data-skin-sheet="pomme">
+<link rel="stylesheet" href="skins/redcorner.css?v=39" data-skin-sheet="redcorner">
 <script>
 /* Ambiance : celle du lien (?design=redcorner ou #redcorner), sinon celle mémorisée.
    Appliquée avant l’affichage pour éviter un flash. */
@@ -133,6 +133,10 @@
             <p class="duo-home-text" id="duo-home-text"></p>
             <button class="btn" id="duo-resume" type="button">Reprendre la partie</button>
             <button class="link-btn" id="duo-quit" type="button">Quitter la partie à deux</button>
+          </div>
+          <div class="games" id="games" hidden>
+            <p class="games-title">Vos parties à deux</p>
+            <ul class="games-list" id="games-list"></ul>
           </div>
           <div class="start-links">
             <button class="skin-link" id="skin-open" type="button" aria-haspopup="dialog">Ambiance : <span id="skin-current">Red Corner</span></button>
@@ -289,6 +293,8 @@
     <p class="party-sentence wait-sentence" id="wait-sentence" hidden></p>
     <p class="handoff-text" id="wait-text"></p>
     <p class="duo-wait" id="wait-presence"><span class="duo-dots" aria-hidden="true"><i></i><i></i><i></i></span> <span id="wait-presence-text"></span></p>
+    <button class="btn btn--line wait-nudge" id="wait-nudge" type="button" hidden>Prévenir</button>
+    <p class="handoff-text wait-later" id="wait-later" hidden>Tu peux fermer l’appli : la partie vous attend, et tu la retrouveras sur l’accueil.</p>
     <div class="wait-links">
       <button class="link-btn" id="wait-pass" type="button">On passe</button>
       <button class="link-btn" id="wait-home" type="button">Accueil</button>
@@ -401,9 +407,9 @@
   </div>
 </div>
 <!--/APP-->
-<script src="data.js?v=38"></script>
-<script src="config.js?v=38"></script>
-<script src="duo.js?v=38"></script>
-<script src="app.js?v=38"></script>
+<script src="data.js?v=39"></script>
+<script src="config.js?v=39"></script>
+<script src="duo.js?v=39"></script>
+<script src="app.js?v=39"></script>
 </body>
 </html>
