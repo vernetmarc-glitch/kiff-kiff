@@ -17,10 +17,10 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,62..125,100..900;1,62..125,100..900&family=Bagel+Fat+One&family=Abril+Fatface&family=Merriweather:ital,opsz,wght@0,18..144,400..900;1,18..144,400..900&family=Baskervville:ital,wght@0,400..700;1,400..700&family=Jost:wght@300..700&family=Great+Vibes&family=Cinzel:wght@400..900&display=swap">
-<link rel="stylesheet" href="base.css?v=40">
-<link rel="stylesheet" href="skins/arty.css?v=40" data-skin-sheet="arty">
-<link rel="stylesheet" href="skins/pomme.css?v=40" data-skin-sheet="pomme">
-<link rel="stylesheet" href="skins/redcorner.css?v=40" data-skin-sheet="redcorner">
+<link rel="stylesheet" href="base.css?v=41">
+<link rel="stylesheet" href="skins/arty.css?v=41" data-skin-sheet="arty">
+<link rel="stylesheet" href="skins/pomme.css?v=41" data-skin-sheet="pomme">
+<link rel="stylesheet" href="skins/redcorner.css?v=41" data-skin-sheet="redcorner">
 <script>
 /* Ambiance : celle du lien (?design=redcorner ou #redcorner), sinon celle mémorisée.
    Appliquée avant l’affichage pour éviter un flash. */
@@ -258,6 +258,7 @@
     <p class="edit-hint">Coche un ou plusieurs niveaux. Choisissez-les ensemble : ils valent pour vous deux.</p>
     <div class="piment-list" id="piment-list" role="group" aria-labelledby="piment-title"></div>
     <p class="piment-error" id="piment-error" hidden role="alert">Garde au moins un niveau coché.</p>
+    <p class="piment-duo" id="piment-duo" hidden role="status"></p>
     <div class="row row--end">
       <button class="btn" id="piment-done" type="button">C’est choisi</button>
     </div>
@@ -339,6 +340,20 @@
   </div>
 </div>
 
+<!-- Deux téléphones : l’autre a monté le piment, on l’accepte avant de voir l’envie -->
+<div class="overlay overlay--handoff overlay--offer overlay--hot" id="ov-hot" hidden role="dialog" aria-modal="true" aria-labelledby="hot-title">
+  <div class="sheet">
+    <p class="handoff-kicker">Avant de voir son envie</p>
+    <h2 class="handoff-title" id="hot-title"></h2>
+    <p class="handoff-text" id="hot-text"></p>
+    <div class="hot-levels" id="hot-levels"></div>
+    <div class="stack">
+      <button class="btn" id="hot-yes" type="button">D’accord, voir l’envie</button>
+      <button class="btn btn--line" id="hot-no" type="button"></button>
+    </div>
+  </div>
+</div>
+
 <!-- « Oui, mais… » : une seule modification -->
 <div class="overlay overlay--edit overlay--skins" id="ov-one" hidden role="dialog" aria-modal="true" aria-labelledby="one-title">
   <div class="sheet sheet--edit sheet--skins">
@@ -407,9 +422,9 @@
   </div>
 </div>
 <!--/APP-->
-<script src="data.js?v=40"></script>
-<script src="config.js?v=40"></script>
-<script src="duo.js?v=40"></script>
-<script src="app.js?v=40"></script>
+<script src="data.js?v=41"></script>
+<script src="config.js?v=41"></script>
+<script src="duo.js?v=41"></script>
+<script src="app.js?v=41"></script>
 </body>
 </html>

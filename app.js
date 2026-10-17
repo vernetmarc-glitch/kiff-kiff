@@ -56,6 +56,7 @@
     original: null,
     muted: load('muted', false),
     levels: parseLevels(window.KIFF_LEVELS || load('levels', [1, 2])),
+    lvOk: null, // à deux téléphones : les niveaux de piment acceptés par les deux
     started: false,
     bottom: false,
     pass: null
@@ -548,8 +549,9 @@
     const A = nameOf(S.proposer), B = nameOf(other(S.proposer));
     const to = kind === 'offer' ? B : A;
     const kick = $('#offer-kicker');
-    kick.textContent = duo ? '' : 'Passe le téléphone à ' + to + '.';
-    kick.hidden = !!duo;
+    kick.textContent = duo ? (kind === 'offer' ? lowered : '') : 'Passe le téléphone à ' + to + '.';
+    kick.hidden = !kick.textContent;
+    lowered = '';
     $('#offer-title').textContent = kind === 'offer' ? 'L’envie de ' + A : B + ' a ajusté ton envie';
     $('#offer-sentence').innerHTML = sentenceHtml(kind === 'reconfirm' ? changes() : []);
     $('#offer-yes').textContent = kind === 'offer' ? 'J’ai envie aussi' : 'J’ai envie';
@@ -562,6 +564,56 @@
     $('#offer-yes').focus({ preventScroll: true });
   }
   function hideOffer() { hide(el.ovOffer); hide(el.ovOne); offerKind = ''; }
+
+  /* Deux téléphones : le piment se règle par celui ou celle qui compose ; s’il monte,
+     l’autre l’accepte avant de voir l’envie. S’il baisse, c’est accepté d’office. */
+  const ovHot = $('#ov-hot');
+  const hotter = () => !!duo && S.levels.some((n) => !(S.lvOk || S.levels).includes(n));
+  let lowered = '';
+  function showTurnModal() {
+    if (!duo) return;
+    const want = myTurn() && S.phase === 'review' ? 'offer' : (myTurn() && S.phase === 'reconfirm' ? 'reconfirm' : '');
+    if (want === 'offer' && hotter()) {
+      if (offerKind) hideOffer();
+      if (ovHot.hidden) showHot();
+      return;
+    }
+    hide(ovHot);
+    if (want === 'offer' && S.lvOk && S.levels.join() !== S.lvOk.join()) {
+      lowered = nameOf(S.proposer) + ' a baissé le piment : ' + levelNames() + '.';
+      S.lvOk = S.levels.slice();
+    }
+    if (want && (offerKind !== want || el.ovOffer.hidden)) showOffer(want);
+    else if (!want && offerKind) hideOffer();
+  }
+  function showHot() {
+    const A = nameOf(S.proposer);
+    const added = S.levels.filter((n) => !S.lvOk.includes(n));
+    $('#hot-title').textContent = A + ' monte le piment';
+    $('#hot-text').textContent = 'Vous jouiez en ' + levelNames(S.lvOk) + '. ' + A + ' propose d’ajouter ' +
+      (added.length > 1 ? 'les niveaux ' : 'le niveau ') + added.map((n) => D.niveaux[n - 1].nom).join(' et ') +
+      ', et son envie peut en venir.';
+    $('#hot-levels').innerHTML = added.map((n) => '<p class="hot-level"><span class="pgroup pgroup--' + n + ' is-on">' + CHILI.repeat(n) + '</span>' +
+      '<span><b>' + esc(D.niveaux[n - 1].nom) + '</b> · ' + esc(D.niveaux[n - 1].desc) + '</span></p>').join('');
+    $('#hot-no').textContent = 'Non, on reste en ' + levelNames(S.lvOk);
+    show(ovHot);
+    sSwitchOn(); haptic(30);
+    $('#hot-yes').focus({ preventScroll: true });
+  }
+  $('#hot-yes').addEventListener('click', () => {
+    audio(); sClick(); haptic(8);
+    S.lvOk = S.levels.slice();
+    hide(ovHot);
+    sync();
+    showOffer('offer');
+  });
+  $('#hot-no').addEventListener('click', () => {
+    audio(); haptic(20);
+    hide(ovHot);
+    // On revient au piment accepté, et l’envie repart chez celui ou celle qui l’a proposée
+    setLevels(S.lvOk, { silent: true, remote: true });
+    duoPass(S.proposer, 'piment');
+  });
 
   $('#offer-yes').addEventListener('click', () => {
     audio();
@@ -740,8 +792,9 @@
     show(el.ovPass);
     sSwitchOff();
   });
-  function duoPass(to) {
+  function duoPass(to, why) {
     S.pass = { by: duo.seat, n: (S.pass ? S.pass.n : 0) + 1 };
+    if (why) S.pass.why = why;
     hide(el.ovParty); stopConfetti();
     startComposition(to);
     sync();
@@ -973,7 +1026,7 @@
   const CHILI = '<svg class="chili is-on" viewBox="0 0 24 24" aria-hidden="true"><use href="#chili"/></svg>';
   const levelGroups = () => [1, 2, 3].map((n) =>
     '<span class="pgroup pgroup--' + n + (S.levels.includes(n) ? ' is-on' : '') + '">' + CHILI.repeat(n) + '</span>').join('');
-  const levelNames = () => S.levels.map((n) => D.niveaux[n - 1].nom).join(' + ');
+  const levelNames = (lv = S.levels) => lv.map((n) => D.niveaux[n - 1].nom).join(' + ');
   function setLevels(levels, opts = {}) {
     levels = parseLevels(levels);
     const prev = LISTS.map((l, r) => l[S.idx[r]]);
@@ -992,8 +1045,17 @@
     if (S.started && S.phase !== 'compose' && !duo) S.mustRestart = true;
     renderReels();
     renderLevel();
+    renderPimentDuo();
     if (reels.length && !opts.silent) render();
     if (!opts.remote) sync();
+  }
+  // À deux téléphones : prévenir que l’autre devra accepter un piment plus chaud
+  function renderPimentDuo() {
+    const p = $('#piment-duo');
+    if (!p) return;
+    const up = hotter();
+    p.hidden = !up;
+    if (up) p.textContent = nameOf(other(duo.seat)) + ' devra d’abord accepter ce piment plus chaud, avant de voir ton envie.';
   }
   function renderLevel() {
     const b = $('#piment-open');
@@ -1121,7 +1183,8 @@
       proposer: S.proposer, phase: S.phase, dir: S.dir,
       keys: keys(S.idx), custom: S.custom.slice(),
       original: S.original ? { keys: keys(S.original.idx), custom: S.original.custom.slice(), dir: S.original.dir } : null,
-      bottom: !!S.bottom, pass: S.pass || null
+      bottom: !!S.bottom, pass: S.pass || null,
+      lvOk: (S.lvOk || S.levels).slice()
     };
   }
   function pushState(extra) {
@@ -1216,13 +1279,17 @@
     if (opts.first || duo.passN == null) duo.passN = pn;
     else if (pn > duo.passN) {
       duo.passN = pn;
-      if (st.pass.by !== duo.seat) {
+      if (st.pass.by !== duo.seat && st.pass.why === 'piment') {
+        hide(el.ovPass);
+        note('On garde le piment d’avant', nameOf(st.pass.by) + ' préfère rester en ' + levelNames(parseLevels(st.lvOk || st.levels)) + '. Pas besoin d’expliquer pourquoi. Propose une autre envie avec ce piment-là.');
+      } else if (st.pass.by !== duo.seat) {
         hide(el.ovPass);
         note('On passe.', nameOf(st.pass.by) + ' a passé. Pas besoin d’expliquer pourquoi. ' +
           (S.proposer === duo.seat ? 'C’est à toi de proposer.' : nameOf(S.proposer) + ' propose autre chose.'));
       }
     }
     S.pass = st.pass || null;
+    S.lvOk = parseLevels(st.lvOk || st.levels);
     rememberGame(st);
 
     if (S.phase === 'celebrate' && prev.phase !== 'celebrate') celebrate();
@@ -1231,10 +1298,8 @@
     if (arrived && S.phase !== 'celebrate') { sSwitchOn(); haptic(30); }
     renderReels();
     render();
-    // La proposition (ou l’envie ajustée) arrive dans une modale
-    const want = myTurn() && S.phase === 'review' ? 'offer' : (myTurn() && S.phase === 'reconfirm' ? 'reconfirm' : '');
-    if (want && (offerKind !== want || el.ovOffer.hidden)) showOffer(want);
-    else if (!want && offerKind) hideOffer();
+    // La proposition (ou l’envie ajustée) arrive dans une modale ; un piment plus chaud s’accepte avant
+    showTurnModal();
     renderWait();
   }
 
@@ -1252,7 +1317,7 @@
       text = 'Elle arrivera ici dès que ' + A + ' la proposera.';
     } else if (S.phase === 'review') {
       title = 'Envie envoyée';
-      kicker = B + ' la lit.';
+      kicker = hotter() ? B + ' doit d’abord accepter le nouveau piment.' : B + ' la lit.';
       sent = S.original ? sentenceFrom(S.original) : sentence();
       text = B + ' peut dire « J’ai envie aussi », ou changer une chose avant de répondre.';
     } else if (S.phase === 'adjust') {
@@ -1367,6 +1432,7 @@
     S.phase = 'lobby';
     S.original = null; S.bottom = false; S.pass = null;
     S.custom = ['', '', ''];
+    S.lvOk = S.levels.slice(); // l’invité·e les voit avant de rejoindre : rejoindre, c’est les accepter
     pushState();
     rememberGame({ phase: 'lobby', names: [name, ''] });
     showInvite();
@@ -1441,6 +1507,7 @@
       buildLists(lv);
       next.phase = 'compose';
       next.proposer = 1;
+      next.lvOk = lv.slice();
       next.keys = [0, 1, 2].map((r) => keyOf(r, Math.floor(Math.random() * (LISTS[r].length - 1))));
       next.original = null; next.bottom = false;
     }
@@ -1502,7 +1569,8 @@
     save('duo', null);
     if (d && d.info && !keep) forgetGame(d.info.room);
     try { history.replaceState(null, '', location.pathname + location.search); } catch (e) { /* rien */ }
-    hide(ovDuo); hide($('#ov-wait')); hide($('#ov-note')); hide($('#ov-invited'));
+    hide(ovDuo); hide($('#ov-wait')); hide($('#ov-note')); hide($('#ov-invited')); hide(ovHot);
+    S.lvOk = null;
     if (d && d.conn) {
       if (announce && (d.stage === 'game' || d.stage === 'invite')) {
         const st = Object.assign(snapshot(), { phase: 'ended', endBy: d.seat, seq: d.seq + 1, by: d.id });
@@ -1692,6 +1760,7 @@
       pimentFrom = from;
       renderLevel();
       $('#piment-error').hidden = true;
+      renderPimentDuo();
       show(ovPiment);
       const c = ovPiment.querySelector('input');
       if (c) c.focus({ preventScroll: true });
@@ -1785,8 +1854,7 @@
     $('#duo-resume').addEventListener('click', () => {
       audio();
       hide(el.ovStart);
-      const want = myTurn() && S.phase === 'review' ? 'offer' : (myTurn() && S.phase === 'reconfirm' ? 'reconfirm' : '');
-      if (want) showOffer(want);
+      showTurnModal();
       renderWait();
     });
     $('#duo-quit').addEventListener('click', () => {
@@ -1915,7 +1983,8 @@
     if (d.conn) d.conn.close(false).catch(() => {});
     try { history.replaceState(null, '', location.pathname + location.search); } catch (e) { /* rien */ }
     hide($('#ov-wait')); hide($('#ov-note')); hide(el.ovParty); stopConfetti();
-    hideOffer();
+    hideOffer(); hide(ovHot);
+    S.lvOk = null;
     S.started = false;
     S.phase = 'start';
     S.names = load('names', ['', '']);
@@ -1966,6 +2035,7 @@
     $('#welcome-go').classList.toggle('btn--line', inDuo);
     quitArmed(false);
     if (inDuo && offerKind) hideOffer(); // elle reviendra avec « Reprendre la partie »
+    hide(ovHot);
     goStep(0, true);
     show(el.ovStart);
     el.ovStart.scrollTop = 0;
