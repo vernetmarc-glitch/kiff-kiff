@@ -604,6 +604,7 @@
   }
   $('#hot-yes').addEventListener('click', () => {
     audio(); sClick(); haptic(8);
+    report('monte', null, 'oui');
     S.lvOk = S.levels.slice();
     hide(ovHot);
     sync();
@@ -611,6 +612,7 @@
   });
   $('#hot-no').addEventListener('click', () => {
     audio(); haptic(20);
+    report('monte', null, 'non');
     hide(ovHot);
     // On revient au piment accepté, et l’envie repart chez celui ou celle qui l’a proposée
     setLevels(S.lvOk, { silent: true, remote: true });
@@ -629,6 +631,7 @@
   $('#offer-but').addEventListener('click', () => {
     audio();
     if (S.phase !== 'review' || !myTurn()) return;
+    report('mais');
     $('#one-text').textContent = 'Tu peux changer une seule chose : une roue, ou « que tu me / de te ». Choisis-la bien.';
     show(el.ovOne);
     sClick(); haptic(8);
@@ -894,6 +897,10 @@
   // L’historique : gardé dans l’état partagé à deux téléphones, en mémoire sur un seul
   function pushKiff() {
     S.kiffs = (S.kiffs || []).concat({ t: sentence(), w: nameOf(S.proposer), d: Date.now() }).slice(-60);
+    if (S.kiffs.length === 1) {
+      const min = S.t0 ? (Date.now() - S.t0) / 60000 : -1;
+      report('premier', null, min < 0 ? 'inconnu' : min < 5 ? 'moins-5' : min < 15 ? '5-15' : min < 60 ? '15-60' : min < 1440 ? '1h-1j' : 'plus-1j');
+    }
     renderKiffs();
   }
   const kiffCount = () => Math.max((S.kiffs || []).length, S.kiff ? S.kiff.n : 0);
@@ -922,6 +929,7 @@
   function openKiffs(e) {
     audio(); sClick(); haptic(8);
     kiffsFrom = e && e.currentTarget;
+    reportOnce('historique');
     const list = (S.kiffs || []).slice().reverse();
     const n = kiffCount();
     const B = duo ? nameOf(other(duo.seat)) : '';
@@ -997,6 +1005,7 @@
   const openDeal = (e) => {
     audio(); sClick(); haptic(8);
     dealFrom = e.currentTarget;
+    report('partage', null, dealFrom.id === 'home-deal' ? 'fenetre-accueil' : 'fenetre-fete');
     $('#deal-done').hidden = true;
     show(ovDeal);
     $('#deal-share').focus({ preventScroll: true });
@@ -1013,6 +1022,7 @@
     if (typeof navigator.share === 'function') {
       try {
         await navigator.share({ title: 'Kiff Kiff', text: DEAL_TEXT, url: APP_URL });
+        report('partage', null, 'envoye');
         sSwitchOn(); haptic(15);
         done.textContent = 'Kiff dealé. Merci pour elle, ou pour lui.';
         done.hidden = false;
@@ -1022,6 +1032,7 @@
     // Sans partage natif : on copie le message avec le lien
     try {
       await navigator.clipboard.writeText(DEAL_TEXT + ' ' + APP_URL);
+      report('partage', null, 'copie');
       done.textContent = 'Message copié : colle-le à qui tu veux.';
     } catch (e) {
       done.textContent = DEAL_TEXT + ' ' + APP_URL;
@@ -1029,7 +1040,7 @@
     done.hidden = false;
     sClick(); haptic(8);
   });
-  $('#coffee-go').addEventListener('click', () => { sParty(); haptic(20); });
+  $('#coffee-go').addEventListener('click', () => { report('cafe'); sParty(); haptic(20); });
   $('#party-pass').addEventListener('click', () => {
     hide(el.ovParty);
     stopConfetti();
@@ -1284,7 +1295,8 @@
       bottom: !!S.bottom, pass: S.pass || null,
       lvOk: (S.lvOk || S.levels).slice(),
       kiff: S.kiff || null,
-      kiffs: (S.kiffs || []).slice(-60)
+      kiffs: (S.kiffs || []).slice(-60),
+      t0: S.t0 || null
     };
   }
   function pushState(extra) {
@@ -1333,7 +1345,7 @@
     } else if (duo.resume || duo.stage === 'invite') {
       const wasInvite = duo.stage === 'invite';
       enterGame(st, wasInvite);
-      if (wasInvite) { sSwitchOn(); haptic(30); report('partie'); }
+      if (wasInvite) { sSwitchOn(); haptic(30); report('partie', null, 'deux'); }
     } else {
       showJoin(st);
     }
@@ -1392,6 +1404,7 @@
     S.lvOk = parseLevels(st.lvOk || st.levels);
     S.kiff = st.kiff || null;
     S.kiffs = Array.isArray(st.kiffs) ? st.kiffs.slice(-60) : [];
+    S.t0 = st.t0 || S.t0 || null;
     renderKiffs();
     rememberGame(st);
 
@@ -1540,8 +1553,11 @@
     S.custom = ['', '', ''];
     S.lvOk = S.levels.slice(); // l’invité·e les voit avant de rejoindre : rejoindre, c’est les accepter
     S.kiff = null; S.kiffs = [];
+    S.t0 = Date.now();
     pushState();
     rememberGame({ phase: 'lobby', names: [name, ''] });
+    report('invitation');
+    report('piment', null, S.levels.join(''));
     showInvite();
   }
   function showInvite() {
@@ -1615,6 +1631,8 @@
       next.phase = 'compose';
       next.proposer = 1;
       next.lvOk = lv.slice();
+      next.t0 = Date.now();
+      report('rejoint');
       next.keys = [0, 1, 2].map((r) => keyOf(r, Math.floor(Math.random() * (LISTS[r].length - 1))));
       next.original = null; next.bottom = false;
     }
@@ -1735,12 +1753,14 @@
     const url = duo && duo.info ? window.KiffDuo.link(duo.info) : '';
     let ok = false;
     try { await navigator.clipboard.writeText(url); ok = true; } catch (e) { ok = false; }
+    if (ok) report('partage', null, 'invitation-copie');
     $('#duo-copy').textContent = ok ? 'Lien copié' : 'Copie impossible';
     setTimeout(() => { $('#duo-copy').textContent = 'Copier le lien'; }, 1800);
   });
   $('#duo-send').addEventListener('click', () => {
     if (!duo || !duo.info) return;
-    navigator.share({ title: 'Kiff Kiff', text: 'On joue à Kiff Kiff ? Ouvre ce lien sur ton téléphone.', url: window.KiffDuo.link(duo.info) }).catch(() => {});
+    navigator.share({ title: 'Kiff Kiff', text: 'On joue à Kiff Kiff ? Ouvre ce lien sur ton téléphone.', url: window.KiffDuo.link(duo.info) })
+      .then(() => report('partage', null, 'invitation')).catch(() => {});
   });
   $('#wait-pass').addEventListener('click', () => el.pass.click());
   // Prévenir l’autre que c’est son tour : par le partage du téléphone (WhatsApp, SMS…)
@@ -1750,6 +1770,7 @@
     const btn = $('#wait-nudge');
     const url = window.KiffDuo.link(duo.info);
     const text = 'À toi de jouer sur Kiff Kiff !';
+    report('partage', null, 'prevenir');
     if (typeof navigator.share === 'function') {
       try { await navigator.share({ title: 'Kiff Kiff', text, url }); } catch (e) { /* annulé */ }
       return;
@@ -1769,12 +1790,15 @@
   const API = window.KIFF_API || '';
   // Ce qui est envoyé : le type d’événement et, pour une envie ou un kiff kiff, le mot de chaque roue.
   // Jamais de prénom ni de texte écrit à la main.
-  function report(type, choix) {
+  // detail : une variante courte (« un », « deux », « 123 »…), jamais une donnée de personne
+  function report(type, choix, detail) {
     if (!API) return;
     try {
-      fetch(API, { method: 'POST', mode: 'no-cors', keepalive: true, body: JSON.stringify({ action: 'event', type, choix: choix || null }) }).catch(() => {});
+      fetch(API, { method: 'POST', mode: 'no-cors', keepalive: true, body: JSON.stringify({ action: 'event', type, choix: choix || null, detail: detail || null }) }).catch(() => {});
     } catch (e) { /* rien */ }
   }
+  const once = new Set(); // certains événements une seule fois par ouverture
+  const reportOnce = (type, detail) => { const k = type + ':' + (detail || ''); if (once.has(k)) return; once.add(k); report(type, null, detail); };
   function choiceLabels() {
     return [0, 1, 2].map((r) => {
       const x = LISTS[r][S.idx[r]];
@@ -1972,6 +1996,8 @@
     });
     goStep(0, true);
     const inv = window.KiffDuo && window.KiffDuo.parse(location.hash);
+    const installed = (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true;
+    reportOnce('visite', inv ? (findGame(inv.room) ? 'reprise' : 'invitation') : (installed ? 'installee' : 'web'));
     if (inv) startJoin(inv);
     else { renderGames(); refreshGames(); }
   }
@@ -2034,7 +2060,9 @@
   const goStep = (n, instant) => homeSteps.go(n, instant);
   function launchGame() {
     applyPendingMots();
-    report('partie');
+    report('partie', null, 'un');
+    report('piment', null, S.levels.join(''));
+    S.t0 = Date.now();
     hide(el.ovStart);
     S.kiff = null; S.kiffs = []; renderKiffs();
     S.started = true;
@@ -2173,7 +2201,7 @@
       deferred = e;
       btn.hidden = false;
     });
-    window.addEventListener('appinstalled', () => { deferred = null; btn.hidden = true; });
+    window.addEventListener('appinstalled', () => { deferred = null; btn.hidden = true; report('installe'); });
     // iPhone : pas d’installation automatique, on explique le geste
     const ios = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
     if (ios) btn.hidden = false;

@@ -16,11 +16,16 @@
 const MOT_DE_PASSE = 'change-moi';
 
 const ROUES = ['action', 'endroit', 'maniere'];
-const TYPES = ['partie', 'envie', 'kiff', 'passe'];
+// Les événements comptés (aucun identifiant, aucune phrase) ; « detail » précise une variante courte
+const TYPES = ['partie', 'envie', 'kiff', 'passe', 'visite', 'invitation', 'rejoint', 'mais', 'premier', 'piment', 'monte',
+  'partage', 'cafe', 'installe', 'historique'];
+const PAR_JOUR = ['visite', 'partie', 'envie', 'kiff', 'rejoint']; // aussi comptés jour par jour
+const ENT_JOURS = ['jour', 'type', 'valeur'];
+const DETAIL = /^[a-z0-9-]{1,16}$/;
 const ENT_MOTS = ['roue', 'niveau', 'que tu me', 'de te', 'avec à', 'ordre'];
 const ENT_COMPTEURS = ['compteur', 'valeur'];
 const ENT_CHOIX = ['roue', 'mot', 'envies', 'kiffs'];
-const ENT_PARTIES = ['partie', 'etat', 'seq', 'maj'];
+const ENT_PARTIES = ['partie', 'etat', 'seq', 'maj', 'cree'];
 const GARDER_JOURS = 120; // une partie sans nouvelle depuis si longtemps est effacée
 
 function doGet(e) {
@@ -66,7 +71,7 @@ function classeurDonnees() {
    et créer la feuille. Son adresse s’affiche dans le journal d’exécution. */
 function preparer() {
   const c = classeurDonnees();
-  feuille('mots', ENT_MOTS); feuille('compteurs', ENT_COMPTEURS); feuille('choix', ENT_CHOIX); feuille('parties', ENT_PARTIES);
+  feuille('mots', ENT_MOTS); feuille('compteurs', ENT_COMPTEURS); feuille('choix', ENT_CHOIX); feuille('parties', ENT_PARTIES); feuille('jours', ENT_JOURS);
   Logger.log('Feuille de données : ' + c.getUrl());
 }
 
@@ -142,10 +147,27 @@ function noterEvenement(corps) {
   try {
     const fc = feuille('compteurs', ENT_COMPTEURS);
     const vc = fc.getDataRange().getValues();
-    let k = -1;
-    for (let j = 1; j < vc.length; j++) if (vc[j][0] === type) { k = j; break; }
-    if (k < 0) fc.appendRow([type, 1]);
-    else fc.getRange(k + 1, 2).setValue((Number(vc[k][1]) || 0) + 1);
+    const plus = function (cle) {
+      let k = -1;
+      for (let j = 1; j < vc.length; j++) if (vc[j][0] === cle) { k = j; break; }
+      if (k < 0) { fc.appendRow([cle, 1]); vc.push([cle, 1]); }
+      else { vc[k][1] = (Number(vc[k][1]) || 0) + 1; fc.getRange(k + 1, 2).setValue(vc[k][1]); }
+    };
+    plus(type);
+    const detail = String(corps.detail || '');
+    if (detail && DETAIL.test(detail)) plus(type + ':' + detail);
+    if (PAR_JOUR.indexOf(type) >= 0) {
+      const fj = feuille('jours', ENT_JOURS);
+      const jour = Utilities.formatDate(new Date(), 'Europe/Paris', 'yyyy-MM-dd');
+      const vj = fj.getDataRange().getValues();
+      let n = -1;
+      for (let j = vj.length - 1; j >= 1 && j >= vj.length - 80; j--) {
+        const d = vj[j][0] instanceof Date ? Utilities.formatDate(vj[j][0], 'Europe/Paris', 'yyyy-MM-dd') : String(vj[j][0]);
+        if (d === jour && vj[j][1] === type) { n = j; break; }
+      }
+      if (n < 0) fj.appendRow(["'" + jour, type, 1]);
+      else fj.getRange(n + 1, 3).setValue((Number(vj[n][2]) || 0) + 1);
+    }
 
     if ((type === 'envie' || type === 'kiff') && Array.isArray(corps.choix)) {
       const fx = feuille('choix', ENT_CHOIX);
@@ -183,7 +205,34 @@ function lireStats() {
   const choix = feuille('choix', ENT_CHOIX).getDataRange().getValues().slice(1)
     .filter(function (l) { return l[0] && l[1] !== ''; })
     .map(function (l) { return { roue: l[0], mot: String(l[1]), envies: Number(l[2]) || 0, kiffs: Number(l[3]) || 0 }; });
-  return { ok: true, compteurs: compteurs, choix: choix };
+  // Jour par jour, les 8 dernières semaines
+  const depuis = Utilities.formatDate(new Date(Date.now() - 56 * 864e5), 'Europe/Paris', 'yyyy-MM-dd');
+  const jours = feuille('jours', ENT_JOURS).getDataRange().getValues().slice(1)
+    .map(function (l) { return { jour: l[0] instanceof Date ? Utilities.formatDate(l[0], 'Europe/Paris', 'yyyy-MM-dd') : String(l[0]), type: String(l[1]), n: Number(l[2]) || 0 }; })
+    .filter(function (l) { return l.jour >= depuis; });
+  return { ok: true, compteurs: compteurs, choix: choix, jours: jours, distance: lireDistance() };
+}
+
+/* Les parties à deux téléphones, vues de loin : combien, encore jouées, depuis quand (rien n’est déchiffré) */
+function lireDistance() {
+  const v = feuille('parties', ENT_PARTIES).getDataRange().getValues().slice(1);
+  const now = Date.now(), J = 864e5;
+  const res = { total: 0, actives7: 0, coups: 0, retour: { j1: [0, 0], j7: [0, 0], j30: [0, 0] } };
+  v.forEach(function (l) {
+    if (!l[0]) return;
+    const maj = l[3] instanceof Date ? l[3].getTime() : 0;
+    const cree = l[4] instanceof Date ? l[4].getTime() : 0;
+    res.total++;
+    res.coups += Number(l[2]) || 0;
+    if (maj && now - maj < 7 * J) res.actives7++;
+    if (!cree || !maj) return;
+    [['j1', 1], ['j7', 7], ['j30', 30]].forEach(function (p) {
+      if (now - cree < p[1] * J) return; // trop récente pour juger
+      res.retour[p[0]][1]++;
+      if (maj - cree >= p[1] * J) res.retour[p[0]][0]++;
+    });
+  });
+  return res;
 }
 
 /* ---------- Les parties à deux téléphones (états chiffrés) ---------- */
@@ -209,11 +258,12 @@ function ecrirePartie(c) {
   verrou.waitLock(15000);
   try {
     const f = feuille('parties', ENT_PARTIES);
+    if (f.getRange(1, 5).getValue() !== 'cree') f.getRange(1, 5).setValue('cree').setFontWeight('bold');
     const v = f.getDataRange().getValues();
     let k = -1;
     for (let j = 1; j < v.length; j++) if (String(v[j][0]) === id) { k = j; break; }
     // « k » devant : la feuille ne doit jamais prendre l’état pour un nombre ou une formule
-    if (k < 0) f.appendRow([id, 'k' + etat, seq, new Date()]);
+    if (k < 0) f.appendRow([id, 'k' + etat, seq, new Date(), new Date()]);
     else if (seq > (Number(v[k][2]) || 0)) f.getRange(k + 1, 2, 1, 3).setValues([['k' + etat, seq, new Date()]]);
     else return { ok: true, ancien: true };
     // De temps en temps, on efface les parties abandonnées depuis longtemps

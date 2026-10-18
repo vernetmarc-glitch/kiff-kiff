@@ -65,7 +65,85 @@
     }
     renderStats();
   }
+  /* ---------- Tableau de bord : arrivée, jeu, distance, bouche-à-oreille ---------- */
+  const pct = (a, b) => (b ? Math.round(100 * a / b) + ' %' : '–');
+  const MOIS = ['janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.'];
+  const jourCourt = (iso) => Number(iso.slice(8)) + ' ' + MOIS.at(Number(iso.slice(5, 7)) - 1);
+  function kpi(value, label, sub) {
+    return '<div class="kpi"><span class="kv">' + value + '</span><span class="kl">' + esc(label) + '</span>' + (sub ? '<span class="ks">' + esc(sub) + '</span>' : '') + '</div>';
+  }
+  function split(c, type, names) {
+    const keys = Object.keys(c).filter((k) => k.startsWith(type + ':'));
+    const tot = keys.reduce((a, k) => a + c[k], 0);
+    if (!tot) return '<p class="note">Pas encore de données.</p>';
+    const rows = keys.map((k) => ({ k: k.slice(type.length + 1), n: c[k] })).sort((a, b) => b.n - a.n);
+    return '<ul class="split">' + rows.map((r) => '<li><span class="sl">' + esc(names[r.k] || r.k) + '</span><span class="sb"><i style="width:' + Math.max(3, Math.round(100 * r.n / tot)) + '%"></i></span><span class="sv">' + fmt(r.n) + ' · ' + pct(r.n, tot) + '</span></li>').join('') + '</ul>';
+  }
+  // Une série jour par jour : barres fines, axe discret, valeur au survol
+  function daily(type, title) {
+    const map = {};
+    ((stats && stats.jours) || []).filter((d) => d.type === type).forEach((d) => { map[d.jour] = (map[d.jour] || 0) + d.n; });
+    const days = [];
+    const now = new Date();
+    for (let i = 55; i >= 0; i--) { const d = new Date(now.getTime() - i * 864e5); days.push(d.toISOString().slice(0, 10)); }
+    const vals = days.map((d) => map[d] || 0);
+    const max = Math.max(1, ...vals), total = vals.reduce((a, b) => a + b, 0);
+    const W = 440, H = 120, L = 30, B = 22, bw = (W - L) / days.length;
+    const bars = days.map((d, i) => {
+      const h = Math.round((H - B - 8) * vals.at(i) / max), x = L + i * bw;
+      return '<g class="bar" data-tip="' + esc(jourCourt(d) + ' : ' + vals.at(i)) + '"><rect class="hit" x="' + x.toFixed(1) + '" y="0" width="' + bw.toFixed(1) + '" height="' + (H - B) + '"/>' +
+        (h ? '<rect class="mark" x="' + (x + 1).toFixed(1) + '" y="' + (H - B - h) + '" width="' + Math.max(1, bw - 2).toFixed(1) + '" height="' + h + '" rx="1.5"/>' : '') + '</g>';
+    }).join('');
+    const ticks = days.map((d, i) => (i % 14 === 0 ? '<text x="' + (L + i * bw).toFixed(1) + '" y="' + (H - 6) + '" class="tick">' + jourCourt(d) + '</text>' : '')).join('');
+    return '<div class="chart"><p class="ct">' + esc(title) + ' <span>' + fmt(total) + ' sur 8 semaines</span></p>' +
+      '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="' + esc(title + ', ' + total + ' sur 8 semaines') + '">' +
+      '<line class="axis" x1="' + L + '" x2="' + W + '" y1="' + (H - B) + '" y2="' + (H - B) + '"/>' +
+      '<text x="' + (L - 6) + '" y="12" class="tick" text-anchor="end">' + max + '</text><text x="' + (L - 6) + '" y="' + (H - B) + '" class="tick" text-anchor="end">0</text>' +
+      bars + ticks + '</svg></div>';
+  }
+  function renderDash() {
+    const box = $('#dash');
+    if (!stats) { box.innerHTML = ''; return; }
+    const c = stats.compteurs || {}, d = stats.distance || { total: 0, actives7: 0, coups: 0, retour: { j1: [0, 0], j7: [0, 0], j30: [0, 0] } };
+    const v = c.visite || 0, p = c.partie || 0, pk = c.premier || 0;
+    const step = (n, label, of) => '<li><span class="fl">' + esc(label) + '</span><span class="fb"><i style="width:' + (v ? Math.max(2, Math.round(100 * n / Math.max(v, p, 1))) : 0) + '%"></i></span><span class="fv">' + fmt(n) + (of != null ? ' · ' + pct(n, of) : '') + '</span></li>';
+    const ret = (k, label) => kpi(pct(d.retour[k][0], d.retour[k][1]), label, d.retour[k][1] ? 'sur ' + d.retour[k][1] + ' parties assez anciennes' : 'pas encore assez de recul');
+    const partages = (c['partage:envoye'] || 0) + (c['partage:copie'] || 0);
+    box.innerHTML =
+      '<h2 class="sec">De l’ouverture au kiff kiff</h2>' +
+      '<ul class="funnel">' + step(v, 'Ouvertures du jeu') + step(p, 'Parties lancées', v) + step(pk, 'Parties avec un kiff kiff', p) + '</ul>' +
+      '<p class="note">Les ouvertures et les premiers kiff kiff sont comptés depuis le 18 octobre 2026 ; les parties, depuis le début.</p>' +
+      '<div class="charts">' + daily('kiff', 'Kiff kiff par jour') + daily('visite', 'Ouvertures par jour') + '</div>' +
+      '<h2 class="sec">À deux téléphones</h2><div class="kpis">' +
+        kpi(fmt(c.invitation || 0), 'invitations créées') + kpi(pct(c.rejoint || 0, c.invitation || 0), 'invitations rejointes', fmt(c.rejoint || 0) + ' personnes') +
+        kpi(fmt(d.actives7), 'parties actives', 'un coup ces 7 derniers jours, sur ' + fmt(d.total)) +
+        kpi(d.total ? (d.coups / d.total).toFixed(1).replace('.', ',') : '–', 'coups par partie', 'en moyenne') +
+        ret('j1', 'encore jouées à J+1') + ret('j7', 'encore jouées à J+7') + ret('j30', 'encore jouées à J+30') + '</div>' +
+      '<h2 class="sec">Le jeu</h2><div class="kpis">' +
+        kpi(pct(c.kiff || 0, c.envie || 0), 'des envies deviennent kiff kiff') + kpi(pct(c.mais || 0, c.envie || 0), 'des envies passent par « Oui, mais… »') +
+        kpi(pct(c.passe || 0, c.envie || 0), 'de passes par envie') + kpi(pct(c['monte:oui'] || 0, c.monte || 0), 'des montées de piment acceptées', fmt(c.monte || 0) + ' demandées') + '</div>' +
+      '<div class="splits"><div><h3 class="sh">Sur quel téléphone</h3>' + split(c, 'partie', { un: 'Un seul téléphone', deux: 'Deux téléphones' }) + '</div>' +
+        '<div><h3 class="sh">Piments choisis au départ</h3>' + split(c, 'piment', { 1: 'Tendre', 2: 'Pimenté', 3: 'Brûlant', 12: 'Tendre + Pimenté', 13: 'Tendre + Brûlant', 23: 'Pimenté + Brûlant', 123: 'Les trois' }) + '</div>' +
+        '<div><h3 class="sh">Temps jusqu’au premier kiff kiff</h3>' + split(c, 'premier', { 'moins-5': 'Moins de 5 min', '5-15': '5 à 15 min', '15-60': '15 min à 1 h', '1h-1j': '1 h à 1 jour', 'plus-1j': 'Plus d’un jour', inconnu: 'Inconnu' }) + '</div>' +
+        '<div><h3 class="sh">D’où l’on ouvre le jeu</h3>' + split(c, 'visite', { web: 'Navigateur', installee: 'Appli installée', invitation: 'Lien d’invitation', reprise: 'Retour dans une partie' }) + '</div></div>' +
+      '<h2 class="sec">Bouche-à-oreille et soutien</h2><div class="kpis">' +
+        kpi(fmt((c['partage:fenetre-fete'] || 0) + (c['partage:fenetre-accueil'] || 0)), 'ouvertures de « Dealer du kiff »', fmt(c['partage:fenetre-fete'] || 0) + ' après un kiff kiff, ' + fmt(c['partage:fenetre-accueil'] || 0) + ' depuis l’accueil') +
+        kpi(fmt(partages), 'liens du jeu envoyés') + kpi(fmt(c['partage:prevenir'] || 0), '« Prévenir » touchés') +
+        kpi(p ? ((c.rejoint || 0) / p).toFixed(2).replace('.', ',') : '–', 'invités arrivés par partie', 'premier pas vers le coefficient K') +
+        kpi(fmt(c.cafe || 0), 'clics « Payez-moi un café »') + kpi(fmt(c.installe || 0), 'installations sur l’écran d’accueil') + '</div>';
+  }
+  // Valeur au survol des barres
+  const tip = document.createElement('div');
+  tip.className = 'tip'; tip.hidden = true; document.body.appendChild(tip);
+  document.addEventListener('pointermove', (e) => {
+    const g = e.target.closest && e.target.closest('.bar');
+    if (!g) { tip.hidden = true; return; }
+    tip.textContent = g.dataset.tip; tip.hidden = false;
+    tip.style.left = (e.clientX + 12) + 'px'; tip.style.top = (e.clientY - 30) + 'px';
+  });
+
   function renderStats() {
+    renderDash();
     const c = (stats && stats.compteurs) || {};
     ['kiff', 'partie', 'envie', 'passe'].forEach((k) => { $('#c-' + k).textContent = stats ? fmt(c[k] || 0) : '–'; });
     $('#rate').textContent = stats && c.envie ? Math.round(100 * (c.kiff || 0) / c.envie) + ' % des envies proposées sont devenues un kiff kiff.' : '';

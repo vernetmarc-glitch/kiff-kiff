@@ -6,6 +6,19 @@
 <meta name="theme-color" content="#2B040C">
 <title>Kiff Kiff</title>
 <meta name="description" content="Un jeu à deux : l’un·e propose une envie, l’autre peut changer une roue. Rien ne se passe sans deux « j’ai envie ».">
+<!-- Aperçu du lien (WhatsApp, Messages, applis de rencontre…) -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Kiff Kiff">
+<meta property="og:locale" content="fr_FR">
+<meta property="og:url" content="https://vernetmarc-glitch.github.io/roue-du-consentement/">
+<meta property="og:title" content="Kiff Kiff · le jeu où rien ne se passe sans deux « j’ai envie »">
+<meta property="og:description" content="Trois roues pour se proposer des envies, et ne vivre que celles dont vous avez envie tous les deux. Jeu à deux pour adultes, sur un téléphone ou à distance.">
+<meta property="og:image" content="https://vernetmarc-glitch.github.io/roue-du-consentement/icons/og-image.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Kiff Kiff : une carte « J’ai envie… que tu me masses le bas du dos avec lenteur et délectation. »">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="rating" content="adult">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icons/favicon.svg" type="image/svg+xml">
 <link rel="icon" href="icons/favicon-32.png" sizes="32x32" type="image/png">
@@ -17,10 +30,10 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,62..125,100..900;1,62..125,100..900&family=Bagel+Fat+One&family=Abril+Fatface&family=Merriweather:ital,opsz,wght@0,18..144,400..900;1,18..144,400..900&family=Baskervville:ital,wght@0,400..700;1,400..700&family=Jost:wght@300..700&family=Great+Vibes&family=Cinzel:wght@400..900&display=swap">
-<link rel="stylesheet" href="base.css?v=47">
-<link rel="stylesheet" href="skins/arty.css?v=47" data-skin-sheet="arty">
-<link rel="stylesheet" href="skins/pomme.css?v=47" data-skin-sheet="pomme">
-<link rel="stylesheet" href="skins/redcorner.css?v=47" data-skin-sheet="redcorner">
+<link rel="stylesheet" href="base.css?v=48">
+<link rel="stylesheet" href="skins/arty.css?v=48" data-skin-sheet="arty">
+<link rel="stylesheet" href="skins/pomme.css?v=48" data-skin-sheet="pomme">
+<link rel="stylesheet" href="skins/redcorner.css?v=48" data-skin-sheet="redcorner">
 <script>
 /* Ambiance : celle du lien (?design=redcorner ou #redcorner), sinon celle mémorisée.
    Appliquée avant l’affichage pour éviter un flash. */
@@ -134,6 +147,7 @@
             <button class="link-btn" id="duo-quit" type="button">Arrêter cette partie</button>
           </div>
           <button class="btn" id="welcome-go" type="button">Commencer</button>
+          <p class="age-note">Réservé aux adultes&nbsp;: en jouant, tu confirmes avoir 18&nbsp;ans ou plus.</p>
           <button class="link-btn resume-link" id="resume" type="button" hidden>Reprendre la partie en cours</button>
           <div class="games" id="games" hidden>
             <p class="games-title">Vos parties à deux</p>
@@ -206,6 +220,7 @@
           <p class="inv-from"><b class="inv-a">Cerise</b> t’invite à jouer, chacun·e sur son téléphone.</p>
           <p class="poster-sub">Trois roues pour se proposer des envies, et ne vivre que celles dont vous avez envie tous les deux.</p>
           <button class="btn" id="inv-go" type="button">Comment on joue&nbsp;?</button>
+          <p class="age-note">Réservé aux adultes&nbsp;: en jouant, tu confirmes avoir 18&nbsp;ans ou plus.</p>
         </div>
       </section>
 
@@ -436,9 +451,9 @@
   </div>
 </div>
 <!--/APP-->
-<script src="data.js?v=47"></script>
-<script src="config.js?v=47"></script>
-<script src="duo.js?v=47"></script>
-<script src="app.js?v=47"></script>
+<script src="data.js?v=48"></script>
+<script src="config.js?v=48"></script>
+<script src="duo.js?v=48"></script>
+<script src="app.js?v=48"></script>
 </body>
 </html>

@@ -666,3 +666,6 @@ body:has(#ov-deal:not([hidden])) .deco-candles { display: none; }
 .kiffs-text { margin: 0; font-family: var(--f-display, inherit); font-size: 16.5px; line-height: 1.3; }
 .kiffs-meta { margin: 4px 0 0; font-size: 13px; opacity: .7; }
 .game-count { font-weight: 500; opacity: .75; }
+
+/* Déclaration d’âge, discrète sous le bouton de départ */
+.age-note { align-self: stretch; margin: -4px 0 0; font-size: 12.5px; line-height: 1.35; text-align: center; opacity: .72; }
