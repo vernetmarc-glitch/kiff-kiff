@@ -30,10 +30,10 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,62..125,100..900;1,62..125,100..900&family=Bagel+Fat+One&family=Abril+Fatface&family=Merriweather:ital,opsz,wght@0,18..144,400..900;1,18..144,400..900&family=Baskervville:ital,wght@0,400..700;1,400..700&family=Jost:wght@300..700&family=Great+Vibes&family=Cinzel:wght@400..900&display=swap">
-<link rel="stylesheet" href="base.css?v=49">
-<link rel="stylesheet" href="skins/arty.css?v=49" data-skin-sheet="arty">
-<link rel="stylesheet" href="skins/pomme.css?v=49" data-skin-sheet="pomme">
-<link rel="stylesheet" href="skins/redcorner.css?v=49" data-skin-sheet="redcorner">
+<link rel="stylesheet" href="base.css?v=50">
+<link rel="stylesheet" href="skins/arty.css?v=50" data-skin-sheet="arty">
+<link rel="stylesheet" href="skins/pomme.css?v=50" data-skin-sheet="pomme">
+<link rel="stylesheet" href="skins/redcorner.css?v=50" data-skin-sheet="redcorner">
 <script>
 /* Ambiance : celle du lien (?design=redcorner ou #redcorner), sinon celle mémorisée.
    Appliquée avant l’affichage pour éviter un flash. */
@@ -141,6 +141,7 @@
           <p class="poster-neon" aria-hidden="true">Red Corner</p>
           <h2 class="poster-title"><span class="ink" data-ink="Kiff">Kiff</span><span class="ink" data-ink="Kiff">Kiff</span><span class="poster-venue"> au Nostra</span></h2>
           <p class="poster-sub">Trois roues pour se proposer des envies, et ne vivre que celles dont vous avez envie tous les deux.</p>
+          <button class="week" id="week" type="button" aria-describedby="week-label"><span class="week-label" id="week-label">La formule de la semaine</span><span class="week-text" id="week-text" aria-live="polite"></span><span class="week-more" aria-hidden="true">Touche pour en tirer une autre</span></button>
           <div class="duo-home" id="duo-home" hidden>
             <p class="duo-home-text" id="duo-home-text"></p>
             <button class="btn" id="duo-resume" type="button">Reprendre la partie</button>
@@ -200,6 +201,7 @@
           <p class="step-text">Touche les niveaux que vous voulez dans les roues.</p>
           <div class="piment-list" id="piment-home-list" role="group" aria-labelledby="pick-title"></div>
           <p class="piment-error" id="piment-home-error" hidden role="alert">Garde au moins un niveau coché.</p>
+          <label class="rencontre" id="rencontre-box" hidden><input type="checkbox" id="rencontre"><span><b>On ne s’est pas encore vus.</b> On commence en Tendre ; le piment ne montera que si vous êtes d’accord tous les deux.</span></label>
           <button class="btn" id="piment-go" type="button">C’est parti</button>
           <button class="link-btn step-back" type="button">Retour</button>
         </div>
@@ -418,6 +420,7 @@
     <h2 class="party-title"><span class="ink ink--flat" data-ink="Kiff Kiff !">Kiff Kiff !</span></h2>
     <p class="party-venue">au Red Corner du Nostra</p>
     <p class="party-sentence" id="party-sentence"></p>
+    <button class="link-btn party-image" id="party-image" type="button">Partager cette phrase en image</button>
     <p class="party-text">Prenez votre temps. Revenez quand c’est fait.</p>
     <p class="party-count" id="party-count" hidden><span id="party-count-text"></span> <button class="link-btn" id="party-history" type="button" aria-haspopup="dialog">Revoir vos kiff kiff</button></p>
     <button class="btn btn--paper" id="party-next" type="button"></button>
@@ -425,6 +428,7 @@
   </div>
   <div class="party-foot">
     <button class="btn btn--line party-deal" id="party-deal" type="button" aria-haspopup="dialog">Vous avez kiffé&nbsp;? Faites tourner&nbsp;!</button>
+    <button class="btn btn--line party-deal" id="party-install" type="button" hidden>Garder Kiff Kiff sur ton écran d’accueil</button>
   </div>
 </div>
 
@@ -446,14 +450,14 @@
     <button class="btn" id="deal-share" type="button">Envoyer le lien</button>
     <p class="deal-done" id="deal-done" hidden role="status"></p>
     <p class="duo-text deal-money">Hello les loupiots, c’est Marc ici&nbsp;💃 Ça vous a plu, Kiff Kiff, vous voulez m’envoyer un peu du kiff en retour, ajouter des formules truculentes, demander des améliorations&nbsp;? C’est une excellente idée, on fait ça autour d’un café&nbsp;? 🥳</p>
-    <a class="btn btn--line coffee-go" id="coffee-go" href="https://buymeacoffee.com/MarcVernet" target="_blank" rel="noopener">Payez-moi un café</a>
+    <a class="btn btn--line coffee-go" id="coffee-go" href="https://buymeacoffee.com/MarcVernet" data-config="don" target="_blank" rel="noopener">Payez-moi un café</a>
     <button class="link-btn coffee-no" id="deal-close" type="button">Fermer</button>
   </div>
 </div>
 <!--/APP-->
-<script src="data.js?v=49"></script>
-<script src="config.js?v=49"></script>
-<script src="duo.js?v=49"></script>
-<script src="app.js?v=49"></script>
+<script src="data.js?v=50"></script>
+<script src="config.js?v=50"></script>
+<script src="duo.js?v=50"></script>
+<script src="app.js?v=50"></script>
 </body>
 </html>

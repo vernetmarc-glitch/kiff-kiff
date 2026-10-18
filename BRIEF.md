@@ -118,6 +118,19 @@ Kiff Kiff s’installe comme une appli (web app) : icône sur l’écran d’acc
 
 ## L’atelier (statistiques et mots)
 
+**Améliorations rapides (18 octobre 2026).**
+- Accueil : « La formule de la semaine », une phrase tirée de la semaine (la même pour tout le monde, puisée dans les formules les plus kiffées quand elles sont connues), qui roule comme les roues à l’ouverture ; la toucher en tire une autre « au hasard » (démonstration du jeu).
+- Qui a déjà joué saute l’écran « Le principe » (« Retour » le remontre).
+- Le premier tirage d’une partie puise dans les formules les plus kiffées (`meilleurs`, renvoyées par le script avec les mots ; à défaut, au hasard).
+- Après un kiff kiff, les roues se remélangent seules pour le tour suivant (sur le téléphone de qui compose).
+- Célébration : au premier kiff kiff, seulement « Garder Kiff Kiff sur ton écran d’accueil » quand c’est possible (une fois) ; « Vous avez kiffé ? Faites tourner ! » à partir du 2ᵉ ; « Partager cette phrase en image » (carte 1080×1350 aux couleurs du Red Corner, sans prénom, partage natif ou téléchargement).
+- Invitation à son nom : « Marc t’invite à jouer à Kiff Kiff : rien ne se passe sans deux « j’ai envie ». Ouvre ce lien sur ton téléphone. » ; « Copier le lien » copie ce message avec le lien.
+- Mode rencontre (étape piments, à deux téléphones) : « On ne s’est pas encore vus. » met le piment en Tendre ; l’invitation dit « Marc te propose un jeu avant de vous voir » et l’écran de l’invité·e « … Vous commencez en Tendre. ».
+- Les comptes partent groupés (`events`, une requête toutes les 2,5 s au plus, et à la fermeture).
+- Atelier, « Les mots » : « Peu kiffée : 1 kiff kiff sur 9 envies. À réécrire ? » ou « Très kiffée » sous chaque formule assez jouée (5 envies ou plus).
+- L’adresse de « Payez-moi un café » se règle dans `config.js` (`KIFF_DON`).
+- Pas encore faits : les notifications « À toi de jouer » (il faut un petit serveur) et le remplacement de Buy Me a Coffee (il faut ouvrir un compte chez un prestataire qui accepte le contenu adulte).
+
 **Mesure (phase 1, 18 octobre 2026).** Le jeu envoie des compteurs anonymes, sans identifiant ni phrase, et sans bandeau de consentement (mesure agrégée, dans l’esprit de l’exemption CNIL ; l’origine marketing des joueurs n’est pas mesurée) : `visite` (web, installée, invitation, reprise), `partie` (un, deux), `piment` (niveaux de départ), `invitation`, `rejoint`, `mais`, `premier` (temps jusqu’au premier kiff kiff : moins-5, 5-15, 15-60, 1h-1j, plus-1j), `monte` (oui, non), `partage` (fenetre-fete, fenetre-accueil, envoye, copie, invitation, invitation-copie, prevenir), `cafe`, `installe`, `historique`, en plus de `envie`, `kiff`, `passe`. Le script garde aussi un onglet `jours` (visite, partie, envie, kiff, rejoint par jour) et une colonne `cree` dans `parties`. L’onglet Statistiques de l’Atelier montre : l’entonnoir ouverture → partie → premier kiff kiff, deux courbes jour par jour sur 8 semaines (kiff kiff, ouvertures), le jeu à distance (invitations, taux de rejointes, parties actives sur 7 jours, coups par partie, retour à J+1, J+7, J+30), le jeu (taux de kiff, « Oui, mais… », passes, montées acceptées, répartitions un/deux téléphones, piments, temps au premier kiff, origine des ouvertures), le bouche-à-oreille (fenêtres « Dealer du kiff », liens envoyés, « Prévenir », invités par partie, clics café, installations). Aperçu du lien soigné (Open Graph, image `icons/og-image.jpg`) et mention « Réservé aux adultes : en jouant, tu confirmes avoir 18 ans ou plus » sous les boutons de départ.
 
 Page de travail : https://vernetmarc-glitch.github.io/roue-du-consentement/atelier/ (remplace l’ancien « Atelier des roues » en artifact).

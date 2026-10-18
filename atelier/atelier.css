@@ -188,3 +188,7 @@ main { max-width: 980px; margin: 0 auto; padding: 18px 16px 120px; }
   .funnel li { grid-template-columns: 130px minmax(0, 1fr) 96px; gap: 8px; font-size: 13.5px; }
   .split li { grid-template-columns: 120px minmax(0, 1fr) 86px; }
 }
+.perf { margin: 2px 0 0; padding-left: 80px; font-size: 13px; color: var(--muted); }
+.perf--weak { color: var(--warn); font-weight: 600; }
+.perf--good { color: var(--ok); font-weight: 600; }
+@media (max-width: 420px) { .perf { padding-left: 66px; } }

@@ -669,13 +669,27 @@
     render();
   }
 
-  function shuffle(includeDir) {
+  // Une case au hasard, ou parmi les formules les plus kiffées (premier tirage d’une partie)
+  const ROUE_KEYS = ['action', 'endroit', 'maniere'];
+  const labelOf = (x) => (x && !x.free ? (x.s || x.t || '') : '');
+  function pickIndex(r, best) {
+    const n = LISTS[r].length - 1; // la case texte libre ne sort pas au hasard
+    if (best) {
+      const m = (load('meilleurs', null) || {})[ROUE_KEYS[r]];
+      if (Array.isArray(m) && m.length) {
+        const c = [];
+        for (let i = 0; i < n; i++) if (m.includes(labelOf(LISTS[r][i]))) c.push(i);
+        if (c.length) return c[Math.floor(Math.random() * c.length)];
+      }
+    }
+    return Math.floor(Math.random() * n);
+  }
+  function shuffle(includeDir, best) {
     if (includeDir) { S.dir = Math.random() < 0.5 ? 'me' : 'te'; }
     pulse();
     let pending = 3;
     reels.forEach((rl, k) => {
-      // la case texte libre ne sort pas au hasard
-      const target = Math.floor(Math.random() * (rl.n - 1));
+      const target = pickIndex(k, best);
       rl.spinTo(target, 2 + k, 1100 + k * 380);
       const prev = rl.settle.bind(rl);
       rl.settle = () => {
@@ -916,7 +930,16 @@
     wk.hidden = !n;
     wk.textContent = 'Vos kiff kiff (' + n + ')';
   }
+  // Le pied de la célébration : une seule demande à la fois
+  function partyFoot() {
+    const n = kiffCount();
+    const askInstall = n <= 1 && installer.can() && !load('installAsked', false);
+    $('#party-install').hidden = !askInstall;
+    $('#party-deal').hidden = askInstall || n < 2;
+    document.querySelector('#ov-party .party-foot').hidden = $('#party-install').hidden && $('#party-deal').hidden;
+  }
   function partyCount() {
+    partyFoot();
     const n = kiffCount();
     $('#party-count').hidden = !n;
     $('#party-count-text').textContent = 'Votre ' + ordinal(n) + ' kiff kiff ensemble' + (n === 1 ? ' !' : '.');
@@ -1040,6 +1063,7 @@
     done.hidden = false;
     sClick(); haptic(8);
   });
+  if (window.KIFF_DON) $('#coffee-go').href = window.KIFF_DON;
   $('#coffee-go').addEventListener('click', () => { report('cafe'); sParty(); haptic(20); });
   $('#party-pass').addEventListener('click', () => {
     hide(el.ovParty);
@@ -1052,6 +1076,69 @@
     if (lateKiff) { partyNormal(); render(); showTurnModal(); renderWait(); return; }
     startComposition(other(S.proposer));
     if (duo) { sync(); renderWait(); }
+    if (!duo || myTurn()) setTimeout(() => { if (S.phase === 'compose' && myTurn()) shuffle(false); }, 500);
+  });
+
+  /* La phrase en image, sans prénom, prête à poster */
+  function wrapLines(ctx, text, maxW) {
+    const words = text.split(' '), lines = [];
+    let line = '';
+    words.forEach((w) => {
+      const t = line ? line + ' ' + w : w;
+      if (ctx.measureText(t).width > maxW && line) { lines.push(line); line = w; } else line = t;
+    });
+    if (line) lines.push(line);
+    return lines;
+  }
+  async function phraseImage(text) {
+    try { await Promise.all([document.fonts.load('64px "Great Vibes"'), document.fonts.load('60px "Baskervville"'), document.fonts.load('60px "Cinzel"'), document.fonts.load('30px "Jost"')]); } catch (e) { /* polices de secours */ }
+    const W = 1080, H = 1350, cv = document.createElement('canvas');
+    cv.width = W; cv.height = H;
+    const c = cv.getContext('2d');
+    const g = c.createLinearGradient(0, 0, W * 0.4, H);
+    g.addColorStop(0, '#7A0F24'); g.addColorStop(0.6, '#3A0510'); g.addColorStop(1, '#23030A');
+    c.fillStyle = g; c.fillRect(0, 0, W, H);
+    c.strokeStyle = '#C9A04E'; c.lineWidth = 4; c.strokeRect(36, 36, W - 72, H - 72);
+    c.lineWidth = 1.5; c.strokeRect(52, 52, W - 104, H - 104);
+    c.textAlign = 'center';
+    c.fillStyle = '#F6DDA0'; c.font = '600 72px "Cinzel", Georgia, serif';
+    c.fillText('KIFF KIFF', W / 2, 190);
+    // la carte
+    const cx = 110, cw = W - 220;
+    c.font = '58px "Baskervville", Georgia, serif';
+    const body = text.replace(/^J’ai envie\s+/, '');
+    const lines = wrapLines(c, body, cw - 120);
+    const ch = 200 + lines.length * 76, cy = (H - ch) / 2 + 30;
+    c.fillStyle = '#FBF3E6'; c.fillRect(cx, cy, cw, ch);
+    c.strokeStyle = '#C9A04E'; c.lineWidth = 3; c.strokeRect(cx + 14, cy + 14, cw - 28, ch - 28);
+    c.fillStyle = '#9C1A33'; c.font = '78px "Great Vibes", cursive';
+    c.fillText('J’ai envie…', W / 2, cy + 110);
+    c.fillStyle = '#2A0710'; c.font = '58px "Baskervville", Georgia, serif';
+    lines.forEach((l, i) => c.fillText(l, W / 2, cy + 190 + i * 76));
+    c.fillStyle = '#F7C7CF'; c.font = '46px "Great Vibes", cursive';
+    c.fillText('Rien ne se passe sans deux « j’ai envie »', W / 2, H - 200);
+    c.fillStyle = '#F6DDA0'; c.font = '30px "Jost", sans-serif';
+    c.fillText('vernetmarc-glitch.github.io/roue-du-consentement', W / 2, H - 130);
+    return new Promise((res) => cv.toBlob(res, 'image/png'));
+  }
+  $('#party-image').addEventListener('click', async () => {
+    audio(); sClick(); haptic(8);
+    const btn = $('#party-image');
+    const text = $('#party-sentence').textContent;
+    const blob = await phraseImage(text);
+    if (!blob) return;
+    const file = new File([blob], 'kiff-kiff.png', { type: 'image/png' });
+    report('partage', null, 'image');
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      try { await navigator.share({ files: [file], title: 'Kiff Kiff', text: 'Rien ne se passe sans deux « j’ai envie ». ' + APP_URL }); } catch (e) { /* annulé */ }
+      return;
+    }
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob); a.download = 'kiff-kiff.png';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+    btn.textContent = 'Image enregistrée';
+    setTimeout(() => { btn.textContent = 'Partager cette phrase en image'; }, 2200);
   });
 
   /* Confettis */
@@ -1296,7 +1383,8 @@
       lvOk: (S.lvOk || S.levels).slice(),
       kiff: S.kiff || null,
       kiffs: (S.kiffs || []).slice(-60),
-      t0: S.t0 || null
+      t0: S.t0 || null,
+      rencontre: !!S.rencontre
     };
   }
   function pushState(extra) {
@@ -1405,11 +1493,14 @@
     S.kiff = st.kiff || null;
     S.kiffs = Array.isArray(st.kiffs) ? st.kiffs.slice(-60) : [];
     S.t0 = st.t0 || S.t0 || null;
+    S.rencontre = !!st.rencontre;
     renderKiffs();
     rememberGame(st);
 
     const missed = !!S.kiff && S.phase !== 'celebrate' && S.kiff.n > kiffSeen(duo.info.room);
     if (S.phase === 'celebrate' && prev.phase !== 'celebrate') celebrate();
+    // L’autre a lancé le tour suivant et c’est à moi de composer : nouvelles roues
+    if (!opts.first && prev.phase === 'celebrate' && S.phase === 'compose' && myTurn()) setTimeout(() => { if (S.phase === 'compose' && myTurn()) shuffle(false); }, 700);
     else if (missed && !lateKiff) celebrateLate();
     if (S.phase !== 'celebrate' && !lateKiff && !el.ovParty.hidden) { hide(el.ovParty); stopConfetti(); }
     if (!myTurn() && !el.ovEdit.hidden) { hide(el.ovEdit); editing = -1; }
@@ -1556,7 +1647,7 @@
     S.t0 = Date.now();
     pushState();
     rememberGame({ phase: 'lobby', names: [name, ''] });
-    report('invitation');
+    report('invitation', null, S.rencontre ? 'rencontre' : 'classique');
     report('piment', null, S.levels.join(''));
     showInvite();
   }
@@ -1577,6 +1668,7 @@
   let invSteps = null;
   function showInvited(st) {
     const A = (st.names && st.names[0] || '').trim() || 'Cerise';
+    $('#ov-invited .inv-from').innerHTML = '<b class="inv-a"></b> ' + (st.rencontre ? 'te propose un jeu avant de vous voir, chacun·e sur son téléphone. Vous commencez en Tendre.' : 't’invite à jouer, chacun·e sur son téléphone.');
     document.querySelectorAll('#ov-invited .inv-a').forEach((b) => { b.textContent = A; });
     $('#inv-name-help').textContent = A + ' verra ton prénom sur son téléphone.';
     const lv = parseLevels(st.levels);
@@ -1633,7 +1725,8 @@
       next.lvOk = lv.slice();
       next.t0 = Date.now();
       report('rejoint');
-      next.keys = [0, 1, 2].map((r) => keyOf(r, Math.floor(Math.random() * (LISTS[r].length - 1))));
+      next.keys = [0, 1, 2].map((r) => keyOf(r, pickIndex(r, true)));
+      save('rulesSeen', true);
       next.original = null; next.bottom = false;
     }
     duo.resume = true;
@@ -1695,7 +1788,7 @@
     if (d && d.info && !keep) forgetGame(d.info.room);
     try { history.replaceState(null, '', location.pathname + location.search); } catch (e) { /* rien */ }
     hide(ovDuo); hide($('#ov-wait')); hide($('#ov-note')); hide($('#ov-invited')); hide(ovHot);
-    S.lvOk = null; S.kiff = null; S.kiffs = []; renderKiffs(); partyNormal();
+    S.lvOk = null; S.kiff = null; S.kiffs = []; S.rencontre = false; renderKiffs(); partyNormal();
     if (d && d.conn) {
       if (announce && (d.stage === 'game' || d.stage === 'invite')) {
         const st = Object.assign(snapshot(), { phase: 'ended', endBy: d.seat, seq: d.seq + 1, by: d.id });
@@ -1749,17 +1842,22 @@
     if (stage === 'invite') { leaveDuo(true); return; }
     leaveDuo(false, !!(duo && duo.resume) && ovDuo.dataset.retry !== 'ended');
   });
+  function inviteText() {
+    const me = (S.names[0] || '').trim();
+    const lead = S.rencontre ? (me ? me + ' te propose un jeu avant de vous voir : ' : 'On joue avant de se voir ? ') : (me ? me + ' t’invite à jouer à Kiff Kiff : ' : 'On joue à Kiff Kiff ? ');
+    return lead + 'rien ne se passe sans deux « j’ai envie ». Ouvre ce lien sur ton téléphone.';
+  }
   $('#duo-copy').addEventListener('click', async () => {
     const url = duo && duo.info ? window.KiffDuo.link(duo.info) : '';
     let ok = false;
-    try { await navigator.clipboard.writeText(url); ok = true; } catch (e) { ok = false; }
+    try { await navigator.clipboard.writeText(inviteText() + ' ' + url); ok = true; } catch (e) { ok = false; }
     if (ok) report('partage', null, 'invitation-copie');
-    $('#duo-copy').textContent = ok ? 'Lien copié' : 'Copie impossible';
+    $('#duo-copy').textContent = ok ? 'Invitation copiée' : 'Copie impossible';
     setTimeout(() => { $('#duo-copy').textContent = 'Copier le lien'; }, 1800);
   });
   $('#duo-send').addEventListener('click', () => {
     if (!duo || !duo.info) return;
-    navigator.share({ title: 'Kiff Kiff', text: 'On joue à Kiff Kiff ? Ouvre ce lien sur ton téléphone.', url: window.KiffDuo.link(duo.info) })
+    navigator.share({ title: 'Kiff Kiff', text: inviteText(), url: window.KiffDuo.link(duo.info) })
       .then(() => report('partage', null, 'invitation')).catch(() => {});
   });
   $('#wait-pass').addEventListener('click', () => el.pass.click());
@@ -1791,12 +1889,24 @@
   // Ce qui est envoyé : le type d’événement et, pour une envie ou un kiff kiff, le mot de chaque roue.
   // Jamais de prénom ni de texte écrit à la main.
   // detail : une variante courte (« un », « deux », « 123 »…), jamais une donnée de personne
+  // Les comptes partent groupés : une seule requête par moment de jeu (moins d’appels au script)
+  let queue = [], queueT = 0;
+  function flushReports() {
+    clearTimeout(queueT); queueT = 0;
+    if (!API || !queue.length) return;
+    const liste = queue.splice(0, 30);
+    try {
+      fetch(API, { method: 'POST', mode: 'no-cors', keepalive: true, body: JSON.stringify({ action: 'events', liste }) }).catch(() => {});
+    } catch (e) { /* rien */ }
+    if (queue.length) flushReports();
+  }
   function report(type, choix, detail) {
     if (!API) return;
-    try {
-      fetch(API, { method: 'POST', mode: 'no-cors', keepalive: true, body: JSON.stringify({ action: 'event', type, choix: choix || null, detail: detail || null }) }).catch(() => {});
-    } catch (e) { /* rien */ }
+    queue.push({ type, choix: choix || null, detail: detail || null });
+    if (!queueT) queueT = setTimeout(flushReports, 2500);
   }
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') flushReports(); });
+  window.addEventListener('pagehide', flushReports);
   const once = new Set(); // certains événements une seule fois par ouverture
   const reportOnce = (type, detail) => { const k = type + ':' + (detail || ''); if (once.has(k)) return; once.add(k); report(type, null, detail); };
   function choiceLabels() {
@@ -1819,6 +1929,7 @@
       .then((r) => r.json())
       .then((res) => {
         clearTimeout(t);
+        if (res && res.meilleurs && typeof res.meilleurs === 'object') { save('meilleurs', res.meilleurs); renderWeek(); }
         if (res && res.ok && validMots(res.mots) && res.version !== window.KIFF_MOTS_VERSION) {
           save('mots', { api: API, version: res.version, mots: res.mots });
           pendingMots = res;
@@ -1954,9 +2065,11 @@
       $('#rule-a').textContent = where === 'duo' ? 'L’autre' : nameOf(1);
       $('#rule-b').textContent = nameOf(0);
       $('#piment-go').textContent = where === 'duo' ? 'Inviter l’autre téléphone' : 'C’est parti';
+      $('#rencontre-box').hidden = where !== 'duo';
       save('where', where);
       sClick(); haptic(8);
-      goStep(2);
+      // Qui a déjà joué connaît le principe : on va droit aux piments (« Retour » le remontre)
+      goStep(load('rulesSeen', false) ? 3 : 2);
     };
     document.querySelectorAll('.where-btn').forEach((b) => b.addEventListener('click', () => {
       audio();
@@ -1969,7 +2082,13 @@
       if (e.key === 'Enter') { e.preventDefault(); if (where === 'here') $('#name1').focus(); else document.activeElement.blur(); }
     });
     $('#start-form').addEventListener('submit', (e) => { e.preventDefault(); audio(); toRules(); });
-    $('#rules-ok').addEventListener('click', () => { audio(); sClick(); haptic(8); goStep(3); });
+    $('#rules-ok').addEventListener('click', () => { audio(); sClick(); haptic(8); save('rulesSeen', true); goStep(3); });
+    // Mode rencontre : on commence en Tendre, l’invitation le dit
+    $('#rencontre').addEventListener('change', (e) => {
+      audio();
+      S.rencontre = e.target.checked;
+      if (S.rencontre) setLevels([1], { silent: true });
+    });
     homeSteps = makeSteps($('#steps'), $('#step-dots'), el.ovStart);
     renderLevel();
     // Reprendre la partie : garde le tour en cours, applique les prénoms éventuellement changés
@@ -2071,7 +2190,8 @@
     S.proposer = 1;
     S.phase = 'compose';
     render();
-    handoffNewTurn(1, 'C’est toi qui proposes en premier.', () => setTimeout(() => shuffle(false), 250));
+    save('rulesSeen', true);
+    handoffNewTurn(1, 'C’est toi qui proposes en premier.', () => setTimeout(() => shuffle(false, true), 250));
   }
 
   /* Accueil : les parties à deux en cours, avec à qui c’est le tour */
@@ -2124,7 +2244,7 @@
     try { history.replaceState(null, '', location.pathname + location.search); } catch (e) { /* rien */ }
     hide($('#ov-wait')); hide($('#ov-note')); hide(el.ovParty); stopConfetti();
     hideOffer(); hide(ovHot);
-    S.lvOk = null; S.kiff = null; S.kiffs = []; renderKiffs(); partyNormal();
+    S.lvOk = null; S.kiff = null; S.kiffs = []; S.rencontre = false; renderKiffs(); partyNormal();
     S.started = false;
     S.phase = 'start';
     S.names = load('names', ['', '']);
@@ -2186,13 +2306,63 @@
     renderDuoStatus();
   }
 
+  /* ---------- La formule de la semaine (et une démonstration du jeu) ---------- */
+  function phraseOf(a, o, m) {
+    const raw = a.s || '';
+    const tail = PREP_TAIL.exec(raw);
+    const prep = a.p || (tail ? (tail[1].toLowerCase() === 'à' ? 'à' : 'de') : '');
+    const act = raw.replace(PREP_TAIL, '');
+    let obj = o.t || o.s || '';
+    if (prep === 'de') obj = withDe(obj);
+    else if (prep === 'à' && !/^(à|au|aux)\s/i.test(obj)) obj = withA(obj);
+    const s = ('J’ai envie ' + glue(dirForm('me', act), act) + ' ' + obj + ' ' + (m.t || m.s || '')).replace(/\s+/g, ' ').trim();
+    return /[!?…]$/.test(s) ? s : s + '.';
+  }
+  function seeded(seed) { let t = seed >>> 0; return () => { t += 0x6D2B79F5; let r = Math.imul(t ^ (t >>> 15), 1 | t); r ^= r + Math.imul(r ^ (r >>> 7), 61 | r); return ((r ^ (r >>> 14)) >>> 0) / 4294967296; }; }
+  function randomPhrase(rnd, preferBest) {
+    const best = preferBest ? (load('meilleurs', null) || {}) : {};
+    const pick = (r) => {
+      const pool = SOURCE[r].filter((x) => (x.lvl || 1) <= 2);
+      const top = (best[ROUE_KEYS[r]] || []).map((w) => pool.find((x) => labelOf(x) === w)).filter(Boolean);
+      const from = top.length ? top : pool;
+      return from[Math.floor(rnd() * from.length)];
+    };
+    return phraseOf(pick(0), pick(1), pick(2));
+  }
+  let weekBusy = false, weekFinal = '', weekLabel = '';
+  function rollWeek(final, label) {
+    const el = $('#week-text');
+    if (!el) return;
+    weekFinal = final; weekLabel = label; // la dernière demande gagne, même pendant un tirage
+    const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduce) { el.textContent = final; $('#week-label').textContent = label; return; }
+    if (weekBusy) return;
+    weekBusy = true;
+    let k = 0;
+    const tick = () => {
+      if (k < 7) { el.textContent = randomPhrase(Math.random); el.classList.add('is-rolling'); k++; setTimeout(tick, 70 + k * 18); return; }
+      el.classList.remove('is-rolling');
+      el.textContent = weekFinal;
+      $('#week-label').textContent = weekLabel;
+      weekBusy = false;
+    };
+    tick();
+  }
+  function renderWeek() {
+    const week = Math.floor((Date.now() / 864e5 + 3) / 7);
+    rollWeek(randomPhrase(seeded(week * 7919), true), 'La formule de la semaine');
+  }
+  $('#week').addEventListener('click', () => { audio(); sClick(); haptic(8); rollWeek(randomPhrase(Math.random), 'Une autre, au hasard'); });
+
   /* ---------- Appli sur l’écran d’accueil ---------- */
+  const installer = { can: () => false, run: () => {} };
   function setupInstall() {
     if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
       navigator.serviceWorker.register('sw.js').catch(() => {});
     }
     const btn = $('#install');
     const standalone = () => (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true;
+    $('#party-install').addEventListener('click', () => { audio(); save('installAsked', true); installer.run(); partyFoot(); });
     if (standalone()) return;
     let deferred = null;
     // Android (Chrome, Edge, Samsung) : le navigateur propose l’installation, on la garde pour le bouton
@@ -2205,8 +2375,8 @@
     // iPhone : pas d’installation automatique, on explique le geste
     const ios = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
     if (ios) btn.hidden = false;
-    btn.addEventListener('click', async () => {
-      audio();
+    installer.can = () => !!deferred || (ios && !standalone());
+    installer.run = async () => {
       if (deferred) {
         deferred.prompt();
         try { await deferred.userChoice; } catch (e) { /* rien */ }
@@ -2215,10 +2385,12 @@
       } else if (ios) {
         note('Installer Kiff Kiff', 'Dans Safari, touche le bouton Partager (le carré avec une flèche), puis « Sur l’écran d’accueil ».');
       }
-    });
+    };
+    btn.addEventListener('click', () => { audio(); installer.run(); });
   }
 
   window.addEventListener('resize', renderReels);
   init();
   setupInstall();
+  renderWeek();
 })();

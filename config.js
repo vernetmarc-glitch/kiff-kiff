@@ -5,6 +5,9 @@
  *   Remplie : chaque téléphone envoie des comptes anonymes (parties, envies, kiff kiff, passes)
  *   et reçoit les mots modifiés dans l’atelier (data.js reste la liste de secours).
  */
+/* KIFF_DON : la page de soutien ouverte par « Payez-moi un café » (à changer en un seul endroit). */
+window.KIFF_DON = 'https://buymeacoffee.com/MarcVernet';
+
 window.KIFF_API = 'https://script.google.com/macros/s/AKfycby4c2tJl4cb1fWk3C86lt15OY6lEjUJZ7_Z5W9p3FC4PHAwSZu8nFSnQ5gPyx9rboI8Ug/exec';
 
 /* Les derniers mots reçus de l’atelier sont gardés sur le téléphone et servent dès l’ouverture. */

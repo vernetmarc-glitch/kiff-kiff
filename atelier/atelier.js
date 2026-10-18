@@ -46,6 +46,7 @@
     });
     store.set('tab', name);
     if (name === 'stats') loadStats();
+    if (name === 'mots' && !stats && api) loadStats().then(() => { if (!$('#panel-mots').hidden && !$('#savebar').classList.contains('is-dirty')) renderWords(); });
   }
   $$('.tabs button').forEach((b) => b.addEventListener('click', () => showTab(b.id.slice(4))));
 
@@ -234,6 +235,17 @@
   }
 
   const TRASH = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  // Ce que les joueurs en font : une formule souvent proposée mais rarement kiffée est à réécrire
+  function perfHtml(x) {
+    if (!stats || !stats.choix || !x.s) return '';
+    const c = stats.choix.find((y) => y.roue === roue && y.mot === x.s.trim());
+    if (!c || c.envies < 5) return '';
+    const r = c.kiffs / c.envies;
+    const txt = fmt(c.kiffs) + ' kiff kiff sur ' + fmt(c.envies) + ' envies';
+    if (r < 0.2) return '<p class="perf perf--weak">Peu kiffée : ' + txt + '. À réécrire ?</p>';
+    if (r >= 0.6) return '<p class="perf perf--good">Très kiffée : ' + txt + '</p>';
+    return '<p class="perf">' + txt + '</p>';
+  }
   function rowHtml(x) {
     const lvl = [1, 2, 3].map((n) => '<button type="button" data-lvl="' + n + '" aria-pressed="' + (x.lvl === n) + '" aria-label="' + NIV[n - 1].nom + '">' + n + '</button>').join('');
     let fields;
@@ -247,7 +259,7 @@
         '<div class="opts"><label><input type="checkbox" data-k="two"' + (x.two ? ' checked' : '') + '> change selon le sens (mon / ton…)</label></div>';
     }
     return '<div class="word' + (x.isNew ? ' is-new' : '') + '" data-id="' + x.id + '"><div class="lvl" role="group" aria-label="Piment">' + lvl + '</div>' +
-      '<div class="fields">' + fields + '</div><button class="del" type="button" aria-label="Supprimer">' + TRASH + '</button></div>';
+      '<div class="fields">' + fields + perfHtml(x) + '</div><button class="del" type="button" aria-label="Supprimer">' + TRASH + '</button></div>';
   }
   function renderWords() {
     $$('.wheels button').forEach((b) => b.setAttribute('aria-selected', b.dataset.roue === roue ? 'true' : 'false'));

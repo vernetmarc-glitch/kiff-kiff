@@ -40,6 +40,11 @@ function doPost(e) {
   let corps = {};
   try { corps = JSON.parse((e && e.postData && e.postData.contents) || '{}'); } catch (err) { return sortie({ ok: false, erreur: 'json' }); }
   if (corps.action === 'event') return sortie(noterEvenement(corps));
+  if (corps.action === 'events' && Array.isArray(corps.liste)) {
+    // Plusieurs comptes d’un coup (un seul appel par écran) : moins de requêtes, quotas tenus
+    corps.liste.slice(0, 30).forEach(function (ev) { if (ev && typeof ev === 'object') noterEvenement(ev); });
+    return sortie({ ok: true });
+  }
   if (corps.action === 'partie') return sortie(ecrirePartie(corps));
   if (corps.action === 'check') return sortie({ ok: String(corps.motDePasse || '') === MOT_DE_PASSE });
   if (corps.action === 'save') {
@@ -108,7 +113,7 @@ function lireMots() {
       else if (roue === 'maniere') res.manieres.push(x);
     });
   const complet = res.actions.length > 2 && res.objets.length > 2 && res.manieres.length > 2;
-  return { ok: true, version: PropertiesService.getScriptProperties().getProperty('version') || '', mots: complet ? res : null };
+  return { ok: true, version: PropertiesService.getScriptProperties().getProperty('version') || '', mots: complet ? res : null, meilleurs: lireMeilleurs() };
 }
 
 function ecrireMots(m) {
@@ -211,6 +216,19 @@ function lireStats() {
     .map(function (l) { return { jour: l[0] instanceof Date ? Utilities.formatDate(l[0], 'Europe/Paris', 'yyyy-MM-dd') : String(l[0]), type: String(l[1]), n: Number(l[2]) || 0 }; })
     .filter(function (l) { return l.jour >= depuis; });
   return { ok: true, compteurs: compteurs, choix: choix, jours: jours, distance: lireDistance() };
+}
+
+/* Les formules qui marchent le mieux, par roue : le premier tirage d’une partie y puise */
+function lireMeilleurs() {
+  const res = { action: [], endroit: [], maniere: [] };
+  const v = feuille('choix', ENT_CHOIX).getDataRange().getValues().slice(1);
+  ROUES.forEach(function (r) {
+    res[r] = v.filter(function (l) { return l[0] === r && (Number(l[3]) || 0) >= 2 && l[1] !== '(texte libre)'; })
+      .map(function (l) { return { mot: String(l[1]), score: ((Number(l[3]) || 0) + 1) / ((Number(l[2]) || 0) + 2) }; })
+      .sort(function (a, b) { return b.score - a.score; })
+      .slice(0, 8).map(function (x) { return x.mot; });
+  });
+  return res;
 }
 
 /* Les parties à deux téléphones, vues de loin : combien, encore jouées, depuis quand (rien n’est déchiffré) */
