@@ -17,10 +17,10 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,62..125,100..900;1,62..125,100..900&family=Bagel+Fat+One&family=Abril+Fatface&family=Merriweather:ital,opsz,wght@0,18..144,400..900;1,18..144,400..900&family=Baskervville:ital,wght@0,400..700;1,400..700&family=Jost:wght@300..700&family=Great+Vibes&family=Cinzel:wght@400..900&display=swap">
-<link rel="stylesheet" href="base.css?v=45">
-<link rel="stylesheet" href="skins/arty.css?v=45" data-skin-sheet="arty">
-<link rel="stylesheet" href="skins/pomme.css?v=45" data-skin-sheet="pomme">
-<link rel="stylesheet" href="skins/redcorner.css?v=45" data-skin-sheet="redcorner">
+<link rel="stylesheet" href="base.css?v=47">
+<link rel="stylesheet" href="skins/arty.css?v=47" data-skin-sheet="arty">
+<link rel="stylesheet" href="skins/pomme.css?v=47" data-skin-sheet="pomme">
+<link rel="stylesheet" href="skins/redcorner.css?v=47" data-skin-sheet="redcorner">
 <script>
 /* Ambiance : celle du lien (?design=redcorner ou #redcorner), sinon celle mémorisée.
    Appliquée avant l’affichage pour éviter un flash. */
@@ -89,6 +89,7 @@
 
   <p class="switch switch--top is-static" id="sw-top" aria-checked="true">
     <span class="sw-text"><span class="sw-label ink" data-ink="J’ai envie…">J’ai envie…</span><span class="sw-owner" id="owner-top"></span></span>
+    <button class="sticker kiffs-btn" id="kiffs-open" type="button" aria-haspopup="dialog" hidden><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M12 20.5s-7.5-4.6-7.5-10.2A4.3 4.3 0 0 1 12 7.6a4.3 4.3 0 0 1 7.5 2.7c0 5.6-7.5 10.2-7.5 10.2z" fill="currentColor"/></svg><span class="kiffs-n" id="kiffs-n"></span><span class="kiffs-word">kiff kiff</span></button>
   </p>
 
   <section class="press" id="cabinet" aria-label="La phrase">
@@ -300,6 +301,7 @@
     <div class="wait-links">
       <button class="link-btn" id="wait-pass" type="button">On passe</button>
       <button class="link-btn" id="wait-home" type="button">Accueil</button>
+      <button class="link-btn" id="wait-kiffs" type="button" hidden></button>
     </div>
   </div>
 </div>
@@ -402,11 +404,22 @@
     <p class="party-venue">au Red Corner du Nostra</p>
     <p class="party-sentence" id="party-sentence"></p>
     <p class="party-text">Prenez votre temps. Revenez quand c’est fait.</p>
+    <p class="party-count" id="party-count" hidden><span id="party-count-text"></span> <button class="link-btn" id="party-history" type="button" aria-haspopup="dialog">Revoir vos kiff kiff</button></p>
     <button class="btn btn--paper" id="party-next" type="button"></button>
     <button class="link-btn" id="party-pass" type="button">Finalement, on passe</button>
   </div>
   <div class="party-foot">
     <button class="btn btn--line party-deal" id="party-deal" type="button" aria-haspopup="dialog">Vous avez kiffé&nbsp;? Faites tourner&nbsp;!</button>
+  </div>
+</div>
+
+<!-- L’historique des kiff kiff trouvés ensemble -->
+<div class="overlay overlay--edit overlay--skins" id="ov-kiffs" hidden role="dialog" aria-modal="true" aria-labelledby="kiffs-title">
+  <div class="sheet sheet--edit sheet--skins sheet--kiffs">
+    <h2 class="edit-label" id="kiffs-title">Vos kiff kiff</h2>
+    <p class="duo-text kiffs-count" id="kiffs-count"></p>
+    <ol class="kiffs-list" id="kiffs-list"></ol>
+    <div class="row row--end"><button class="btn" id="kiffs-close" type="button">Fermer</button></div>
   </div>
 </div>
 
@@ -423,9 +436,9 @@
   </div>
 </div>
 <!--/APP-->
-<script src="data.js?v=45"></script>
-<script src="config.js?v=45"></script>
-<script src="duo.js?v=45"></script>
-<script src="app.js?v=45"></script>
+<script src="data.js?v=47"></script>
+<script src="config.js?v=47"></script>
+<script src="duo.js?v=47"></script>
+<script src="app.js?v=47"></script>
 </body>
 </html>

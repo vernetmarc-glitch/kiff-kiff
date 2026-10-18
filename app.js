@@ -58,6 +58,7 @@
     levels: parseLevels(window.KIFF_LEVELS || load('levels', [1, 2])),
     lvOk: null, // à deux téléphones : les niveaux de piment acceptés par les deux
     kiff: null, // à deux téléphones : le dernier kiff kiff trouvé { n, text, by }
+    kiffs: [], // l’historique de la partie : [{ t: phrase, w: qui l’a proposée, d: date }]
     started: false,
     bottom: false,
     pass: null
@@ -621,7 +622,7 @@
     if (!myTurn() || (offerKind === 'offer' && S.phase !== 'review') || (offerKind === 'reconfirm' && S.phase !== 'reconfirm')) return;
     hideOffer();
     sSwitchOn(); haptic(15);
-    report('kiff', choiceLabels());
+    report('kiff', choiceLabels()); pushKiff();
     if (duo) { S.phase = 'celebrate'; noteKiff(); sync(); }
     setTimeout(celebrate, 220);
   });
@@ -710,7 +711,7 @@
     if (S.phase !== 'adjust' || !myTurn() || reels.some((r) => r.busy) || blockedByFree()) return;
     sSwitchOn(); haptic(15);
     if (!changes().length) {
-      report('kiff', choiceLabels());
+      report('kiff', choiceLabels()); pushKiff();
       if (duo) { S.phase = 'celebrate'; noteKiff(); sync(); }
       setTimeout(celebrate, 220);
       return;
@@ -890,6 +891,56 @@
   /* Kiff kiff à distance : chaque téléphone doit voir sa célébration, même s’il revient
      après que l’autre est déjà passé au tour suivant. L’état partagé garde le dernier kiff
      trouvé ; chaque téléphone retient le dernier qu’il a fêté. */
+  // L’historique : gardé dans l’état partagé à deux téléphones, en mémoire sur un seul
+  function pushKiff() {
+    S.kiffs = (S.kiffs || []).concat({ t: sentence(), w: nameOf(S.proposer), d: Date.now() }).slice(-60);
+    renderKiffs();
+  }
+  const kiffCount = () => Math.max((S.kiffs || []).length, S.kiff ? S.kiff.n : 0);
+  const ordinal = (n) => (n === 1 ? 'premier' : n + 'ᵉ');
+  function renderKiffs() {
+    const n = kiffCount();
+    const B = duo ? nameOf(other(duo.seat)) : '';
+    const btn = $('#kiffs-open');
+    btn.hidden = !n;
+    $('#kiffs-n').textContent = n || '';
+    btn.setAttribute('aria-label', n + ' kiff kiff trouvé' + (n > 1 ? 's' : '') + (B ? ' avec ' + B : ' ensemble') + '. Voir l’historique');
+    const wk = $('#wait-kiffs');
+    wk.hidden = !n;
+    wk.textContent = 'Vos kiff kiff (' + n + ')';
+  }
+  function partyCount() {
+    const n = kiffCount();
+    $('#party-count').hidden = !n;
+    $('#party-count-text').textContent = 'Votre ' + ordinal(n) + ' kiff kiff ensemble' + (n === 1 ? ' !' : '.');
+    $('#party-history').hidden = (S.kiffs || []).length < 2;
+  }
+  const ovKiffs = $('#ov-kiffs');
+  let kiffsFrom = null;
+  const MOIS = ['janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.'];
+  const dayOf = (ms) => { const d = new Date(ms); return d.getDate() + ' ' + MOIS[d.getMonth()] + (d.getFullYear() !== new Date().getFullYear() ? ' ' + d.getFullYear() : ''); };
+  function openKiffs(e) {
+    audio(); sClick(); haptic(8);
+    kiffsFrom = e && e.currentTarget;
+    const list = (S.kiffs || []).slice().reverse();
+    const n = kiffCount();
+    const B = duo ? nameOf(other(duo.seat)) : '';
+    $('#kiffs-title').textContent = B ? 'Vos kiff kiff avec ' + B : 'Vos kiff kiff';
+    $('#kiffs-count').textContent = n + ' kiff kiff trouvé' + (n > 1 ? 's' : '') + ' ensemble' +
+      (n > list.length ? ' (les plus anciens datent d’avant l’historique).' : '.');
+    $('#kiffs-list').innerHTML = list.map((k) => '<li class="kiffs-item"><p class="kiffs-text">' + esc(k.t || '') + '</p>' +
+      '<p class="kiffs-meta">Envie de ' + esc(k.w || '…') + (k.d ? ' · ' + dayOf(k.d) : '') + '</p></li>').join('');
+    show(ovKiffs);
+    $('#kiffs-close').focus({ preventScroll: true });
+  }
+  const closeKiffs = () => { hide(ovKiffs); if (kiffsFrom) kiffsFrom.focus({ preventScroll: true }); };
+  $('#kiffs-open').addEventListener('click', openKiffs);
+  $('#wait-kiffs').addEventListener('click', openKiffs);
+  $('#party-history').addEventListener('click', openKiffs);
+  $('#kiffs-close').addEventListener('click', () => { audio(); closeKiffs(); });
+  ovKiffs.addEventListener('click', (e) => { if (e.target === ovKiffs) closeKiffs(); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !ovKiffs.hidden) closeKiffs(); });
+
   function noteKiff() {
     S.kiff = { n: (S.kiff ? S.kiff.n : 0) + 1, text: sentence(), by: duo.seat };
     markKiffSeen();
@@ -916,6 +967,7 @@
     $('.party-text').textContent = (by === duo.seat ? 'Vous avez dit oui tous les deux.' : nameOf(by) + ' a dit oui pendant ton absence.') + ' Prenez votre temps. Revenez quand c’est fait.';
     $('#party-next').textContent = 'Voir la suite de la partie';
     $('#party-pass').hidden = true;
+    partyCount();
     show(el.ovParty);
     pulse();
     sParty(); haptic(40);
@@ -928,6 +980,7 @@
     document.body.dataset.phase = 'celebrate';
     $('#party-sentence').textContent = sentence();
     $('#party-next').textContent = 'C’est fait ! À ' + nameOf(other(S.proposer)) + ' de proposer';
+    partyCount();
     markKiffSeen();
     show(el.ovParty);
     pulse();
@@ -1192,7 +1245,8 @@
     const list = games().filter((g) => g.room !== duo.info.room);
     list.unshift({
       room: duo.info.room, key: duo.info.key, broker: duo.info.broker, seat: duo.seat, id: duo.id,
-      names: (st.names || ['', '']).slice(0, 2), turn: turnFor(st, duo.seat), kiff: st.kiff ? st.kiff.n : 0, t: Date.now()
+      names: (st.names || ['', '']).slice(0, 2), turn: turnFor(st, duo.seat), kiff: st.kiff ? st.kiff.n : 0,
+      nk: Math.max(Array.isArray(st.kiffs) ? st.kiffs.length : 0, st.kiff ? st.kiff.n : 0), t: Date.now()
     });
     save('parties', list.slice(0, 40));
   }
@@ -1229,7 +1283,8 @@
       original: S.original ? { keys: keys(S.original.idx), custom: S.original.custom.slice(), dir: S.original.dir } : null,
       bottom: !!S.bottom, pass: S.pass || null,
       lvOk: (S.lvOk || S.levels).slice(),
-      kiff: S.kiff || null
+      kiff: S.kiff || null,
+      kiffs: (S.kiffs || []).slice(-60)
     };
   }
   function pushState(extra) {
@@ -1336,6 +1391,8 @@
     S.pass = st.pass || null;
     S.lvOk = parseLevels(st.lvOk || st.levels);
     S.kiff = st.kiff || null;
+    S.kiffs = Array.isArray(st.kiffs) ? st.kiffs.slice(-60) : [];
+    renderKiffs();
     rememberGame(st);
 
     const missed = !!S.kiff && S.phase !== 'celebrate' && S.kiff.n > kiffSeen(duo.info.room);
@@ -1408,7 +1465,8 @@
     $('#wait-nudge').textContent = 'Prévenir ' + B;
     $('#wait-later').hidden = !away;
     const ht = $('#duo-home-text');
-    if (ht) ht.textContent = 'En cours : partie à deux avec ' + B + (msg ? '. ' + msg : ', connecté·e.');
+    const nk = kiffCount();
+    if (ht) ht.textContent = 'En cours : partie à deux avec ' + B + (msg ? '. ' + msg : ', connecté·e.') + (nk ? ' ' + nk + ' kiff kiff ensemble.' : '');
   }
 
   const duoHandlers = {
@@ -1481,6 +1539,7 @@
     S.original = null; S.bottom = false; S.pass = null;
     S.custom = ['', '', ''];
     S.lvOk = S.levels.slice(); // l’invité·e les voit avant de rejoindre : rejoindre, c’est les accepter
+    S.kiff = null; S.kiffs = [];
     pushState();
     rememberGame({ phase: 'lobby', names: [name, ''] });
     showInvite();
@@ -1618,7 +1677,7 @@
     if (d && d.info && !keep) forgetGame(d.info.room);
     try { history.replaceState(null, '', location.pathname + location.search); } catch (e) { /* rien */ }
     hide(ovDuo); hide($('#ov-wait')); hide($('#ov-note')); hide($('#ov-invited')); hide(ovHot);
-    S.lvOk = null; S.kiff = null; partyNormal();
+    S.lvOk = null; S.kiff = null; S.kiffs = []; renderKiffs(); partyNormal();
     if (d && d.conn) {
       if (announce && (d.stage === 'game' || d.stage === 'invite')) {
         const st = Object.assign(snapshot(), { phase: 'ended', endBy: d.seat, seq: d.seq + 1, by: d.id });
@@ -1977,6 +2036,7 @@
     applyPendingMots();
     report('partie');
     hide(el.ovStart);
+    S.kiff = null; S.kiffs = []; renderKiffs();
     S.started = true;
     S.mustRestart = false;
     // La deuxième personne propose en premier : on lui passe le téléphone
@@ -2005,7 +2065,7 @@
         : g.turn === 'lobby' ? (g.seat === 0 ? 'Personne n’a encore rejoint' : 'À rejoindre')
         : 'Au tour de ' + (B || 'l’autre');
       return '<li class="game' + (g.turn === 'me' || fresh(g) ? ' is-mine' : '') + (fresh(g) ? ' is-kiff' : '') + '"><button class="game-btn" type="button" data-room="' + esc(g.room) + '">' +
-        '<span class="game-who">' + esc(who) + '</span><span class="game-turn">' + esc(turn) + '</span></button>' +
+        '<span class="game-who">' + esc(who) + (g.nk ? '<span class="game-count"> · ' + g.nk + ' kiff kiff</span>' : '') + '</span><span class="game-turn">' + esc(turn) + '</span></button>' +
         '<button class="game-x" type="button" data-forget="' + esc(g.room) + '" aria-label="Retirer cette partie de la liste">×</button></li>';
     }).join('');
   }
@@ -2020,7 +2080,8 @@
       const st = found[g.room];
       if (!st) return g;
       if (st.phase === 'ended') return null;
-      return Object.assign({}, g, { names: (st.names || g.names || ['', '']).slice(0, 2), turn: turnFor(st, g.seat), kiff: st.kiff ? st.kiff.n : 0 });
+      return Object.assign({}, g, { names: (st.names || g.names || ['', '']).slice(0, 2), turn: turnFor(st, g.seat), kiff: st.kiff ? st.kiff.n : 0,
+        nk: Math.max(Array.isArray(st.kiffs) ? st.kiffs.length : 0, st.kiff ? st.kiff.n : 0) });
     }).filter(Boolean);
     save('parties', next);
     if (!el.ovStart.hidden) renderGames();
@@ -2035,7 +2096,7 @@
     try { history.replaceState(null, '', location.pathname + location.search); } catch (e) { /* rien */ }
     hide($('#ov-wait')); hide($('#ov-note')); hide(el.ovParty); stopConfetti();
     hideOffer(); hide(ovHot);
-    S.lvOk = null; S.kiff = null; partyNormal();
+    S.lvOk = null; S.kiff = null; S.kiffs = []; renderKiffs(); partyNormal();
     S.started = false;
     S.phase = 'start';
     S.names = load('names', ['', '']);
