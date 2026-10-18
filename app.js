@@ -57,6 +57,7 @@
     muted: load('muted', false),
     levels: parseLevels(window.KIFF_LEVELS || load('levels', [1, 2])),
     lvOk: null, // à deux téléphones : les niveaux de piment acceptés par les deux
+    kiff: null, // à deux téléphones : le dernier kiff kiff trouvé { n, text, by }
     started: false,
     bottom: false,
     pass: null
@@ -621,7 +622,7 @@
     hideOffer();
     sSwitchOn(); haptic(15);
     report('kiff', choiceLabels());
-    if (duo) { S.phase = 'celebrate'; sync(); }
+    if (duo) { S.phase = 'celebrate'; noteKiff(); sync(); }
     setTimeout(celebrate, 220);
   });
   $('#offer-but').addEventListener('click', () => {
@@ -710,7 +711,7 @@
     sSwitchOn(); haptic(15);
     if (!changes().length) {
       report('kiff', choiceLabels());
-      if (duo) { S.phase = 'celebrate'; sync(); }
+      if (duo) { S.phase = 'celebrate'; noteKiff(); sync(); }
       setTimeout(celebrate, 220);
       return;
     }
@@ -886,11 +887,48 @@
   $('#edit-cancel').addEventListener('click', () => { hide(el.ovEdit); editInput.blur(); editing = -1; });
 
   /* Célébration */
+  /* Kiff kiff à distance : chaque téléphone doit voir sa célébration, même s’il revient
+     après que l’autre est déjà passé au tour suivant. L’état partagé garde le dernier kiff
+     trouvé ; chaque téléphone retient le dernier qu’il a fêté. */
+  function noteKiff() {
+    S.kiff = { n: (S.kiff ? S.kiff.n : 0) + 1, text: sentence(), by: duo.seat };
+    markKiffSeen();
+  }
+  const kiffSeen = (room) => (load('kiffSeen', {}) || {})[room] || 0;
+  function markKiffSeen() {
+    if (!duo || !duo.info || !S.kiff) return;
+    const m = load('kiffSeen', {}) || {};
+    if ((m[duo.info.room] || 0) >= S.kiff.n) return;
+    m[duo.info.room] = S.kiff.n;
+    save('kiffSeen', m);
+  }
+  let lateKiff = false;
+  function partyNormal() {
+    lateKiff = false;
+    $('#party-pass').hidden = false;
+    $('.party-text').textContent = 'Prenez votre temps. Revenez quand c’est fait.';
+  }
+  // La célébration manquée : d’abord le kiff kiff, ensuite la suite de la partie
+  function celebrateLate() {
+    lateKiff = true;
+    const by = S.kiff.by === 0 || S.kiff.by === 1 ? S.kiff.by : other(duo.seat);
+    $('#party-sentence').textContent = S.kiff.text;
+    $('.party-text').textContent = (by === duo.seat ? 'Vous avez dit oui tous les deux.' : nameOf(by) + ' a dit oui pendant ton absence.') + ' Prenez votre temps. Revenez quand c’est fait.';
+    $('#party-next').textContent = 'Voir la suite de la partie';
+    $('#party-pass').hidden = true;
+    show(el.ovParty);
+    pulse();
+    sParty(); haptic(40);
+    confetti();
+    markKiffSeen();
+  }
   function celebrate() {
+    partyNormal();
     S.phase = 'celebrate';
     document.body.dataset.phase = 'celebrate';
     $('#party-sentence').textContent = sentence();
     $('#party-next').textContent = 'C’est fait ! À ' + nameOf(other(S.proposer)) + ' de proposer';
+    markKiffSeen();
     show(el.ovParty);
     pulse();
     sParty(); haptic(40);
@@ -947,6 +985,7 @@
   $('#party-next').addEventListener('click', () => {
     hide(el.ovParty);
     stopConfetti();
+    if (lateKiff) { partyNormal(); render(); showTurnModal(); renderWait(); return; }
     startComposition(other(S.proposer));
     if (duo) { sync(); renderWait(); }
   });
@@ -1153,7 +1192,7 @@
     const list = games().filter((g) => g.room !== duo.info.room);
     list.unshift({
       room: duo.info.room, key: duo.info.key, broker: duo.info.broker, seat: duo.seat, id: duo.id,
-      names: (st.names || ['', '']).slice(0, 2), turn: turnFor(st, duo.seat), t: Date.now()
+      names: (st.names || ['', '']).slice(0, 2), turn: turnFor(st, duo.seat), kiff: st.kiff ? st.kiff.n : 0, t: Date.now()
     });
     save('parties', list.slice(0, 40));
   }
@@ -1189,7 +1228,8 @@
       keys: keys(S.idx), custom: S.custom.slice(),
       original: S.original ? { keys: keys(S.original.idx), custom: S.original.custom.slice(), dir: S.original.dir } : null,
       bottom: !!S.bottom, pass: S.pass || null,
-      lvOk: (S.lvOk || S.levels).slice()
+      lvOk: (S.lvOk || S.levels).slice(),
+      kiff: S.kiff || null
     };
   }
   function pushState(extra) {
@@ -1295,16 +1335,19 @@
     }
     S.pass = st.pass || null;
     S.lvOk = parseLevels(st.lvOk || st.levels);
+    S.kiff = st.kiff || null;
     rememberGame(st);
 
+    const missed = !!S.kiff && S.phase !== 'celebrate' && S.kiff.n > kiffSeen(duo.info.room);
     if (S.phase === 'celebrate' && prev.phase !== 'celebrate') celebrate();
-    if (S.phase !== 'celebrate' && !el.ovParty.hidden) { hide(el.ovParty); stopConfetti(); }
+    else if (missed && !lateKiff) celebrateLate();
+    if (S.phase !== 'celebrate' && !lateKiff && !el.ovParty.hidden) { hide(el.ovParty); stopConfetti(); }
     if (!myTurn() && !el.ovEdit.hidden) { hide(el.ovEdit); editing = -1; }
     if (arrived && S.phase !== 'celebrate') { sSwitchOn(); haptic(30); }
     renderReels();
     render();
     // La proposition (ou l’envie ajustée) arrive dans une modale ; un piment plus chaud s’accepte avant
-    showTurnModal();
+    if (!lateKiff) showTurnModal();
     renderWait();
   }
 
@@ -1575,7 +1618,7 @@
     if (d && d.info && !keep) forgetGame(d.info.room);
     try { history.replaceState(null, '', location.pathname + location.search); } catch (e) { /* rien */ }
     hide(ovDuo); hide($('#ov-wait')); hide($('#ov-note')); hide($('#ov-invited')); hide(ovHot);
-    S.lvOk = null;
+    S.lvOk = null; S.kiff = null; partyNormal();
     if (d && d.conn) {
       if (announce && (d.stage === 'game' || d.stage === 'invite')) {
         const st = Object.assign(snapshot(), { phase: 'ended', endBy: d.seat, seq: d.seq + 1, by: d.id });
@@ -1947,18 +1990,21 @@
   function renderGames() {
     const box = $('#games');
     const cur = duo && duo.stage === 'game' && duo.info ? duo.info.room : '';
-    const rank = { me: 0, party: 1, other: 2, lobby: 3 };
+    const rank = { kiff: -1, me: 0, party: 1, other: 2, lobby: 3 };
+    const fresh = (g) => (g.kiff || 0) > kiffSeen(g.room);
+    const key = (g) => rank[fresh(g) ? 'kiff' : g.turn] ?? 2;
     const list = games().filter((g) => g.room !== cur)
-      .sort((a, b) => ((rank[a.turn] ?? 2) - (rank[b.turn] ?? 2)) || ((b.t || 0) - (a.t || 0)));
+      .sort((a, b) => (key(a) - key(b)) || ((b.t || 0) - (a.t || 0)));
     box.hidden = !list.length;
     $('#games-list').innerHTML = list.map((g) => {
       const B = ((g.names || [])[1 - g.seat] || '').trim();
       const who = B ? 'Avec ' + B : (g.seat === 0 ? 'Invitation envoyée' : 'Partie à deux');
-      const turn = g.turn === 'me' ? 'À toi de jouer'
+      const turn = fresh(g) ? 'Kiff kiff trouvé ! Viens fêter ça'
+        : g.turn === 'me' ? 'À toi de jouer'
         : g.turn === 'party' ? 'Kiff kiff trouvé'
         : g.turn === 'lobby' ? (g.seat === 0 ? 'Personne n’a encore rejoint' : 'À rejoindre')
         : 'Au tour de ' + (B || 'l’autre');
-      return '<li class="game' + (g.turn === 'me' ? ' is-mine' : '') + '"><button class="game-btn" type="button" data-room="' + esc(g.room) + '">' +
+      return '<li class="game' + (g.turn === 'me' || fresh(g) ? ' is-mine' : '') + (fresh(g) ? ' is-kiff' : '') + '"><button class="game-btn" type="button" data-room="' + esc(g.room) + '">' +
         '<span class="game-who">' + esc(who) + '</span><span class="game-turn">' + esc(turn) + '</span></button>' +
         '<button class="game-x" type="button" data-forget="' + esc(g.room) + '" aria-label="Retirer cette partie de la liste">×</button></li>';
     }).join('');
@@ -1974,7 +2020,7 @@
       const st = found[g.room];
       if (!st) return g;
       if (st.phase === 'ended') return null;
-      return Object.assign({}, g, { names: (st.names || g.names || ['', '']).slice(0, 2), turn: turnFor(st, g.seat) });
+      return Object.assign({}, g, { names: (st.names || g.names || ['', '']).slice(0, 2), turn: turnFor(st, g.seat), kiff: st.kiff ? st.kiff.n : 0 });
     }).filter(Boolean);
     save('parties', next);
     if (!el.ovStart.hidden) renderGames();
@@ -1989,7 +2035,7 @@
     try { history.replaceState(null, '', location.pathname + location.search); } catch (e) { /* rien */ }
     hide($('#ov-wait')); hide($('#ov-note')); hide(el.ovParty); stopConfetti();
     hideOffer(); hide(ovHot);
-    S.lvOk = null;
+    S.lvOk = null; S.kiff = null; partyNormal();
     S.started = false;
     S.phase = 'start';
     S.names = load('names', ['', '']);
