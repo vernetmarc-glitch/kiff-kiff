@@ -68,7 +68,7 @@ Ces éléments se voient avant même d'ouvrir le jeu ; les changer plus tard cas
 | --- | --- |
 | Nom « Kiff Kiff » | Retenu ; disponibilité comme marque à vérifier (INPI) avant d'investir dans la notoriété |
 | Emblème : deux cercles qui se rejoignent, l'intersection allumée | En ligne depuis le 19 octobre 2026 : accueil, célébration, icône de l'appli, aperçu du lien, image partagée |
-| Domaine court (proposé : kiff-kiff.fr) | À acheter ; remplace l'adresse github.io qui montre le nom de Marc |
+| Domaine court kiff-kiff.fr | Acheté le 19 octobre 2026 chez OVHcloud, en ligne : l'adresse github.io ne sert plus que de passage |
 | Image de partage et aperçu du lien | Refaite le 19 octobre 2026 avec l'emblème ; l'image partagée porte un QR code vers le jeu. Le domaine court reste à brancher |
 
 Les ambiances, elles, restent un choix de la personne qui joue (voir `directives-design.md`).

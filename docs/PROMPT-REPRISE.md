@@ -8,9 +8,9 @@ Tu reprends le développement de **Kiff Kiff**, un jeu web de séduction et d'ex
 
 ## Le projet
 
-- Site : https://vernetmarc-glitch.github.io/roue-du-consentement/
-- Dépôt GitHub (public) : `vernetmarc-glitch/roue-du-consentement`, branche `main`. GitHub Pages sert les fichiers tels quels.
-- Atelier (statistiques et mots) : https://vernetmarc-glitch.github.io/roue-du-consentement/atelier/
+- Site : https://kiff-kiff.fr/ (domaine chez OVHcloud, servi par GitHub Pages ; l’ancienne adresse https://vernetmarc-glitch.github.io/roue-du-consentement/ est une page de passage qui emporte les parties des téléphones vers kiff-kiff.fr, dépôt `vernetmarc-glitch/roue-du-consentement`)
+- Dépôt GitHub (public) : `vernetmarc-glitch/kiff-kiff` (anciennement roue-du-consentement), branche `main`, avec le fichier `CNAME`. GitHub Pages sert les fichiers tels quels.
+- Atelier (statistiques et mots) : https://kiff-kiff.fr/atelier/
 - Le principe : trois rouleaux de machine à sous composent « J'ai envie [que tu me | de te] [action] [endroit] [manière] ». L'autre répond « J'ai envie aussi », « Oui, mais… » (change une seule chose) ou « On passe ». Une envie partagée est un « kiff kiff ».
 - Trois niveaux de piment (Tendre, Pimenté, Brûlant), qui se consentent à deux.
 - Jeu sur un téléphone, ou sur deux téléphones, même sans être connectés en même temps.

@@ -157,7 +157,7 @@ Rapide : une heure ou moins. Moyen : une demi-journée. Lourd : plusieurs jours.
 
 ## Partage et domaine (19 octobre 2026)
 
-- L'adresse actuelle (`vernetmarc-glitch.github.io/roue-du-consentement`) est longue et montre le nom de Marc.
+- L'ancienne adresse (`vernetmarc-glitch.github.io/roue-du-consentement`), longue et qui montrait le nom de Marc, est remplacée par kiff-kiff.fr depuis le 19 octobre 2026.
 - Solution retenue en proposition : un domaine court branché sur GitHub Pages (environ 10 € par an pour un .fr), et un QR code vers ce domaine sur l'image partagée.
 - Domaines non enregistrés au 19 octobre 2026 (vérification RDAP, à confirmer chez le registraire) : kiff-kiff.fr (préféré), kiffkiff.app, kiffkiff.net, lekiffkiff.fr, jeukiffkiff.fr, kiffkiffgame.com, deuxoui.fr. Pris : kiffkiff.fr, kiffkiff.com, kiff-kiff.com, kiff.app.
 - Attention au changement d'adresse : la liste des parties est gardée par adresse dans le navigateur ; les joueurs actuels perdent leurs parties en cours en passant au nouveau domaine. À faire tant qu'il y a peu de joueurs.
