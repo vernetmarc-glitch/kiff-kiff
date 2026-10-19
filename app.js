@@ -2421,8 +2421,11 @@
       note('M’avertir sur iPhone', 'Ajoute d’abord Kiff Kiff à ton écran d’accueil : dans Safari, touche Partager, puis « Sur l’écran d’accueil ». Les parties lancées depuis l’icône t’avertiront.');
       return;
     }
+    // L’autorisation a pu changer dans les réglages entre-temps : on relit avant de conclure
+    if (pushStatus === 'blocked') pushStatus = await KP.status();
     if (pushStatus === 'blocked') {
-      note('Avertissements bloqués', 'Ton navigateur refuse les avertissements de Kiff Kiff. Tu peux les autoriser dans ses réglages, pour ce site, puis toucher à nouveau la cloche.');
+      renderDuoStatus();
+      note('Avertissements bloqués', blockedHelp());
       return;
     }
     if (pushStatus === 'on') {
@@ -2460,8 +2463,15 @@
       return;
     }
     pushStatus = await KP.status();
-    if (pushStatus === 'blocked') note('Avertissements bloqués', 'Ton navigateur refuse les avertissements de Kiff Kiff. Tu peux les autoriser dans ses réglages, pour ce site.');
+    if (pushStatus === 'blocked') note('Avertissements bloqués', blockedHelp());
     renderDuoStatus();
+  }
+  // Où débloquer, selon le téléphone : sur Android, c’est Chrome qui garde l’autorisation du site
+  function blockedHelp() {
+    const ua = navigator.userAgent;
+    if (/android/i.test(ua)) return 'Chrome bloque les avertissements de kiff-kiff.fr, même si l’appli les autorise. Dans Chrome : ⋮ › Paramètres › Paramètres des sites › Notifications › kiff-kiff.fr › Autoriser. Puis reviens ici et touche à nouveau la cloche.';
+    if (KP.ios) return 'Ton iPhone bloque les avertissements de Kiff Kiff. Réglages › Notifications › Kiff Kiff › Autoriser les notifications. Puis reviens ici et touche à nouveau la cloche.';
+    return 'Ton navigateur refuse les avertissements de Kiff Kiff. Autorise-les pour kiff-kiff.fr dans ses réglages (le cadenas à gauche de l’adresse), puis touche à nouveau la cloche.';
   }
   $('#wait-notif').addEventListener('click', (e) => toggleNotif(e.currentTarget));
   $('#duo-notif').addEventListener('click', (e) => toggleNotif(e.currentTarget));
