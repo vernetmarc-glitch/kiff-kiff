@@ -1234,58 +1234,178 @@
     if (line) lines.push(line);
     return lines;
   }
-  async function phraseImage(text) {
-    try { await Promise.all([document.fonts.load('64px "Great Vibes"'), document.fonts.load('60px "Baskervville"'), document.fonts.load('60px "Cinzel"'), document.fonts.load('30px "Jost"')]); } catch (e) { /* polices de secours */ }
+  /* L’image partagée d’une envie : même mise en page pour toutes les ambiances (emblème, KIFF KIFF,
+     la carte de l’envie, un QR code vers le jeu), aux couleurs et aux polices de l’ambiance où l’on joue. */
+  const TAGLINE = 'Quand vos envies se rejoignent, c’est kiff kiff.';
+  const roundRect = (c, x, y, w, h, r) => { c.beginPath(); c.moveTo(x + r, y); c.arcTo(x + w, y, x + w, y + h, r); c.arcTo(x + w, y + h, x, y + h, r); c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath(); };
+  const IMG = {
+    redcorner: {
+      fonts: ['64px "Great Vibes"', '60px "Baskervville"', '60px "Cinzel"', '30px "Jost"'],
+      bg(c, W, H) {
+        const g = c.createLinearGradient(0, 0, W * 0.4, H);
+        g.addColorStop(0, '#7A0F24'); g.addColorStop(0.6, '#3A0510'); g.addColorStop(1, '#23030A');
+        c.fillStyle = g; c.fillRect(0, 0, W, H);
+        c.strokeStyle = '#C9A04E'; c.lineWidth = 4; c.strokeRect(36, 36, W - 72, H - 72);
+        c.lineWidth = 1.5; c.strokeRect(52, 52, W - 104, H - 104);
+      },
+      emblem: { line: '#FFE3EC', lens: 'rgba(255, 61, 127, .6)', glow: '#FF3D7F' },
+      title: { font: '600 66px "Cinzel", Georgia, serif', color: '#F6DDA0' },
+      card: { bg: '#FBF3E6', inner: '#C9A04E' },
+      lead: { font: '78px "Great Vibes", cursive', color: '#9C1A33' },
+      body: { font: '{s}px "Baskervville", Georgia, serif', color: '#2A0710', size: 58 },
+      rule: 'rgba(201, 160, 78, .6)', qr: ['#FBF3E6', '#2A0710'],
+      t1: ['600 {s}px "Jost", sans-serif', '#F6DDA0'], t2: ['{s}px "Great Vibes", cursive', '#F7C7CF', 44], t3: ['{s}px "Jost", sans-serif', '#F6DDA0']
+    },
+    minuit: {
+      fonts: ['800 60px "Syne"', '700 40px "Syne"', '700 40px "Manrope"', '500 30px "Manrope"'],
+      bg(c, W, H) {
+        c.fillStyle = '#0E0C16'; c.fillRect(0, 0, W, H);
+        const g = c.createRadialGradient(W / 2, 180, 10, W / 2, 180, 760);
+        g.addColorStop(0, 'rgba(126, 106, 214, .45)'); g.addColorStop(1, 'rgba(14, 12, 22, 0)');
+        c.fillStyle = g; c.fillRect(0, 0, W, H);
+        c.strokeStyle = '#2E2940'; c.lineWidth = 2; roundRect(c, 40, 40, W - 80, H - 80, 44); c.stroke();
+      },
+      emblem: { line: '#D9CEFF', lens: 'rgba(185, 166, 255, .85)', glow: '#B9A6FF' },
+      title: { font: '800 74px "Syne", sans-serif', color: '#F2EFFA' },
+      card: { bg: '#F2EFFA', radius: 40 },
+      lead: { font: '700 54px "Syne", sans-serif', color: '#7E6AD6' },
+      body: { font: '700 {s}px "Manrope", sans-serif', color: '#17141F', size: 54 },
+      rule: '#2E2940', qr: ['#F2EFFA', '#0E0C16'],
+      t1: ['800 {s}px "Manrope", sans-serif', '#F2EFFA'], t2: ['700 {s}px "Syne", sans-serif', '#B9A6FF', 36], t3: ['500 {s}px "Manrope", sans-serif', '#A49DB8']
+    },
+    classex: {
+      fonts: ['80px "Anton"', '700 40px "Courier Prime"', '40px "Courier Prime"'],
+      bg(c, W, H) {
+        const g = c.createLinearGradient(0, 0, W, H);
+        g.addColorStop(0, '#D6BE8F'); g.addColorStop(1, '#B8995F');
+        c.fillStyle = g; c.fillRect(0, 0, W, H);
+        c.strokeStyle = 'rgba(80, 55, 20, .08)'; c.lineWidth = 2;
+        for (let y = 20; y < H; y += 9) { c.beginPath(); c.moveTo(0, y); c.lineTo(W, y + ((y * 7) % 13) - 6); c.stroke(); }
+        // le tampon, en haut à droite
+        c.save(); c.translate(W - 190, 112); c.rotate(-0.16);
+        c.strokeStyle = '#C8102E'; c.fillStyle = '#C8102E'; c.lineWidth = 6; c.globalAlpha = .85;
+        c.strokeRect(-128, -40, 256, 80); c.font = '54px "Anton", sans-serif'; c.textAlign = 'center'; c.fillText('CLASSÉ X', 0, 24);
+        c.restore();
+      },
+      emblem: { line: '#141414', lens: 'rgba(200, 16, 46, .9)', glow: null },
+      title: { font: '96px "Anton", Impact, sans-serif', color: '#141414' },
+      card: { bg: '#F6F5F0', tilt: -0.02, shadow: 'rgba(60, 40, 10, .35)', stamp: 'DÉCLASSIFIÉ' },
+      lead: { font: '700 50px "Courier Prime", monospace', color: '#C8102E' },
+      body: { font: '{s}px "Courier Prime", monospace', color: '#141414', size: 50 },
+      rule: '#141414', qr: ['#F6F5F0', '#141414'],
+      t1: ['{s}px "Anton", sans-serif', '#141414'], t2: ['italic 700 {s}px "Courier Prime", monospace', '#3D3B36', 34], t3: ['{s}px "Courier Prime", monospace', '#141414']
+    },
+    arty: {
+      fonts: ['80px "Bagel Fat One"', '800 40px "Archivo"', '600 30px "Archivo"'],
+      bg(c, W, H) {
+        c.fillStyle = '#2E4FA3'; c.fillRect(0, 0, W, H);
+        c.fillStyle = 'rgba(255, 72, 176, .55)';
+        for (let y = 0; y < 420; y += 14) for (let x = W - 420 + (y % 28 ? 7 : 0); x < W; x += 14) {
+          const r = Math.max(0, 4.2 - Math.hypot(W - x, y) / 110);
+          if (r > .3) { c.beginPath(); c.arc(x, y, r, 0, Math.PI * 2); c.fill(); }
+        }
+      },
+      emblem: { line: '#FFE45C', lens: 'rgba(255, 72, 176, .95)', glow: null },
+      title: { font: '104px "Bagel Fat One", sans-serif', color: '#FFE45C', offset: '#FF48B0' },
+      card: { bg: '#FFE45C', tilt: -0.015, block: '#FF48B0' },
+      lead: { font: '64px "Bagel Fat One", sans-serif', color: '#FF48B0' },
+      body: { font: '800 {s}px "Archivo", sans-serif', color: '#2E1670', size: 54 },
+      rule: 'rgba(255, 228, 92, .6)', qr: ['#FFE45C', '#2E1670'],
+      t1: ['{s}px "Bagel Fat One", sans-serif', '#FFE45C'], t2: ['700 {s}px "Archivo", sans-serif', '#FF9ACF', 36], t3: ['600 {s}px "Archivo", sans-serif', '#FFF08F']
+    },
+    pomme: {
+      fonts: ['80px "Abril Fatface"', '700 40px "Merriweather"', 'italic 400 40px "Merriweather"', '400 30px "Merriweather"'],
+      bg(c, W, H) {
+        c.fillStyle = '#1D2A55'; c.fillRect(0, 0, W, H);
+        c.fillStyle = 'rgba(230, 179, 58, .22)';
+        for (let y = 12; y < H; y += 24) for (let x = 12; x < W; x += 24) { c.beginPath(); c.arc(x, y, 1.8, 0, Math.PI * 2); c.fill(); }
+        // un cadre d’ampoules de fête foraine
+        c.strokeStyle = '#E6B33A'; c.lineWidth = 5; roundRect(c, 40, 40, W - 80, H - 80, 30); c.stroke();
+        c.fillStyle = '#FFE9A8';
+        const bulb = (x, y) => { c.save(); c.shadowColor = '#FFD36B'; c.shadowBlur = 16; c.beginPath(); c.arc(x, y, 7, 0, Math.PI * 2); c.fill(); c.restore(); };
+        for (let x = 90; x <= W - 90; x += 60) { bulb(x, 40); bulb(x, H - 40); }
+        for (let y = 100; y <= H - 100; y += 60) { bulb(40, y); bulb(W - 40, y); }
+      },
+      emblem: { line: '#FFF6DE', lens: 'rgba(215, 38, 47, .95)', glow: null },
+      title: { font: '96px "Abril Fatface", Georgia, serif', color: '#D7262F', offset: '#FFF6DE' },
+      card: { bg: '#FFF6DE', notch: '#1D2A55' },
+      lead: { font: '64px "Abril Fatface", Georgia, serif', color: '#D7262F' },
+      body: { font: '700 {s}px "Merriweather", Georgia, serif', color: '#1D2A55', size: 50 },
+      rule: 'rgba(230, 179, 58, .7)', qr: ['#FFF6DE', '#1D2A55'],
+      t1: ['{s}px "Abril Fatface", Georgia, serif', '#FFF6DE'], t2: ['italic 400 {s}px "Merriweather", Georgia, serif', '#E6B33A', 36], t3: ['400 {s}px "Merriweather", Georgia, serif', '#FFF6DE']
+    }
+  };
+  async function phraseImage(text, skin) {
+    const T = IMG[skin] || IMG[currentSkin()] || IMG.redcorner;
+    try { await Promise.all(T.fonts.map((f) => document.fonts.load(f))); } catch (e) { /* polices de secours */ }
     const W = 1080, H = 1350, cv = document.createElement('canvas');
     cv.width = W; cv.height = H;
     const c = cv.getContext('2d');
-    const g = c.createLinearGradient(0, 0, W * 0.4, H);
-    g.addColorStop(0, '#7A0F24'); g.addColorStop(0.6, '#3A0510'); g.addColorStop(1, '#23030A');
-    c.fillStyle = g; c.fillRect(0, 0, W, H);
-    c.strokeStyle = '#C9A04E'; c.lineWidth = 4; c.strokeRect(36, 36, W - 72, H - 72);
-    c.lineWidth = 1.5; c.strokeRect(52, 52, W - 104, H - 104);
+    T.bg(c, W, H);
     c.textAlign = 'center';
-    // l’emblème : deux cercles de néon qui se rejoignent
+    // l’emblème : deux cercles qui se rejoignent, leur intersection allumée
     c.save();
-    c.shadowColor = '#FF3D7F'; c.shadowBlur = 34;
+    if (T.emblem.glow) { c.shadowColor = T.emblem.glow; c.shadowBlur = 34; }
     c.beginPath(); c.arc(W / 2 - 34, 178, 76, -1.11, 1.11); c.arc(W / 2 + 34, 178, 76, Math.PI - 1.11, Math.PI + 1.11); c.closePath();
-    c.fillStyle = 'rgba(255, 61, 127, .6)'; c.fill();
-    c.strokeStyle = '#FFE3EC'; c.lineWidth = 7;
+    c.fillStyle = T.emblem.lens; c.fill();
+    c.strokeStyle = T.emblem.line; c.lineWidth = 7;
     [W / 2 - 34, W / 2 + 34].forEach((x) => { c.beginPath(); c.arc(x, 178, 76, 0, Math.PI * 2); c.stroke(); });
     c.restore();
-    c.fillStyle = '#F6DDA0'; c.font = '600 66px "Cinzel", Georgia, serif';
-    c.fillText('KIFF KIFF', W / 2, 340);
+    c.font = T.title.font;
+    if (T.title.offset) { c.fillStyle = T.title.offset; c.fillText('KIFF KIFF', W / 2 + 6, 346); }
+    c.fillStyle = T.title.color; c.fillText('KIFF KIFF', W / 2, 340);
     // la carte, entre le titre et le bandeau du bas
     const cx = 110, cw = W - 220;
     const body = text.replace(/^J’ai envie\s+/, '');
-    let fs = 58, lines;
-    do { c.font = fs + 'px "Baskervville", Georgia, serif'; lines = wrapLines(c, body, cw - 120); fs -= 4; } while (lines.length * (fs + 22) + 200 > 600 && fs > 36);
+    let fs = T.body.size, lines;
+    do { c.font = T.body.font.replace('{s}', fs); lines = wrapLines(c, body, cw - 120); fs -= 4; } while (lines.length * (fs + 22) + 200 > 600 && fs > 30);
     const lh = fs + 22, ch = 200 + lines.length * lh, cy = 390 + (600 - ch) / 2;
-    c.fillStyle = '#FBF3E6'; c.fillRect(cx, cy, cw, ch);
-    c.strokeStyle = '#C9A04E'; c.lineWidth = 3; c.strokeRect(cx + 14, cy + 14, cw - 28, ch - 28);
-    c.fillStyle = '#9C1A33'; c.font = '78px "Great Vibes", cursive';
+    const K = T.card;
+    c.save();
+    c.translate(W / 2, cy + ch / 2); c.rotate(K.tilt || 0); c.translate(-W / 2, -(cy + ch / 2));
+    if (K.block) { c.fillStyle = K.block; c.fillRect(cx + 16, cy + 16, cw, ch); }
+    if (K.shadow) { c.shadowColor = K.shadow; c.shadowBlur = 30; c.shadowOffsetY = 12; }
+    c.fillStyle = K.bg;
+    if (K.radius) { roundRect(c, cx, cy, cw, ch, K.radius); c.fill(); } else c.fillRect(cx, cy, cw, ch);
+    c.shadowColor = 'transparent';
+    if (K.inner) { c.strokeStyle = K.inner; c.lineWidth = 3; c.strokeRect(cx + 14, cy + 14, cw - 28, ch - 28); }
+    if (K.notch) { c.fillStyle = K.notch; [cx, cx + cw].forEach((x) => { c.beginPath(); c.arc(x, cy + ch / 2, 26, 0, Math.PI * 2); c.fill(); }); }
+    c.fillStyle = T.lead.color; c.font = T.lead.font;
     c.fillText('J’ai envie…', W / 2, cy + 110);
-    c.fillStyle = '#2A0710'; c.font = (fs + 4) + 'px "Baskervville", Georgia, serif';
+    c.fillStyle = T.body.color; c.font = T.body.font.replace('{s}', fs + 4);
     lines.forEach((l, i) => c.fillText(l, W / 2, cy + 190 + i * lh));
+    if (K.stamp) {
+      c.save(); c.translate(cx + cw - 150, cy + ch - 40); c.rotate(-0.12);
+      c.strokeStyle = '#C8102E'; c.fillStyle = '#C8102E'; c.globalAlpha = .8; c.lineWidth = 5;
+      c.font = '44px "Anton", sans-serif'; const sw = c.measureText(K.stamp).width + 40;
+      c.strokeRect(-sw / 2, -34, sw, 64); c.fillText(K.stamp, 0, 16);
+      c.restore();
+    }
+    c.restore();
     // le bandeau : un QR code vers le jeu, rien à recopier
-    c.strokeStyle = 'rgba(201, 160, 78, .6)'; c.lineWidth = 2;
+    c.strokeStyle = T.rule; c.lineWidth = 2;
     c.beginPath(); c.moveTo(110, 1040); c.lineTo(W - 110, 1040); c.stroke();
     const fit = (str, font, max, size) => { let s = size; do { c.font = font.replace('{s}', s); s -= 2; } while (c.measureText(str).width > max && s > 18); };
     try {
       await loadScript('vendor/qrcode.js?v=1.4.4');
       const qr = window.qrcode(0, 'M'); qr.addData(APP_URL); qr.make();
       const n = qr.getModuleCount(), q = 200, m = q / (n + 4), qx = 120, qy = 1080;
-      c.fillStyle = '#FBF3E6'; c.fillRect(qx, qy, q, q);
-      c.fillStyle = '#2A0710';
+      c.fillStyle = T.qr[0]; c.fillRect(qx, qy, q, q);
+      c.fillStyle = T.qr[1];
       for (let r = 0; r < n; r++) for (let k = 0; k < n; k++) if (qr.isDark(r, k)) c.fillRect(qx + (k + 2) * m, qy + (r + 2) * m, Math.ceil(m), Math.ceil(m));
       c.textAlign = 'left';
       const tx = 360, tw = W - 120 - tx;
-      c.fillStyle = '#F6DDA0'; fit('Scanne et joue à deux', '600 {s}px "Jost", sans-serif', tw, 46); c.fillText('Scanne et joue à deux', tx, 1150);
-      c.fillStyle = '#F7C7CF'; fit('Rien ne se passe sans deux « j’ai envie »', '{s}px "Great Vibes", cursive', tw, 46); c.fillText('Rien ne se passe sans deux « j’ai envie »', tx, 1215);
-      c.fillStyle = '#F6DDA0'; fit('Kiff Kiff · jeu de séduction pour adultes', '{s}px "Jost", sans-serif', tw, 28); c.fillText('Kiff Kiff · jeu de séduction pour adultes', tx, 1262);
+      c.fillStyle = T.t1[1]; fit('Scanne et joue à deux', T.t1[0], tw, 46); c.fillText('Scanne et joue à deux', tx, 1124);
+      // la phrase du jeu sur deux lignes, coupée à la virgule
+      const tl = TAGLINE.replace(/, /, ',\n').split('\n');
+      let ts = T.t2[2] + 2;
+      do { ts -= 2; c.font = T.t2[0].replace('{s}', ts); } while (ts > 20 && tl.some((l) => c.measureText(l).width > tw));
+      c.fillStyle = T.t2[1];
+      tl.forEach((l, i) => c.fillText(l, tx, 1174 + i * Math.round(ts * 1.15)));
+      c.fillStyle = T.t3[1]; fit('Kiff Kiff · jeu de séduction pour adultes', T.t3[0], tw, 26); c.fillText('Kiff Kiff · jeu de séduction pour adultes', tx, 1276);
     } catch (e) {
-      c.fillStyle = '#F7C7CF'; c.font = '46px "Great Vibes", cursive';
-      c.fillText('Rien ne se passe sans deux « j’ai envie »', W / 2, 1160);
+      c.fillStyle = T.t2[1]; c.font = T.t2[0].replace('{s}', T.t2[2]);
+      c.fillText(TAGLINE, W / 2, 1160);
     }
     return new Promise((res) => cv.toBlob(res, 'image/png'));
   }
@@ -1298,7 +1418,7 @@
     const file = new File([blob], 'kiff-kiff.png', { type: 'image/png' });
     report('partage', null, 'image');
     if (navigator.canShare && navigator.canShare({ files: [file] })) {
-      try { await navigator.share({ files: [file], title: 'Kiff Kiff', text: 'Rien ne se passe sans deux « j’ai envie ». ' + APP_URL }); } catch (e) { /* annulé */ }
+      try { await navigator.share({ files: [file], title: 'Kiff Kiff', text: TAGLINE + ' ' + APP_URL }); } catch (e) { /* annulé */ }
       return;
     }
     const a = document.createElement('a');
@@ -2100,7 +2220,7 @@
   function inviteText() {
     const me = (S.names[0] || '').trim();
     const lead = S.rencontre ? (me ? me + ' te propose un jeu avant de vous voir : ' : 'On joue avant de se voir ? ') : (me ? me + ' t’invite à jouer à Kiff Kiff : ' : 'On joue à Kiff Kiff ? ');
-    return lead + 'rien ne se passe sans deux « j’ai envie ». Ouvre ce lien sur ton téléphone.';
+    return lead + (/\? $/.test(lead) ? 'Quand' : 'quand') + ' vos envies se rejoignent, c’est kiff kiff. Ouvre ce lien sur ton téléphone.';
   }
   $('#duo-copy').addEventListener('click', async () => {
     const url = duo && duo.info ? window.KiffDuo.link(duo.info) : '';

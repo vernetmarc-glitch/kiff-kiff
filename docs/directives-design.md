@@ -42,6 +42,7 @@ Un jeu sensuel ne se raconte pas qu'avec des mots. Les écrans où l'on joue (co
 - Clair, concis, utile, humain. Les boutons commencent par un verbe et disent le résultat.
 - **Un seul nom par idée.** « Tu kiffes ? » (proposé le 19 octobre 2026, à la place de « Faites tourner ») pour la fenêtre qui réunit le partage du jeu, le café et l'histoire du jeu ; « Vous kiffez ? » sur la célébration, qui s'adresse aux deux. Une partie à deux : « partie à deux ». Un accord : « kiff kiff ».
 - Le tutoiement pour la personne qui tient le téléphone, le « vous » pour s'adresser aux deux (« Vous avez kiffé ? »).
+- **Dire ce qui se passe, pas ce qui ne se passe pas.** On célèbre les envies plutôt que de se protéger : « Quand vos envies se rejoignent, c'est kiff kiff. » plutôt que « Rien ne se passe sans deux « j'ai envie » ». On garde « sans se justifier » et « pas besoin d'expliquer pourquoi », qui rassurent sans interdire.
 - Pas d'émoji dans le texte de l'interface. Exception : le mot signé de Marc.
 - Les formules (les mots des roues) gardent leur crudité et leur humour ; elles se modifient dans l'Atelier, jamais en dur dans le code.
 
