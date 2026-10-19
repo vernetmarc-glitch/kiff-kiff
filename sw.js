@@ -25,7 +25,9 @@ self.addEventListener('fetch', (e) => {
   e.respondWith((async () => {
     const cache = await caches.open(CACHE);
     try {
-      const res = await fetch(req);
+      // La page elle-même est toujours redemandée au serveur (sans le cache de 10 min de GitHub) :
+      // une mise à jour du jeu arrive dès la réouverture de l’appli
+      const res = await fetch(req.mode === 'navigate' ? new Request(req.url, { cache: 'no-cache', credentials: 'same-origin' }) : req);
       if (res && (res.ok || res.type === 'opaque')) cache.put(req, res.clone()).catch(() => {});
       return res;
     } catch (err) {
