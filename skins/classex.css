@@ -390,3 +390,5 @@ body { background: var(--kraft); color: var(--ink); font-family: var(--f-ui); ca
 }
 /* Écran d’attente : mots des icônes sur le fond noir */
 .overlay--handoff .icon-label { color: var(--paper); }
+/* Cloche activée, sur le fond noir de l’attente : tampon rouge */
+.overlay--handoff #wait-notif[aria-pressed="true"] > .ic, #ov-duo #duo-notif[aria-pressed="true"] > .ic { background: var(--red); color: var(--paper); box-shadow: none; }

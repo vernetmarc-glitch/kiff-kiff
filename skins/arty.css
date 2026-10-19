@@ -685,3 +685,5 @@ button { font: inherit; color: inherit; }
 /* Écran d’attente : emblème et mots des icônes sur le fond bleu */
 .overlay--handoff .emblem { --e-line: var(--paper); --e-glow: var(--pink); --e-glow-o: 1; }
 .overlay--handoff .icon-label { color: var(--paper); }
+/* Cloche activée, sur le fond bleu de l’attente : rose plein */
+.overlay--handoff #wait-notif[aria-pressed="true"] > .ic { background: var(--pink); color: var(--paper); box-shadow: none; }

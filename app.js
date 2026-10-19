@@ -1704,7 +1704,9 @@
     duo.nk = k;
     const o = other(duo.seat);
     const sub = Array.isArray(duo.push) ? duo.push[o] : null;
-    if (!sub || duo.partnerOn === true) return;
+    // On avertit toujours : la présence de l’autre peut être en retard (appli en arrière-plan) ;
+    // c’est son téléphone qui se tait s’il a déjà Kiff Kiff sous les yeux
+    if (!sub) return;
     let kind = '';
     if (duo.lastPhase === 'lobby' && st.phase !== 'lobby') kind = 'arrivee'; // l’invitation est acceptée
     else if (st.phase === 'celebrate') kind = 'kiff';
@@ -1978,6 +1980,8 @@
     dn.hidden = !(inv && (pushStatus === 'on' || pushStatus === 'off' || pushStatus === 'install' || pushStatus === 'blocked'));
     dn.setAttribute('aria-pressed', pushStatus === 'on' ? 'true' : 'false');
     $('#duo-notif-state').textContent = pushStatus === 'on' ? 'activé' : 'désactivé';
+    // La cloche dit clairement son état : allumée et « Averti·e » quand c’est activé
+    document.querySelectorAll('.notif-word').forEach((w) => { w.textContent = pushStatus === 'on' ? 'Averti·e' : 'M’avertir'; });
     if (inv) $('#duo-wait-text').textContent = presenceFlash || (duo.partnerOn ? 'L’autre téléphone est là : il découvre le jeu…' : (pushStatus === 'on' ? 'En attente de l’autre téléphone. Ton téléphone t’avertira.' : 'En attente de l’autre téléphone…'));
     const line = $('#duo-status');
     if (!duo || duo.stage !== 'game') { line.hidden = true; return; }

@@ -320,6 +320,13 @@ function clePublique() {
 }
 
 function envoyerNotification(c) {
+  // Une erreur (autorisation manquante, service indisponible) revient lisible au lieu d’une page d’erreur Google
+  try { return envoyerNotification_(c); } catch (err) {
+    try { noterEvenement({ type: 'notif', detail: 'erreur-script' }); } catch (e) { /* rien */ }
+    return { ok: false, erreur: String(err && err.message || err).slice(0, 200) };
+  }
+}
+function envoyerNotification_(c) {
   const adresse = String(c.adresse || '');
   const corps = String(c.corps || '');
   if (!PUSH_HOTES.test(adresse) || adresse.length > 1000) return { ok: false, erreur: 'adresse' };
@@ -390,8 +397,12 @@ function jetonVapid(origine, k) {
   return jeton;
 }
 
-/* À lancer depuis l’éditeur : crée les clés si besoin, signe un jeton et le vérifie */
+/* À lancer depuis l’éditeur : crée les clés si besoin, signe un jeton, le vérifie,
+   et contacte le service de notification de Google (ce qui fait demander l’autorisation
+   « se connecter à un service externe », indispensable pour envoyer les avertissements). */
 function verifierNotifications() {
+  const essai = UrlFetchApp.fetch('https://fcm.googleapis.com/', { muteHttpExceptions: true });
+  Logger.log('Service de notification joignable (code ' + essai.getResponseCode() + ').');
   const k = clesVapid();
   const msg = texteOctets('kiff kiff');
   const sig = ecdsaSigne(k.d, msg);

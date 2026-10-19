@@ -56,14 +56,20 @@ self.addEventListener('push', (e) => {
   let m = {};
   try { m = e.data ? e.data.json() : {}; } catch (err) { m = {}; }
   const room = PARTIE.test(m.r || '') ? m.r : '';
-  e.waitUntil(self.registration.showNotification('Kiff Kiff', {
+  e.waitUntil((async () => {
+    // Kiff Kiff déjà à l’écran : pas d’avertissement, l’appli montre déjà la nouvelle (sauf iPhone, qui l’exige)
+    const ios = /iphone|ipad|ipod/i.test(self.navigator.userAgent);
+    const wins = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+    if (!ios && wins.some((c) => c.visibilityState === 'visible' && c.focused)) return;
+    return self.registration.showNotification('Kiff Kiff', {
     body: avis(m),
     icon: 'icons/icon-192.png',
     badge: 'icons/badge-96.png',
     tag: 'kk-' + (room || 'partie'),
     renotify: true,
     data: { r: room }
-  }));
+    });
+  })());
 });
 self.addEventListener('notificationclick', (e) => {
   e.notification.close();

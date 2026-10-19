@@ -878,3 +878,9 @@ body:has(#ov-deal:not([hidden])) .deco-candles { display: none; }
 #duo-notif[aria-pressed="true"] .ic--on { display: block; }
 #duo-notif[aria-pressed="true"] .ic--off { display: none; }
 #duo-notif:disabled { opacity: .5; }
+
+/* La cloche activée se voit d’un coup d’œil : rond plein, comme un choix coché */
+#wait-notif[aria-pressed="true"] > .ic, #duo-notif[aria-pressed="true"] > .ic {
+  background: var(--pill-on-bg, currentColor); color: var(--pill-on-fg, #000);
+  box-shadow: inset 0 0 0 1.5px var(--pill-on-line, transparent);
+}
