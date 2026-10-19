@@ -2482,8 +2482,21 @@
   document.addEventListener('visibilitychange', () => {
     const vis = document.visibilityState === 'visible';
     if (duo && duo.conn) { duo.conn.here(vis); if (vis) duo.conn.wake(); }
-    if (vis) refreshPush();
+    if (vis) { refreshPush(); checkVersion(); }
   });
+  // Une nouvelle version du jeu est en ligne : on la charge en revenant dans l’appli,
+  // quand rien ne se perd (accueil, ou partie à deux, qui se retrouve telle quelle)
+  const myV = (/app\.js\?v=(\d+)/.exec((Array.from(document.scripts).find((x) => /app\.js/.test(x.src)) || {}).src || '') || [])[1] || '';
+  let verT = 0;
+  function checkVersion() {
+    if (!myV || Date.now() - verT < 60000 || navigator.onLine === false) return;
+    verT = Date.now();
+    fetch('./', { cache: 'no-store' }).then((r) => (r.ok ? r.text() : '')).then((html) => {
+      const v = (/app\.js\?v=(\d+)/.exec(html) || [])[1];
+      if (!v || v === myV || document.visibilityState !== 'visible') return;
+      if ((duo && duo.stage === 'game') || (!duo && !S.started)) location.reload();
+    }).catch(() => {});
+  }
   // Toucher un avertissement alors que l’appli est déjà ouverte : on va à la partie
   const goToGame = (room) => {
     if (!room || !findGame(room)) return;

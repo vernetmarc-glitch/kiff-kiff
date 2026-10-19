@@ -131,7 +131,7 @@ Velours rouge, dorures et bougies, reflets de boule à facettes. Depuis le 18 oc
 
 ## Appli sur l’écran d’accueil
 
-Kiff Kiff s’installe comme une appli (web app) : icône sur l’écran d’accueil, ouverture en plein écran sans barre de navigateur, et jeu sur un téléphone possible hors ligne une fois la page ouverte une première fois.
+Kiff Kiff s’installe comme une appli (web app) : icône sur l’écran d’accueil, ouverture en plein écran sans barre de navigateur, et jeu sur un téléphone possible hors ligne une fois la page ouverte une première fois. Quand une nouvelle version est en ligne, l’appli la charge d’elle-même en revenant au premier plan, si rien ne se perd : à l’accueil, ou pendant une partie à deux (qui se retrouve telle quelle) ; jamais au milieu d’une partie sur un téléphone.
 
 - Android (Chrome, Samsung Internet, Edge) : le lien « Installer l’appli » apparaît sur l’accueil quand le navigateur le permet ; sinon menu ⋮ puis « Ajouter à l’écran d’accueil » ou « Installer l’application ».
 - iPhone : le lien « Installer l’appli » explique le geste (Partager, puis « Sur l’écran d’accueil »).
