@@ -1152,7 +1152,7 @@
   }
   /* Le titre de la célébration change à chaque kiff kiff (les exclamations de Marc), jamais deux fois de suite le même */
   const CHEERS = ['Bon appétit\u00a0!', 'C’est servi\u00a0!', 'Savourez\u00a0!', 'À la vôtre\u00a0!', 'Santé\u00a0!', 'Samba\u00a0!', 'It’s a match!',
-    'Wopopoooo\u00a0!', 'Et… c’est un Kiff-Kiff\u00a0!!', 'Banco\u00a0!', 'C’est parti\u00a0!', 'Enjoy!', 'Get ready 😈!'];
+    'Wopopoooo\u00a0!', 'Et… c’est un Kiff-Kiff\u00a0!!', 'Banco\u00a0!', 'C’est parti\u00a0!', 'Enjoy!', 'Get ready!'];
   function cheer() {
     const last = load('cheer', '');
     const pool = CHEERS.filter((c) => c !== last);
