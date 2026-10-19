@@ -42,15 +42,14 @@ self.addEventListener('fetch', (e) => {
 
 /* Avertissements (« À toi de jouer »), même l’appli fermée.
  * Le message arrive chiffré pour ce téléphone seul ; il ne contient jamais l’envie elle-même,
- * seulement le genre de nouvelle, la partie et le prénom de l’autre. */
+ * ni le prénom de l’autre : seulement le genre de nouvelle et la partie. */
 const PARTIE = /^[a-z2-9]{12}$/;
+// Discret, comme une appli de rencontre : on dit qu’il y a du nouveau, jamais qui ni quoi
 function avis(m) {
-  const n = String(m.n || '').replace(/\s+/g, ' ').trim().slice(0, 20) || 'L’autre';
-  if (m.k === 'kiff') return 'Kiff kiff avec ' + n + (m.u ? ' : le piment peut monter.' : ' : viens voir.');
-  if (m.ph === 'review') return n + ' attend ta réponse.';
-  if (m.ph === 'reconfirm') return n + ' a changé une chose : à toi de répondre.';
-  if (m.ph === 'compose') return 'À toi de proposer : ' + n + ' attend.';
-  return n + ' t’attend : c’est à toi.';
+  if (m.k === 'kiff') return 'Un kiff kiff vous attend !';
+  if (m.ph === 'review') return 'Une proposition t’attend.';
+  if (m.ph === 'reconfirm') return 'Du nouveau : c’est à toi de répondre.';
+  return 'C’est à toi de jouer.';
 }
 self.addEventListener('push', (e) => {
   let m = {};

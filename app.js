@@ -1711,7 +1711,8 @@
     if (!kind) return;
     const k2 = Array.isArray(st.kiffs) ? st.kiffs : [];
     const up = kind === 'kiff' && st.prog && unlockedIn(k2) > unlockedIn(k2.slice(0, -1)) ? 1 : 0;
-    KP.send(sub, { k: kind, r: duo.info.room, n: (st.names && st.names[duo.seat]) || '', ph: st.phase, u: up });
+    // Pas de prénom dans l’avertissement : l’écran verrouillé ne dit jamais avec qui l’on joue
+    KP.send(sub, { k: kind, r: duo.info.room, ph: st.phase, u: up });
   }
 
   /* Mes parties à deux : chaque téléphone se souvient des siennes, pour jouer chacun·e à son rythme.
