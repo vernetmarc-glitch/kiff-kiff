@@ -2439,6 +2439,12 @@
     const sub = res && res.sub;
     if (res && res.erreur && res.erreur !== 'refus') {
       report('notif', null, 'erreur-' + res.erreur);
+      if (res.erreur === 'attente') {
+        // La demande du téléphone n’a pas abouti (sur Android, un filtre d’écran ou une bulle par-dessus bloque souvent le bouton)
+        note('Autoriser les avertissements', 'Le téléphone n’a pas enregistré ta réponse. Autorise-les dans ses réglages : appui long sur l’icône Kiff Kiff › Infos sur l’appli › Notifications. Puis touche à nouveau la cloche.');
+        renderDuoStatus();
+        return;
+      }
       note('Avertissements indisponibles', res.erreur === 'cle'
         ? 'Je n’arrive pas à joindre le service d’avertissements de Kiff Kiff. Vérifie la connexion, puis touche à nouveau la cloche.'
         : 'Ce navigateur n’arrive pas à activer les avertissements. Touche à nouveau la cloche ; sinon, essaie depuis Chrome, ou depuis l’icône de Kiff Kiff sur l’écran d’accueil.');

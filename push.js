@@ -111,7 +111,7 @@
         return reg.pushManager.subscribe(opts);
       })
       .then((sub) => { const c = compact(sub); if (c) put('push', true); return c ? { sub: c } : { erreur: 'abo' }; })
-      .catch(() => ({ erreur: Notification.permission === 'denied' ? 'refus' : 'abo' }));
+      .catch(() => ({ erreur: Notification.permission === 'denied' ? 'refus' : (Notification.permission === 'default' ? 'attente' : 'abo') }));
   }
   async function disable() {
     put('push', false);
