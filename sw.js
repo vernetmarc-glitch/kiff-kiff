@@ -39,3 +39,48 @@ self.addEventListener('fetch', (e) => {
     }
   })());
 });
+
+/* Avertissements (« À toi de jouer »), même l’appli fermée.
+ * Le message arrive chiffré pour ce téléphone seul ; il ne contient jamais l’envie elle-même,
+ * seulement le genre de nouvelle, la partie et le prénom de l’autre. */
+const PARTIE = /^[a-z2-9]{12}$/;
+function avis(m) {
+  const n = String(m.n || '').replace(/\s+/g, ' ').trim().slice(0, 20) || 'L’autre';
+  if (m.k === 'kiff') return 'Kiff kiff avec ' + n + ' : viens voir.';
+  if (m.ph === 'review') return n + ' attend ta réponse.';
+  if (m.ph === 'reconfirm') return n + ' a changé une chose : à toi de répondre.';
+  if (m.ph === 'compose') return 'À toi de proposer : ' + n + ' attend.';
+  return n + ' t’attend : c’est à toi.';
+}
+self.addEventListener('push', (e) => {
+  let m = {};
+  try { m = e.data ? e.data.json() : {}; } catch (err) { m = {}; }
+  const room = PARTIE.test(m.r || '') ? m.r : '';
+  e.waitUntil(self.registration.showNotification('Kiff Kiff', {
+    body: avis(m),
+    icon: 'icons/icon-192.png',
+    badge: 'icons/badge-96.png',
+    tag: 'kk-' + (room || 'partie'),
+    renotify: true,
+    data: { r: room }
+  }));
+});
+self.addEventListener('notificationclick', (e) => {
+  e.notification.close();
+  const room = (e.notification.data && e.notification.data.r) || '';
+  const url = new URL(room ? './?jouer=' + room : './', self.registration.scope).href;
+  e.waitUntil((async () => {
+    const wins = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+    const w = wins.find((c) => new URL(c.url).origin === self.location.origin);
+    if (w) {
+      w.postMessage({ kk: 'jouer', r: room });
+      return w.focus ? w.focus() : null;
+    }
+    return self.clients.openWindow(url);
+  })());
+});
+// Le navigateur a changé l’adresse : on en reprend une ; l’appli la donnera aux parties à son prochain passage
+self.addEventListener('pushsubscriptionchange', (e) => {
+  const opts = e.oldSubscription && e.oldSubscription.options;
+  if (opts && opts.applicationServerKey) e.waitUntil(self.registration.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: opts.applicationServerKey }).catch(() => {}));
+});

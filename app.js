@@ -1502,7 +1502,47 @@
     return i;
   }
 
-  let duo = null; // { conn, info, seat, id, seq, lastBy, stage, partnerOn, online, passN }
+  let duo = null; // { conn, info, seat, id, seq, lastBy, stage, partnerOn, online, passN, push, nk }
+
+  /* Avertissements (« À toi de jouer », même l’appli fermée) : voir push.js.
+     pushMine : mon adresse d’avertissement ; duo.push : celles des deux places, rangées dans la partie chiffrée */
+  const KP = window.KiffPush || null;
+  let pushMine = null;
+  let pushStatus = 'none'; // 'off' | 'on' | 'blocked' | 'install' | 'none'
+  const notifKey = (st) => [st.phase, st.proposer, st.kiff ? st.kiff.n : 0, st.pass ? st.pass.n : 0].join('|');
+  function pushPair() {
+    const pair = duo && Array.isArray(duo.push) ? duo.push.slice(0, 2) : [null, null];
+    if (duo) pair[duo.seat] = pushMine;
+    return pair;
+  }
+  async function refreshPush() {
+    if (!KP) return;
+    pushStatus = await KP.status();
+    pushMine = pushStatus === 'on' ? await KP.current() : null;
+    if (pushStatus === 'on' && !pushMine) pushStatus = 'off';
+    renderDuoStatus();
+    pushRefresh();
+  }
+  // La partie n’a pas encore ma dernière adresse : on la lui donne (sans rien changer d’autre)
+  function pushRefresh() {
+    if (!duo || duo.stage !== 'game' || !KP) return;
+    if (!KP.sameSub(duo.pushSeen || null, pushMine)) sync();
+  }
+  // Après mon coup : si c’est à l’autre et que l’appli n’est pas à son écran, son téléphone l’avertit
+  function notifyOther(st) {
+    if (!KP || !duo || !duo.info || duo.stage !== 'game') return;
+    const k = notifKey(st);
+    if (k === duo.nk) return;
+    duo.nk = k;
+    const o = other(duo.seat);
+    const sub = Array.isArray(duo.push) ? duo.push[o] : null;
+    if (!sub || duo.partnerOn === true) return;
+    let kind = '';
+    if (st.phase === 'celebrate') kind = 'kiff';
+    else if (turnFor(st, o) === 'me') kind = 'tour';
+    if (!kind) return;
+    KP.send(sub, { k: kind, r: duo.info.room, n: (st.names && st.names[duo.seat]) || '', ph: st.phase });
+  }
 
   /* Mes parties à deux : chaque téléphone se souvient des siennes, pour jouer chacun·e à son rythme.
      { room, key, broker, seat, id, names: [a, b], turn: 'me' | 'other' | 'party' | 'lobby', t } */
@@ -1568,6 +1608,7 @@
       t0: S.t0 || null,
       rencontre: !!S.rencontre,
       skin: currentSkin(), // l’ambiance de qui envoie : la personne invitée découvre le jeu dedans
+      push: pushPair(), // adresses d’avertissement des deux téléphones (l’état est chiffré)
       // avant d’entrer dans la partie (invitation, arrivée), rien de ce téléphone ne s’y mêle
       mine: inGame ? S.mine.map((l) => l.slice(-MINE_MAX)) : [[], [], []],
       seen: inGame ? S.seen.map((l) => l.slice(-SEEN_MAX)) : [[], [], []]
@@ -1581,7 +1622,9 @@
     st.by = duo.id;
     duo.lastBy = duo.id;
     duo.conn.publishState(st);
+    duo.pushSeen = pushMine;
     rememberGame(st);
+    notifyOther(st);
   }
   let syncT = 0;
   function sync() {
@@ -1606,12 +1649,18 @@
     duo.seq = st.seq;
     duo.lastBy = st.by;
     clearTimeout(duo.findT);
+    if (Array.isArray(st.push)) {
+      duo.push = duo.push || [null, null];
+      duo.push[other(duo.seat)] = st.push[other(duo.seat)] || null;
+      duo.pushSeen = st.push[duo.seat] || null;
+    }
+    duo.nk = notifKey(st);
     if (st.phase === 'ended') {
       if (duo.stage === 'game') note('Fin de la partie à deux', nameOf(st.endBy === 0 ? 0 : 1) + ' a arrêté la partie.', () => leaveDuo(false));
       else duoError('ended');
       return;
     }
-    if (duo.stage === 'game') { applyGame(st, {}); return; }
+    if (duo.stage === 'game') { applyGame(st, {}); pushRefresh(); return; }
     duo.remote = st;
     if (st.phase === 'lobby') {
       if (duo.seat === 0) showInvite();
@@ -1620,6 +1669,7 @@
       const wasInvite = duo.stage === 'invite';
       enterGame(st, wasInvite);
       if (wasInvite) { sSwitchOn(); haptic(30); report('partie', null, 'deux'); }
+      pushRefresh();
     } else {
       showJoin(st);
     }
@@ -1762,7 +1812,14 @@
     wp.classList.toggle('is-off', away || duo.online === false);
     $('#wait-nudge').hidden = !away;
     $('#wait-nudge').textContent = 'Prévenir ' + B;
-    $('#wait-later').hidden = !away;
+    // Avertissements : le bouton tant qu’ils sont possibles et pas activés ; ensuite, une phrase
+    const on = pushStatus === 'on';
+    $('#wait-notif').hidden = !(pushStatus === 'off' || pushStatus === 'install');
+    $('#wait-later').hidden = !away && !on;
+    $('#wait-later-text').textContent = on
+      ? (away ? 'Tu peux fermer l’appli : ton téléphone t’avertira quand ce sera à toi.' : 'Si tu fermes l’appli, ton téléphone t’avertira quand ce sera à toi.')
+      : 'Tu peux fermer l’appli : la partie vous attend, et tu la retrouveras sur l’accueil.';
+    $('#wait-notif-off').hidden = !on;
     const ht = $('#duo-home-text');
     const nk = kiffCount();
     if (ht) ht.textContent = 'En cours : partie à deux avec ' + B + (msg ? '. ' + msg : ', connecté·e.') + (nk ? ' ' + nk + ' kiff kiff ensemble.' : '');
@@ -2077,9 +2134,52 @@
     setTimeout(() => renderDuoStatus(), 2200);
   });
   $('#wait-home').addEventListener('click', () => el.home.click());
-  document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'visible' && duo && duo.conn) duo.conn.wake();
+  // M’avertir quand c’est à moi : le navigateur demande l’autorisation, puis la partie reçoit mon adresse
+  $('#wait-notif').addEventListener('click', async () => {
+    if (!KP) return;
+    audio(); sClick(); haptic(8);
+    if (pushStatus === 'install') {
+      note('M’avertir sur iPhone', 'Pour avertir, un iPhone a besoin de Kiff Kiff sur l’écran d’accueil. Dans Safari, touche le bouton Partager (le carré avec une flèche), puis « Sur l’écran d’accueil ». Les parties lancées depuis l’icône t’avertiront ensuite.');
+      return;
+    }
+    const btn = $('#wait-notif');
+    btn.disabled = true;
+    const sub = await KP.enable();
+    btn.disabled = false;
+    if (sub) {
+      pushMine = sub;
+      pushStatus = 'on';
+      report('notif', null, 'activee');
+      sync();
+    } else {
+      pushStatus = await KP.status();
+      if (pushStatus === 'blocked') note('Avertissements bloqués', 'Ton navigateur refuse les avertissements de Kiff Kiff. Tu peux les autoriser dans ses réglages, pour ce site.');
+    }
+    renderDuoStatus();
   });
+  $('#wait-notif-off').addEventListener('click', async () => {
+    if (!KP) return;
+    audio(); sClick();
+    await KP.disable();
+    pushMine = null;
+    pushStatus = 'off';
+    sync();
+    renderDuoStatus();
+  });
+  document.addEventListener('visibilitychange', () => {
+    const vis = document.visibilityState === 'visible';
+    if (duo && duo.conn) { duo.conn.here(vis); if (vis) duo.conn.wake(); }
+    if (vis) refreshPush();
+  });
+  // Toucher un avertissement alors que l’appli est déjà ouverte : on va à la partie
+  const goToGame = (room) => {
+    if (!room || !findGame(room)) return;
+    report('notif', null, 'ouverte');
+    if (duo && duo.info && duo.info.room === room && duo.stage === 'game') { hide(ovGames); hide(el.ovStart); showTurnModal(); renderWait(); return; }
+    hide(ovGames);
+    openGame(room);
+  };
+  if ('serviceWorker' in navigator) navigator.serviceWorker.addEventListener('message', (e) => { if (e.data && e.data.kk === 'jouer') goToGame(e.data.r); });
   window.addEventListener('online', () => { if (duo && duo.conn) duo.conn.wake(); });
 
   /* ---------- Atelier en ligne : comptes anonymes et mots modifiés ---------- */
@@ -2315,8 +2415,13 @@
     const inv = window.KiffDuo && window.KiffDuo.parse(location.hash);
     const installed = (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true;
     reportOnce('visite', inv ? (findGame(inv.room) ? 'reprise' : 'invitation') : (installed ? 'installee' : 'web'));
+    let fromNotif = '';
+    try { fromNotif = new URLSearchParams(location.search).get('jouer') || ''; } catch (e) { /* rien */ }
+    if (fromNotif) { try { const u = new URL(location.href); u.searchParams.delete('jouer'); history.replaceState(null, '', u.pathname + u.search + u.hash); } catch (e) { /* rien */ } }
     if (inv) startJoin(inv);
+    else if (fromNotif && findGame(fromNotif)) { report('notif', null, 'ouverte'); openGame(fromNotif); }
     else { renderGames(); refreshGames(); }
+    refreshPush();
   }
 
   /* ---------- Accueil : écrans successifs ---------- */

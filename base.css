@@ -830,3 +830,9 @@ body:has(#ov-deal:not([hidden])) .deco-candles { display: none; }
 .party-title > .ink { display: inline-block; text-wrap: balance; }
 .party-title .emo { color: #000; -webkit-text-fill-color: initial; background: none; filter: none; }
 .sheet h2.party-title { margin-bottom: 4px; }
+
+/* ---------- Avertissements : « M’avertir quand c’est à moi » (écran d’attente) ---------- */
+.wait-notif { display: inline-flex; align-items: center; gap: 8px; align-self: flex-start; margin: 2px 0 0 -10px; color: inherit; font: inherit; font-size: 15px; font-weight: 600; }
+.wait-notif .ic { width: 20px; height: 20px; }
+.wait-notif:disabled { opacity: .5; }
+.link-btn--inline { display: inline; padding: 0; margin: 0; color: inherit; font: inherit; }

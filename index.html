@@ -30,7 +30,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,62..125,100..900;1,62..125,100..900&family=Bagel+Fat+One&family=Abril+Fatface&family=Merriweather:ital,opsz,wght@0,18..144,400..900;1,18..144,400..900&family=Baskervville:ital,wght@0,400..700;1,400..700&family=Jost:wght@300..700&family=Great+Vibes&family=Cinzel:wght@400..900&family=Syne:wght@600..800&family=Manrope:wght@400..800&family=Anton&family=Courier+Prime:wght@400;700&display=swap">
-<link rel="stylesheet" href="base.css?v=61">
+<link rel="stylesheet" href="base.css?v=62">
 <link rel="stylesheet" href="skins/arty.css?v=61" data-skin-sheet="arty">
 <link rel="stylesheet" href="skins/pomme.css?v=61" data-skin-sheet="pomme">
 <link rel="stylesheet" href="skins/redcorner.css?v=61" data-skin-sheet="redcorner">
@@ -98,6 +98,7 @@
   <symbol id="i-lien" viewBox="0 0 24 24"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></symbol>
   <symbol id="i-kiff" viewBox="0 0 24 24"><path d="M12 6.2A6.5 6.5 0 0 1 12 17.8A6.5 6.5 0 0 1 12 6.2Z" fill="currentColor" fill-opacity=".5" stroke="none"/><circle cx="9" cy="12" r="6.5"/><circle cx="15" cy="12" r="6.5"/></symbol>
   <symbol id="i-telephones" viewBox="0 0 24 24"><rect x="2.5" y="5" width="8" height="14" rx="2"/><rect x="13.5" y="5" width="8" height="14" rx="2"/><path d="M6 16.5h1"/><path d="M17 16.5h1"/></symbol>
+  <symbol id="i-avertir" viewBox="0 0 24 24"><path d="M6 16.5V11a6 6 0 0 1 12 0v5.5l1.5 1.5h-15z"/><path d="M10 20.5a2.2 2.2 0 0 0 4 0"/></symbol>
   <symbol id="i-fermer" viewBox="0 0 24 24"><path d="M6 6l12 12"/><path d="M18 6L6 18"/></symbol>
 </svg>
 <div class="grain" aria-hidden="true"></div>
@@ -341,7 +342,8 @@
     <p class="handoff-text" id="wait-text"></p>
     <p class="duo-wait" id="wait-presence"><span class="duo-dots" aria-hidden="true"><i></i><i></i><i></i></span> <span id="wait-presence-text"></span></p>
     <button class="btn btn--line wait-nudge" id="wait-nudge" type="button" hidden>Prévenir</button>
-    <p class="handoff-text wait-later" id="wait-later" hidden>Tu peux fermer l’appli : la partie vous attend, et tu la retrouveras sur l’accueil.</p>
+    <button class="link-btn wait-notif" id="wait-notif" type="button" hidden><svg class="ic" aria-hidden="true"><use href="#i-avertir"/></svg> M’avertir quand c’est à moi</button>
+    <p class="handoff-text wait-later" id="wait-later" hidden><span id="wait-later-text">Tu peux fermer l’appli : la partie vous attend, et tu la retrouveras sur l’accueil.</span> <button class="link-btn link-btn--inline" id="wait-notif-off" type="button" hidden>Ne plus m’avertir</button></p>
     <div class="wait-links">
       <button class="link-btn" id="wait-pass" type="button">On passe</button>
       <button class="link-btn" id="wait-home" type="button">Accueil</button>
@@ -530,7 +532,8 @@
 <!--/APP-->
 <script src="data.js?v=61"></script>
 <script src="config.js?v=61"></script>
-<script src="duo.js?v=61"></script>
-<script src="app.js?v=61"></script>
+<script src="duo.js?v=62"></script>
+<script src="push.js?v=62"></script>
+<script src="app.js?v=62"></script>
 </body>
 </html>

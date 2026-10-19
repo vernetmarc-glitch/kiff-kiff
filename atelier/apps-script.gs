@@ -10,6 +10,9 @@
  *   5. Copier l’adresse de l’application Web (elle finit par /exec).
  *
  * Les onglets « mots », « compteurs », « choix » et « parties » se créent tout seuls.
+ * Les notifications (« À toi de jouer ») passent aussi par ce script : il crée tout seul sa paire
+ * de clés au premier appel et la garde dans les propriétés du script, jamais dans le code.
+ * Il ne fait que transmettre un message déjà chiffré par le téléphone pour l’autre téléphone.
  * Les comptes ne contiennent rien de personnel. L’onglet « parties » garde la dernière étape
  * des parties à deux téléphones, chiffrée par les téléphones : illisible ici, même pour toi.
  */
@@ -18,7 +21,7 @@ const MOT_DE_PASSE = 'change-moi';
 const ROUES = ['action', 'endroit', 'maniere'];
 // Les événements comptés (aucun identifiant, aucune phrase) ; « detail » précise une variante courte
 const TYPES = ['partie', 'envie', 'kiff', 'passe', 'visite', 'invitation', 'rejoint', 'mais', 'premier', 'piment', 'monte',
-  'partage', 'cafe', 'installe', 'historique'];
+  'partage', 'cafe', 'installe', 'historique', 'notif'];
 const PAR_JOUR = ['visite', 'partie', 'envie', 'kiff', 'rejoint']; // aussi comptés jour par jour
 const ENT_JOURS = ['jour', 'type', 'valeur'];
 const DETAIL = /^[a-z0-9-]{1,16}$/;
@@ -33,6 +36,7 @@ function doGet(e) {
   if (action === 'mots') return sortie(lireMots());
   if (action === 'stats') return sortie(lireStats());
   if (action === 'partie') return sortie(lireParties(e.parameter.p));
+  if (action === 'vapid') return sortie(clePublique());
   return sortie({ ok: true, appli: 'kiffkiff' });
 }
 
@@ -46,6 +50,7 @@ function doPost(e) {
     return sortie({ ok: true });
   }
   if (corps.action === 'partie') return sortie(ecrirePartie(corps));
+  if (corps.action === 'push') return sortie(envoyerNotification(corps));
   if (corps.action === 'check') return sortie({ ok: String(corps.motDePasse || '') === MOT_DE_PASSE });
   if (corps.action === 'save') {
     if (String(corps.motDePasse || '') !== MOT_DE_PASSE) return sortie({ ok: false, erreur: 'mot de passe' });
@@ -297,3 +302,203 @@ function ecrirePartie(c) {
     verrou.releaseLock();
   }
 }
+
+
+/* ---------- Notifications : « À toi de jouer », même l’appli fermée ----------
+ * Le téléphone qui vient de jouer chiffre lui-même le message pour l’autre téléphone
+ * (norme Web Push, RFC 8291) : ce script ne peut pas le lire. Il ajoute seulement la signature
+ * qui prouve au service de notification (Google, Apple, Mozilla, Microsoft) que l’envoi vient
+ * bien de Kiff Kiff (norme VAPID, RFC 8292), puis transmet. Rien n’est gardé.
+ * La paire de clés se crée toute seule au premier appel, dans les propriétés du script.
+ * Pour vérifier depuis l’éditeur : choisir la fonction « verifierNotifications » et Exécuter. */
+const PUSH_HOTES = /^https:\/\/(fcm\.googleapis\.com|[a-z0-9.-]*push\.services\.mozilla\.com|web\.push\.apple\.com|[a-z0-9.-]*\.notify\.windows\.com)\//;
+const PUSH_SUJET = 'https://vernetmarc-glitch.github.io/roue-du-consentement/';
+
+function clePublique() {
+  if (typeof BigInt === 'undefined') return { ok: false, erreur: 'bigint' };
+  return { ok: true, cle: clesVapid().pub };
+}
+
+function envoyerNotification(c) {
+  const adresse = String(c.adresse || '');
+  const corps = String(c.corps || '');
+  if (!PUSH_HOTES.test(adresse) || adresse.length > 1000) return { ok: false, erreur: 'adresse' };
+  if (!corps || corps.length > 5000 || !/^[A-Za-z0-9_-]+$/.test(corps)) return { ok: false, erreur: 'corps' };
+  // Au plus 30 envois par quart d’heure vers un même téléphone
+  const cache = CacheService.getScriptCache();
+  const cle = 'px' + hex(Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, adresse, Utilities.Charset.UTF_8));
+  const n = Number(cache.get(cle) || 0);
+  if (n >= 30) return { ok: false, erreur: 'trop' };
+  cache.put(cle, String(n + 1), 900);
+  const origine = adresse.split('/').slice(0, 3).join('/');
+  const k = clesVapid();
+  const reponse = UrlFetchApp.fetch(adresse, {
+    method: 'post',
+    contentType: 'application/octet-stream',
+    payload: Utilities.base64DecodeWebSafe(corps + '==='.slice((corps.length + 3) % 4)),
+    headers: {
+      Authorization: 'vapid t=' + jetonVapid(origine, k) + ', k=' + k.pub,
+      TTL: '86400',
+      'Content-Encoding': 'aes128gcm',
+      Urgency: c.urgence === 'normal' ? 'normal' : 'high'
+    },
+    muteHttpExceptions: true
+  });
+  const code = reponse.getResponseCode();
+  noterEvenement({ type: 'notif', detail: code < 300 ? 'envoyee' : (code === 404 || code === 410 ? 'expiree' : 'refusee') });
+  return { ok: code < 300, code: code };
+}
+
+/* La paire de clés VAPID : créée une fois, gardée dans les propriétés du script */
+function clesVapid() {
+  const props = PropertiesService.getScriptProperties();
+  let d = props.getProperty('vapid_d'), pub = props.getProperty('vapid_pub');
+  if (d && pub) return { d: BigInt('0x' + d), pub: pub };
+  const verrou = LockService.getScriptLock();
+  verrou.waitLock(15000);
+  try {
+    d = props.getProperty('vapid_d'); pub = props.getProperty('vapid_pub');
+    if (!(d && pub)) {
+      // Hasard : plusieurs identifiants aléatoires de Google, passés au hachage
+      let graine = '';
+      for (let j = 0; j < 8; j++) graine += Utilities.getUuid() + Date.now() + Math.random();
+      const C = ec();
+      const x = BigInt('0x' + hex(Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, graine, Utilities.Charset.UTF_8)));
+      const dd = x % (C.n - C._1) + C._1;
+      const Q = ecVersAffine(ecMul(dd, C.G));
+      d = dd.toString(16).padStart(64, '0');
+      pub = b64u([4].concat(octets(Q[0]), octets(Q[1])));
+      props.setProperty('vapid_d', d);
+      props.setProperty('vapid_pub', pub);
+    }
+  } finally {
+    verrou.releaseLock();
+  }
+  return { d: BigInt('0x' + d), pub: pub };
+}
+
+function jetonVapid(origine, k) {
+  const cache = CacheService.getScriptCache();
+  const memo = 'jwt' + hex(Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, origine + k.pub, Utilities.Charset.UTF_8)).slice(0, 32);
+  const vu = cache.get(memo);
+  if (vu) return vu;
+  const tete = b64u(texteOctets(JSON.stringify({ typ: 'JWT', alg: 'ES256' })));
+  const charge = b64u(texteOctets(JSON.stringify({ aud: origine, exp: Math.floor(Date.now() / 1000) + 12 * 3600, sub: PUSH_SUJET })));
+  const signe = tete + '.' + charge;
+  const jeton = signe + '.' + b64u(ecdsaSigne(k.d, texteOctets(signe)));
+  cache.put(memo, jeton, 6 * 3600);
+  return jeton;
+}
+
+/* À lancer depuis l’éditeur : crée les clés si besoin, signe un jeton et le vérifie */
+function verifierNotifications() {
+  const k = clesVapid();
+  const msg = texteOctets('kiff kiff');
+  const sig = ecdsaSigne(k.d, msg);
+  const brut = signes(Utilities.base64DecodeWebSafe(k.pub + '='.repeat((4 - k.pub.length % 4) % 4))).map(function (b) { return b & 255; });
+  const Q = [enEntier(brut.slice(1, 33)), enEntier(brut.slice(33, 65))];
+  const ok = ecdsaVerifie(Q, msg, sig);
+  Logger.log((ok ? 'Notifications prêtes. ' : 'Problème de signature. ') + 'Clé publique : ' + k.pub);
+  return ok;
+}
+
+/* ---------- Courbe P-256 et signature ECDSA (SHA-256), sans bibliothèque ----------
+   Les grands nombres (BigInt) ne sont créés qu’à l’usage : le reste du script n’en dépend pas. */
+let EC_ = null;
+function ec() {
+  if (!EC_) {
+    const N = BigInt;
+    EC_ = {
+      p: N('0xffffffff00000001000000000000000000000000ffffffffffffffffffffffff'),
+      n: N('0xffffffff00000000ffffffffffffffffbce6faada7179e84f3b9cac2fc632551'),
+      gx: N('0x6b17d1f2e12c4247f8bce6e563a440f277037d812deb33a0f4a13945d898c296'),
+      gy: N('0x4fe342e2fe1a7f9b8ee7eb4a7c0f9e162bce33576b315ececbb6406837bf51f5'),
+      _0: N(0), _1: N(1), _2: N(2), _3: N(3), _4: N(4), _8: N(8)
+    };
+    EC_.G = [EC_.gx, EC_.gy, EC_._1];
+    EC_.O = [EC_._0, EC_._1, EC_._0];
+  }
+  return EC_;
+}
+function md(a, m) { const r = a % m; return r < ec()._0 ? r + m : r; }
+function mpow(b, e, m) {
+  const C = ec();
+  let r = C._1; b = md(b, m);
+  e.toString(2).split('').forEach(function (bit) { r = r * r % m; if (bit === '1') r = r * b % m; });
+  return r;
+}
+function minv(a, m) { return mpow(md(a, m), m - ec()._2, m); }
+// Points en coordonnées jacobiennes [X, Y, Z] ; Z = 0 : point à l’infini
+function ecDouble(P) {
+  const C = ec(), p = C.p, X = P[0], Y = P[1], Z = P[2];
+  if (Z === C._0 || Y === C._0) return C.O;
+  const delta = Z * Z % p, gamma = Y * Y % p, beta = X * gamma % p;
+  const alpha = C._3 * md(X - delta, p) % p * ((X + delta) % p) % p;
+  const X3 = md(alpha * alpha - C._8 * beta, p);
+  const Z3 = md((Y + Z) * (Y + Z) - gamma - delta, p);
+  const Y3 = md(alpha * md(C._4 * beta - X3, p) - C._8 * (gamma * gamma % p), p);
+  return [X3, Y3, Z3];
+}
+function ecAdd(P, Q) {
+  const C = ec(), p = C.p;
+  if (P[2] === C._0) return Q;
+  if (Q[2] === C._0) return P;
+  const Z1Z1 = P[2] * P[2] % p, Z2Z2 = Q[2] * Q[2] % p;
+  const U1 = P[0] * Z2Z2 % p, U2 = Q[0] * Z1Z1 % p;
+  const S1 = P[1] * Q[2] % p * Z2Z2 % p, S2 = Q[1] * P[2] % p * Z1Z1 % p;
+  const H = md(U2 - U1, p), R = md(S2 - S1, p);
+  if (H === C._0) return R === C._0 ? ecDouble(P) : C.O;
+  const H2 = H * H % p, H3 = H * H2 % p, U1H2 = U1 * H2 % p;
+  const X3 = md(R * R - H3 - C._2 * U1H2, p);
+  const Y3 = md(R * md(U1H2 - X3, p) - S1 * H3, p);
+  const Z3 = H * P[2] % p * Q[2] % p;
+  return [X3, Y3, Z3];
+}
+function ecMul(k, P) {
+  let R = ec().O;
+  k.toString(2).split('').forEach(function (bit) { R = ecDouble(R); if (bit === '1') R = ecAdd(R, P); });
+  return R;
+}
+function ecVersAffine(P) {
+  const p = ec().p, zi = minv(P[2], p), zi2 = zi * zi % p;
+  return [P[0] * zi2 % p, P[1] * zi2 % p * zi % p];
+}
+function ecdsaSigne(d, msg) {
+  const C = ec(), n = C.n;
+  const e = md(enEntier(sha256(msg)), n);
+  // k déterministe (RFC 6979) : pas besoin d’un bon hasard au moment de signer
+  const x = octets(d), h1 = octets(e);
+  let V = Array(32).fill(1), K = Array(32).fill(0);
+  K = hmac(K, V.concat([0], x, h1)); V = hmac(K, V);
+  K = hmac(K, V.concat([1], x, h1)); V = hmac(K, V);
+  for (;;) {
+    V = hmac(K, V);
+    const k = enEntier(V);
+    if (k > C._0 && k < n) {
+      const r = md(ecVersAffine(ecMul(k, C.G))[0], n);
+      const s = minv(k, n) * md(e + r * d, n) % n;
+      if (r !== C._0 && s !== C._0) return octets(r).concat(octets(s));
+    }
+    K = hmac(K, V.concat([0])); V = hmac(K, V);
+  }
+}
+function ecdsaVerifie(Q, msg, sig) {
+  const C = ec(), n = C.n;
+  const r = enEntier(sig.slice(0, 32)), s = enEntier(sig.slice(32, 64));
+  if (r <= C._0 || r >= n || s <= C._0 || s >= n) return false;
+  const e = md(enEntier(sha256(msg)), n);
+  const w = minv(s, n);
+  const P = ecAdd(ecMul(e * w % n, C.G), ecMul(r * w % n, [Q[0], Q[1], C._1]));
+  if (P[2] === C._0) return false;
+  return md(ecVersAffine(P)[0], n) === r;
+}
+
+/* Petits outils d’octets (Apps Script donne des octets signés, de -128 à 127) */
+function signes(a) { return a.map(function (b) { return (b << 24) >> 24; }); }
+function sha256(octs) { return Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, signes(octs)).map(function (b) { return b & 255; }); }
+function hmac(cle, octs) { return Utilities.computeHmacSha256Signature(signes(octs), signes(cle)).map(function (b) { return b & 255; }); }
+function enEntier(octs) { return BigInt('0x' + (hex(octs) || '0')); }
+function octets(x) { const h = x.toString(16).padStart(64, '0'); const out = []; for (let j = 0; j < 64; j += 2) out.push(parseInt(h.slice(j, j + 2), 16)); return out; }
+function texteOctets(t) { return Utilities.newBlob(t).getBytes().map(function (b) { return b & 255; }); }
+function b64u(octs) { return Utilities.base64EncodeWebSafe(signes(octs)).replace(/=+$/, ''); }
+function hex(octs) { return octs.map(function (b) { return ((b & 255) + 256).toString(16).slice(1); }).join(''); }

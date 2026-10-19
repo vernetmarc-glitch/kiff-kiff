@@ -132,7 +132,7 @@
         c.on('connect', () => {
           this.connected = true;
           c.subscribe([this.base + 'state', this.base + 'p/+'], { qos: 1 });
-          c.publish(this.base + 'p/' + this.seat, 'on', { qos: 1, retain: true });
+          c.publish(this.base + 'p/' + this.seat, document.visibilityState === 'hidden' ? 'off' : 'on', { qos: 1, retain: true });
           if (this.on.status) this.on.status(true);
           if (!settled) { settled = true; clearTimeout(t); resolve(this); }
         });
@@ -156,6 +156,10 @@
         if (this.client) this.client.publish(this.base + 'state', data, { qos: 1, retain: true });
       }).catch(() => {});
       return this.queue;
+    }
+    // Présence : « on » seulement quand l’appli est à l’écran (l’autre téléphone saura s’il faut l’avertir)
+    here(on) {
+      if (this.client && this.client.connected && !this.closed) this.client.publish(this.base + 'p/' + this.seat, on ? 'on' : 'off', { qos: 1, retain: true });
     }
     wake() {
       if (this.client && !this.client.connected && !this.closed) { try { this.client.reconnect(); } catch (e) { /* rien */ } }

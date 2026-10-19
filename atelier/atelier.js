@@ -119,7 +119,10 @@
         kpi(fmt(c.invitation || 0), 'invitations créées') + kpi(pct(c.rejoint || 0, c.invitation || 0), 'invitations rejointes', fmt(c.rejoint || 0) + ' personnes') +
         kpi(fmt(d.actives7), 'parties actives', 'un coup ces 7 derniers jours, sur ' + fmt(d.total)) +
         kpi(d.total ? (d.coups / d.total).toFixed(1).replace('.', ',') : '–', 'coups par partie', 'en moyenne') +
-        ret('j1', 'encore jouées à J+1') + ret('j7', 'encore jouées à J+7') + ret('j30', 'encore jouées à J+30') + '</div>' +
+        ret('j1', 'encore jouées à J+1') + ret('j7', 'encore jouées à J+7') + ret('j30', 'encore jouées à J+30') +
+        kpi(fmt(c['notif:activee'] || 0), 'avertissements activés', 'sur des téléphones de parties à distance') +
+        kpi(fmt(c['notif:envoyee'] || 0), 'avertissements envoyés', fmt(c['notif:expiree'] || 0) + ' adresses expirées, ' + fmt(c['notif:refusee'] || 0) + ' refusés') +
+        kpi(pct(c['notif:ouverte'] || 0, c['notif:envoyee'] || 0), 'des avertissements touchés') + '</div>' +
       '<h2 class="sec">Le jeu</h2><div class="kpis">' +
         kpi(pct(c.kiff || 0, c.envie || 0), 'des envies deviennent kiff kiff') + kpi(pct(c.mais || 0, c.envie || 0), 'des envies passent par « Oui, mais… »') +
         kpi(pct(c.passe || 0, c.envie || 0), 'de passes par envie') + kpi(pct(c['monte:oui'] || 0, c.monte || 0), 'des montées de piment acceptées', fmt(c.monte || 0) + ' demandées') + '</div>' +
