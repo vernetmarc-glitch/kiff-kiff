@@ -192,6 +192,19 @@ Le réglage se change à chaque envie par qui compose, sans accord de l'autre (i
 - Accès : réservé aux personnes qui ont acheté un pack d'envies ou pris un abonnement, selon le modèle retenu. C'est un avantage concret à payer, et un filtre contre les propositions malveillantes.
 - À prévoir : un compte ou un identifiant de membre (aujourd'hui, le jeu n'a pas de compte), une modération avant publication, et un stockage des propositions et des votes (la feuille de l'Atelier suffit au début). Les propositions ne contiennent que des mots de roue, jamais de phrase intime de partie.
 
+**Les comptes, au plus simple** (19 octobre 2026). Pas de compte pour jouer, jamais : ni pour découvrir, ni pour jouer, ni pour inviter, ni pour rejoindre une partie. Le compte n'apparaît qu'au moment où il apporte quelque chose, et se crée en un geste, sans mot de passe.
+
+| Moment | Pourquoi | Comment |
+| --- | --- | --- |
+| Achat du Pass ou d'un pack | Le paiement demande déjà un email | Étape 1 : un code (« KIFF-7XQ2-… ») actif tout de suite sur le téléphone, envoyé aussi par email ; sur un autre téléphone, on colle le code ou on clique le lien |
+| Proposer une envie, voter | Une voix par personne, créditer l'auteur·ice | Étape 2 : le code devient un compte ; connexion par clé d'accès (Face ID, empreinte) ou lien magique par email ; un pseudo, jamais le vrai nom |
+| Retrouver ses achats sur un nouveau téléphone | Le Pass suit la personne | Le lien de l'email, ou la clé d'accès |
+
+- Pas de « Se connecter avec Google » : personne ne veut voir Kiff Kiff dans son compte Google.
+- Le compte ne contient jamais de partie, de phrase ni de kiff kiff : seulement l'email, le Pass, le pseudo, les propositions et les votes. Les parties restent chiffrées sur les téléphones.
+- Quand l'un·e des deux a le Pass, toute la partie en profite (Brûlant débloqué pour les deux) : la personne invitée découvre le meilleur du jeu sans payer.
+- Technique : la feuille Google ne suffit pas pour des comptes ; il faudra un petit serveur (Cloudflare, gratuit au début).
+
 **Le Pass Kiff enrichi.** En plus du niveau Brûlant complet et des parties à distance illimitées, le Pass débloquerait les roues thématiques. Les roues de la semaine resteraient gratuites : elles servent la rétention. Prix à tester entre 7 et 15 €, payé une fois.
 
 ## Sources
