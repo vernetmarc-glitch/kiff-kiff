@@ -2383,7 +2383,18 @@
     const list = games().filter((g) => g.room !== cur)
       .sort((a, b) => (key(a) - key(b)) || ((b.t || 0) - (a.t || 0)));
     box.hidden = !list.length;
-    $('#games-list').innerHTML = list.map((g) => {
+    // Plus d’une partie : elles passent derrière « Parties à distance » (discret si on joue avec quelqu’un à côté)
+    const many = list.length > 1;
+    const hot = list.filter((g) => fresh(g) || g.turn === 'me').length;
+    $('#games-title').hidden = many;
+    $('#games-list').hidden = many;
+    $('#games-open').hidden = !many;
+    $('#games-open-n').textContent = '(' + list.length + ')';
+    $('#games-badge').hidden = !hot;
+    $('#games-badge').textContent = hot;
+    $('#games-open').setAttribute('aria-label', 'Parties à distance : ' + list.length + ' parties' + (hot ? ', ' + hot + ' où c’est à toi' : ''));
+    if (!many && !$('#ov-games').hidden) hide($('#ov-games'));
+    const html = list.map((g) => {
       const B = ((g.names || [])[1 - g.seat] || '').trim();
       const who = B ? 'Avec ' + B : (g.seat === 0 ? 'Invitation envoyée' : 'Partie à deux');
       const turn = fresh(g) ? 'Kiff kiff trouvé ! Viens fêter ça'
@@ -2395,6 +2406,8 @@
         '<span class="game-who">' + esc(who) + (g.nk ? '<span class="game-count"> · ' + g.nk + ' kiff kiff</span>' : '') + '</span><span class="game-turn">' + esc(turn) + '</span></button>' +
         '<button class="game-x" type="button" data-forget="' + esc(g.room) + '" aria-label="Retirer cette partie de la liste">×</button></li>';
     }).join('');
+    $('#games-list').innerHTML = many ? '' : html;
+    $('#games-sheet-list').innerHTML = many ? html : '';
   }
   // Les nouvelles des parties : la feuille garde la dernière étape de chacune
   let gamesT = 0;
@@ -2442,14 +2455,23 @@
     parkDuo();
     startJoin({ broker: g.broker, room: g.room, key: g.key });
   }
-  $('#games-list').addEventListener('click', (e) => {
+  const ovGames = $('#ov-games');
+  const onGames = (e) => {
     const b = e.target.closest('button');
     if (!b) return;
     audio();
     if (b.dataset.forget) { forgetGame(b.dataset.forget); renderGames(); return; }
     sClick(); haptic(8);
+    hide(ovGames);
     openGame(b.dataset.room);
-  });
+  };
+  $('#games-list').addEventListener('click', onGames);
+  $('#games-sheet-list').addEventListener('click', onGames);
+  $('#games-open').addEventListener('click', () => { audio(); sClick(); haptic(8); refreshGames(); show(ovGames); $('#games-close').focus({ preventScroll: true }); });
+  const closeGames = () => { hide(ovGames); $('#games-open').focus({ preventScroll: true }); };
+  $('#games-close').addEventListener('click', () => { audio(); closeGames(); });
+  ovGames.addEventListener('click', (e) => { if (e.target === ovGames) closeGames(); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !ovGames.hidden) closeGames(); });
 
   // « Arrêter cette partie » prévient l’autre et l’efface : un second toucher confirme
   let quitT = 0;

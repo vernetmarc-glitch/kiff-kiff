@@ -30,11 +30,11 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,62..125,100..900;1,62..125,100..900&family=Bagel+Fat+One&family=Abril+Fatface&family=Merriweather:ital,opsz,wght@0,18..144,400..900;1,18..144,400..900&family=Baskervville:ital,wght@0,400..700;1,400..700&family=Jost:wght@300..700&family=Great+Vibes&family=Cinzel:wght@400..900&family=Syne:wght@600..800&family=Manrope:wght@400..800&display=swap">
-<link rel="stylesheet" href="base.css?v=52">
-<link rel="stylesheet" href="skins/arty.css?v=52" data-skin-sheet="arty">
-<link rel="stylesheet" href="skins/pomme.css?v=52" data-skin-sheet="pomme">
-<link rel="stylesheet" href="skins/redcorner.css?v=52" data-skin-sheet="redcorner">
-<link rel="stylesheet" href="skins/minuit.css?v=52" data-skin-sheet="minuit">
+<link rel="stylesheet" href="base.css?v=53">
+<link rel="stylesheet" href="skins/arty.css?v=53" data-skin-sheet="arty">
+<link rel="stylesheet" href="skins/pomme.css?v=53" data-skin-sheet="pomme">
+<link rel="stylesheet" href="skins/redcorner.css?v=53" data-skin-sheet="redcorner">
+<link rel="stylesheet" href="skins/minuit.css?v=53" data-skin-sheet="minuit">
 <script>
 /* Ambiance : celle du lien (?design=redcorner ou #redcorner), sinon celle mémorisée.
    Appliquée avant l’affichage pour éviter un flash. */
@@ -95,6 +95,7 @@
   <symbol id="i-installer" viewBox="0 0 24 24"><rect x="6.5" y="2.5" width="11" height="19" rx="2.5"/><path d="M12 7v7"/><path d="M9 11l3 3 3-3"/></symbol>
   <symbol id="i-lien" viewBox="0 0 24 24"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></symbol>
   <symbol id="i-kiff" viewBox="0 0 24 24"><path d="M12 6.2A6.5 6.5 0 0 1 12 17.8A6.5 6.5 0 0 1 12 6.2Z" fill="currentColor" fill-opacity=".5" stroke="none"/><circle cx="9" cy="12" r="6.5"/><circle cx="15" cy="12" r="6.5"/></symbol>
+  <symbol id="i-telephones" viewBox="0 0 24 24"><rect x="2.5" y="5" width="8" height="14" rx="2"/><rect x="13.5" y="5" width="8" height="14" rx="2"/><path d="M6 16.5h1"/><path d="M17 16.5h1"/></symbol>
   <symbol id="i-fermer" viewBox="0 0 24 24"><path d="M6 6l12 12"/><path d="M18 6L6 18"/></symbol>
 </svg>
 <div class="grain" aria-hidden="true"></div>
@@ -171,8 +172,10 @@
           <p class="age-note">Réservé aux adultes&nbsp;: en jouant, tu confirmes avoir 18&nbsp;ans ou plus.</p>
           <button class="link-btn resume-link" id="resume" type="button" hidden>Reprendre la partie en cours</button>
           <div class="games" id="games" hidden>
-            <p class="games-title">Vos parties à deux</p>
+            <p class="games-title" id="games-title">Vos parties à deux</p>
             <ul class="games-list" id="games-list"></ul>
+            <!-- Plus d’une partie à distance : tout passe derrière un seul bouton, avec un badge d’activité -->
+            <button class="games-open" id="games-open" type="button" aria-haspopup="dialog" hidden><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-telephones"/></svg><span class="games-open-text">Parties à distance <span class="games-open-n" id="games-open-n"></span></span><span class="badge" id="games-badge" hidden></span></button>
           </div>
           <nav class="home-icons" aria-label="Réglages et partage">
             <button class="icon-btn" id="skin-open" type="button" aria-haspopup="dialog"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-ambiance"/></svg><span class="icon-label">Ambiance<span class="sr-only">&nbsp;: <span id="skin-current">Red Corner</span></span></span></button>
@@ -466,6 +469,17 @@
   </div>
 </div>
 
+<!-- Les parties à distance, derrière un seul bouton de l’accueil -->
+<div class="overlay overlay--edit overlay--skins" id="ov-games" hidden role="dialog" aria-modal="true" aria-labelledby="games-sheet-title">
+  <div class="sheet sheet--edit sheet--skins sheet--games">
+    <div class="deal-head">
+      <h2 class="edit-label" id="games-sheet-title">Parties à distance</h2>
+      <button class="icon-btn icon-btn--bare" id="games-close" type="button" aria-label="Fermer"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-fermer"/></svg></button>
+    </div>
+    <ul class="games-list" id="games-sheet-list"></ul>
+  </div>
+</div>
+
 <!-- Dealer du kiff : partager le jeu, ou offrir un café -->
 <div class="overlay overlay--edit overlay--skins" id="ov-deal" hidden role="dialog" aria-modal="true" aria-labelledby="deal-title">
   <div class="sheet sheet--edit sheet--skins sheet--coffee">
@@ -489,15 +503,15 @@
         <span class="deal-badge" aria-hidden="true"><svg class="ic" viewBox="0 0 24 24"><use href="#i-cafe"/></svg></span>
         <h3 class="deal-card-title" id="deal-coffee-title">Un petit caf’&nbsp;?</h3>
       </div>
-      <p class="duo-text deal-money">Hello les loupiots, c’est Marc ici&nbsp;💃 Ça vous a plu, Kiff Kiff, et vous voulez m’envoyer un peu de kiff en retour&nbsp;? C’est welcome&nbsp;🥰 Ça sera l’occasion de me faire un retour sur le jeu, ou d’ajouter vos formules truculentes. Bécots&nbsp;❤️</p>
+      <p class="duo-text deal-money">Hello les loupiots, c’est Marc ici&nbsp;💃 Ça vous a plu, Kiff Kiff, et vous voulez m’envoyer un peu de kiff en retour&nbsp;? C’est welcome&nbsp;🥰 Ça sera l’occasion de me faire un retour sur le jeu, ou d’ajouter vos formules truculentes. Bécots&nbsp;💋</p>
       <a class="btn btn--line coffee-go" id="coffee-go" href="https://buymeacoffee.com/MarcVernet" data-config="don" target="_blank" rel="noopener"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-cafe"/></svg>Payez-moi un café</a>
     </section>
   </div>
 </div>
 <!--/APP-->
-<script src="data.js?v=52"></script>
-<script src="config.js?v=52"></script>
-<script src="duo.js?v=52"></script>
-<script src="app.js?v=52"></script>
+<script src="data.js?v=53"></script>
+<script src="config.js?v=53"></script>
+<script src="duo.js?v=53"></script>
+<script src="app.js?v=53"></script>
 </body>
 </html>
