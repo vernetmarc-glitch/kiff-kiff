@@ -31,10 +31,11 @@
     const out = [1, 2, 3].filter((n) => arr.map(Number).includes(n));
     return out.length ? out : [1, 2];
   }
+  // Les mots écrits à la main dans une partie (« vos mots à vous deux ») restent dans ses roues, quel que soit le piment
   function buildLists(levels) {
-    for (let r = 0; r < 3; r++) LISTS[r] = SOURCE[r].filter((x) => levels.includes(x.lvl || 1)).concat([FREE[r]]);
+    for (let r = 0; r < 3; r++) LISTS[r] = SOURCE[r].filter((x) => levels.includes(x.lvl || 1)).concat(S.mine[r] || [], [FREE[r]]);
   }
-  const PLACEHOLDER = ['touche pour écrire ton action', 'touche pour écrire ton endroit', 'touche pour écrire ta manière'];
+  const PLACEHOLDER = ['écris ton action', 'écris ton endroit', 'écris ta manière'];
   const REEL_NAMES = ['l’action', 'l’endroit', 'la manière'];
 
   /* ---------- Stockage local (confort, jamais indispensable) ---------- */
@@ -59,6 +60,8 @@
     lvOk: null, // à deux téléphones : les niveaux de piment acceptés par les deux
     kiff: null, // à deux téléphones : le dernier kiff kiff trouvé { n, text, by }
     kiffs: [], // l’historique de la partie : [{ t: phrase, w: qui l’a proposée, d: date }]
+    mine: [[], [], []], // vos mots à vous deux : le texte libre déjà proposé dans cette partie
+    seen: [[], [], []], // les mots déjà proposés entre vous : les tirages puisent d’abord dans les autres
     started: false,
     bottom: false,
     pass: null
@@ -246,13 +249,28 @@
         const idx = mod(i, this.n);
         const txt = labelFor(this.r, idx);
         const lvl = LISTS[this.r][idx].lvl || 1;
-        const key = txt + '|' + lvl;
+        const perso = !!LISTS[this.r][idx].m;
+        const ph = isPlaceholder(this.r, idx);
+        const key = txt + '|' + lvl + '|' + perso + '|' + ph;
         if (node._t !== key) {
           node.textContent = '';
+          // La case libre : un crayon plutôt qu’une phrase
+          if (ph) {
+            const pen = document.createElement('span');
+            pen.className = 'reel-pen';
+            pen.innerHTML = '<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-ecrire"/></svg>';
+            node.appendChild(pen);
+          }
           const tx = document.createElement('span');
           tx.className = 'reel-txt';
           tx.textContent = txt;
           node.appendChild(tx);
+          if (perso) {
+            const tag = document.createElement('span');
+            tag.className = 'reel-perso';
+            tag.innerHTML = '<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-ecrire"/></svg>';
+            node.appendChild(tag);
+          }
           // Estampille piment : 2 ou 3 piments à côté des cases pimentées et brûlantes
           if (lvl > 1) {
             const tag = document.createElement('span');
@@ -276,7 +294,7 @@
       }
       const cur = LISTS[this.r][this.index];
       const orig = S.phase === 'adjust' && S.original && S.original.idx[this.r] === this.index;
-      this.el.setAttribute('aria-valuetext', labelFor(this.r, this.index) + ((cur.lvl || 1) > 1 ? (cur.lvl === 3 ? ', brûlant' : ', pimenté') : '') + (orig ? ', choix de ' + nameOf(S.proposer) : ''));
+      this.el.setAttribute('aria-valuetext', labelFor(this.r, this.index) + ((cur.lvl || 1) > 1 ? (cur.lvl === 3 ? ', brûlant' : ', pimenté') : '') + (cur.m ? ', vos mots' : '') + (orig ? ', choix de ' + nameOf(S.proposer) : ''));
       const t = Math.round(this.p);
       if (t !== this.lastTick) {
         this.lastTick = t;
@@ -672,17 +690,116 @@
   // Une case au hasard, ou parmi les formules les plus kiffées (premier tirage d’une partie)
   const ROUE_KEYS = ['action', 'endroit', 'maniere'];
   const labelOf = (x) => (x && !x.free ? (x.s || x.t || '') : '');
+  // D’abord ce qu’on ne s’est jamais proposé ; quand tout est sorti, les mots les plus anciens
   function pickIndex(r, best) {
     const n = LISTS[r].length - 1; // la case texte libre ne sort pas au hasard
+    let pool = [];
+    for (let i = 0; i < n; i++) {
+      const x = LISTS[r][i];
+      if (r === 0 && x.m && x.d && x.d !== S.dir) continue; // une action écrite à la main garde son sens
+      pool.push(i);
+    }
+    if (!pool.length) for (let i = 0; i < n; i++) pool.push(i);
+    const seen = S.seen[r] || [];
+    const fresh = pool.filter((i) => !seen.includes(wordKey(LISTS[r][i])));
+    if (fresh.length) pool = fresh;
+    else {
+      const age = (i) => seen.indexOf(wordKey(LISTS[r][i]));
+      pool = pool.slice().sort((a, b) => age(a) - age(b)).slice(0, Math.max(1, Math.ceil(pool.length / 2)));
+    }
     if (best) {
       const m = (load('meilleurs', null) || {})[ROUE_KEYS[r]];
       if (Array.isArray(m) && m.length) {
-        const c = [];
-        for (let i = 0; i < n; i++) if (m.includes(labelOf(LISTS[r][i]))) c.push(i);
-        if (c.length) return c[Math.floor(Math.random() * c.length)];
+        const c = pool.filter((i) => m.includes(labelOf(LISTS[r][i])));
+        if (c.length) pool = c;
       }
     }
-    return Math.floor(Math.random() * n);
+    return pool[Math.floor(Math.random() * pool.length)];
+  }
+
+  /* ---------- Vos mots à vous deux, et ce qu’on s’est déjà proposé ---------- */
+  const wordKey = (x) => [x.s || '', x.i || '', x.t || ''].join('|');
+  const MINE_MAX = 30, SEEN_MAX = 240;
+  // Les listes changent (un mot ajouté) : chaque roue garde la case qu’elle montrait
+  function relist() {
+    const cur = LISTS.map((l, r) => l[S.idx[r]]);
+    const org = S.original ? S.original.idx.map((i, r) => LISTS[r][i]) : null;
+    buildLists(S.levels);
+    const at = (r, x) => { const i = LISTS[r].indexOf(x); return i < 0 ? LISTS[r].length - 1 : i; };
+    S.idx = cur.map((x, r) => at(r, x));
+    if (org) S.original.idx = org.map((x, r) => at(r, x));
+    reels.forEach((rl, r) => { rl.stop(); rl.drag = null; rl.p = S.idx[r]; rl.lastTick = S.idx[r]; });
+  }
+  // « que tu me » → « de te » (et l’inverse), comme dans l’atelier ; à défaut, le texte tel quel
+  const IRR = { fasses: 'faire', mettes: 'mettre', mordes: 'mordre', lises: 'lire', dises: 'dire', prennes: 'prendre', rendes: 'rendre',
+    'écrives': 'écrire', offres: 'offrir', ouvres: 'ouvrir', sentes: 'sentir', boives: 'boire', tendes: 'tendre', ailles: 'aller',
+    viennes: 'venir', tiennes: 'tenir', fesses: 'fesser', suces: 'sucer', circlues: 'circlure' };
+  const IRR_INV = Object.fromEntries(Object.entries(IRR).map(([a, b]) => [b, a]));
+  function toInf(t) {
+    const m = t.match(/^(\S+)(.*)$/); if (!m) return t;
+    const v = m[1], lc = v.toLowerCase();
+    let inf = IRR[lc];
+    if (!inf) inf = /è([^aeiouyéèê\s]+)es$/i.test(v) ? v.replace(/è([^aeiouyéèê\s]+)es$/i, 'e$1er') : /es$/i.test(v) ? v.slice(0, -2) + 'er' : v;
+    return inf + m[2].replace(/\btes\b/g, 'mes').replace(/\bton\b/g, 'mon').replace(/\bta\b/g, 'ma');
+  }
+  function toSubj(t) {
+    const m = t.match(/^(\S+)(.*)$/); if (!m) return t;
+    const v = m[1], lc = v.toLowerCase();
+    let s = IRR_INV[lc];
+    if (!s) s = /er$/i.test(v) ? v.slice(0, -2) + 'es' : /ir$/i.test(v) ? v.slice(0, -2) + 'isses' : v;
+    return s + m[2].replace(/\bmes\b/g, 'tes').replace(/\bmon\b/g, 'ton').replace(/\bma\b/g, 'ta');
+  }
+  function mineItem(r, text, dir) {
+    if (r !== 0) return { t: text, m: 1 };
+    return dir === 'me' ? { s: text, i: toInf(text), d: 'me', m: 1 } : { s: toSubj(text), i: text, d: 'te', m: 1 };
+  }
+  // Le texte libre d’une envie proposée devient un mot de la partie, pour les deux
+  function adoptFree() {
+    const tgt = [null, null, null];
+    [0, 1, 2].forEach((r) => {
+      const text = S.custom[r].replace(/\s+/g, ' ').trim();
+      if (!isFree(r, S.idx[r]) || !text) return;
+      const item = mineItem(r, text, S.dir);
+      let x = S.mine[r].find((y) => sameItem(y, item));
+      if (!x) { x = item; S.mine[r] = S.mine[r].concat(x).slice(-MINE_MAX); }
+      tgt[r] = x;
+      S.custom[r] = '';
+    });
+    if (!tgt.some(Boolean)) return false;
+    relist();
+    tgt.forEach((x, r) => {
+      if (!x) return;
+      const i = LISTS[r].indexOf(x);
+      S.idx[r] = i;
+      if (reels[r]) { reels[r].p = i; reels[r].lastTick = i; }
+    });
+    renderReels();
+    return true;
+  }
+  function markSeen(idx = S.idx) {
+    idx.forEach((i, r) => {
+      const x = LISTS[r][i];
+      if (!x || x.free) return;
+      const k = wordKey(x);
+      S.seen[r] = (S.seen[r] || []).filter((y) => y !== k).concat(k).slice(-SEEN_MAX);
+    });
+  }
+  // Sur un seul téléphone, la mémoire va avec les deux prénoms : on la retrouve à la partie suivante
+  const pairKey = () => [0, 1].map((i) => nameOf(i).trim().toLowerCase()).sort().join('|');
+  const cleanMine = (l) => (Array.isArray(l) ? l : []).filter((x) => x && x.m && (typeof x.t === 'string' || (typeof x.s === 'string' && typeof x.i === 'string')))
+    .map((x) => { const o = { m: 1 }; ['s', 'i', 't', 'd'].forEach((f) => { if (typeof x[f] === 'string') o[f] = x[f].slice(0, 60); }); return o; }).slice(-MINE_MAX);
+  const cleanSeen = (l) => (Array.isArray(l) ? l : []).filter((k) => typeof k === 'string').slice(-SEEN_MAX);
+  function setMemory(mem) {
+    S.mine = [0, 1, 2].map((r) => cleanMine(mem && mem.mine && mem.mine[r]));
+    S.seen = [0, 1, 2].map((r) => cleanSeen(mem && mem.seen && mem.seen[r]));
+    relist();
+  }
+  function savePair() {
+    if (duo) return;
+    const all = load('paires', {}) || {};
+    all[pairKey()] = { mine: S.mine, seen: S.seen, t: Date.now() };
+    const keep = Object.keys(all).sort((a, b) => (all[b].t || 0) - (all[a].t || 0)).slice(0, 20);
+    save('paires', Object.fromEntries(keep.map((k) => [k, all[k]])));
   }
   function shuffle(includeDir, best) {
     if (includeDir) { S.dir = Math.random() < 0.5 ? 'me' : 'te'; }
@@ -715,6 +832,9 @@
   /* A propose son envie */
   function propose() {
     if (S.phase !== 'compose' || !myTurn() || reels.some((r) => r.busy) || blockedByFree()) return;
+    adoptFree();
+    markSeen();
+    savePair();
     report('envie', choiceLabels());
     S.original = { idx: S.idx.slice(), custom: S.custom.slice(), dir: S.dir };
     S.phase = 'review';
@@ -727,6 +847,7 @@
   function finishAdjust() {
     if (S.phase !== 'adjust' || !myTurn() || reels.some((r) => r.busy) || blockedByFree()) return;
     sSwitchOn(); haptic(15);
+    if (changes().length) { adoptFree(); markSeen(); savePair(); }
     if (!changes().length) {
       report('kiff', choiceLabels()); pushKiff();
       if (duo) { S.phase = 'celebrate'; noteKiff(); sync(); }
@@ -942,8 +1063,8 @@
     partyFoot();
     const n = kiffCount();
     $('#party-count').hidden = !n;
-    $('#party-count-text').textContent = 'Votre ' + ordinal(n) + ' kiff kiff ensemble' + (n === 1 ? ' !' : '.');
-    $('#party-history').hidden = (S.kiffs || []).length < 2;
+    $('#party-count-text').textContent = 'Votre ' + ordinal(n) + ' kiff kiff ensemble';
+    $('#party-history').setAttribute('aria-label', 'Votre ' + ordinal(n) + ' kiff kiff ensemble. Revoir vos kiff kiff');
   }
   const ovKiffs = $('#ov-kiffs');
   let kiffsFrom = null;
@@ -988,14 +1109,16 @@
   function partyNormal() {
     lateKiff = false;
     $('#party-pass').hidden = false;
-    $('.party-text').textContent = 'Prenez votre temps. Revenez quand c’est fait.';
+    $('.party-text').textContent = 'Vous en avez envie tous les deux.';
+    $('#party-done').hidden = true;
   }
   // La célébration manquée : d’abord le kiff kiff, ensuite la suite de la partie
   function celebrateLate() {
     lateKiff = true;
     const by = S.kiff.by === 0 || S.kiff.by === 1 ? S.kiff.by : other(duo.seat);
     $('#party-sentence').textContent = S.kiff.text;
-    $('.party-text').textContent = (by === duo.seat ? 'Vous avez dit oui tous les deux.' : nameOf(by) + ' a dit oui pendant ton absence.') + ' Prenez votre temps. Revenez quand c’est fait.';
+    $('.party-text').textContent = by === duo.seat ? 'Vous en avez envie tous les deux.' : nameOf(by) + ' a dit oui pendant ton absence.';
+    $('#party-done').hidden = true;
     $('#party-next').textContent = 'Voir la suite de la partie';
     $('#party-pass').hidden = true;
     partyCount();
@@ -1032,6 +1155,9 @@
     $('#deal-done').hidden = true;
     show(ovDeal);
     $('#deal-share').focus({ preventScroll: true });
+    // Le QR code du jeu : on le montre, l’autre le scanne, rien à recopier
+    const qr = $('#deal-qr');
+    if (!qr.firstChild) loadScript('vendor/qrcode.js?v=1.4.4').then(() => { if (window.KiffDuo && window.KiffDuo.qrSvg) qr.innerHTML = window.KiffDuo.qrSvg(APP_URL); }).catch(() => {});
   };
   $('#party-deal').addEventListener('click', openDeal);
   $('#home-deal').addEventListener('click', openDeal);
@@ -1101,24 +1227,48 @@
     c.strokeStyle = '#C9A04E'; c.lineWidth = 4; c.strokeRect(36, 36, W - 72, H - 72);
     c.lineWidth = 1.5; c.strokeRect(52, 52, W - 104, H - 104);
     c.textAlign = 'center';
-    c.fillStyle = '#F6DDA0'; c.font = '600 72px "Cinzel", Georgia, serif';
-    c.fillText('KIFF KIFF', W / 2, 190);
-    // la carte
+    // l’emblème : deux cercles de néon qui se rejoignent
+    c.save();
+    c.shadowColor = '#FF3D7F'; c.shadowBlur = 34;
+    c.beginPath(); c.arc(W / 2 - 34, 178, 76, -1.11, 1.11); c.arc(W / 2 + 34, 178, 76, Math.PI - 1.11, Math.PI + 1.11); c.closePath();
+    c.fillStyle = 'rgba(255, 61, 127, .6)'; c.fill();
+    c.strokeStyle = '#FFE3EC'; c.lineWidth = 7;
+    [W / 2 - 34, W / 2 + 34].forEach((x) => { c.beginPath(); c.arc(x, 178, 76, 0, Math.PI * 2); c.stroke(); });
+    c.restore();
+    c.fillStyle = '#F6DDA0'; c.font = '600 66px "Cinzel", Georgia, serif';
+    c.fillText('KIFF KIFF', W / 2, 340);
+    // la carte, entre le titre et le bandeau du bas
     const cx = 110, cw = W - 220;
-    c.font = '58px "Baskervville", Georgia, serif';
     const body = text.replace(/^J’ai envie\s+/, '');
-    const lines = wrapLines(c, body, cw - 120);
-    const ch = 200 + lines.length * 76, cy = (H - ch) / 2 + 30;
+    let fs = 58, lines;
+    do { c.font = fs + 'px "Baskervville", Georgia, serif'; lines = wrapLines(c, body, cw - 120); fs -= 4; } while (lines.length * (fs + 22) + 200 > 600 && fs > 36);
+    const lh = fs + 22, ch = 200 + lines.length * lh, cy = 390 + (600 - ch) / 2;
     c.fillStyle = '#FBF3E6'; c.fillRect(cx, cy, cw, ch);
     c.strokeStyle = '#C9A04E'; c.lineWidth = 3; c.strokeRect(cx + 14, cy + 14, cw - 28, ch - 28);
     c.fillStyle = '#9C1A33'; c.font = '78px "Great Vibes", cursive';
     c.fillText('J’ai envie…', W / 2, cy + 110);
-    c.fillStyle = '#2A0710'; c.font = '58px "Baskervville", Georgia, serif';
-    lines.forEach((l, i) => c.fillText(l, W / 2, cy + 190 + i * 76));
-    c.fillStyle = '#F7C7CF'; c.font = '46px "Great Vibes", cursive';
-    c.fillText('Rien ne se passe sans deux « j’ai envie »', W / 2, H - 200);
-    c.fillStyle = '#F6DDA0'; c.font = '30px "Jost", sans-serif';
-    c.fillText('vernetmarc-glitch.github.io/roue-du-consentement', W / 2, H - 130);
+    c.fillStyle = '#2A0710'; c.font = (fs + 4) + 'px "Baskervville", Georgia, serif';
+    lines.forEach((l, i) => c.fillText(l, W / 2, cy + 190 + i * lh));
+    // le bandeau : un QR code vers le jeu, rien à recopier
+    c.strokeStyle = 'rgba(201, 160, 78, .6)'; c.lineWidth = 2;
+    c.beginPath(); c.moveTo(110, 1040); c.lineTo(W - 110, 1040); c.stroke();
+    const fit = (str, font, max, size) => { let s = size; do { c.font = font.replace('{s}', s); s -= 2; } while (c.measureText(str).width > max && s > 18); };
+    try {
+      await loadScript('vendor/qrcode.js?v=1.4.4');
+      const qr = window.qrcode(0, 'M'); qr.addData(APP_URL); qr.make();
+      const n = qr.getModuleCount(), q = 200, m = q / (n + 4), qx = 120, qy = 1080;
+      c.fillStyle = '#FBF3E6'; c.fillRect(qx, qy, q, q);
+      c.fillStyle = '#2A0710';
+      for (let r = 0; r < n; r++) for (let k = 0; k < n; k++) if (qr.isDark(r, k)) c.fillRect(qx + (k + 2) * m, qy + (r + 2) * m, Math.ceil(m), Math.ceil(m));
+      c.textAlign = 'left';
+      const tx = 360, tw = W - 120 - tx;
+      c.fillStyle = '#F6DDA0'; fit('Scanne et joue à deux', '600 {s}px "Jost", sans-serif', tw, 46); c.fillText('Scanne et joue à deux', tx, 1150);
+      c.fillStyle = '#F7C7CF'; fit('Rien ne se passe sans deux « j’ai envie »', '{s}px "Great Vibes", cursive', tw, 46); c.fillText('Rien ne se passe sans deux « j’ai envie »', tx, 1215);
+      c.fillStyle = '#F6DDA0'; fit('Kiff Kiff · jeu de séduction pour adultes', '{s}px "Jost", sans-serif', tw, 28); c.fillText('Kiff Kiff · jeu de séduction pour adultes', tx, 1262);
+    } catch (e) {
+      c.fillStyle = '#F7C7CF'; c.font = '46px "Great Vibes", cursive';
+      c.fillText('Rien ne se passe sans deux « j’ai envie »', W / 2, 1160);
+    }
     return new Promise((res) => cv.toBlob(res, 'image/png'));
   }
   $('#party-image').addEventListener('click', async () => {
@@ -1137,8 +1287,10 @@
     a.href = URL.createObjectURL(blob); a.download = 'kiff-kiff.png';
     document.body.appendChild(a); a.click(); a.remove();
     setTimeout(() => URL.revokeObjectURL(a.href), 4000);
-    btn.textContent = 'Image enregistrée';
-    setTimeout(() => { btn.textContent = 'Partager cette phrase en image'; }, 2200);
+    const done = $('#party-done');
+    done.textContent = 'Image enregistrée dans tes téléchargements.';
+    done.hidden = false;
+    btn.focus({ preventScroll: true });
   });
 
   /* Confettis */
@@ -1155,7 +1307,7 @@
     const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const css = getComputedStyle(document.documentElement);
     const cols = (css.getPropertyValue('--confetti') || '#ffffff').split(',').map((v) => v.trim()).filter(Boolean);
-    const shapes = (css.getPropertyValue('--confetti-shapes') || 'rect, dot, heart').split(',').map((v) => v.trim()).filter(Boolean);
+    const shapes = (css.getPropertyValue('--confetti-shapes') || 'rect, dot').split(',').map((v) => v.trim()).filter(Boolean);
     const N = reduce ? 40 : 170;
     const P = [];
     for (let i = 0; i < N; i++) {
@@ -1263,8 +1415,8 @@
   }
 
   /* ---------- Ambiances ---------- */
-  const SKINS = ['arty', 'pomme', 'redcorner'];
-  const SKIN_NAMES = { arty: 'Arty', pomme: 'Pomme d’Amour', redcorner: 'Red Corner' };
+  const SKINS = ['arty', 'pomme', 'redcorner', 'minuit'];
+  const SKIN_NAMES = { arty: 'Arty', pomme: 'Pomme d’Amour', redcorner: 'Red Corner', minuit: 'Minuit' };
   function currentSkin() {
     const s = document.documentElement.getAttribute('data-skin');
     return SKINS.includes(s) ? s : 'redcorner';
@@ -1276,12 +1428,16 @@
     document.documentElement.setAttribute('data-skin', s);
     document.querySelectorAll('[data-skin-sheet]').forEach((n) => { n.disabled = n.getAttribute('data-skin-sheet') !== s; });
     save('skin', s);
-    requestAnimationFrame(() => {
+    const theme = () => {
       const c = getComputedStyle(document.documentElement).getPropertyValue('--theme-color').trim();
       const m = document.querySelector('meta[name="theme-color"]');
       if (c && m) m.setAttribute('content', c);
       if (reels.length) renderReels();
-    });
+    };
+    requestAnimationFrame(theme);
+    // une feuille d’ambiance pas encore chargée : on relit ses couleurs quand elle arrive
+    const sheet = document.querySelector('[data-skin-sheet="' + s + '"]');
+    if (sheet) sheet.addEventListener('load', theme, { once: true });
   }
 
   /* ---------- Deux téléphones ---------- */
@@ -1301,7 +1457,7 @@
     const x = LISTS[r][i];
     if (!x || x.free) return 'f';
     const o = {};
-    FIELDS.concat('lvl').forEach((f) => { if (x[f] != null) o[f] = x[f]; });
+    FIELDS.concat('lvl', 'm', 'd').forEach((f) => { if (x[f] != null) o[f] = x[f]; });
     return o;
   }
   function idxOf(r, k) {
@@ -1309,6 +1465,14 @@
     if (typeof k === 'number') { const i = LISTS[r].indexOf(SOURCE[r][k]); return i < 0 ? 0 : i; } // ancien format
     if (!k || typeof k !== 'object') return 0;
     let i = LISTS[r].findIndex((x) => !x.free && sameItem(x, k));
+    if (i < 0 && k.m) {
+      // Un mot écrit à la main par l’autre : il rejoint vos mots à vous deux
+      const x = cleanMine([k])[0];
+      if (!x) return 0;
+      S.mine[r] = S.mine[r].concat(x).slice(-MINE_MAX);
+      LISTS[r].splice(LISTS[r].length - 1, 0, x);
+      return LISTS[r].length - 2;
+    }
     if (i < 0) {
       // Mot retiré depuis (ou hors des piments choisis) : on le garde, le temps de cette partie
       const x = {};
@@ -1373,6 +1537,7 @@
 
   function snapshot() {
     const keys = (idx) => idx.map((i, r) => keyOf(r, i));
+    const inGame = !!duo && duo.stage === 'game';
     return {
       v: 1, dv: DATA_V,
       names: S.names.slice(), levels: S.levels.slice(),
@@ -1384,7 +1549,10 @@
       kiff: S.kiff || null,
       kiffs: (S.kiffs || []).slice(-60),
       t0: S.t0 || null,
-      rencontre: !!S.rencontre
+      rencontre: !!S.rencontre,
+      // avant d’entrer dans la partie (invitation, arrivée), rien de ce téléphone ne s’y mêle
+      mine: inGame ? S.mine.map((l) => l.slice(-MINE_MAX)) : [[], [], []],
+      seen: inGame ? S.seen.map((l) => l.slice(-SEEN_MAX)) : [[], [], []]
     };
   }
   function pushState(extra) {
@@ -1453,7 +1621,16 @@
     const prev = { phase: S.phase, proposer: S.proposer };
     S.names = (st.names || ['', '']).slice();
     const lv = parseLevels(st.levels);
-    if (lv.join() !== S.levels.join()) { S.levels = lv; save('levels', lv); buildLists(lv); renderLevel(); }
+    // Vos mots à vous deux et les mots déjà proposés : ceux de la partie, rejoints par ceux de ce téléphone
+    if (opts.first) { S.mine = [[], [], []]; S.seen = [[], [], []]; }
+    [0, 1, 2].forEach((r) => {
+      cleanMine(st.mine && st.mine[r]).forEach((x) => { if (!S.mine[r].some((y) => sameItem(y, x))) S.mine[r].push(x); });
+      S.mine[r] = S.mine[r].slice(-MINE_MAX);
+      const remote = cleanSeen(st.seen && st.seen[r]);
+      S.seen[r] = remote.concat(S.seen[r].filter((k) => !remote.includes(k))).slice(-SEEN_MAX);
+    });
+    if (lv.join() !== S.levels.join()) { S.levels = lv; save('levels', lv); renderLevel(); }
+    buildLists(lv);
     S.proposer = st.proposer;
     S.phase = st.phase;
     S.dir = st.dir === 'te' ? 'te' : 'me';
@@ -1789,6 +1966,7 @@
     try { history.replaceState(null, '', location.pathname + location.search); } catch (e) { /* rien */ }
     hide(ovDuo); hide($('#ov-wait')); hide($('#ov-note')); hide($('#ov-invited')); hide(ovHot);
     S.lvOk = null; S.kiff = null; S.kiffs = []; S.rencontre = false; renderKiffs(); partyNormal();
+    setMemory(null);
     if (d && d.conn) {
       if (announce && (d.stage === 'game' || d.stage === 'invite')) {
         const st = Object.assign(snapshot(), { phase: 'ended', endBy: d.seat, seq: d.seq + 1, by: d.id });
@@ -1912,7 +2090,7 @@
   function choiceLabels() {
     return [0, 1, 2].map((r) => {
       const x = LISTS[r][S.idx[r]];
-      if (!x || x.free) return '(texte libre)';
+      if (!x || x.free || x.m) return '(texte libre)';
       return x.s || x.t || '';
     });
   }
@@ -2184,6 +2362,7 @@
     S.t0 = Date.now();
     hide(el.ovStart);
     S.kiff = null; S.kiffs = []; renderKiffs();
+    setMemory((load('paires', {}) || {})[pairKey()]); // vos mots et ce que vous vous êtes déjà proposé
     S.started = true;
     S.mustRestart = false;
     // La deuxième personne propose en premier : on lui passe le téléphone
@@ -2245,6 +2424,7 @@
     hide($('#ov-wait')); hide($('#ov-note')); hide(el.ovParty); stopConfetti();
     hideOffer(); hide(ovHot);
     S.lvOk = null; S.kiff = null; S.kiffs = []; S.rencontre = false; renderKiffs(); partyNormal();
+    setMemory(null);
     S.started = false;
     S.phase = 'start';
     S.names = load('names', ['', '']);
@@ -2288,6 +2468,7 @@
     const inDuo = !!duo && duo.stage === 'game';
     $('#steps').classList.toggle('is-duo', inDuo);
     $('#duo-home').hidden = !inDuo;
+    $('#week').hidden = inDuo; // pendant une partie à deux, seule la reprise compte
     const own = inDuo ? load('names', ['', '']) : S.names; // pendant une partie à deux, S.names est celle de la partie
     $('#name0').value = own[0] || '';
     $('#name1').value = own[1] || '';

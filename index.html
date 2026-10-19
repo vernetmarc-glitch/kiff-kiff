@@ -12,7 +12,7 @@
 <meta property="og:locale" content="fr_FR">
 <meta property="og:url" content="https://vernetmarc-glitch.github.io/roue-du-consentement/">
 <meta property="og:title" content="Kiff Kiff · le jeu où rien ne se passe sans deux « j’ai envie »">
-<meta property="og:description" content="Trois roues pour se proposer des envies, et ne vivre que celles dont vous avez envie tous les deux. Jeu à deux pour adultes, sur un téléphone ou à distance.">
+<meta property="og:description" content="Trois roues pour se proposer des envies, et ne vivre que celles dont vous avez envie tous les deux. Jeu de séduction pour adultes, sur un téléphone ou à distance.">
 <meta property="og:image" content="https://vernetmarc-glitch.github.io/roue-du-consentement/icons/og-image.jpg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
@@ -29,16 +29,17 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,62..125,100..900;1,62..125,100..900&family=Bagel+Fat+One&family=Abril+Fatface&family=Merriweather:ital,opsz,wght@0,18..144,400..900;1,18..144,400..900&family=Baskervville:ital,wght@0,400..700;1,400..700&family=Jost:wght@300..700&family=Great+Vibes&family=Cinzel:wght@400..900&display=swap">
-<link rel="stylesheet" href="base.css?v=51">
-<link rel="stylesheet" href="skins/arty.css?v=51" data-skin-sheet="arty">
-<link rel="stylesheet" href="skins/pomme.css?v=51" data-skin-sheet="pomme">
-<link rel="stylesheet" href="skins/redcorner.css?v=51" data-skin-sheet="redcorner">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,62..125,100..900;1,62..125,100..900&family=Bagel+Fat+One&family=Abril+Fatface&family=Merriweather:ital,opsz,wght@0,18..144,400..900;1,18..144,400..900&family=Baskervville:ital,wght@0,400..700;1,400..700&family=Jost:wght@300..700&family=Great+Vibes&family=Cinzel:wght@400..900&family=Syne:wght@600..800&family=Manrope:wght@400..800&display=swap">
+<link rel="stylesheet" href="base.css?v=52">
+<link rel="stylesheet" href="skins/arty.css?v=52" data-skin-sheet="arty">
+<link rel="stylesheet" href="skins/pomme.css?v=52" data-skin-sheet="pomme">
+<link rel="stylesheet" href="skins/redcorner.css?v=52" data-skin-sheet="redcorner">
+<link rel="stylesheet" href="skins/minuit.css?v=52" data-skin-sheet="minuit">
 <script>
 /* Ambiance : celle du lien (?design=redcorner ou #redcorner), sinon celle mémorisée.
    Appliquée avant l’affichage pour éviter un flash. */
 (function () {
-  var alias = { arty: 'arty', zinzin: 'arty', pomme: 'pomme', 'pomme-d-amour': 'pomme', pommedamour: 'pomme', redcorner: 'redcorner', 'red-corner': 'redcorner' };
+  var alias = { arty: 'arty', zinzin: 'arty', pomme: 'pomme', 'pomme-d-amour': 'pomme', pommedamour: 'pomme', redcorner: 'redcorner', 'red-corner': 'redcorner', minuit: 'minuit', nuit: 'minuit' };
   var norm = function (v) { return alias[String(v || '').toLowerCase().replace(/[^a-z-]/g, '')]; };
   var s, fromLink;
   try {
@@ -75,6 +76,26 @@
     <path d="M13.6 8.1c1.3-1.2 3.4-1.3 4.8-.1" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
     <path d="M16 7.5c0-1.9.9-3.3 2.8-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
   </symbol>
+  <!-- L’emblème : deux envies qui se rejoignent, leur intersection allumée -->
+  <symbol id="emblem" viewBox="0 0 168 124">
+    <path class="e-lens" d="M84 21.6A46 46 0 0 1 84 102.4A46 46 0 0 1 84 21.6Z"/>
+    <circle class="e-ring" cx="62" cy="62" r="46"/>
+    <circle class="e-ring e-ring--2" cx="106" cy="62" r="46"/>
+  </symbol>
+  <!-- Jeu d’icônes : grille 24, trait 1,6, bouts arrondis (le trait vient de .ic) -->
+  <symbol id="i-son" viewBox="0 0 24 24"><path d="M4 9.5h3l4.5-3.5v12L7 14.5H4z"/><path d="M15 9a4 4 0 0 1 0 6"/><path d="M17.5 6.5a7.5 7.5 0 0 1 0 11"/></symbol>
+  <symbol id="i-muet" viewBox="0 0 24 24"><path d="M4 9.5h3l4.5-3.5v12L7 14.5H4z"/><path d="M15.5 9.5l5 5"/><path d="M20.5 9.5l-5 5"/></symbol>
+  <symbol id="i-ambiance" viewBox="0 0 24 24"><path d="M12 3.5a8.5 8.5 0 1 0 0 17c1.4 0 2-1 1.5-2.2-.5-1.3.3-2.3 1.7-2.3H17a3.5 3.5 0 0 0 3.5-3.5c0-5-3.8-9-8.5-9z"/><circle cx="7.8" cy="11.2" r="1.1"/><circle cx="10.6" cy="7.4" r="1.1"/><circle cx="15.2" cy="7.8" r="1.1"/></symbol>
+  <symbol id="i-tourner" viewBox="0 0 24 24"><circle cx="10.4" cy="12" r="3"/><circle cx="13.6" cy="12" r="3"/><path d="M20 12a8 8 0 0 1-13.7 5.6"/><path d="M4 12a8 8 0 0 1 13.7-5.6"/><path d="M17.9 3.4v3.2h-3.2"/><path d="M6.1 20.6v-3.2h3.2"/></symbol>
+  <symbol id="i-partager" viewBox="0 0 24 24"><path d="M12 3.5v11"/><path d="M8 7.5l4-4 4 4"/><path d="M8.5 10.5h-2v9h11v-9h-2"/></symbol>
+  <symbol id="i-kiffs" viewBox="0 0 24 24"><path d="M4 12a8 8 0 1 0 2.4-5.7"/><path d="M4 4v4h4"/><circle cx="10.7" cy="12.4" r="2.6"/><circle cx="13.3" cy="12.4" r="2.6"/></symbol>
+  <symbol id="i-cafe" viewBox="0 0 24 24"><path d="M5 9.5h11v4.5a5 5 0 0 1-5 5h-1a5 5 0 0 1-5-5z"/><path d="M16 11h1.5a2.5 2.5 0 0 1 0 5H16"/><path d="M8.5 3.5c-.8 1 .8 2 0 3"/><path d="M12 3.5c-.8 1 .8 2 0 3"/></symbol>
+  <symbol id="i-retour" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></symbol>
+  <symbol id="i-ecrire" viewBox="0 0 24 24"><path d="M15.5 4.5l4 4L9 19l-5 1 1-5z"/><path d="M13.5 6.5l4 4"/></symbol>
+  <symbol id="i-installer" viewBox="0 0 24 24"><rect x="6.5" y="2.5" width="11" height="19" rx="2.5"/><path d="M12 7v7"/><path d="M9 11l3 3 3-3"/></symbol>
+  <symbol id="i-lien" viewBox="0 0 24 24"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></symbol>
+  <symbol id="i-kiff" viewBox="0 0 24 24"><path d="M12 6.2A6.5 6.5 0 0 1 12 17.8A6.5 6.5 0 0 1 12 6.2Z" fill="currentColor" fill-opacity=".5" stroke="none"/><circle cx="9" cy="12" r="6.5"/><circle cx="15" cy="12" r="6.5"/></symbol>
+  <symbol id="i-fermer" viewBox="0 0 24 24"><path d="M6 6l12 12"/><path d="M18 6L6 18"/></symbol>
 </svg>
 <div class="grain" aria-hidden="true"></div>
 <div class="deco" aria-hidden="true">
@@ -102,7 +123,7 @@
 
   <p class="switch switch--top is-static" id="sw-top" aria-checked="true">
     <span class="sw-text"><span class="sw-label ink" data-ink="J’ai envie…">J’ai envie…</span><span class="sw-owner" id="owner-top"></span></span>
-    <button class="sticker kiffs-btn" id="kiffs-open" type="button" aria-haspopup="dialog" hidden><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M12 20.5s-7.5-4.6-7.5-10.2A4.3 4.3 0 0 1 12 7.6a4.3 4.3 0 0 1 7.5 2.7c0 5.6-7.5 10.2-7.5 10.2z" fill="currentColor"/></svg><span class="kiffs-n" id="kiffs-n"></span><span class="kiffs-word">kiff kiff</span></button>
+    <button class="sticker kiffs-btn" id="kiffs-open" type="button" aria-haspopup="dialog" hidden><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><use href="#i-kiff"/></svg><span class="kiffs-n" id="kiffs-n"></span><span class="kiffs-word">kiff kiff</span></button>
   </p>
 
   <section class="press" id="cabinet" aria-label="La phrase">
@@ -138,8 +159,8 @@
     <div class="steps-track">
       <section class="step" data-step="0" aria-label="Kiff Kiff">
         <div class="sheet welcome">
+          <svg class="emblem" viewBox="0 0 168 124" aria-hidden="true"><use href="#emblem"/></svg>
           <h2 class="poster-title"><span class="ink" data-ink="Kiff">Kiff</span><span class="ink" data-ink="Kiff">Kiff</span></h2>
-          <p class="poster-sub">Trois roues pour se proposer des envies, et ne vivre que celles dont vous avez envie tous les deux.</p>
           <button class="week" id="week" type="button" aria-describedby="week-label"><span class="week-label" id="week-label">La formule de la semaine</span><span class="week-text" id="week-text" aria-live="polite"></span><span class="week-more" aria-hidden="true">Touche pour en tirer une autre</span></button>
           <div class="duo-home" id="duo-home" hidden>
             <p class="duo-home-text" id="duo-home-text"></p>
@@ -153,12 +174,12 @@
             <p class="games-title">Vos parties à deux</p>
             <ul class="games-list" id="games-list"></ul>
           </div>
-          <div class="start-links">
-            <button class="skin-link" id="skin-open" type="button" aria-haspopup="dialog">Ambiance : <span id="skin-current">Red Corner</span></button>
-            <button class="skin-link" id="mute" type="button" aria-pressed="false">Son : <span id="mute-state">activé</span></button>
-            <button class="skin-link" id="install" type="button" hidden>Installer <span>l’appli</span></button>
-          </div>
-          <button class="link-btn home-deal" id="home-deal" type="button" aria-haspopup="dialog">Tu kiffes Kiff Kiff&nbsp;?</button>
+          <nav class="home-icons" aria-label="Réglages et partage">
+            <button class="icon-btn" id="skin-open" type="button" aria-haspopup="dialog"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-ambiance"/></svg><span class="icon-label">Ambiance<span class="sr-only">&nbsp;: <span id="skin-current">Red Corner</span></span></span></button>
+            <button class="icon-btn" id="mute" type="button" aria-pressed="false"><svg class="ic ic--on" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-son"/></svg><svg class="ic ic--off" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-muet"/></svg><span class="icon-label">Son<span class="sr-only">&nbsp;: <span id="mute-state">activé</span></span></span></button>
+            <button class="icon-btn" id="install" type="button" hidden><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-installer"/></svg><span class="icon-label">Installer<span class="sr-only"> l’appli</span></span></button>
+            <button class="icon-btn" id="home-deal" type="button" aria-haspopup="dialog"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-tourner"/></svg><span class="icon-label"><span class="sr-only">Tu kiffes Kiff Kiff&nbsp;? </span>Faites tourner</span></button>
+          </nav>
         </div>
       </section>
 
@@ -177,7 +198,7 @@
             <input id="name1" maxlength="20" autocomplete="off" placeholder="Pistache" enterkeyhint="go">
           </div>
           <button class="btn" type="submit" id="start-go">Suivant</button>
-          <button class="link-btn step-back" type="button">Retour</button>
+          <button class="link-btn step-back" type="button"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-retour"/></svg>Retour</button>
         </form>
       </section>
 
@@ -190,7 +211,7 @@
             <li>Rien ne se passe sans deux «&nbsp;j’ai envie&nbsp;». On peut passer à tout moment, sans se justifier.</li>
           </ol>
           <button class="btn" id="rules-ok" type="button">Compris</button>
-          <button class="link-btn step-back" type="button">Retour</button>
+          <button class="link-btn step-back" type="button"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-retour"/></svg>Retour</button>
         </div>
       </section>
 
@@ -202,7 +223,7 @@
           <p class="piment-error" id="piment-home-error" hidden role="alert">Garde au moins un niveau coché.</p>
           <label class="rencontre" id="rencontre-box" hidden><input type="checkbox" id="rencontre"><span><b>On ne s’est pas encore vus.</b> On commence en Tendre ; le piment ne montera que si vous êtes d’accord tous les deux.</span></label>
           <button class="btn" id="piment-go" type="button">C’est parti</button>
-          <button class="link-btn step-back" type="button">Retour</button>
+          <button class="link-btn step-back" type="button"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-retour"/></svg>Retour</button>
         </div>
       </section>
     </div>
@@ -216,6 +237,7 @@
     <div class="steps-track">
       <section class="step" data-step="0" aria-labelledby="inv-title">
         <div class="sheet welcome">
+          <svg class="emblem" viewBox="0 0 168 124" aria-hidden="true"><use href="#emblem"/></svg>
           <h2 class="poster-title" id="inv-title"><span class="ink" data-ink="Kiff">Kiff</span><span class="ink" data-ink="Kiff">Kiff</span></h2>
           <p class="inv-from"><b class="inv-a">Cerise</b> t’invite à jouer, chacun·e sur son téléphone.</p>
           <p class="poster-sub">Trois roues pour se proposer des envies, et ne vivre que celles dont vous avez envie tous les deux.</p>
@@ -234,7 +256,7 @@
           </ol>
           <p class="step-text inv-piments" id="inv-piments"></p>
           <button class="btn" id="inv-ok" type="button">Compris</button>
-          <button class="link-btn step-back" type="button">Retour</button>
+          <button class="link-btn step-back" type="button"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-retour"/></svg>Retour</button>
         </div>
       </section>
 
@@ -246,7 +268,7 @@
           <p class="step-text" id="inv-name-help">Cerise le verra sur son téléphone.</p>
           <button class="btn" type="submit" id="inv-join">Rejoindre la partie</button>
           <button class="link-btn" type="button" id="inv-solo">Jouer sur ce téléphone seulement</button>
-          <button class="link-btn step-back" type="button">Retour</button>
+          <button class="link-btn step-back" type="button"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-retour"/></svg>Retour</button>
         </form>
       </section>
     </div>
@@ -261,6 +283,7 @@
       <label class="skin-opt"><input type="radio" name="skin" value="arty"><span class="skin-swatch skin-swatch--arty"></span><span class="skin-name">Arty</span></label>
       <label class="skin-opt"><input type="radio" name="skin" value="pomme"><span class="skin-swatch skin-swatch--pomme"></span><span class="skin-name">Pomme d’Amour</span></label>
       <label class="skin-opt"><input type="radio" name="skin" value="redcorner"><span class="skin-swatch skin-swatch--redcorner"></span><span class="skin-name">Red Corner</span></label>
+      <label class="skin-opt"><input type="radio" name="skin" value="minuit"><span class="skin-swatch skin-swatch--minuit"></span><span class="skin-name">Minuit</span></label>
     </div>
     <div class="row row--end">
       <button class="btn" id="skins-done" type="button">C’est choisi</button>
@@ -415,17 +438,21 @@
 <div class="overlay overlay--party" id="ov-party" hidden>
   <canvas id="confetti" aria-hidden="true"></canvas>
   <div class="sheet">
+    <svg class="emblem emblem--party" viewBox="0 0 168 124" aria-hidden="true"><path class="e-lens" d="M84 21.6A46 46 0 0 1 84 102.4A46 46 0 0 1 84 21.6Z"/><circle class="e-ring e-ring--1" cx="62" cy="62" r="46"/><circle class="e-ring e-ring--2" cx="106" cy="62" r="46"/></svg>
     <h2 class="party-title"><span class="ink ink--flat" data-ink="Kiff Kiff !">Kiff Kiff !</span></h2>
-    <p class="party-sentence" id="party-sentence"></p>
-    <button class="link-btn party-image" id="party-image" type="button">Partager cette phrase en image</button>
-    <p class="party-text">Prenez votre temps. Revenez quand c’est fait.</p>
-    <p class="party-count" id="party-count" hidden><span id="party-count-text"></span> <button class="link-btn" id="party-history" type="button" aria-haspopup="dialog">Revoir vos kiff kiff</button></p>
-    <button class="btn btn--paper" id="party-next" type="button"></button>
+    <p class="party-text">Vous en avez envie tous les deux.</p>
+    <div class="party-card">
+      <p class="party-sentence" id="party-sentence"></p>
+      <button class="icon-btn icon-btn--card" id="party-image" type="button" aria-label="Partager cette envie en image"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-partager"/></svg></button>
+    </div>
+    <p class="party-done" id="party-done" role="status" hidden></p>
+    <p class="party-count" id="party-count" hidden><button class="pill" id="party-history" type="button" aria-haspopup="dialog"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-kiffs"/></svg><span id="party-count-text"></span></button></p>
+    <button class="btn" id="party-next" type="button"></button>
     <button class="link-btn" id="party-pass" type="button">Finalement, on passe</button>
   </div>
   <div class="party-foot">
-    <button class="btn btn--line party-deal" id="party-deal" type="button" aria-haspopup="dialog">Vous avez kiffé&nbsp;? Faites tourner&nbsp;!</button>
-    <button class="btn btn--line party-deal" id="party-install" type="button" hidden>Garder Kiff Kiff sur ton écran d’accueil</button>
+    <button class="link-btn foot-link party-deal" id="party-deal" type="button" aria-haspopup="dialog"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-tourner"/></svg>Vous avez kiffé&nbsp;? Faites tourner&nbsp;!</button>
+    <button class="link-btn foot-link party-deal" id="party-install" type="button" hidden><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-installer"/></svg>Garder Kiff Kiff sur ton écran d’accueil</button>
   </div>
 </div>
 
@@ -442,19 +469,35 @@
 <!-- Dealer du kiff : partager le jeu, ou offrir un café -->
 <div class="overlay overlay--edit overlay--skins" id="ov-deal" hidden role="dialog" aria-modal="true" aria-labelledby="deal-title">
   <div class="sheet sheet--edit sheet--skins sheet--coffee">
-    <h2 class="edit-label" id="deal-title">Dealer du kiff</h2>
-    <p class="duo-text">Tu connais quelqu’un à qui ça ferait pas de mal de jouer à Kiff Kiff&nbsp;? Deal du kiff et envoie-lui le lien vers le jeu&nbsp;!</p>
-    <button class="btn" id="deal-share" type="button">Envoyer le lien</button>
-    <p class="deal-done" id="deal-done" hidden role="status"></p>
-    <p class="duo-text deal-money">Hello les loupiots, c’est Marc ici&nbsp;💃 Ça vous a plu, Kiff Kiff, vous voulez m’envoyer un peu du kiff en retour, ajouter des formules truculentes, demander des améliorations&nbsp;? C’est une excellente idée, on fait ça autour d’un café&nbsp;? 🥳</p>
-    <a class="btn btn--line coffee-go" id="coffee-go" href="https://buymeacoffee.com/MarcVernet" data-config="don" target="_blank" rel="noopener">Payez-moi un café</a>
-    <button class="link-btn coffee-no" id="deal-close" type="button">Fermer</button>
+    <div class="deal-head">
+      <h2 class="edit-label" id="deal-title">Faites tourner</h2>
+      <button class="icon-btn icon-btn--bare" id="deal-close" type="button" aria-label="Fermer"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-fermer"/></svg></button>
+    </div>
+    <section class="deal-card" aria-labelledby="deal-share-title">
+      <div class="deal-card-head">
+        <div class="deal-qr" id="deal-qr" aria-hidden="true"></div>
+        <div class="deal-card-text">
+          <h3 class="deal-card-title" id="deal-share-title">Faites découvrir le jeu</h3>
+          <p class="duo-text">Montrez le code, ou envoyez le lien à quelqu’un qui a envie de jouer.</p>
+        </div>
+      </div>
+      <button class="btn" id="deal-share" type="button"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-partager"/></svg>Envoyer le lien</button>
+      <p class="deal-done" id="deal-done" hidden role="status"></p>
+    </section>
+    <section class="deal-card" aria-labelledby="deal-coffee-title">
+      <div class="deal-card-head deal-card-head--icon">
+        <span class="deal-badge" aria-hidden="true"><svg class="ic" viewBox="0 0 24 24"><use href="#i-cafe"/></svg></span>
+        <h3 class="deal-card-title" id="deal-coffee-title">Un café avec Marc&nbsp;?</h3>
+      </div>
+      <p class="duo-text deal-money">Hello les loupiots, c’est Marc ici&nbsp;💃 Ça vous a plu, Kiff Kiff, vous voulez m’envoyer un peu du kiff en retour, ajouter des formules truculentes, demander des améliorations&nbsp;? C’est une excellente idée, on fait ça autour d’un café&nbsp;? 🥳</p>
+      <a class="btn btn--line coffee-go" id="coffee-go" href="https://buymeacoffee.com/MarcVernet" data-config="don" target="_blank" rel="noopener"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-cafe"/></svg>Payez-moi un café</a>
+    </section>
   </div>
 </div>
 <!--/APP-->
-<script src="data.js?v=51"></script>
-<script src="config.js?v=51"></script>
-<script src="duo.js?v=51"></script>
-<script src="app.js?v=51"></script>
+<script src="data.js?v=52"></script>
+<script src="config.js?v=52"></script>
+<script src="duo.js?v=52"></script>
+<script src="app.js?v=52"></script>
 </body>
 </html>

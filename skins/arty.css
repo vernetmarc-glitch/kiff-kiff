@@ -23,7 +23,7 @@
 
   --theme-color: #FFE45C;
   --confetti: #FFE45C, #2E4FA3, #2E1670, #FFF08F, #FFE45C, #2E4FA3;
-  --confetti-shapes: heart, rect, dot, rect, rect;
+  --confetti-shapes: dot, rect, dot, rect, rect;
   --halftone-pink: radial-gradient(circle, var(--pink) 1.25px, transparent 1.7px) 0 0 / 5px 5px;
   --halftone-blue: radial-gradient(circle, var(--blue) 1.25px, transparent 1.7px) 0 0 / 5px 5px;
 
@@ -671,3 +671,14 @@ button { font: inherit; color: inherit; }
 .inv-from { font-weight: 700; color: var(--violet); }
 .inv-from b { color: var(--blue); font-weight: 850; }
 .overlay--handoff .btn--line { --btn-bg: transparent; color: var(--paper); box-shadow: inset 0 0 0 3px var(--paper); }
+
+/* Emblème et jeu d’icônes (19 octobre 2026) */
+.emblem { --e-line: var(--blue); --e-glow: var(--pink); --e-glow-o: .95; }
+.overlay--party .emblem { --e-line: var(--violet); --e-glow: var(--paper); --e-glow-o: 1; }
+.icon-btn { --icon-line: var(--blue); --icon-fg: var(--blue); --icon-bg: var(--paper-hi); }
+.icon-label { color: var(--blue); font-weight: 700; }
+.icon-btn--card { --card-btn-bg: var(--blue); --card-btn-fg: var(--paper); }
+.pill { color: var(--violet); font-weight: 700; background: var(--paper); box-shadow: inset 0 0 0 2px var(--violet); }
+.foot-link { font-weight: 700; }
+.deal-card { box-shadow: inset 0 0 0 2px var(--blue); background: var(--paper-hi); }
+.deal-badge { color: var(--blue); box-shadow: inset 0 0 0 2px var(--blue); }

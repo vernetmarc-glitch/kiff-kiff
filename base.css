@@ -241,7 +241,7 @@ body[data-phase="adjust"] .is-changed > .stamp:active { filter: brightness(1.15)
 .resume-link { align-self: center; margin-top: 2px; font-weight: 700; }
 .sheet--skins { gap: 16px; }
 .row--end { justify-content: flex-end; }
-.skin-list { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.skin-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
 .skin-opt { position: relative; display: flex; flex-direction: column; gap: 6px; cursor: pointer; }
 .skin-opt input { position: absolute; opacity: 0; width: 1px; height: 1px; }
 .skin-swatch {
@@ -686,3 +686,91 @@ body:has(#ov-deal:not([hidden])) .deco-candles { display: none; }
 
 /* Célébration : la phrase en image */
 .party-image { align-self: center; margin-top: -6px; font-size: 14px; }
+
+/* ---------- Jeu d’icônes et emblème (19 octobre 2026) ---------- */
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+.ic { width: 24px; height: 24px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.btn .ic, a.btn .ic { width: 20px; height: 20px; margin-right: 9px; stroke-width: 1.8; }
+/* Bouton rond à icône, avec un mot court dessous */
+.icon-btn { display: inline-flex; flex-direction: column; align-items: center; gap: 6px; min-width: 64px; padding: 0; border: 0; background: none; color: inherit; font: inherit; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.icon-btn > .ic { box-sizing: content-box; padding: 11px; border-radius: 50%; color: var(--icon-fg, currentColor);
+  background: var(--icon-bg, color-mix(in srgb, currentColor 7%, transparent));
+  box-shadow: inset 0 0 0 1.5px var(--icon-line, color-mix(in srgb, currentColor 55%, transparent)); transition: transform .15s; }
+.icon-btn:active > .ic { transform: scale(.93); }
+.icon-btn[hidden] { display: none; }
+.icon-btn:focus-visible { outline: none; }
+.icon-btn:focus-visible > .ic { outline: 2px dashed currentColor; outline-offset: 3px; }
+.icon-label { font-size: 13px; line-height: 1.2; opacity: .92; }
+#mute .ic--off { display: none; }
+#mute[aria-pressed="true"] .ic--on { display: none; }
+#mute[aria-pressed="true"] .ic--off { display: block; }
+.home-icons { align-self: stretch; display: flex; flex-wrap: wrap; justify-content: center; gap: 10px 14px; margin-top: 18px; }
+.icon-btn--bare { min-width: 44px; min-height: 44px; justify-content: center; }
+.icon-btn--bare > .ic { padding: 10px; background: none; box-shadow: none; }
+
+/* L’emblème : deux envies qui se rejoignent, leur intersection allumée */
+.emblem { display: block; align-self: center; width: 116px; height: auto; overflow: visible; margin-bottom: -6px; }
+.e-ring { fill: none; stroke: var(--e-line, currentColor); stroke-width: 4.5; }
+.e-ring--2 { stroke-dasharray: var(--e-dash, none); }
+.e-lens { fill: var(--e-glow, currentColor); fill-opacity: var(--e-glow-o, .5); stroke: none; }
+.emblem--party { width: 132px; margin-bottom: -10px; }
+.emblem--party .e-ring--1 { animation: e-left 1s cubic-bezier(.2, .8, .2, 1) both; }
+.emblem--party .e-ring--2 { animation: e-right 1s cubic-bezier(.2, .8, .2, 1) both; }
+.emblem--party .e-lens { animation: e-glow 1.5s ease-in-out .9s infinite both; }
+@keyframes e-left { from { transform: translateX(-30px); } }
+@keyframes e-right { from { transform: translateX(30px); } }
+@keyframes e-glow { 0%, 100% { fill-opacity: var(--e-glow-o, .5); } 40% { fill-opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .emblem, .emblem * { animation: none !important; } }
+
+/* Retour des étapes : flèche et mot */
+.step-back { display: inline-flex; align-items: center; gap: 4px; min-height: 44px; text-decoration: none; }
+.step-back .ic { width: 18px; height: 18px; stroke-width: 2; }
+
+/* Célébration : l’icône de partage posée sur la carte de la phrase */
+.party-card { position: relative; align-self: stretch; }
+.icon-btn--card { position: absolute; z-index: 3; top: -22px; right: -8px; min-width: 0; }
+.icon-btn--card > .ic { width: 22px; height: 22px; padding: 12px; stroke-width: 1.9;
+  background: var(--card-btn-bg, var(--pill-on-bg, currentColor)); color: var(--card-btn-fg, var(--pill-on-fg, #fff));
+  box-shadow: 0 4px 14px rgba(0, 0, 0, .35); }
+.party-done { align-self: center; margin: -4px 0 0 !important; font-size: 14px; font-weight: 600; text-align: center; }
+.party-count { align-self: center; }
+.pill { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 16px 0 12px; border: 0; border-radius: 999px; color: inherit; font: inherit; font-size: 15px; cursor: pointer;
+  background: color-mix(in srgb, currentColor 8%, transparent); box-shadow: inset 0 0 0 1.5px color-mix(in srgb, currentColor 45%, transparent); }
+.pill .ic { width: 20px; height: 20px; }
+.foot-link { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; text-decoration: none; font-size: 15px; }
+.foot-link .ic { width: 20px; height: 20px; }
+.party-foot .foot-link[hidden] { display: none; }
+
+/* « Faites tourner » : deux cartes, partager le jeu et offrir un café */
+.deal-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: -6px -10px -4px 0; }
+.deal-card { display: flex; flex-direction: column; gap: 12px; padding: 16px; border-radius: 16px;
+  background: color-mix(in srgb, currentColor 6%, transparent); box-shadow: inset 0 0 0 1.5px color-mix(in srgb, currentColor 25%, transparent); }
+.deal-card-head { display: flex; align-items: center; gap: 14px; }
+.deal-card-text { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.deal-qr { flex: none; width: 92px; height: 92px; box-sizing: border-box; padding: 6px; border-radius: 10px; background: #fff; }
+.deal-qr:empty { display: none; }
+.deal-qr svg { display: block; width: 100%; height: 100%; }
+.deal-qr svg path, .deal-qr svg rect[fill="black"] { fill: #111; }
+.deal-card-title { margin: 0; font-size: 18px; font-weight: 700; line-height: 1.2; }
+.deal-badge { flex: none; width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; box-shadow: inset 0 0 0 1.5px color-mix(in srgb, currentColor 50%, transparent); }
+.deal-card .btn, .deal-card a.btn { align-self: stretch; margin-top: 0; }
+.deal-card .deal-money { margin-top: 0 !important; }
+.sheet--coffee .deal-card .duo-text { font-size: 15px; line-height: 1.45; }
+
+/* Vos mots à vous deux : un petit crayon dans la roue */
+.reel-perso { flex: none; display: inline-flex; margin-left: 5px; opacity: .7; }
+.reel-perso .ic { width: 13px; height: 13px; stroke-width: 2.2; }
+.reel-pen { flex: none; display: inline-flex; margin-right: 6px; opacity: .8; }
+.reel-pen .ic { width: 15px; height: 15px; stroke-width: 2; }
+.week[hidden] { display: none; }
+
+.skin-swatch--minuit {
+  position: relative;
+  background: radial-gradient(circle at 92% 8%, transparent 0 22%, rgba(185, 166, 255, .45) 23% 26%, transparent 27%), #0E0C16;
+  box-shadow: inset 0 0 0 1px #2E2940;
+}
+.skin-swatch--minuit::after {
+  content: "kiff kiff";
+  position: absolute; left: 12%; bottom: 14%;
+  font: 800 15px/1 "Syne", sans-serif; letter-spacing: -.02em; color: #F2EFFA;
+}
