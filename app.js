@@ -2553,7 +2553,7 @@
       .then((r) => r.json())
       .then((res) => {
         clearTimeout(t);
-        if (res && res.meilleurs && typeof res.meilleurs === 'object') { save('meilleurs', res.meilleurs); renderWeek(); }
+        if (res && res.meilleurs && typeof res.meilleurs === 'object') { save('meilleurs', res.meilleurs); }
         if (res && res.ok && validMots(res.mots) && res.version !== window.KIFF_MOTS_VERSION) {
           save('mots', { api: API, version: res.version, mots: res.mots });
           pendingMots = res;
@@ -2912,8 +2912,8 @@
     $('#steps').classList.remove('is-duo');
     $('#duo-home').hidden = true;
     $('#welcome-go').classList.remove('btn--line');
-    // L’accueil redevient l’accueil normal : formule de la semaine, « Commencer », et la partie quittée rejoint la liste
-    $('#week').hidden = false;
+    // L’accueil redevient l’accueil normal : « Commencer », et la partie quittée rejoint la liste
+    renderIntro();
     $('#welcome-go').textContent = 'Commencer';
     $('#resume').hidden = true;
     renderDuoStatus();
@@ -2993,7 +2993,7 @@
     const inDuo = !!duo && duo.stage === 'game';
     $('#steps').classList.toggle('is-duo', inDuo);
     $('#duo-home').hidden = !inDuo;
-    $('#week').hidden = inDuo; // pendant une partie à deux, seule la reprise compte
+    renderIntro();
     const own = inDuo ? load('names', ['', '']) : S.names; // pendant une partie à deux, S.names est celle de la partie
     $('#name0').value = own[0] || '';
     $('#name1').value = own[1] || '';
@@ -3012,53 +3012,12 @@
     renderDuoStatus();
   }
 
-  /* ---------- La formule de la semaine (et une démonstration du jeu) ---------- */
-  function phraseOf(a, o, m) {
-    const raw = a.s || '';
-    const tail = PREP_TAIL.exec(raw);
-    const prep = a.p || (tail ? (tail[1].toLowerCase() === 'à' ? 'à' : 'de') : '');
-    const act = raw.replace(PREP_TAIL, '');
-    let obj = o.t || o.s || '';
-    if (prep === 'de') obj = withDe(obj);
-    else if (prep === 'à' && !/^(à|au|aux)\s/i.test(obj)) obj = withA(obj);
-    const s = ('J’ai envie ' + glue(dirForm('me', act), act) + ' ' + obj + ' ' + (m.t || m.s || '')).replace(/\s+/g, ' ').trim();
-    return /[!?…]$/.test(s) ? s : s + '.';
+  /* ---------- Accueil : une phrase d’intro pour qui découvre le jeu ---------- */
+  function renderIntro() {
+    const inDuo = $('#steps').classList.contains('is-duo');
+    const novice = !load('rulesSeen', false) && !S.started && !games().length;
+    $('#welcome-intro').hidden = inDuo || !novice;
   }
-  function seeded(seed) { let t = seed >>> 0; return () => { t += 0x6D2B79F5; let r = Math.imul(t ^ (t >>> 15), 1 | t); r ^= r + Math.imul(r ^ (r >>> 7), 61 | r); return ((r ^ (r >>> 14)) >>> 0) / 4294967296; }; }
-  function randomPhrase(rnd, preferBest) {
-    const best = preferBest ? (load('meilleurs', null) || {}) : {};
-    const pick = (r) => {
-      const pool = SOURCE[r].filter((x) => (x.lvl || 1) <= 2);
-      const top = (best[ROUE_KEYS[r]] || []).map((w) => pool.find((x) => labelOf(x) === w)).filter(Boolean);
-      const from = top.length ? top : pool;
-      return from[Math.floor(rnd() * from.length)];
-    };
-    return phraseOf(pick(0), pick(1), pick(2));
-  }
-  let weekBusy = false, weekFinal = '', weekLabel = '';
-  function rollWeek(final, label) {
-    const el = $('#week-text');
-    if (!el) return;
-    weekFinal = final; weekLabel = label; // la dernière demande gagne, même pendant un tirage
-    const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (reduce) { el.textContent = final; $('#week-label').textContent = label; return; }
-    if (weekBusy) return;
-    weekBusy = true;
-    let k = 0;
-    const tick = () => {
-      if (k < 7) { el.textContent = randomPhrase(Math.random); el.classList.add('is-rolling'); k++; setTimeout(tick, 70 + k * 18); return; }
-      el.classList.remove('is-rolling');
-      el.textContent = weekFinal;
-      $('#week-label').textContent = weekLabel;
-      weekBusy = false;
-    };
-    tick();
-  }
-  function renderWeek() {
-    const week = Math.floor((Date.now() / 864e5 + 3) / 7);
-    rollWeek(randomPhrase(seeded(week * 7919), true), 'La formule de la semaine');
-  }
-  $('#week').addEventListener('click', () => { audio(); sClick(); haptic(8); rollWeek(randomPhrase(Math.random), 'Une autre, au hasard'); });
 
   /* ---------- Appli sur l’écran d’accueil ---------- */
   const installer = { can: () => false, run: () => {} };
@@ -3098,5 +3057,5 @@
   window.addEventListener('resize', renderReels);
   init();
   setupInstall();
-  renderWeek();
+  renderIntro();
 })();

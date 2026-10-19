@@ -188,10 +188,6 @@ body { background: var(--ink); color: var(--fg); font-family: var(--f-ui); caret
 .step-text { text-align: left; color: var(--muted); }
 .rules li { color: var(--muted); }
 .rules li b { color: var(--fg); }
-.week { text-align: left; align-items: flex-start; padding: 14px 16px; border-radius: 18px; background: var(--ink-2); box-shadow: inset 0 0 0 1px var(--line); }
-.week-label { color: var(--lilac); opacity: 1; }
-.week-text { font-family: var(--f-ui); font-weight: 600; font-size: 17px; }
-.week-more { color: var(--dim); opacity: 1; }
 .age-note { color: var(--dim); opacity: 1; font-size: 13px; }
 .skin-swatch { box-shadow: 0 0 0 1px var(--line-hi); }
 .skin-opt input:checked + .skin-swatch { outline-color: var(--lilac); }
@@ -287,3 +283,5 @@ body { background: var(--ink); color: var(--fg); font-family: var(--f-ui); caret
 .sheet h2.step-title, .sheet h2.handoff-title { font-weight: 700; letter-spacing: -.035em; }
 .sheet h2.edit-label { font-weight: 700; }
 .deal-card-title { font-family: var(--f-ui); font-weight: 800; }
+
+.welcome-intro { text-align: left; }
