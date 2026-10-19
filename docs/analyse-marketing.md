@@ -205,6 +205,8 @@ Le réglage se change à chaque envie par qui compose, sans accord de l'autre (i
 - Quand l'un·e des deux a le Pass, toute la partie en profite (Brûlant débloqué pour les deux) : la personne invitée découvre le meilleur du jeu sans payer.
 - Technique : la feuille Google ne suffit pas pour des comptes ; il faudra un petit serveur (Cloudflare, gratuit au début).
 
+**Brûlant se mérite, ou se débloque** (décision de Marc, 19 octobre 2026). À distance, le piment monte en jouant : Pimenté après un tour de kiff kiff, Brûlant après un tour en Pimenté. À terme, l’un·e des deux pourra débloquer Brûlant tout de suite en payant, pour la partie à deux. C’est le moment d’achat le plus naturel du jeu : l’envie est là, et l’autre en profite aussi.
+
 **Le Pass Kiff enrichi.** En plus du niveau Brûlant complet et des parties à distance illimitées, le Pass débloquerait les roues thématiques. Les roues de la semaine resteraient gratuites : elles servent la rétention. Prix à tester entre 7 et 15 €, payé une fois.
 
 ## Sources

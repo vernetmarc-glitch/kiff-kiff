@@ -516,6 +516,7 @@
     else { el.actMain.disabled = true; }
     el.actMain.classList.toggle('is-done', ph === 'adjust' && ch.length > 0);
     el.pass.hidden = ph === 'adjust';
+    el.pass.textContent = S.gifting ? 'Sans envie' : 'On passe';
 
     // « que tu me / de te » : à la composition, ou comme unique changement de l’ajustement
     const dirFree = ph === 'compose' || (ph === 'adjust' && (!ch.length || ch.includes('dir')));
@@ -2080,9 +2081,9 @@
   function askGift() {
     duoSheet({
       stage: 'gift-ask',
-      title: 'Une envie dans l’invitation ?',
+      title: 'Une envie dans l’invitation\u00a0?',
       text: 'Compose une première envie, en Tendre. L’autre choisira de la découvrir après avoir compris le jeu.',
-      go: 'Composer une envie', cancel: 'Inviter sans envie'
+      go: 'Composer', cancel: 'Sans envie'
     });
   }
   function startGift() {
