@@ -2383,8 +2383,8 @@
     const list = games().filter((g) => g.room !== cur)
       .sort((a, b) => (key(a) - key(b)) || ((b.t || 0) - (a.t || 0)));
     box.hidden = !list.length;
-    // Plus d’une partie : elles passent derrière « Parties à distance » (discret si on joue avec quelqu’un à côté)
-    const many = list.length > 1;
+    // Dès la première partie, elles passent derrière « Parties à distance » (discret si on joue avec quelqu’un à côté)
+    const many = list.length > 0;
     const hot = list.filter((g) => fresh(g) || g.turn === 'me').length;
     $('#games-title').hidden = many;
     $('#games-list').hidden = many;
@@ -2392,7 +2392,7 @@
     $('#games-open-n').textContent = '(' + list.length + ')';
     $('#games-badge').hidden = !hot;
     $('#games-badge').textContent = hot;
-    $('#games-open').setAttribute('aria-label', 'Parties à distance : ' + list.length + ' parties' + (hot ? ', ' + hot + ' où c’est à toi' : ''));
+    $('#games-open').setAttribute('aria-label', 'Parties à distance : ' + list.length + ' partie' + (list.length > 1 ? 's' : '') + (hot ? ', ' + hot + ' où c’est à toi' : ''));
     if (!many && !$('#ov-games').hidden) hide($('#ov-games'));
     const html = list.map((g) => {
       const B = ((g.names || [])[1 - g.seat] || '').trim();
@@ -2446,6 +2446,10 @@
     $('#steps').classList.remove('is-duo');
     $('#duo-home').hidden = true;
     $('#welcome-go').classList.remove('btn--line');
+    // L’accueil redevient l’accueil normal : formule de la semaine, « Commencer », et la partie quittée rejoint la liste
+    $('#week').hidden = false;
+    $('#welcome-go').textContent = 'Commencer';
+    $('#resume').hidden = true;
     renderDuoStatus();
     renderGames();
   }
