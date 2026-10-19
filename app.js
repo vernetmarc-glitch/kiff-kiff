@@ -1415,8 +1415,8 @@
   }
 
   /* ---------- Ambiances ---------- */
-  const SKINS = ['arty', 'pomme', 'redcorner', 'minuit'];
-  const SKIN_NAMES = { arty: 'Arty', pomme: 'Pomme d’Amour', redcorner: 'Red Corner', minuit: 'Minuit' };
+  const SKINS = ['arty', 'pomme', 'redcorner', 'minuit', 'classex'];
+  const SKIN_NAMES = { arty: 'Arty', pomme: 'Pomme d’Amour', redcorner: 'Red Corner', minuit: 'Minuit', classex: 'Classé X' };
   function currentSkin() {
     const s = document.documentElement.getAttribute('data-skin');
     return SKINS.includes(s) ? s : 'redcorner';

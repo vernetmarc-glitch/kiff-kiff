@@ -29,17 +29,18 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,62..125,100..900;1,62..125,100..900&family=Bagel+Fat+One&family=Abril+Fatface&family=Merriweather:ital,opsz,wght@0,18..144,400..900;1,18..144,400..900&family=Baskervville:ital,wght@0,400..700;1,400..700&family=Jost:wght@300..700&family=Great+Vibes&family=Cinzel:wght@400..900&family=Syne:wght@600..800&family=Manrope:wght@400..800&display=swap">
-<link rel="stylesheet" href="base.css?v=54">
-<link rel="stylesheet" href="skins/arty.css?v=54" data-skin-sheet="arty">
-<link rel="stylesheet" href="skins/pomme.css?v=54" data-skin-sheet="pomme">
-<link rel="stylesheet" href="skins/redcorner.css?v=54" data-skin-sheet="redcorner">
-<link rel="stylesheet" href="skins/minuit.css?v=54" data-skin-sheet="minuit">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,62..125,100..900;1,62..125,100..900&family=Bagel+Fat+One&family=Abril+Fatface&family=Merriweather:ital,opsz,wght@0,18..144,400..900;1,18..144,400..900&family=Baskervville:ital,wght@0,400..700;1,400..700&family=Jost:wght@300..700&family=Great+Vibes&family=Cinzel:wght@400..900&family=Syne:wght@600..800&family=Manrope:wght@400..800&family=Anton&family=Courier+Prime:wght@400;700&display=swap">
+<link rel="stylesheet" href="base.css?v=55">
+<link rel="stylesheet" href="skins/arty.css?v=55" data-skin-sheet="arty">
+<link rel="stylesheet" href="skins/pomme.css?v=55" data-skin-sheet="pomme">
+<link rel="stylesheet" href="skins/redcorner.css?v=55" data-skin-sheet="redcorner">
+<link rel="stylesheet" href="skins/minuit.css?v=55" data-skin-sheet="minuit">
+<link rel="stylesheet" href="skins/classex.css?v=55" data-skin-sheet="classex">
 <script>
 /* Ambiance : celle du lien (?design=redcorner ou #redcorner), sinon celle mémorisée.
    Appliquée avant l’affichage pour éviter un flash. */
 (function () {
-  var alias = { arty: 'arty', zinzin: 'arty', pomme: 'pomme', 'pomme-d-amour': 'pomme', pommedamour: 'pomme', redcorner: 'redcorner', 'red-corner': 'redcorner', minuit: 'minuit', nuit: 'minuit' };
+  var alias = { arty: 'arty', zinzin: 'arty', pomme: 'pomme', 'pomme-d-amour': 'pomme', pommedamour: 'pomme', redcorner: 'redcorner', 'red-corner': 'redcorner', minuit: 'minuit', nuit: 'minuit', classex: 'classex', 'classe-x': 'classex', dossier: 'classex', agent: 'classex' };
   var norm = function (v) { return alias[String(v || '').toLowerCase().replace(/[^a-z-]/g, '')]; };
   var s, fromLink;
   try {
@@ -287,6 +288,7 @@
       <label class="skin-opt"><input type="radio" name="skin" value="pomme"><span class="skin-swatch skin-swatch--pomme"></span><span class="skin-name">Pomme d’Amour</span></label>
       <label class="skin-opt"><input type="radio" name="skin" value="redcorner"><span class="skin-swatch skin-swatch--redcorner"></span><span class="skin-name">Red Corner</span></label>
       <label class="skin-opt"><input type="radio" name="skin" value="minuit"><span class="skin-swatch skin-swatch--minuit"></span><span class="skin-name">Minuit</span></label>
+      <label class="skin-opt"><input type="radio" name="skin" value="classex"><span class="skin-swatch skin-swatch--classex"></span><span class="skin-name">Classé X</span></label>
     </div>
     <div class="row row--end">
       <button class="btn" id="skins-done" type="button">C’est choisi</button>
@@ -506,12 +508,28 @@
       <p class="duo-text deal-money">Hello les loupiots, c’est Marc ici&nbsp;💃 Ça vous a plu, Kiff Kiff, et vous voulez m’envoyer un peu de kiff en retour&nbsp;? C’est welcome&nbsp;🥰 Ça sera l’occasion de me faire un retour sur le jeu, ou d’ajouter vos formules truculentes. Bécots&nbsp;💋</p>
       <a class="btn btn--line coffee-go" id="coffee-go" href="https://buymeacoffee.com/MarcVernet" data-config="don" target="_blank" rel="noopener"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-cafe"/></svg>Payez-moi un café</a>
     </section>
+    <!-- La genèse du jeu, à déplier -->
+    <details class="deal-card deal-story" id="deal-story">
+      <summary class="deal-story-head">
+        <span class="deal-badge" aria-hidden="true"><svg class="ic" viewBox="0 0 24 24"><use href="#i-kiff"/></svg></span>
+        <span class="deal-story-titles"><span class="deal-card-title">Kiff Kiff Story</span><span class="deal-story-sub">Pourquoi ce jeu&nbsp;?</span></span>
+        <svg class="ic deal-story-chev" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-retour"/></svg>
+      </summary>
+      <div class="deal-story-text">
+        <p>Kiff Kiff a l’air d’un petit jeu de fesses comme les autres. C’est en fait un vrai acte politique.</p>
+        <p>D’abord, une célébration du sexe libre et joyeux&nbsp;: un sexe qui n’a pas besoin d’être grave, qui n’engage à rien, et qui n’a rien à démontrer ni à prouver.</p>
+        <p>On pourrait y voir un descendant d’action ou vérité. C’est surtout le consentement mis en jeu&nbsp;: il prend la forme d’une envie claire, exprimée par l’un comme par l’autre, sans présupposer qui désire et qui consent.</p>
+        <p>Avec Kiff Kiff, on apprend que consentir commence par une question qu’on se pose à soi&nbsp;: de quoi ai-je envie&nbsp;? Puis qu’on peut le dire clairement. Qu’une envie peut s’ajuster pour rejoindre celle de l’autre, ou être déclinée, sans que personne ait à se justifier.</p>
+        <p>On apprend qu’un vrai oui n’est ni un oui arraché, ni un oui lâché du bout des lèvres pour finir par accepter. C’est un «&nbsp;j’ai envie aussi&nbsp;»&nbsp;: on ne cède pas à la demande de l’autre, on s’écoute assez pour savoir si on en a envie, ou pas.</p>
+        <p>On apprend enfin que le sexe n’est pas une chasse, ni un rapport de domination où l’un demande et l’autre finit par céder. C’est un échange équilibré&nbsp;: chacun·e à son tour partage ses envies, d’autant plus librement qu’il ou elle sait que l’autre pourra les ajuster ou les décliner, sans que ça pose problème.</p>
+      </div>
+    </details>
   </div>
 </div>
 <!--/APP-->
-<script src="data.js?v=54"></script>
-<script src="config.js?v=54"></script>
-<script src="duo.js?v=54"></script>
-<script src="app.js?v=54"></script>
+<script src="data.js?v=55"></script>
+<script src="config.js?v=55"></script>
+<script src="duo.js?v=55"></script>
+<script src="app.js?v=55"></script>
 </body>
 </html>

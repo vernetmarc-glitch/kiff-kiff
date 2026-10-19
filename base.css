@@ -789,3 +789,37 @@ body:has(#ov-deal:not([hidden])) .deco-candles { display: none; }
 .games-title[hidden], .games-list[hidden] { display: none; }
 .sheet--games { max-height: min(80vh, 640px); }
 .sheet--games .games-list { overflow-y: auto; min-height: 0; flex: 1 1 auto; }
+
+.skin-swatch--classex {
+  position: relative;
+  background: repeating-linear-gradient(transparent 0 9px, rgba(20, 20, 20, .08) 9px 10px), #F2EFE8;
+  box-shadow: inset 0 0 0 1px #141414;
+}
+.skin-swatch--classex::before {
+  content: "";
+  position: absolute; left: 12%; right: 30%; top: 30%; height: 9px;
+  background: #141414; box-shadow: 0 16px 0 -1px #141414;
+}
+.skin-swatch--classex::after {
+  content: "CLASSÉ X";
+  position: absolute; right: 8%; bottom: 12%;
+  padding: 1px 4px; border: 2px solid #C8102E; border-radius: 2px;
+  font: 400 12px/1 "Anton", Impact, sans-serif; letter-spacing: .06em; color: #C8102E;
+  transform: rotate(-8deg);
+}
+
+/* Kiff Kiff Story : la genèse du jeu, à déplier sous le café */
+.deal-story { padding: 0; gap: 0; }
+.deal-story-head { display: flex; align-items: center; gap: 14px; min-height: 64px; padding: 10px 16px; cursor: pointer; list-style: none; border-radius: inherit; }
+.deal-story-head::-webkit-details-marker { display: none; }
+.deal-story-head:focus-visible { outline: 2px dashed currentColor; outline-offset: -4px; }
+.deal-story-titles { flex: 1; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.deal-story-sub { font-size: 14px; opacity: .8; }
+.deal-story-chev { width: 20px; height: 20px; transform: rotate(-90deg); transition: transform .25s; }
+.deal-story[open] .deal-story-chev { transform: rotate(90deg); }
+.deal-story-text { display: flex; flex-direction: column; gap: 10px; padding: 0 16px 18px; font-size: 15px; line-height: 1.55; text-align: left; }
+.deal-story-text p { margin: 0; }
+.deal-story-text p:first-child { font-weight: 700; }
+/* La fenêtre défile quand elle dépasse l’écran */
+#ov-deal { align-items: start; }
+#ov-deal .sheet--coffee { margin: auto 0; }

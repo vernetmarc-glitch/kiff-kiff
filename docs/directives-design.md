@@ -65,7 +65,8 @@ Un jeu sensuel ne se raconte pas qu'avec des mots. Les écrans où l'on joue (co
 | Pomme d'Amour | En ligne | Machine à sous de fête foraine, rouge et crème | Pas de cible définie (ton festif) | Abril Fatface, Merriweather |
 | Minuit | En ligne depuis le 19 octobre 2026 | Noir nuit, lilas, typographie grasse et moderne | 22–35 ans, rencontres sur les applis | Syne, Manrope |
 | Pêche | Proposée | Pêche et prune, formes rondes, rassurant | 30–50 ans, partenaires de longue date, public bien-être et inclusif | Bricolage Grotesque, Figtree |
-| Liaisons | En recherche | Moins sage, plus secret : trois pistes sur le canevas (lettres scellées noir et cire ; encre sympathique qui se révèle à la flamme ; dossier « Classé X » aux mots caviardés) | Jeu à distance et asynchrone, séduction par écrit | Selon la piste retenue |
+| Classé X | En ligne depuis le 19 octobre 2026 | Dossier d'agent secret : papier de rapport, machine à écrire, tampons rouges, mots caviardés (issue des pistes « Liaisons ») | Ton décalé, jeu au second degré, rencontres | Anton, Courier Prime |
+| Liaisons | En recherche | Deux pistes restantes sur le canevas : lettres scellées (noir et cire), encre sympathique (se révèle à la flamme) | Jeu à distance et asynchrone, séduction par écrit | Selon la piste retenue |
 
 ## Tester les ambiances
 

@@ -14,7 +14,7 @@ Tu reprends le développement de **Kiff Kiff**, un jeu web de séduction et d'ex
 - Le principe : trois rouleaux de machine à sous composent « J'ai envie [que tu me | de te] [action] [endroit] [manière] ». L'autre répond « J'ai envie aussi », « Oui, mais… » (change une seule chose) ou « On passe ». Une envie partagée est un « kiff kiff ».
 - Trois niveaux de piment (Tendre, Pimenté, Brûlant), qui se consentent à deux.
 - Jeu sur un téléphone, ou sur deux téléphones, même sans être connectés en même temps.
-- Quatre ambiances en ligne : Red Corner (par défaut), Arty, Pomme d'Amour, Minuit.
+- Cinq ambiances en ligne : Red Corner (par défaut), Arty, Pomme d'Amour, Minuit, Classé X.
 
 ## Lis d'abord, dans le dépôt
 
