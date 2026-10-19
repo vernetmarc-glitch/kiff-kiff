@@ -147,10 +147,10 @@ Douze des quatorze sont en ligne depuis le 18 octobre 2026.
 | Badge dans l'Atelier sur les formules souvent passées | Taux de kiff | Rapide | Fait |
 | Compteurs groupés en une requête | Tenue de la feuille Google sous les quotas | Rapide | Fait |
 | Carte image de la phrase, sans prénom | Liens envoyés | Moyen | Fait |
-| Mode rencontre | Invitations créées | Moyen | Fait |
-| Formule de la semaine sur l'accueil | Retour à J+7 | Moyen | Fait |
-| Démonstration : la formule roule sur l'accueil | Parties lancées / ouvertures | Moyen | Fait |
-| Notifications « À toi de jouer » (petit serveur) | Retour à J+1 et J+7 | Lourd | À faire |
+| Mode rencontre | Invitations créées | Moyen | Retiré le 19 octobre 2026 (toutes les parties à distance commencent en Tendre) |
+| Formule de la semaine sur l'accueil | Retour à J+7 | Moyen | Retirée le 20 octobre 2026 (figée pendant des jours, sans lien avec les parties) |
+| Démonstration : la formule roule sur l'accueil | Parties lancées / ouvertures | Moyen | Retirée avec elle ; une phrase d'intro à la première visite la remplace |
+| Notifications « À toi de jouer » (Web Push, signées par le script) | Retour à J+1 et J+7 | Lourd | Fait |
 | Remplacer Buy Me a Coffee | Revenus (risque de fermeture) | Moyen | En cours |
 
 Rapide : une heure ou moins. Moyen : une demi-journée. Lourd : plusieurs jours.
