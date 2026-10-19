@@ -58,8 +58,10 @@
      'install' (iPhone : il faut d’abord l’écran d’accueil) · 'none' (impossible ici) */
   async function status() {
     if (!capable()) return ios && !standalone() && api() ? 'install' : 'none';
-    cleVue = await serverKey();
-    if (!cleVue || !(await ready())) return 'none';
+    // La clé et le service worker se préparent en fond : la cloche s’affiche sans les attendre,
+    // et un souci éventuel se dit au toucher (au lieu de cacher la cloche sans rien dire)
+    serverKey().then((c) => { cleVue = c || cleVue; });
+    ready();
     if (Notification.permission === 'denied') return 'blocked';
     return get('push', false) && Notification.permission === 'granted' ? 'on' : 'off';
   }
@@ -90,8 +92,15 @@
   /* Activer : à appeler directement dans un toucher, après status().
      L’abonnement part tout de suite (iPhone et Firefox n’acceptent la demande que pendant le toucher) ;
      c’est lui qui fait demander l’autorisation par le navigateur. */
-  function enable() {
-    if (!capable() || !reg || !cleVue) return Promise.resolve(null);
+  // Résultat : { sub } quand c’est activé, sinon { erreur: 'cle' | 'sw' | 'refus' | 'abo' }
+  async function enable() {
+    if (!capable()) return { erreur: 'sw' };
+    // Tout est prêt : l’abonnement part pendant le toucher. Sinon on prépare d’abord (un second toucher suffira sur iPhone).
+    if (!reg || !cleVue) {
+      cleVue = cleVue || await serverKey();
+      if (!cleVue) return { erreur: 'cle' };
+      if (!(await ready())) return { erreur: 'sw' };
+    }
     const opts = { userVisibleOnly: true, applicationServerKey: b64u.dec(cleVue) };
     return reg.pushManager.subscribe(opts)
       .catch(async () => {
@@ -101,8 +110,8 @@
         if (old) await old.unsubscribe();
         return reg.pushManager.subscribe(opts);
       })
-      .then((sub) => { const c = compact(sub); if (c) put('push', true); return c; })
-      .catch(() => null);
+      .then((sub) => { const c = compact(sub); if (c) put('push', true); return c ? { sub: c } : { erreur: 'abo' }; })
+      .catch(() => ({ erreur: Notification.permission === 'denied' ? 'refus' : 'abo' }));
   }
   async function disable() {
     put('push', false);

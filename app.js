@@ -1975,7 +1975,7 @@
     // La cloche de l’invitation : tant qu’on attend que l’autre rejoigne
     const dn = $('#duo-notif');
     const inv = !!duo && duo.stage === 'invite';
-    dn.hidden = !(inv && (pushStatus === 'on' || pushStatus === 'off' || pushStatus === 'install'));
+    dn.hidden = !(inv && (pushStatus === 'on' || pushStatus === 'off' || pushStatus === 'install' || pushStatus === 'blocked'));
     dn.setAttribute('aria-pressed', pushStatus === 'on' ? 'true' : 'false');
     $('#duo-notif-state').textContent = pushStatus === 'on' ? 'activé' : 'désactivé';
     if (inv) $('#duo-wait-text').textContent = presenceFlash || (duo.partnerOn ? 'L’autre téléphone est là : il découvre le jeu…' : (pushStatus === 'on' ? 'En attente de l’autre téléphone. Ton téléphone t’avertira.' : 'En attente de l’autre téléphone…'));
@@ -2000,7 +2000,7 @@
     nudge.hidden = !away;
     nudge.setAttribute('aria-label', 'Prévenir ' + B + ' que c’est son tour');
     const nb = $('#wait-notif');
-    nb.hidden = !(on || pushStatus === 'off' || pushStatus === 'install');
+    nb.hidden = !(on || pushStatus === 'off' || pushStatus === 'install' || pushStatus === 'blocked');
     nb.setAttribute('aria-pressed', on ? 'true' : 'false');
     $('#wait-notif-state').textContent = on ? 'activé' : 'désactivé';
     const ht = $('#duo-home-text');
@@ -2421,6 +2421,10 @@
       note('M’avertir sur iPhone', 'Ajoute d’abord Kiff Kiff à ton écran d’accueil : dans Safari, touche Partager, puis « Sur l’écran d’accueil ». Les parties lancées depuis l’icône t’avertiront.');
       return;
     }
+    if (pushStatus === 'blocked') {
+      note('Avertissements bloqués', 'Ton navigateur refuse les avertissements de Kiff Kiff. Tu peux les autoriser dans ses réglages, pour ce site, puis toucher à nouveau la cloche.');
+      return;
+    }
     if (pushStatus === 'on') {
       await KP.disable();
       pushMine = null;
@@ -2430,8 +2434,17 @@
       return;
     }
     btn.disabled = true;
-    const sub = await KP.enable();
+    const res = await KP.enable();
     btn.disabled = false;
+    const sub = res && res.sub;
+    if (res && res.erreur && res.erreur !== 'refus') {
+      report('notif', null, 'erreur-' + res.erreur);
+      note('Avertissements indisponibles', res.erreur === 'cle'
+        ? 'Je n’arrive pas à joindre le service d’avertissements de Kiff Kiff. Vérifie la connexion, puis touche à nouveau la cloche.'
+        : 'Ce navigateur n’arrive pas à activer les avertissements. Touche à nouveau la cloche ; sinon, essaie depuis Chrome, ou depuis l’icône de Kiff Kiff sur l’écran d’accueil.');
+      renderDuoStatus();
+      return;
+    }
     if (sub) {
       pushMine = sub;
       pushStatus = 'on';
