@@ -823,3 +823,10 @@ body:has(#ov-deal:not([hidden])) .deco-candles { display: none; }
 /* La fenêtre défile quand elle dépasse l’écran */
 #ov-deal { align-items: start; }
 #ov-deal .sheet--coffee { margin: auto 0; }
+
+/* Titre de la célébration : les exclamations longues prennent moins de place */
+.party-title.is-long > .ink { font-size: .78em; }
+.party-title.is-xlong > .ink { font-size: .62em; }
+.party-title > .ink { display: inline-block; text-wrap: balance; }
+.party-title .emo { color: #000; -webkit-text-fill-color: initial; background: none; filter: none; }
+.sheet h2.party-title { margin-bottom: 4px; }

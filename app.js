@@ -1115,6 +1115,7 @@
   // La célébration manquée : d’abord le kiff kiff, ensuite la suite de la partie
   function celebrateLate() {
     lateKiff = true;
+    cheer();
     const by = S.kiff.by === 0 || S.kiff.by === 1 ? S.kiff.by : other(duo.seat);
     $('#party-sentence').textContent = S.kiff.text;
     $('.party-text').textContent = by === duo.seat ? 'Vous en avez envie tous les deux.' : nameOf(by) + ' a dit oui pendant ton absence.';
@@ -1128,8 +1129,24 @@
     confetti();
     markKiffSeen();
   }
+  /* Le titre de la célébration change à chaque kiff kiff (les exclamations de Marc), jamais deux fois de suite le même */
+  const CHEERS = ['Bon appétit\u00a0!', 'C’est servi\u00a0!', 'Savourez\u00a0!', 'À la vôtre\u00a0!', 'Santé\u00a0!', 'Samba\u00a0!', 'It’s a match!',
+    'Wopopoooo\u00a0!', 'Et… c’est un Kiff-Kiff\u00a0!!', 'Banco\u00a0!', 'C’est parti\u00a0!', 'Enjoy!', 'Get ready 😈!'];
+  function cheer() {
+    const last = load('cheer', '');
+    const pool = CHEERS.filter((c) => c !== last);
+    const c = pool[Math.floor(Math.random() * pool.length)];
+    save('cheer', c);
+    const h = $('#party-title'), ink = h.querySelector('.ink');
+    // l’émoji garde ses couleurs, même sur un titre en feuille d’or
+    ink.innerHTML = esc(c).replace(/(\p{Extended_Pictographic}\uFE0F?)/gu, '<span class="emo">$1</span>');
+    ink.setAttribute('data-ink', c);
+    h.classList.toggle('is-long', c.length > 11 && c.length <= 16);
+    h.classList.toggle('is-xlong', c.length > 16);
+  }
   function celebrate() {
     partyNormal();
+    cheer();
     S.phase = 'celebrate';
     document.body.dataset.phase = 'celebrate';
     $('#party-sentence').textContent = sentence();
