@@ -174,6 +174,7 @@ Mises de côté par Marc le 19 octobre 2026, à reprendre quand la rétention se
 | Vos mots à vous deux | Le texte libre d'une partie revient dans les roues de cette partie, pour les deux, chiffré | Aucun | En ligne le 19 octobre 2026 |
 | Roue de la semaine | Chaque lundi, une douzaine de mots neufs sur un thème ; les plus kiffés restent | Une douzaine de mots par semaine | Gardé pour plus tard |
 | Roues thématiques du Pass Kiff | « Anatomie de l'absurde », « Lenteur », « Brûlant intégral », « Sexto »… une quinzaine de mots par roue | Une quarantaine de mots par roue thématique | Gardé pour plus tard |
+| Envies de la communauté | Les joueurs proposent de nouveaux mots pour chaque roue, votent pour les meilleurs ; chaque semaine ou chaque mois, les gagnants entrent officiellement dans les roues | Aucun pour Marc (modération et choix final seulement) | Gardé pour plus tard |
 
 **Le niveau de « déconne ».** Le jeu se joue au premier degré (se donner du désir pour de vrai) ou au second (rire du télescopage entre mots crus et mots d'anatomie). Proposition : un seul jeu de roues, chaque mot marqué « décalé » ou non dans l'Atelier, et un réglage à trois positions à côté du piment :
 
@@ -182,6 +183,14 @@ Mises de côté par Marc le 19 octobre 2026, à reprendre quand la rétention se
 - « Grand n'importe quoi » : les mots décalés d'abord.
 
 Le réglage se change à chaque envie par qui compose, sans accord de l'autre (il ne rend rien plus intime, et l'autre peut toujours passer). Le décalé vit surtout dans les endroits et les manières, les actions servent aux deux registres : environ 8 à 10 mots par roue pour chaque piment et chaque registre, soit 150 à 180 mots au total (117 aujourd'hui). Marc veut y réfléchir avant de décider.
+
+**Les envies de la communauté** (idée de Marc, 19 octobre 2026). Un levier d'habitude et de rétention : on revient pour voir si sa formule a été retenue, et pour voter.
+
+- Proposer : un mot pour une roue (action, endroit ou manière), avec son niveau de piment.
+- Voter : chaque membre vote pour ses envies préférées parmi les propositions de la période.
+- Intégrer : chaque semaine ou chaque mois, les mieux votées entrent officiellement dans les roues, après relecture par Marc dans l'Atelier (grammaire, niveau de piment, ton du jeu). Le nom ou le pseudo de l'auteur·ice peut être crédité, si iel le souhaite.
+- Accès : réservé aux personnes qui ont acheté un pack d'envies ou pris un abonnement, selon le modèle retenu. C'est un avantage concret à payer, et un filtre contre les propositions malveillantes.
+- À prévoir : un compte ou un identifiant de membre (aujourd'hui, le jeu n'a pas de compte), une modération avant publication, et un stockage des propositions et des votes (la feuille de l'Atelier suffit au début). Les propositions ne contiennent que des mots de roue, jamais de phrase intime de partie.
 
 **Le Pass Kiff enrichi.** En plus du niveau Brûlant complet et des parties à distance illimitées, le Pass débloquerait les roues thématiques. Les roues de la semaine resteraient gratuites : elles servent la rétention. Prix à tester entre 7 et 15 €, payé une fois.
 
