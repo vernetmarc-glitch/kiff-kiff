@@ -869,3 +869,12 @@ body:has(#ov-deal:not([hidden])) .deco-candles { display: none; }
 .party-unlock .pill { cursor: default; }
 @media (prefers-reduced-motion: reduce) { .gift-seal { animation: none; } }
 #ov-gift .gift-seal { --e-line: currentColor; } /* plus fort que l’emblème clair des ambiances sur fond sombre */
+
+/* Invitation : la ligne d’attente et la cloche « M’avertir » côte à côte */
+.duo-wait-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.duo-wait-row .duo-wait { flex: 1; margin: 0; }
+.duo-wait-row .duo-notif { flex: none; min-width: 56px; }
+#duo-notif .ic--on { display: none; }
+#duo-notif[aria-pressed="true"] .ic--on { display: block; }
+#duo-notif[aria-pressed="true"] .ic--off { display: none; }
+#duo-notif:disabled { opacity: .5; }

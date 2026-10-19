@@ -1706,7 +1706,8 @@
     const sub = Array.isArray(duo.push) ? duo.push[o] : null;
     if (!sub || duo.partnerOn === true) return;
     let kind = '';
-    if (st.phase === 'celebrate') kind = 'kiff';
+    if (duo.lastPhase === 'lobby' && st.phase !== 'lobby') kind = 'arrivee'; // l’invitation est acceptée
+    else if (st.phase === 'celebrate') kind = 'kiff';
     else if (turnFor(st, o) === 'me') kind = 'tour';
     if (!kind) return;
     const k2 = Array.isArray(st.kiffs) ? st.kiffs : [];
@@ -1798,6 +1799,7 @@
     duo.pushSeen = pushMine;
     rememberGame(st);
     notifyOther(st);
+    duo.lastPhase = st.phase;
   }
   let syncT = 0;
   function sync() {
@@ -1828,6 +1830,7 @@
       duo.pushSeen = st.push[duo.seat] || null;
     }
     duo.nk = notifKey(st);
+    duo.lastPhase = st.phase;
     if (st.phase === 'ended') {
       if (duo.stage === 'game') note('Fin de la partie à deux', nameOf(st.endBy === 0 ? 0 : 1) + ' a arrêté la partie.', () => leaveDuo(false));
       else duoError('ended');
@@ -1969,6 +1972,13 @@
 
   /* Connexion : la mienne et celle de l’autre */
   function renderDuoStatus() {
+    // La cloche de l’invitation : tant qu’on attend que l’autre rejoigne
+    const dn = $('#duo-notif');
+    const inv = !!duo && duo.stage === 'invite';
+    dn.hidden = !(inv && (pushStatus === 'on' || pushStatus === 'off' || pushStatus === 'install'));
+    dn.setAttribute('aria-pressed', pushStatus === 'on' ? 'true' : 'false');
+    $('#duo-notif-state').textContent = pushStatus === 'on' ? 'activé' : 'désactivé';
+    if (inv) $('#duo-wait-text').textContent = presenceFlash || (duo.partnerOn ? 'L’autre téléphone est là : il découvre le jeu…' : (pushStatus === 'on' ? 'En attente de l’autre téléphone. Ton téléphone t’avertira.' : 'En attente de l’autre téléphone…'));
     const line = $('#duo-status');
     if (!duo || duo.stage !== 'game') { line.hidden = true; return; }
     const B = nameOf(other(duo.seat));
@@ -2004,7 +2014,6 @@
       if (!duo) return;
       duo.partnerOn = on;
       renderDuoStatus();
-      if (duo.stage === 'invite') $('#duo-wait-text').textContent = on ? 'L’autre téléphone est là : il découvre le jeu…' : 'En attente de l’autre téléphone…';
     },
     status: (ok) => { if (duo) { duo.online = ok; renderDuoStatus(); } }
   };
@@ -2022,6 +2031,7 @@
     duoName.hidden = !o.name;
     $('#duo-name-label').textContent = 'Ton prénom';
     $('#duo-wait').hidden = !o.wait;
+    $('#duo-notif').hidden = o.stage !== 'invite';
     $('#duo-wait-text').textContent = o.wait || '';
     $('#duo-error').hidden = !o.error;
     $('#duo-error').textContent = o.error || '';
@@ -2120,6 +2130,7 @@
       text: (S.gift ? 'Ton envie est dans l’invitation. ' : '') + 'Fais scanner ce code par l’autre téléphone, ou envoie-lui le lien. Pas besoin d’attendre ici : la partie t’attendra sur l’accueil.',
       qr: true, wait: duo.partnerOn ? 'L’autre téléphone est là : il découvre le jeu…' : 'En attente de l’autre téléphone…', go: 'Plus tard', cancel: 'Annuler la partie'
     });
+    renderDuoStatus();
   }
   /* La personne invitée ne connaît peut-être pas le jeu : trois écrans avant de rejoindre */
   const ovInv = $('#ov-invited');
@@ -2401,19 +2412,20 @@
     renderDuoStatus();
   }
   // M’avertir : un seul bouton à cloche qui s’allume ou s’éteint (comme le son)
-  $('#wait-notif').addEventListener('click', async () => {
+  // M’avertir : la même cloche sur l’écran d’attente et sur l’invitation (savoir quand l’autre a rejoint)
+  const pushChanged = () => { if (duo && duo.stage === 'invite') pushState(); else sync(); };
+  async function toggleNotif(btn) {
     if (!KP) return;
     audio(); sClick(); haptic(8);
     if (pushStatus === 'install') {
       note('M’avertir sur iPhone', 'Ajoute d’abord Kiff Kiff à ton écran d’accueil : dans Safari, touche Partager, puis « Sur l’écran d’accueil ». Les parties lancées depuis l’icône t’avertiront.');
       return;
     }
-    const btn = $('#wait-notif');
     if (pushStatus === 'on') {
       await KP.disable();
       pushMine = null;
       pushStatus = 'off';
-      sync();
+      pushChanged();
       flashPresence('Avertissements coupés.');
       return;
     }
@@ -2424,14 +2436,16 @@
       pushMine = sub;
       pushStatus = 'on';
       report('notif', null, 'activee');
-      sync();
+      pushChanged();
       flashPresence('C’est noté : ton téléphone t’avertira.');
       return;
     }
     pushStatus = await KP.status();
     if (pushStatus === 'blocked') note('Avertissements bloqués', 'Ton navigateur refuse les avertissements de Kiff Kiff. Tu peux les autoriser dans ses réglages, pour ce site.');
     renderDuoStatus();
-  });
+  }
+  $('#wait-notif').addEventListener('click', (e) => toggleNotif(e.currentTarget));
+  $('#duo-notif').addEventListener('click', (e) => toggleNotif(e.currentTarget));
   document.addEventListener('visibilitychange', () => {
     const vis = document.visibilityState === 'visible';
     if (duo && duo.conn) { duo.conn.here(vis); if (vis) duo.conn.wake(); }

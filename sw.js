@@ -47,6 +47,7 @@ const PARTIE = /^[a-z2-9]{12}$/;
 // Discret, comme une appli de rencontre : on dit qu’il y a du nouveau, jamais qui ni quoi
 function avis(m) {
   if (m.k === 'kiff') return 'Un kiff kiff vous attend !';
+  if (m.k === 'arrivee') return 'Ton invitation est acceptée : la partie commence.';
   if (m.ph === 'review') return 'Une proposition t’attend.';
   if (m.ph === 'reconfirm') return 'Du nouveau : c’est à toi de répondre.';
   return 'C’est à toi de jouer.';

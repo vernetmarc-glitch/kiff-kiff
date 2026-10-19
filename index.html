@@ -30,7 +30,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,62..125,100..900;1,62..125,100..900&family=Bagel+Fat+One&family=Abril+Fatface&family=Merriweather:ital,opsz,wght@0,18..144,400..900;1,18..144,400..900&family=Baskervville:ital,wght@0,400..700;1,400..700&family=Jost:wght@300..700&family=Great+Vibes&family=Cinzel:wght@400..900&family=Syne:wght@600..800&family=Manrope:wght@400..800&family=Anton&family=Courier+Prime:wght@400;700&display=swap">
-<link rel="stylesheet" href="base.css?v=69">
+<link rel="stylesheet" href="base.css?v=70">
 <link rel="stylesheet" href="skins/arty.css?v=63" data-skin-sheet="arty">
 <link rel="stylesheet" href="skins/pomme.css?v=63" data-skin-sheet="pomme">
 <link rel="stylesheet" href="skins/redcorner.css?v=61" data-skin-sheet="redcorner">
@@ -328,7 +328,10 @@
     </div>
     <label class="duo-name-label" for="duo-name" id="duo-name-label">Ton prénom</label>
     <input id="duo-name" maxlength="20" autocomplete="off" enterkeyhint="go">
-    <p class="duo-wait" id="duo-wait" hidden><span class="duo-dots" aria-hidden="true"><i></i><i></i><i></i></span> <span id="duo-wait-text"></span></p>
+    <div class="duo-wait-row">
+      <p class="duo-wait" id="duo-wait" hidden><span class="duo-dots" aria-hidden="true"><i></i><i></i><i></i></span> <span id="duo-wait-text"></span></p>
+      <button class="icon-btn duo-notif" id="duo-notif" type="button" aria-pressed="false" hidden><svg class="ic ic--on" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-avertir"/></svg><svg class="ic ic--off" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-avertir-non"/></svg><span class="icon-label">M’avertir<span class="sr-only">&nbsp;: <span id="duo-notif-state">désactivé</span></span></span></button>
+    </div>
     <p class="duo-error" id="duo-error" hidden role="alert"></p>
     <div class="row">
       <button class="link-btn" id="duo-cancel" type="button">Annuler</button>
@@ -555,6 +558,6 @@
 <script src="config.js?v=61"></script>
 <script src="duo.js?v=62"></script>
 <script src="push.js?v=62"></script>
-<script src="app.js?v=68"></script>
+<script src="app.js?v=69"></script>
 </body>
 </html>
