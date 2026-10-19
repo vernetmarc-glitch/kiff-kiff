@@ -1049,7 +1049,8 @@
     btn.setAttribute('aria-label', n + ' kiff kiff trouvé' + (n > 1 ? 's' : '') + (B ? ' avec ' + B : ' ensemble') + '. Voir l’historique');
     const wk = $('#wait-kiffs');
     wk.hidden = !n;
-    wk.textContent = 'Vos kiff kiff (' + n + ')';
+    $('#wait-kiffs-label').textContent = n + ' kiff kiff';
+    wk.setAttribute('aria-label', 'Vos kiff kiff (' + n + ')');
   }
   // Le pied de la célébration : une seule demande à la fois
   function partyFoot() {
@@ -1159,7 +1160,7 @@
     confetti();
     save('names', S.names);
   }
-  /* « Vous avez kiffé ? Faites tourner ! » : partager le jeu, ou offrir un café */
+  /* « Tu kiffes ? » : partager le jeu, offrir un café, lire l’histoire du jeu */
   const APP_URL = 'https://vernetmarc-glitch.github.io/roue-du-consentement/';
   const DEAL_TEXT = 'Tiens, je crois que ça te fera pas de mal : Kiff Kiff, un petit jeu à deux pour pimenter un peu les choses.';
   const ovDeal = $('#ov-deal');
@@ -1509,6 +1510,7 @@
   const KP = window.KiffPush || null;
   let pushMine = null;
   let pushStatus = 'none'; // 'off' | 'on' | 'blocked' | 'install' | 'none'
+  let presenceFlash = '', flashT = 0; // un mot bref à la place de la présence, sur l’écran d’attente
   const notifKey = (st) => [st.phase, st.proposer, st.kiff ? st.kiff.n : 0, st.pass ? st.pass.n : 0].join('|');
   function pushPair() {
     const pair = duo && Array.isArray(duo.push) ? duo.push.slice(0, 2) : [null, null];
@@ -1764,34 +1766,30 @@
       ['compose', 'review', 'adjust', 'reconfirm'].includes(S.phase) && !myTurn();
     if (!waiting) { hide(ov); renderDuoStatus(); return; }
     const A = nameOf(S.proposer), B = nameOf(other(S.proposer));
-    let title, kicker, text, sent = '';
+    let title, kicker, sent = '';
     if (S.phase === 'compose') {
       title = 'Au tour de ' + A;
       kicker = A + ' compose une envie.';
-      text = 'Elle arrivera ici dès que ' + A + ' la proposera.';
     } else if (S.phase === 'review') {
       title = 'Envie envoyée';
       kicker = hotter() ? B + ' doit d’abord accepter le nouveau piment.' : B + ' la lit.';
       sent = S.original ? sentenceFrom(S.original) : sentence();
-      text = B + ' peut dire « J’ai envie aussi », ou changer une chose avant de répondre.';
     } else if (S.phase === 'adjust') {
       title = B + ' ajuste ton envie';
       kicker = B + ' change une seule chose.';
       sent = S.original ? sentenceFrom(S.original) : sentence();
-      text = 'Tu verras la nouvelle version ici, et tu pourras dire oui ou passer.';
     } else {
       const ch = changes();
       title = 'Au tour de ' + A;
-      kicker = 'Tu as changé ' + CHANGE_NAMES[ch.length ? ch[0] : 0] + '.';
+      kicker = 'Tu as changé ' + CHANGE_NAMES[ch.length ? ch[0] : 0] + '. ' + A + ' relit.';
       sent = sentence();
-      text = A + ' relit l’envie ajustée.';
     }
     $('#wait-title').textContent = title;
     $('#wait-kicker').textContent = kicker;
-    $('#wait-text').textContent = text;
     const ws = $('#wait-sentence');
     ws.hidden = !sent;
     ws.textContent = sent;
+    $('#wait-emblem').style.display = sent ? 'none' : '';
     show(ov);
     renderDuoStatus();
   }
@@ -1806,20 +1804,22 @@
     else if (duo.partnerOn === false) msg = B + ' n’est pas connecté·e : la partie l’attendra.';
     line.textContent = msg;
     line.hidden = !msg;
-    const wp = $('#wait-presence');
+    // Une ligne de présence ; les actions sont des icônes (Prévenir, M’avertir, kiff kiff, Accueil)
     const away = duo.partnerOn !== true;
-    $('#wait-presence-text').textContent = duo.online === false ? msg : (away ? B + ' n’est pas là pour l’instant.' : B + ' est connecté·e.');
-    wp.classList.toggle('is-off', away || duo.online === false);
-    $('#wait-nudge').hidden = !away;
-    $('#wait-nudge').textContent = 'Prévenir ' + B;
-    // Avertissements : le bouton tant qu’ils sont possibles et pas activés ; ensuite, une phrase
     const on = pushStatus === 'on';
-    $('#wait-notif').hidden = !(pushStatus === 'off' || pushStatus === 'install');
-    $('#wait-later').hidden = !away && !on;
-    $('#wait-later-text').textContent = on
-      ? (away ? 'Tu peux fermer l’appli : ton téléphone t’avertira quand ce sera à toi.' : 'Si tu fermes l’appli, ton téléphone t’avertira quand ce sera à toi.')
-      : 'Tu peux fermer l’appli : la partie vous attend, et tu la retrouveras sur l’accueil.';
-    $('#wait-notif-off').hidden = !on;
+    let pres = B + ' est là.';
+    if (duo.online === false) pres = msg;
+    else if (presenceFlash) pres = presenceFlash;
+    else if (away) pres = B + ' n’est pas là' + (on ? '. Ton téléphone t’avertira.' : ' : la partie l’attendra.');
+    $('#wait-presence-text').textContent = pres;
+    $('#wait-presence').classList.toggle('is-off', away || duo.online === false);
+    const nudge = $('#wait-nudge');
+    nudge.hidden = !away;
+    nudge.setAttribute('aria-label', 'Prévenir ' + B + ' que c’est son tour');
+    const nb = $('#wait-notif');
+    nb.hidden = !(on || pushStatus === 'off' || pushStatus === 'install');
+    nb.setAttribute('aria-pressed', on ? 'true' : 'false');
+    $('#wait-notif-state').textContent = on ? 'activé' : 'désactivé';
     const ht = $('#duo-home-text');
     const nk = kiffCount();
     if (ht) ht.textContent = 'En cours : partie à deux avec ' + B + (msg ? '. ' + msg : ', connecté·e.') + (nk ? ' ' + nk + ' kiff kiff ensemble.' : '');
@@ -2120,7 +2120,6 @@
   $('#wait-nudge').addEventListener('click', async () => {
     if (!duo || !duo.info) return;
     audio(); sClick(); haptic(8);
-    const btn = $('#wait-nudge');
     const url = window.KiffDuo.link(duo.info);
     const text = 'À toi de jouer sur Kiff Kiff !';
     report('partage', null, 'prevenir');
@@ -2130,19 +2129,33 @@
     }
     let ok = false;
     try { await navigator.clipboard.writeText(text + ' ' + url); ok = true; } catch (e) { ok = false; }
-    btn.textContent = ok ? 'Message copié : colle-le-lui' : 'Copie impossible';
-    setTimeout(() => renderDuoStatus(), 2200);
+    flashPresence(ok ? 'Message copié : colle-le-lui.' : 'Copie impossible.');
   });
   $('#wait-home').addEventListener('click', () => el.home.click());
-  // M’avertir quand c’est à moi : le navigateur demande l’autorisation, puis la partie reçoit mon adresse
+  // Un mot bref à la place de la ligne de présence (copie, avertissements), puis elle revient
+  function flashPresence(t) {
+    presenceFlash = t;
+    clearTimeout(flashT);
+    flashT = setTimeout(() => { presenceFlash = ''; renderDuoStatus(); }, 3200);
+    renderDuoStatus();
+  }
+  // M’avertir : un seul bouton à cloche qui s’allume ou s’éteint (comme le son)
   $('#wait-notif').addEventListener('click', async () => {
     if (!KP) return;
     audio(); sClick(); haptic(8);
     if (pushStatus === 'install') {
-      note('M’avertir sur iPhone', 'Pour avertir, un iPhone a besoin de Kiff Kiff sur l’écran d’accueil. Dans Safari, touche le bouton Partager (le carré avec une flèche), puis « Sur l’écran d’accueil ». Les parties lancées depuis l’icône t’avertiront ensuite.');
+      note('M’avertir sur iPhone', 'Ajoute d’abord Kiff Kiff à ton écran d’accueil : dans Safari, touche Partager, puis « Sur l’écran d’accueil ». Les parties lancées depuis l’icône t’avertiront.');
       return;
     }
     const btn = $('#wait-notif');
+    if (pushStatus === 'on') {
+      await KP.disable();
+      pushMine = null;
+      pushStatus = 'off';
+      sync();
+      flashPresence('Avertissements coupés.');
+      return;
+    }
     btn.disabled = true;
     const sub = await KP.enable();
     btn.disabled = false;
@@ -2151,19 +2164,11 @@
       pushStatus = 'on';
       report('notif', null, 'activee');
       sync();
-    } else {
-      pushStatus = await KP.status();
-      if (pushStatus === 'blocked') note('Avertissements bloqués', 'Ton navigateur refuse les avertissements de Kiff Kiff. Tu peux les autoriser dans ses réglages, pour ce site.');
+      flashPresence('C’est noté : ton téléphone t’avertira.');
+      return;
     }
-    renderDuoStatus();
-  });
-  $('#wait-notif-off').addEventListener('click', async () => {
-    if (!KP) return;
-    audio(); sClick();
-    await KP.disable();
-    pushMine = null;
-    pushStatus = 'off';
-    sync();
+    pushStatus = await KP.status();
+    if (pushStatus === 'blocked') note('Avertissements bloqués', 'Ton navigateur refuse les avertissements de Kiff Kiff. Tu peux les autoriser dans ses réglages, pour ce site.');
     renderDuoStatus();
   });
   document.addEventListener('visibilitychange', () => {

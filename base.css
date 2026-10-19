@@ -580,7 +580,6 @@ body:has(#ov-deal:not([hidden])) .deco-candles { display: none; }
 .overlay--duo .row .btn[hidden] { display: none; }
 .overlay--wait .sheet { align-items: flex-start; }
 .wait-sentence { align-self: stretch; }
-.wait-links { display: flex; gap: 6px 18px; flex-wrap: wrap; margin-top: 4px; margin-left: -10px; }
 
 /* Invitation : la personne qui rejoint découvre le jeu */
 .inv-from { align-self: stretch; margin: 0; font-size: 18px; line-height: 1.4; text-wrap: balance; }
@@ -637,8 +636,6 @@ body:has(#ov-deal:not([hidden])) .deco-candles { display: none; }
 .game-x:hover { opacity: .9; }
 
 /* Attente : prévenir l’autre, fermer l’appli sans rien perdre */
-.wait-nudge { margin-top: 6px; }
-.wait-later { margin: 0; font-size: 14px; line-height: 1.4; opacity: .85; }
 .duo-home { margin-top: 4px; }
 .duo-home + .btn { margin-top: 10px; }
 #duo-quit.is-armed { font-weight: 700; text-decoration-thickness: 2px; }
@@ -831,8 +828,25 @@ body:has(#ov-deal:not([hidden])) .deco-candles { display: none; }
 .party-title .emo { color: #000; -webkit-text-fill-color: initial; background: none; filter: none; }
 .sheet h2.party-title { margin-bottom: 4px; }
 
-/* ---------- Avertissements : « M’avertir quand c’est à moi » (écran d’attente) ---------- */
-.wait-notif { display: inline-flex; align-items: center; gap: 8px; align-self: flex-start; margin: 2px 0 0 -10px; color: inherit; font: inherit; font-size: 15px; font-weight: 600; }
-.wait-notif .ic { width: 20px; height: 20px; }
-.wait-notif:disabled { opacity: .5; }
-.link-btn--inline { display: inline; padding: 0; margin: 0; color: inherit; font: inherit; }
+/* ---------- Écran d’attente épuré (20 octobre 2026) : un objet, une ligne de présence, des icônes ---------- */
+.overlay--wait .sheet { align-items: center; text-align: center; }
+.overlay--wait .handoff-kicker { margin-top: -4px; }
+.emblem--wait { width: 128px; margin: 6px auto 2px; }
+.emblem--wait .e-ring--2 { animation: e-wait 3.2s ease-in-out infinite; transform-box: fill-box; }
+.emblem--wait .e-lens { animation: e-wait-lens 3.2s ease-in-out infinite; }
+@keyframes e-wait { 0%, 100% { transform: translateX(10px); } 50% { transform: translateX(0); } }
+@keyframes e-wait-lens { 0%, 100% { opacity: .25; } 50% { opacity: 1; } }
+.wait-presence { display: block; margin: 2px 0 0; font-size: 14.5px; line-height: 1.35; min-height: 20px; text-align: center; }
+.presence-dot { display: inline-block; vertical-align: 1px; margin-right: 8px; width: 9px; height: 9px; border-radius: 50%; background: currentColor; animation: presence 2s ease-in-out infinite; }
+.wait-presence.is-off .presence-dot { background: none; box-shadow: inset 0 0 0 1.5px currentColor; animation: none; opacity: .8; }
+@keyframes presence { 0%, 100% { opacity: 1; } 50% { opacity: .35; } }
+.wait-pass { align-self: center; min-width: 180px; }
+.wait-icons { align-self: stretch; display: flex; flex-wrap: wrap; justify-content: center; gap: 10px 12px; margin-top: 6px; }
+#wait-notif .ic--off { display: block; }
+#wait-notif .ic--on { display: none; }
+#wait-notif[aria-pressed="true"] .ic--off { display: none; }
+#wait-notif[aria-pressed="true"] .ic--on { display: block; }
+#wait-notif:disabled { opacity: .5; }
+@media (prefers-reduced-motion: reduce) {
+  .emblem--wait .e-ring--2, .emblem--wait .e-lens, .presence-dot { animation: none; }
+}

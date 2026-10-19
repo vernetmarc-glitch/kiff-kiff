@@ -13,16 +13,19 @@ Un jeu sensuel ne se raconte pas qu'avec des mots. Les écrans où l'on joue (co
 1. **Un point focal qui n'est pas du texte** sur chaque écran clé : l'emblème sur l'accueil, un cœur qui bat sur la célébration, les roues sur l'écran de jeu.
 2. **60 mots au plus** sur un écran de jeu ou d'accueil, mention d'âge comprise. Au-delà, l'écran se lit plus qu'il ne se joue.
 3. **Une seule action principale par écran**, en bouton plein. Les autres en contour, en icône ou en lien.
-4. **Les actions du jeu restent en texte** (« Commencer », « Proposer à Lou », « J'ai envie aussi », « On passe »). **Les actions secondaires passent en icônes** (son, ambiance, faites tourner, partager, historique, café, retour, fermer).
+4. **Les actions du jeu restent en texte** (« Commencer », « Proposer à Lou », « J'ai envie aussi », « On passe »). **Les actions secondaires passent en icônes** (son, ambiance, « Tu kiffes ? », partager, prévenir, m'avertir, historique, café, retour, accueil, fermer).
 5. **Le geste sur l'objet** : on partage une phrase depuis une icône posée sur la carte de la phrase, pas depuis un lien en dessous.
 6. **Pas de répétition** : une phrase qui redit ce que montre le bouton ou l'écran disparaît.
 7. **Le contenu au centre vertical** de l'écran sur les écrans courts (accueil, célébration), pour éviter le tiers vide en bas sur un grand téléphone.
+8. **Pas de verrue de texte** (règle de Marc, 19 octobre 2026, pour tous les écrans à venir). Une nouvelle fonction ne s'ajoute jamais comme une phrase ou un lien de plus sous ce qui existe. Elle prend la forme d'une icône dans la rangée d'icônes de l'écran (avec un mot court dessous), ou de l'état d'un élément déjà là (une icône qui s'allume, comme le son). Une confirmation passe par un mot bref qui s'efface (3 secondes), à la place d'une ligne existante. Avant d'ajouter, on retire : une explication que l'écran montre déjà disparaît.
+9. **Une ligne d'état, pas un paragraphe.** Ce qui décrit la situation (présence de l'autre, connexion, avertissements) tient en une seule ligne courte, précédée d'un point qui pulse ou non.
 
 ## Icônes
 
 - **Un seul jeu d'icônes** pour toute l'appli : grille de 24 px, trait de 1,6 px, bouts et angles arrondis, sans remplissage.
 - La couleur est celle du texte de l'ambiance (`currentColor`) : le même dessin sert partout.
-- Bouton à icône seule : rond de 48 px, avec un nom lisible par les lecteurs d'écran (`aria-label`). Un mot court dessous quand le sens n'est pas évident (accueil : « Ambiance », « Son », « Faites tourner »).
+- Bouton à icône seule : rond de 48 px, avec un nom lisible par les lecteurs d'écran (`aria-label`). Un mot court dessous quand le sens n'est pas évident (accueil : « Ambiance », « Son », « Tu kiffes ? » ; attente : « Prévenir », « M'avertir », « Accueil »).
+- Un réglage qu'on allume ou éteint garde un seul bouton, dont l'icône change d'état (son / son coupé, cloche / cloche barrée), avec l'état dit aux lecteurs d'écran.
 - Pilule icône + texte quand l'information compte (« Votre 3e kiff ensemble »).
 - Jamais d'émoji comme icône.
 - **Jamais de cœur.** Le signe du jeu est l'intersection de deux envies : deux cercles qui se chevauchent, leur zone commune allumée. Il remplace le cœur partout (kiff kiff, compteur, historique, célébration, emblème, image partagée).
@@ -37,7 +40,7 @@ Un jeu sensuel ne se raconte pas qu'avec des mots. Les écrans où l'on joue (co
 ## Texte (UX copy)
 
 - Clair, concis, utile, humain. Les boutons commencent par un verbe et disent le résultat.
-- **Un seul nom par idée.** Proposé : « Faites tourner » partout pour partager le jeu et soutenir Marc (au lieu de « Dealer du kiff », « Envoyer le lien »…). Une partie à deux : « partie à deux ». Un accord : « kiff kiff ».
+- **Un seul nom par idée.** « Tu kiffes ? » (proposé le 19 octobre 2026, à la place de « Faites tourner ») pour la fenêtre qui réunit le partage du jeu, le café et l'histoire du jeu ; « Vous kiffez ? » sur la célébration, qui s'adresse aux deux. Une partie à deux : « partie à deux ». Un accord : « kiff kiff ».
 - Le tutoiement pour la personne qui tient le téléphone, le « vous » pour s'adresser aux deux (« Vous avez kiffé ? »).
 - Pas d'émoji dans le texte de l'interface. Exception : le mot signé de Marc.
 - Les formules (les mots des roues) gardent leur crudité et leur humour ; elles se modifient dans l'Atelier, jamais en dur dans le code.

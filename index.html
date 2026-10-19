@@ -30,12 +30,12 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,62..125,100..900;1,62..125,100..900&family=Bagel+Fat+One&family=Abril+Fatface&family=Merriweather:ital,opsz,wght@0,18..144,400..900;1,18..144,400..900&family=Baskervville:ital,wght@0,400..700;1,400..700&family=Jost:wght@300..700&family=Great+Vibes&family=Cinzel:wght@400..900&family=Syne:wght@600..800&family=Manrope:wght@400..800&family=Anton&family=Courier+Prime:wght@400;700&display=swap">
-<link rel="stylesheet" href="base.css?v=62">
-<link rel="stylesheet" href="skins/arty.css?v=61" data-skin-sheet="arty">
-<link rel="stylesheet" href="skins/pomme.css?v=61" data-skin-sheet="pomme">
+<link rel="stylesheet" href="base.css?v=63">
+<link rel="stylesheet" href="skins/arty.css?v=63" data-skin-sheet="arty">
+<link rel="stylesheet" href="skins/pomme.css?v=63" data-skin-sheet="pomme">
 <link rel="stylesheet" href="skins/redcorner.css?v=61" data-skin-sheet="redcorner">
 <link rel="stylesheet" href="skins/minuit.css?v=61" data-skin-sheet="minuit">
-<link rel="stylesheet" href="skins/classex.css?v=61" data-skin-sheet="classex">
+<link rel="stylesheet" href="skins/classex.css?v=63" data-skin-sheet="classex">
 <script>
 /* Ambiance : celle du lien (?design=redcorner ou #redcorner), sinon celle mémorisée.
    Appliquée avant l’affichage pour éviter un flash. */
@@ -98,7 +98,9 @@
   <symbol id="i-lien" viewBox="0 0 24 24"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></symbol>
   <symbol id="i-kiff" viewBox="0 0 24 24"><path d="M12 6.2A6.5 6.5 0 0 1 12 17.8A6.5 6.5 0 0 1 12 6.2Z" fill="currentColor" fill-opacity=".5" stroke="none"/><circle cx="9" cy="12" r="6.5"/><circle cx="15" cy="12" r="6.5"/></symbol>
   <symbol id="i-telephones" viewBox="0 0 24 24"><rect x="2.5" y="5" width="8" height="14" rx="2"/><rect x="13.5" y="5" width="8" height="14" rx="2"/><path d="M6 16.5h1"/><path d="M17 16.5h1"/></symbol>
-  <symbol id="i-avertir" viewBox="0 0 24 24"><path d="M6 16.5V11a6 6 0 0 1 12 0v5.5l1.5 1.5h-15z"/><path d="M10 20.5a2.2 2.2 0 0 0 4 0"/></symbol>
+  <symbol id="i-avertir" viewBox="0 0 24 24"><path d="M6.5 16.5V11a5.5 5.5 0 0 1 11 0v5.5l1.5 1.5H5z"/><path d="M10 20.5a2.2 2.2 0 0 0 4 0"/><path d="M3.3 9a9 9 0 0 1 2.6-5"/><path d="M20.7 9a9 9 0 0 0-2.6-5"/></symbol>
+  <symbol id="i-avertir-non" viewBox="0 0 24 24"><path d="M6.5 16.5V11a5.5 5.5 0 0 1 11 0v5.5l1.5 1.5H5z"/><path d="M10 20.5a2.2 2.2 0 0 0 4 0"/><path d="M4 4l16 16"/></symbol>
+  <symbol id="i-accueil" viewBox="0 0 24 24"><path d="M4 11l8-6.5 8 6.5"/><path d="M6.5 9.5v10h11v-10"/><path d="M10.2 19.5v-5h3.6v5"/></symbol>
   <symbol id="i-fermer" viewBox="0 0 24 24"><path d="M6 6l12 12"/><path d="M18 6L6 18"/></symbol>
 </svg>
 <div class="grain" aria-hidden="true"></div>
@@ -184,7 +186,7 @@
             <button class="icon-btn" id="skin-open" type="button" aria-haspopup="dialog"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-ambiance"/></svg><span class="icon-label">Ambiance<span class="sr-only">&nbsp;: <span id="skin-current">Red Corner</span></span></span></button>
             <button class="icon-btn" id="mute" type="button" aria-pressed="false"><svg class="ic ic--on" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-son"/></svg><svg class="ic ic--off" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-muet"/></svg><span class="icon-label">Son<span class="sr-only">&nbsp;: <span id="mute-state">activé</span></span></span></button>
             <button class="icon-btn" id="install" type="button" hidden><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-installer"/></svg><span class="icon-label">Installer<span class="sr-only"> l’appli</span></span></button>
-            <button class="icon-btn" id="home-deal" type="button" aria-haspopup="dialog"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-tourner"/></svg><span class="icon-label"><span class="sr-only">Tu kiffes Kiff Kiff&nbsp;? </span>Faites tourner</span></button>
+            <button class="icon-btn" id="home-deal" type="button" aria-haspopup="dialog"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-tourner"/></svg><span class="icon-label">Tu kiffes&nbsp;?<span class="sr-only"> Partager le jeu, offrir un café, l’histoire du jeu</span></span></button>
           </nav>
         </div>
       </section>
@@ -338,17 +340,16 @@
   <div class="sheet">
     <h2 class="handoff-title" id="wait-title"></h2>
     <p class="handoff-kicker" id="wait-kicker"></p>
+    <svg class="emblem emblem--wait" id="wait-emblem" viewBox="0 0 168 124" aria-hidden="true"><use href="#emblem"/></svg>
     <p class="party-sentence wait-sentence" id="wait-sentence" hidden></p>
-    <p class="handoff-text" id="wait-text"></p>
-    <p class="duo-wait" id="wait-presence"><span class="duo-dots" aria-hidden="true"><i></i><i></i><i></i></span> <span id="wait-presence-text"></span></p>
-    <button class="btn btn--line wait-nudge" id="wait-nudge" type="button" hidden>Prévenir</button>
-    <button class="link-btn wait-notif" id="wait-notif" type="button" hidden><svg class="ic" aria-hidden="true"><use href="#i-avertir"/></svg> M’avertir quand c’est à moi</button>
-    <p class="handoff-text wait-later" id="wait-later" hidden><span id="wait-later-text">Tu peux fermer l’appli : la partie vous attend, et tu la retrouveras sur l’accueil.</span> <button class="link-btn link-btn--inline" id="wait-notif-off" type="button" hidden>Ne plus m’avertir</button></p>
-    <div class="wait-links">
-      <button class="link-btn" id="wait-pass" type="button">On passe</button>
-      <button class="link-btn" id="wait-home" type="button">Accueil</button>
-      <button class="link-btn" id="wait-kiffs" type="button" hidden></button>
-    </div>
+    <p class="wait-presence" id="wait-presence" role="status"><span class="presence-dot" aria-hidden="true"></span><span id="wait-presence-text"></span></p>
+    <button class="btn btn--line wait-pass" id="wait-pass" type="button">On passe</button>
+    <nav class="wait-icons" aria-label="Pendant l’attente">
+      <button class="icon-btn" id="wait-nudge" type="button" hidden><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-partager"/></svg><span class="icon-label" id="wait-nudge-label">Prévenir</span></button>
+      <button class="icon-btn" id="wait-notif" type="button" aria-pressed="false" hidden><svg class="ic ic--on" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-avertir"/></svg><svg class="ic ic--off" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-avertir-non"/></svg><span class="icon-label">M’avertir<span class="sr-only">&nbsp;: <span id="wait-notif-state">désactivé</span></span></span></button>
+      <button class="icon-btn" id="wait-kiffs" type="button" hidden><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-kiffs"/></svg><span class="icon-label" id="wait-kiffs-label"></span></button>
+      <button class="icon-btn" id="wait-home" type="button"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-accueil"/></svg><span class="icon-label">Accueil</span></button>
+    </nav>
   </div>
 </div>
 
@@ -459,7 +460,7 @@
     <button class="link-btn" id="party-pass" type="button">Finalement, on passe</button>
   </div>
   <div class="party-foot">
-    <button class="link-btn foot-link party-deal" id="party-deal" type="button" aria-haspopup="dialog"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-tourner"/></svg>Vous avez kiffé&nbsp;? Faites tourner&nbsp;!</button>
+    <button class="link-btn foot-link party-deal" id="party-deal" type="button" aria-haspopup="dialog"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-tourner"/></svg>Vous kiffez&nbsp;?</button>
     <button class="link-btn foot-link party-deal" id="party-install" type="button" hidden><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-installer"/></svg>Garder Kiff Kiff sur ton écran d’accueil</button>
   </div>
 </div>
@@ -485,11 +486,11 @@
   </div>
 </div>
 
-<!-- Dealer du kiff : partager le jeu, ou offrir un café -->
+<!-- « Tu kiffes ? » : partager le jeu, offrir un café, l’histoire du jeu -->
 <div class="overlay overlay--edit overlay--skins" id="ov-deal" hidden role="dialog" aria-modal="true" aria-labelledby="deal-title">
   <div class="sheet sheet--edit sheet--skins sheet--coffee">
     <div class="deal-head">
-      <h2 class="edit-label" id="deal-title">Faites tourner</h2>
+      <h2 class="edit-label" id="deal-title">Tu kiffes&nbsp;?</h2>
       <button class="icon-btn icon-btn--bare" id="deal-close" type="button" aria-label="Fermer"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-fermer"/></svg></button>
     </div>
     <section class="deal-card" aria-labelledby="deal-share-title">
@@ -534,6 +535,6 @@
 <script src="config.js?v=61"></script>
 <script src="duo.js?v=62"></script>
 <script src="push.js?v=62"></script>
-<script src="app.js?v=62"></script>
+<script src="app.js?v=63"></script>
 </body>
 </html>

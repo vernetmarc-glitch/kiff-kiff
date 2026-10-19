@@ -49,7 +49,7 @@ L'indicateur central : **le nombre de kiff kiff trouvés par semaine**. Il ne mo
 | Rétention | Parties actives | Parties à deux avec un coup dans les 7 derniers jours | La fidélité |
 | Rétention | Retour à J+1, J+7, J+30 | Part des parties à deux encore jouées après 1, 7, 30 jours | La valeur dans le temps, le prix d'un abonnement |
 | Viralité | Invitations | Invitations créées, rejointes, délai pour rejoindre | La boucle d'invitation |
-| Viralité | Partages | « Faites tourner » ouverts, liens envoyés, « Prévenir » touchés | Le bouche-à-oreille |
+| Viralité | Partages | fenêtres « Tu kiffes ? » ouvertes, liens envoyés, « Prévenir » touchés | Le bouche-à-oreille |
 | Viralité | Coefficient K | Nouveaux joueurs amenés par joueur | La croissance sans publicité (K ≥ 1 = croissance seule) |
 | Installation | Icône installée | Installations sur l'écran d'accueil | La rétention et les notifications |
 | Revenus | Clics café, conversion | Clics « Payez-moi un café », puis achats / joueurs | Le prix, l'offre payante |
@@ -63,7 +63,7 @@ Le premier levier est gratuit et déjà construit : la partie à deux téléphon
 
 1. **La boucle d'invitation.** Un aperçu soigné du lien dans WhatsApp ou un chat de rencontre (fait), l'invitation au nom de qui invite (fait), un domaine court et un QR code sur les images partagées (proposé).
 2. **Les notifications.** « À toi de jouer » doit arriver sans que l'autre ait à penser à « Prévenir ». Les notifications web marchent sur Android, et sur iPhone quand l'appli est installée. Demande un petit serveur.
-3. **Le partage au bon moment.** « Faites tourner » est placé au pic émotionnel, juste après un kiff kiff, avec une carte image de la phrase, sans prénom.
+3. **Le partage au bon moment.** « Vous kiffez ? » (fenêtre « Tu kiffes ? ») est placé au pic émotionnel, juste après un kiff kiff, avec une carte image de la phrase, sans prénom.
 4. **Les formules comme contenu.** Une phrase par jour sur Instagram ou TikTok, suggestive plutôt qu'explicite (ces réseaux masquent le contenu sexuel).
 5. **Les relais de confiance.** Sexologues, podcasts et comptes d'éducation au consentement : le « double oui » leur donne une raison de recommander le jeu.
 6. **Les moments forts.** Vacances d'été, rentrée, soirées entre amis, saison des rencontres de janvier : des roues de la semaine thématiques, et des pages qui répondent aux recherches « action ou vérité coquin », « jeu coquin à deux », « jeu sexto ». La Saint-Valentin et l'imagerie romantique sont évitées (voir `vision-positionnement.md`).
@@ -143,7 +143,7 @@ Douze des quatorze sont en ligne depuis le 18 octobre 2026.
 | Accueil plus court pour qui a déjà joué | Parties lancées / ouvertures | Rapide | Fait |
 | Roues remélangées après un kiff kiff | Envies par partie | Rapide | Fait |
 | « Installer l'appli » juste après le premier kiff kiff | Installations, retour à J+7 | Rapide | Fait |
-| « Faites tourner » et le café à partir du 2ᵉ kiff kiff | Partages, clics café | Rapide | Fait |
+| « Tu kiffes ? » (partage) et le café à partir du 2ᵉ kiff kiff | Partages, clics café | Rapide | Fait |
 | Badge dans l'Atelier sur les formules souvent passées | Taux de kiff | Rapide | Fait |
 | Compteurs groupés en une requête | Tenue de la feuille Google sous les quotas | Rapide | Fait |
 | Carte image de la phrase, sans prénom | Liens envoyés | Moyen | Fait |

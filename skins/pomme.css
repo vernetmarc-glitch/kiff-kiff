@@ -441,3 +441,5 @@ body {
 .foot-link { color: var(--cream-hi); font-weight: 700; }
 .deal-card { box-shadow: inset 0 0 0 2px var(--navy); background: var(--cream-hi); color: var(--navy); }
 .deal-badge { color: var(--red); box-shadow: inset 0 0 0 2px var(--red); }
+/* Écran d’attente : emblème clair sur le fond marine */
+.overlay--handoff .emblem { --e-line: var(--cream-hi); --e-glow: var(--red); --e-glow-o: 1; }
