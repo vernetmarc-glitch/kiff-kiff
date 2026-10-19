@@ -10,10 +10,10 @@
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Kiff Kiff">
 <meta property="og:locale" content="fr_FR">
-<meta property="og:url" content="https://vernetmarc-glitch.github.io/roue-du-consentement/">
+<meta property="og:url" content="https://kiff-kiff.fr/">
 <meta property="og:title" content="Kiff Kiff · le jeu où les envies se rejoignent">
 <meta property="og:description" content="Trois roues pour se proposer des envies, et savourer celles que vous partagez. Jeu de séduction pour adultes, sur un téléphone ou à distance.">
-<meta property="og:image" content="https://vernetmarc-glitch.github.io/roue-du-consentement/icons/og-image.jpg">
+<meta property="og:image" content="https://kiff-kiff.fr/icons/og-image.jpg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="Kiff Kiff : une carte « J’ai envie… que tu me masses le bas du dos avec lenteur et délectation. »">
@@ -37,6 +37,25 @@
 <link rel="stylesheet" href="skins/minuit.css?v=61" data-skin-sheet="minuit">
 <link rel="stylesheet" href="skins/classex.css?v=63" data-skin-sheet="classex">
 <script>
+/* Déménagement vers kiff-kiff.fr : l’ancienne adresse apporte, dans le « # » du lien (jamais envoyé
+   à un serveur), ce que le téléphone gardait là-bas : parties à deux, prénoms, ambiance, réglages.
+   On ne reprend que ce qui manque ici, puis on efface le paquet de l’adresse. */
+(function () {
+  var m = /(?:^#|&)import=([A-Za-z0-9_-]+)/.exec(location.hash);
+  if (!m) return;
+  try {
+    var b = atob(m[1].replace(/-/g, '+').replace(/_/g, '/') + '==='.slice((m[1].length + 3) % 4));
+    var bytes = new Uint8Array(b.length);
+    for (var i = 0; i < b.length; i++) bytes[i] = b.charCodeAt(i);
+    var data = JSON.parse(new TextDecoder().decode(bytes));
+    Object.keys(data).forEach(function (k) {
+      if (k.indexOf('roue:') === 0 && typeof data[k] === 'string' && localStorage.getItem(k) == null) localStorage.setItem(k, data[k]);
+    });
+    localStorage.setItem('roue:demenage', JSON.stringify(Date.now()));
+  } catch (e) { /* paquet abîmé : on continue sans */ }
+  var rest = location.hash.replace(/^#/, '').split('&').filter(function (p) { return p.indexOf('import=') !== 0; }).join('&');
+  try { history.replaceState(null, '', location.pathname + location.search + (rest ? '#' + rest : '')); } catch (e) {}
+})();
 /* Ambiance : celle du lien (?design=redcorner ou #redcorner), sinon celle mémorisée.
    Appliquée avant l’affichage pour éviter un flash. */
 (function () {
@@ -558,6 +577,6 @@
 <script src="config.js?v=61"></script>
 <script src="duo.js?v=62"></script>
 <script src="push.js?v=62"></script>
-<script src="app.js?v=69"></script>
+<script src="app.js?v=70"></script>
 </body>
 </html>

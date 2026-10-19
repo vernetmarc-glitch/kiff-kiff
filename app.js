@@ -1182,7 +1182,7 @@
     save('names', S.names);
   }
   /* « Tu kiffes ? » : partager le jeu, offrir un café, lire l’histoire du jeu */
-  const APP_URL = 'https://vernetmarc-glitch.github.io/roue-du-consentement/';
+  const APP_URL = 'https://kiff-kiff.fr/';
   const DEAL_TEXT = 'Tiens, je crois que ça te fera pas de mal : Kiff Kiff, un petit jeu à deux pour pimenter un peu les choses.';
   const ovDeal = $('#ov-deal');
   // Depuis la célébration, ou depuis le lien discret de l’accueil
