@@ -30,12 +30,12 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,62..125,100..900;1,62..125,100..900&family=Bagel+Fat+One&family=Abril+Fatface&family=Merriweather:ital,opsz,wght@0,18..144,400..900;1,18..144,400..900&family=Baskervville:ital,wght@0,400..700;1,400..700&family=Jost:wght@300..700&family=Great+Vibes&family=Cinzel:wght@400..900&family=Syne:wght@600..800&family=Manrope:wght@400..800&family=Anton&family=Courier+Prime:wght@400;700&display=swap">
-<link rel="stylesheet" href="base.css?v=60">
-<link rel="stylesheet" href="skins/arty.css?v=60" data-skin-sheet="arty">
-<link rel="stylesheet" href="skins/pomme.css?v=60" data-skin-sheet="pomme">
-<link rel="stylesheet" href="skins/redcorner.css?v=60" data-skin-sheet="redcorner">
-<link rel="stylesheet" href="skins/minuit.css?v=60" data-skin-sheet="minuit">
-<link rel="stylesheet" href="skins/classex.css?v=60" data-skin-sheet="classex">
+<link rel="stylesheet" href="base.css?v=61">
+<link rel="stylesheet" href="skins/arty.css?v=61" data-skin-sheet="arty">
+<link rel="stylesheet" href="skins/pomme.css?v=61" data-skin-sheet="pomme">
+<link rel="stylesheet" href="skins/redcorner.css?v=61" data-skin-sheet="redcorner">
+<link rel="stylesheet" href="skins/minuit.css?v=61" data-skin-sheet="minuit">
+<link rel="stylesheet" href="skins/classex.css?v=61" data-skin-sheet="classex">
 <script>
 /* Ambiance : celle du lien (?design=redcorner ou #redcorner), sinon celle mémorisée.
    Appliquée avant l’affichage pour éviter un flash. */
@@ -53,6 +53,7 @@
   } else {
     try { s = norm(JSON.parse(localStorage.getItem('roue:skin'))); } catch (e) {}
   }
+  window.KIFF_SKIN_SET = !!s; // ambiance déjà choisie sur ce téléphone (ou imposée par le lien)
   s = s || 'redcorner';
   document.documentElement.setAttribute('data-skin', s);
   /* Piment imposé par le lien : ?piment=1, 23, 3, 123… (les niveaux cochés) */
@@ -527,9 +528,9 @@
   </div>
 </div>
 <!--/APP-->
-<script src="data.js?v=60"></script>
-<script src="config.js?v=60"></script>
-<script src="duo.js?v=60"></script>
-<script src="app.js?v=60"></script>
+<script src="data.js?v=61"></script>
+<script src="config.js?v=61"></script>
+<script src="duo.js?v=61"></script>
+<script src="app.js?v=61"></script>
 </body>
 </html>

@@ -1567,6 +1567,7 @@
       kiffs: (S.kiffs || []).slice(-60),
       t0: S.t0 || null,
       rencontre: !!S.rencontre,
+      skin: currentSkin(), // l’ambiance de qui envoie : la personne invitée découvre le jeu dedans
       // avant d’entrer dans la partie (invitation, arrivée), rien de ce téléphone ne s’y mêle
       mine: inGame ? S.mine.map((l) => l.slice(-MINE_MAX)) : [[], [], []],
       seen: inGame ? S.seen.map((l) => l.slice(-SEEN_MAX)) : [[], [], []]
@@ -1868,6 +1869,8 @@
     const lv = parseLevels(st.levels);
     $('#inv-piments').innerHTML = 'Piments choisis par ' + esc(A) + '&nbsp;: ' +
       lv.map((n) => '<span class="inv-piment"><span class="pgroup pgroup--' + n + ' is-on">' + CHILI.repeat(n) + '</span> ' + esc(D.niveaux[n - 1].nom) + '</span>').join(' ');
+    // Première visite : on découvre le jeu dans l’ambiance de qui invite (chacun·e peut ensuite choisir la sienne)
+    if (st.skin && SKINS.includes(st.skin) && !window.KIFF_SKIN_SET) { applySkin(st.skin); window.KIFF_SKIN_SET = true; }
     if (!ovInv.hidden) return; // déjà là : on garde l’écran en cours de lecture
     if (!invSteps) invSteps = makeSteps($('#inv-steps'), $('#inv-dots'), ovInv);
     hide(ovDuo);
