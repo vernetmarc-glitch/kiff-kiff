@@ -850,3 +850,21 @@ body:has(#ov-deal:not([hidden])) .deco-candles { display: none; }
 @media (prefers-reduced-motion: reduce) {
   .emblem--wait .e-ring--2, .emblem--wait .e-lens, .presence-dot { animation: none; }
 }
+
+/* ---------- L’envie glissée dans l’invitation : une carte fermée, scellée par l’emblème ---------- */
+.gift-card { position: relative; display: flex; flex-direction: column; align-items: center; gap: 14px; padding-top: 22px; padding-bottom: 54px; }
+.gift-lead { font-size: 1.15em; }
+.gift-veil { display: flex; flex-direction: column; align-items: center; gap: 9px; width: 100%; }
+.gift-veil i { display: block; height: 11px; border-radius: 6px; background: currentColor; opacity: .16; width: 86%; }
+.gift-veil i:nth-child(2) { width: 70%; }
+.gift-veil i:nth-child(3) { width: 48%; }
+.gift-seal { position: absolute; bottom: -26px; left: 50%; width: 76px; margin: 0; transform: translateX(-50%) rotate(-8deg); filter: drop-shadow(0 4px 8px rgba(0, 0, 0, .3)); animation: gift-seal 2.6s ease-in-out infinite; }
+@keyframes gift-seal { 0%, 100% { transform: translateX(-50%) rotate(-8deg) scale(1); } 50% { transform: translateX(-50%) rotate(-4deg) scale(1.06); } }
+.overlay--gift .stack { margin-top: 30px; }
+/* Piment pas encore débloqué : visible, mais grisé et sans case à cocher */
+.piment-toggle.is-locked { opacity: .55; cursor: not-allowed; }
+.piment-toggle.is-locked .piment-check { visibility: hidden; }
+/* Célébration : le piment peut monter */
+.party-unlock { margin: 0; }
+.party-unlock .pill { cursor: default; }
+@media (prefers-reduced-motion: reduce) { .gift-seal { animation: none; } }

@@ -30,7 +30,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,62..125,100..900;1,62..125,100..900&family=Bagel+Fat+One&family=Abril+Fatface&family=Merriweather:ital,opsz,wght@0,18..144,400..900;1,18..144,400..900&family=Baskervville:ital,wght@0,400..700;1,400..700&family=Jost:wght@300..700&family=Great+Vibes&family=Cinzel:wght@400..900&family=Syne:wght@600..800&family=Manrope:wght@400..800&family=Anton&family=Courier+Prime:wght@400;700&display=swap">
-<link rel="stylesheet" href="base.css?v=63">
+<link rel="stylesheet" href="base.css?v=65">
 <link rel="stylesheet" href="skins/arty.css?v=63" data-skin-sheet="arty">
 <link rel="stylesheet" href="skins/pomme.css?v=63" data-skin-sheet="pomme">
 <link rel="stylesheet" href="skins/redcorner.css?v=61" data-skin-sheet="redcorner">
@@ -226,10 +226,11 @@
       <section class="step" data-step="3" aria-labelledby="pick-title">
         <div class="sheet step-sheet">
           <h2 class="step-title" id="pick-title">Quels piments&nbsp;?</h2>
-          <p class="step-text">Touche les niveaux que vous voulez dans les roues.</p>
+          <p class="step-text" id="pick-text">Touche les niveaux que vous voulez dans les roues.</p>
           <div class="piment-list" id="piment-home-list" role="group" aria-labelledby="pick-title"></div>
+          <div class="piment-list piment-prog" id="piment-prog" hidden></div>
           <p class="piment-error" id="piment-home-error" hidden role="alert">Garde au moins un niveau coché.</p>
-          <label class="rencontre" id="rencontre-box" hidden><input type="checkbox" id="rencontre"><span><b>On ne s’est pas encore vus.</b> On commence en Tendre ; le piment ne montera que si vous êtes d’accord tous les deux.</span></label>
+          <label class="rencontre" id="rencontre-box" hidden data-retire="piment progressif"><input type="checkbox" id="rencontre"><span><b>On ne s’est pas encore vus.</b> On commence en Tendre ; le piment ne montera que si vous êtes d’accord tous les deux.</span></label>
           <button class="btn" id="piment-go" type="button">C’est parti</button>
           <button class="link-btn step-back" type="button"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-retour"/></svg>Retour</button>
         </div>
@@ -258,8 +259,8 @@
         <div class="sheet step-sheet">
           <h2 class="step-title" id="inv-rules-title">Le principe</h2>
           <ol class="rules">
-            <li><b>Tu commences</b>&nbsp;: tu fais tourner trois roues, «&nbsp;J’ai envie que tu me…&nbsp;», et tu proposes l’envie à <b class="inv-a">Cerise</b>.</li>
-            <li><b class="inv-a">Cerise</b> répond sur son téléphone&nbsp;: «&nbsp;J’ai envie aussi&nbsp;», ou «&nbsp;Oui, mais…&nbsp;» en changeant une seule chose. Puis c’est son tour de proposer.</li>
+            <li id="inv-rule-1"><b>Tu commences</b>&nbsp;: tu fais tourner trois roues, «&nbsp;J’ai envie que tu me…&nbsp;», et tu proposes l’envie à <b class="inv-a">Cerise</b>.</li>
+            <li id="inv-rule-2"><b class="inv-a">Cerise</b> répond sur son téléphone&nbsp;: «&nbsp;J’ai envie aussi&nbsp;», ou «&nbsp;Oui, mais…&nbsp;» en changeant une seule chose. Puis c’est son tour de proposer.</li>
             <li>Un kiff kiff, c’est quand vos deux envies se rejoignent. Chacun·e peut passer à tout moment, sans se justifier.</li>
           </ol>
           <p class="step-text inv-piments" id="inv-piments"></p>
@@ -390,6 +391,23 @@
   </div>
 </div>
 
+<!-- Invitation : l’envie glissée par qui invite, qu’on choisit de découvrir -->
+<div class="overlay overlay--handoff overlay--offer overlay--gift" id="ov-gift" hidden role="dialog" aria-modal="true" aria-labelledby="gift-title">
+  <div class="sheet">
+    <p class="handoff-kicker" id="gift-kicker">Une envie Tendre</p>
+    <h2 class="handoff-title" id="gift-title"></h2>
+    <div class="party-sentence offer-sentence gift-card" aria-hidden="true">
+      <span class="gift-lead">J’ai envie…</span>
+      <span class="gift-veil"><i></i><i></i><i></i></span>
+      <svg class="emblem gift-seal" viewBox="0 0 168 124"><use href="#emblem"/></svg>
+    </div>
+    <div class="stack">
+      <button class="btn" id="gift-open" type="button">La découvrir</button>
+      <button class="btn btn--line" id="gift-later" type="button">Pas maintenant, je propose</button>
+    </div>
+  </div>
+</div>
+
 <!-- Deux téléphones : l’autre a monté le piment, on l’accepte avant de voir l’envie -->
 <div class="overlay overlay--handoff overlay--offer overlay--hot" id="ov-hot" hidden role="dialog" aria-modal="true" aria-labelledby="hot-title">
   <div class="sheet">
@@ -456,6 +474,7 @@
     </div>
     <p class="party-done" id="party-done" role="status" hidden></p>
     <p class="party-count" id="party-count" hidden><button class="pill" id="party-history" type="button" aria-haspopup="dialog"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-kiffs"/></svg><span id="party-count-text"></span></button></p>
+    <p class="party-count party-unlock" id="party-unlock" hidden><span class="pill" role="status"><span id="party-unlock-chili"></span><span id="party-unlock-text"></span></span></p>
     <button class="btn" id="party-next" type="button"></button>
     <button class="link-btn" id="party-pass" type="button">Finalement, on passe</button>
   </div>
@@ -535,6 +554,6 @@
 <script src="config.js?v=61"></script>
 <script src="duo.js?v=62"></script>
 <script src="push.js?v=62"></script>
-<script src="app.js?v=64"></script>
+<script src="app.js?v=65"></script>
 </body>
 </html>

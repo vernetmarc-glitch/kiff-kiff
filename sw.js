@@ -46,7 +46,7 @@ self.addEventListener('fetch', (e) => {
 const PARTIE = /^[a-z2-9]{12}$/;
 function avis(m) {
   const n = String(m.n || '').replace(/\s+/g, ' ').trim().slice(0, 20) || 'L’autre';
-  if (m.k === 'kiff') return 'Kiff kiff avec ' + n + ' : viens voir.';
+  if (m.k === 'kiff') return 'Kiff kiff avec ' + n + (m.u ? ' : le piment peut monter.' : ' : viens voir.');
   if (m.ph === 'review') return n + ' attend ta réponse.';
   if (m.ph === 'reconfirm') return n + ' a changé une chose : à toi de répondre.';
   if (m.ph === 'compose') return 'À toi de proposer : ' + n + ' attend.';
