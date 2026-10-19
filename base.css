@@ -884,3 +884,6 @@ body:has(#ov-deal:not([hidden])) .deco-candles { display: none; }
   background: var(--pill-on-bg, currentColor); color: var(--pill-on-fg, #000);
   box-shadow: inset 0 0 0 1.5px var(--pill-on-line, transparent);
 }
+
+/* Arrêter une partie de la liste : le × armé, à toucher une seconde fois */
+.game-x.is-armed { opacity: 1; color: var(--badge-bg, #D81B50); font-weight: 700; }

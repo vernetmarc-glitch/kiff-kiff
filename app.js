@@ -2847,14 +2847,16 @@
     const html = list.map((g) => {
       const B = ((g.names || [])[1 - g.seat] || '').trim();
       const who = B ? 'Avec ' + B : (g.seat === 0 ? 'Invitation envoyée' : 'Partie à deux');
-      const turn = fresh(g) ? 'Kiff kiff trouvé ! Viens fêter ça'
+      const armed = stopArmed === g.room;
+      const turn = armed ? 'Touche encore × : ' + (B || 'l’autre') + ' sera prévenu·e'
+        : fresh(g) ? 'Kiff kiff trouvé ! Viens fêter ça'
         : g.turn === 'me' ? 'À toi de jouer'
         : g.turn === 'party' ? 'Kiff kiff trouvé'
         : g.turn === 'lobby' ? (g.seat === 0 ? 'Personne n’a encore rejoint' : 'À rejoindre')
         : 'Au tour de ' + (B || 'l’autre');
       return '<li class="game' + (g.turn === 'me' || fresh(g) ? ' is-mine' : '') + (fresh(g) ? ' is-kiff' : '') + '"><button class="game-btn" type="button" data-room="' + esc(g.room) + '">' +
         '<span class="game-who">' + esc(who) + (g.nk ? '<span class="game-count"> · ' + g.nk + ' kiff kiff</span>' : '') + '</span><span class="game-turn">' + esc(turn) + '</span></button>' +
-        '<button class="game-x" type="button" data-forget="' + esc(g.room) + '" aria-label="Retirer cette partie de la liste">×</button></li>';
+        '<button class="game-x' + (armed ? ' is-armed' : '') + '" type="button" data-forget="' + esc(g.room) + '" aria-label="' + (armed ? 'Confirmer : arrêter cette partie' : 'Arrêter cette partie') + '">×</button></li>';
     }).join('');
     $('#games-list').innerHTML = many ? '' : html;
     $('#games-sheet-list').innerHTML = many ? html : '';
@@ -2911,11 +2913,42 @@
     startJoin({ broker: g.broker, room: g.room, key: g.key });
   }
   const ovGames = $('#ov-games');
+  let stopArmed = '', stopT = 0;
+  // Arrêter une partie depuis la liste : on range l’étape « terminée » (relais et feuille), puis on l’oublie ici
+  async function stopGame(room) {
+    const g = findGame(room);
+    forgetGame(room);
+    renderGames();
+    if (!g || !window.KiffDuo) return;
+    const info = { broker: g.broker, room: g.room, key: g.key };
+    try {
+      const found = await window.KiffDuo.storeLoad([info]);
+      const st = found[room];
+      if (!st || st.phase === 'ended') return;
+      const end = Object.assign({}, st, { phase: 'ended', endBy: g.seat, seq: (st.seq || 0) + 1, by: g.id || 'x' });
+      await loadDuoLibs();
+      const conn = await window.KiffDuo.join(info, g.seat, g.id || 'x', {});
+      await conn.publishState(end);
+      await conn.close(false);
+    } catch (e) { /* hors ligne : la partie est au moins retirée d’ici */ }
+  }
   const onGames = (e) => {
     const b = e.target.closest('button');
     if (!b) return;
     audio();
-    if (b.dataset.forget) { forgetGame(b.dataset.forget); renderGames(); return; }
+    // × : arrêter la partie (deux touchers) ; l’autre est prévenu·e et elle quitte les deux listes
+    if (b.dataset.forget) {
+      const room = b.dataset.forget;
+      clearTimeout(stopT);
+      if (stopArmed !== room) {
+        stopArmed = room; sClick(); haptic(8); renderGames();
+        stopT = setTimeout(() => { stopArmed = ''; renderGames(); }, 4000);
+        return;
+      }
+      stopArmed = ''; haptic(20);
+      stopGame(room);
+      return;
+    }
     sClick(); haptic(8);
     hide(ovGames);
     openGame(b.dataset.room);
@@ -2942,6 +2975,8 @@
   }
 
   function openHome() {
+    // Revenir à l’accueil depuis une partie à deux : l’accueil normal ; la partie attend dans « Parties à distance »
+    if (duo && (duo.stage === 'game' || duo.stage === 'gift')) parkDuo();
     const inDuo = !!duo && duo.stage === 'game';
     $('#steps').classList.toggle('is-duo', inDuo);
     $('#duo-home').hidden = !inDuo;
