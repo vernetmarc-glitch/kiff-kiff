@@ -27,7 +27,7 @@ const TYPES = ['partie', 'envie', 'kiff', 'passe', 'visite', 'invitation', 'rejo
 const PAR_JOUR = ['visite', 'partie', 'envie', 'kiff', 'rejoint']; // aussi comptés jour par jour
 const ENT_JOURS = ['jour', 'type', 'valeur'];
 const DETAIL = /^[a-z0-9-]{1,16}$/;
-const ENT_MOTS = ['roue', 'niveau', 'que tu me', 'de te', 'avec à', 'ordre'];
+const ENT_MOTS = ['roue', 'niveau', 'que tu me', 'de te', 'avec à', 'ordre', 'décalé'];
 const ENT_COMPTEURS = ['compteur', 'valeur'];
 const ENT_CHOIX = ['roue', 'mot', 'envies', 'kiffs'];
 const ENT_PARTIES = ['partie', 'etat', 'seq', 'maj', 'cree'];
@@ -118,6 +118,8 @@ function lireMots() {
       if (roue === 'action') { x = { s: s, i: i || s }; if (a) x.p = 'à'; }
       else x = i ? { s: s, i: i } : { t: s };
       if (lvl > 1) x.lvl = lvl;
+      // Un mot décalé (pour rire) : le brocoli des roues le montre ou le cache
+      if (l[6] === true || /^(oui|x|vrai|true|1)$/i.test(String(l[6] == null ? '' : l[6]).trim())) x.dc = 1;
       if (roue === 'action') res.actions.push(x);
       else if (roue === 'endroit') res.objets.push(x);
       else if (roue === 'maniere') res.manieres.push(x);
@@ -137,7 +139,7 @@ function ecrireMots(m) {
       const s = String(x.s || x.t || '').trim();
       if (!s) return;
       const i = x.t ? '' : String(x.i || '').trim();
-      lignes.push([roue, x.lvl || 1, s, i, x.p === 'à' ? 'oui' : '', lignes.length + 1]);
+      lignes.push([roue, x.lvl || 1, s, i, x.p === 'à' ? 'oui' : '', lignes.length + 1, x.dc ? 'oui' : '']);
     };
     m.actions.forEach(function (x) { ajoute('action', x); });
     m.objets.forEach(function (x) { ajoute('endroit', x); });

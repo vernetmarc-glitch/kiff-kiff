@@ -205,15 +205,15 @@
   let uid = 0;
   function fromData(d) {
     const w = { action: [], endroit: [], maniere: [] };
-    (d.actions || []).forEach((x) => w.action.push({ id: ++uid, lvl: x.lvl || 1, s: x.s || '', i: x.i || '', a: x.p === 'à' }));
+    (d.actions || []).forEach((x) => w.action.push({ id: ++uid, lvl: x.lvl || 1, s: x.s || '', i: x.i || '', a: x.p === 'à', dc: !!x.dc }));
     ['endroit', 'maniere'].forEach((r) => (d[KEY[r]] || []).forEach((x) => {
       if (typeof x === 'string') x = { t: x };
-      w[r].push(x.t != null ? { id: ++uid, lvl: x.lvl || 1, s: x.t, i: '', two: false } : { id: ++uid, lvl: x.lvl || 1, s: x.s || '', i: x.i || '', two: true });
+      w[r].push(x.t != null ? { id: ++uid, lvl: x.lvl || 1, s: x.t, i: '', two: false, dc: !!x.dc } : { id: ++uid, lvl: x.lvl || 1, s: x.s || '', i: x.i || '', two: true, dc: !!x.dc });
     }));
     return w;
   }
   function toData() {
-    const lv = (x, o) => { if (x.lvl > 1) o.lvl = x.lvl; return o; };
+    const lv = (x, o) => { if (x.lvl > 1) o.lvl = x.lvl; if (x.dc) o.dc = 1; return o; };
     const clean = (t) => String(t || '').replace(/\s+/g, ' ').trim();
     const out = { actions: [], objets: [], manieres: [] };
     words.action.forEach((x) => {
@@ -250,17 +250,19 @@
     if (r >= 0.6) return '<p class="perf perf--good">Très kiffée : ' + txt + '</p>';
     return '<p class="perf">' + txt + '</p>';
   }
+  // Décalé : un mot pour rire, que le brocoli des roues enlève quand on joue au premier degré
+  const dcHtml = (x) => '<label class="dc"><input type="checkbox" data-k="dc"' + (x.dc ? ' checked' : '') + '> décalé (pour rire)</label>';
   function rowHtml(x) {
     const lvl = [1, 2, 3].map((n) => '<button type="button" data-lvl="' + n + '" aria-pressed="' + (x.lvl === n) + '" aria-label="' + NIV[n - 1].nom + '">' + n + '</button>').join('');
     let fields;
     if (roue === 'action') {
       fields = '<div class="field"><span class="pre">que tu me</span><input type="text" data-k="s" value="' + esc(x.s) + '" placeholder="gratouilles, fasses gouzi-gouzi…" maxlength="60"></div>' +
         '<div class="field"><span class="pre">de te</span><input type="text" data-k="i" value="' + esc(x.i) + '" placeholder="' + esc(suggestI(x.s) || 'gratouiller…') + '" maxlength="60"></div>' +
-        '<div class="opts"><label><input type="checkbox" data-k="a"' + (x.a ? ' checked' : '') + '> avec « à » (au gros orteil, aux épaules)</label></div>';
+        '<div class="opts"><label><input type="checkbox" data-k="a"' + (x.a ? ' checked' : '') + '> avec « à » (au gros orteil, aux épaules)</label>' + dcHtml(x) + '</div>';
     } else {
       fields = '<div class="field"><span class="pre">' + (x.two ? 'que tu me' : 'texte') + '</span><input type="text" data-k="s" value="' + esc(x.s) + '" placeholder="' + (roue === 'endroit' ? 'le gros orteil…' : 'en chantonnant…') + '" maxlength="60"></div>' +
         (x.two ? '<div class="field"><span class="pre">de te</span><input type="text" data-k="i" value="' + esc(x.i) + '" placeholder="' + esc(swapPoss(x.s)) + '" maxlength="60"></div>' : '') +
-        '<div class="opts"><label><input type="checkbox" data-k="two"' + (x.two ? ' checked' : '') + '> change selon le sens (mon / ton…)</label></div>';
+        '<div class="opts"><label><input type="checkbox" data-k="two"' + (x.two ? ' checked' : '') + '> change selon le sens (mon / ton…)</label>' + dcHtml(x) + '</div>';
     }
     return '<div class="word' + (x.isNew ? ' is-new' : '') + '" data-id="' + x.id + '"><div class="lvl" role="group" aria-label="Piment">' + lvl + '</div>' +
       '<div class="fields">' + fields + perfHtml(x) + '</div><button class="del" type="button" aria-label="Supprimer">' + TRASH + '</button></div>';
@@ -302,6 +304,7 @@
     const x = find(e.target); if (!x) return;
     const k = e.target.dataset.k;
     if (k === 'a') { x.a = e.target.checked; markDirty(); }
+    if (k === 'dc') { x.dc = e.target.checked; markDirty(); }
     if (k === 'two') { x.two = e.target.checked; if (x.two && !x.i) x.i = ''; renderWords(); }
   });
   $('#groups').addEventListener('click', (e) => {
@@ -341,6 +344,15 @@
     }
     words = fromData(d);
     saved = sig();
+    // Première fois avec la colonne « décalé » : on propose le classement de l’appli, à vérifier puis enregistrer
+    const anyDc = ROUES.some((r) => words[r].some((x) => x.dc));
+    if (!anyDc && window.ROUE_DATA) {
+      const R = window.ROUE_DATA, src = { action: R.actions, endroit: R.objets, maniere: R.manieres };
+      const dcs = (r) => (src[r] || []).filter((x) => x && x.dc).map((x) => (x.s || x.t || '').trim());
+      let n = 0;
+      ROUES.forEach((r) => { const l = dcs(r); words[r].forEach((x) => { if (l.includes(x.s.trim())) { x.dc = true; n++; } }); });
+      if (n) banner('J’ai coché « décalé » sur ' + n + ' mots (le brocoli des roues). Vérifie, puis « Enregistrer dans l’appli ».');
+    }
     renderWords();
   }
   $('#save').addEventListener('click', async () => {
