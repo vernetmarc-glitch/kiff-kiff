@@ -934,3 +934,10 @@ body:has(#ov-deal:not([hidden])) .deco-candles { display: none; }
 .ton-switch.is-nope { animation: nope .32s ease; }
 .switch--top .ton-switch + .kiffs-btn { margin-left: 8px; }
 .switch--top .ton-switch ~ .kiffs-btn .kiffs-word { display: none; }
+
+/* La petite loupe, discrète, au coin bas droit de chaque roue */
+.reel-loupe { position: absolute; z-index: 4; right: 2px; bottom: 0; width: 32px; height: 30px; padding: 0; border: 0; background: none; display: grid; place-items: center; color: var(--reel-loupe, currentColor); opacity: .5; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.reel-loupe .ic { width: 15px; height: 15px; stroke-width: 2.2; }
+.reel-loupe:active { opacity: .9; }
+.reel.is-locked .reel-loupe { opacity: .25; }
+.loupe-drum .reel-loupe { display: none; }

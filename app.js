@@ -1989,6 +1989,16 @@
     if (duo) sync();
     render();
   }
+  // La petite loupe au coin de chaque roue : elle ouvre la roue en grand (comme toucher le mot du centre)
+  document.querySelectorAll('.reel[data-reel] .reel-loupe').forEach((b) => {
+    const r = +b.closest('.reel').dataset.reel;
+    b.addEventListener('pointerdown', (e) => e.stopPropagation()); // ce n’est pas un coup de roue
+    b.addEventListener('pointerup', (e) => e.stopPropagation());
+    b.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (reels[r].canMove()) openLoupe(r); else reels[r].nope();
+    });
+  });
   if (tonBtn) {
     // On touche la position voulue (gauche, milieu, droite) ; les flèches marchent aussi
     tonBtn.addEventListener('click', (e) => {
