@@ -368,7 +368,18 @@
       saved = sig();
       words = fromData(data); saved = sig();
       renderWords();
-      banner('Enregistré. Les téléphones auront les nouveaux mots à leur prochaine partie.');
+      // On relit la feuille : un script pas à jour enregistre les mots mais oublie la colonne « décalé »
+      const nDc = ['actions', 'objets', 'manieres'].reduce((n, k) => n + data[k].filter((x) => x.dc).length, 0);
+      let lus = -1;
+      try { const back = await call('GET', { action: 'mots' }); if (back && back.mots) lus = ['actions', 'objets', 'manieres'].reduce((n, k) => n + (back.mots[k] || []).filter((x) => x && x.dc).length, 0); } catch (e) { /* rien */ }
+      const autre = window.KIFF_API && api !== window.KIFF_API;
+      if (nDc && lus === 0) {
+        banner('Les mots sont enregistrés, mais pas la case « décalé » : le script en ligne n’est pas la dernière version' +
+          (autre ? ', et l’atelier n’écrit pas à la même adresse que le jeu (Réglages)' : '') +
+          '. Recolle le script, Déployer › Gérer les déploiements › modifier le déploiement › Nouvelle version, puis enregistre à nouveau.', true);
+      } else if (autre) {
+        banner('Enregistré, mais l’atelier n’écrit pas à la même adresse que le jeu : vérifie l’adresse dans Réglages.', true);
+      } else banner('Enregistré' + (nDc ? ', avec ' + nDc + ' mots décalés' : '') + '. Les téléphones auront les nouveaux mots à leur prochaine partie.');
     } catch (e) {
       banner(e.message === 'mdp' ? 'Mot de passe refusé. Vérifie-le dans Réglages.' : 'L’enregistrement n’a pas marché. Réessaie dans un instant.', true);
       markDirty();
