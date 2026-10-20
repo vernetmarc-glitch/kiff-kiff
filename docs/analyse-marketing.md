@@ -207,6 +207,13 @@ Le réglage se change à chaque envie par qui compose, sans accord de l'autre (i
 
 **Brûlant se mérite, ou se débloque** (décision de Marc, 19 octobre 2026). À distance, le piment monte en jouant : Pimenté après un tour de kiff kiff, Brûlant après un tour en Pimenté. À terme, l’un·e des deux pourra débloquer Brûlant tout de suite en payant, pour la partie à deux. C’est le moment d’achat le plus naturel du jeu : l’envie est là, et l’autre en profite aussi.
 
+**Le mode soirée, à plusieurs** (idée de Marc, 20 octobre 2026, à mûrir). Pour une soirée entre plusieurs personnes, sur un téléphone qui tourne, ou chacun·e sur le sien.
+
+- Chacun·e son tour prend le téléphone. Au début de l'envie, à la place de « que tu me » et « de te », on choisit le prénom de la personne à qui on l'adresse.
+- L'envie reste secrète : seule la personne choisie la voit, quand vient son tour sur le téléphone de la soirée, ou sur son propre téléphone.
+- Les règles ne changent pas : la personne choisie répond « J'ai envie aussi », « Oui, mais… » ou « On passe », et rien n'est révélé aux autres.
+- À penser : le piment doit se consentir pour chaque paire de personnes, pas pour tout le groupe ; dire aux autres qu'une envie a été envoyée sans dire laquelle, ni à qui ? ; ce que voit le groupe d'un kiff kiff (rien, par défaut).
+
 **Le Pass Kiff enrichi.** En plus du niveau Brûlant complet et des parties à distance illimitées, le Pass débloquerait les roues thématiques. Les roues de la semaine resteraient gratuites : elles servent la rétention. Prix à tester entre 7 et 15 €, payé une fois.
 
 ## Sources
