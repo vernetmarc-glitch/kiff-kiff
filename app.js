@@ -31,17 +31,83 @@
     const out = [1, 2, 3].filter((n) => arr.map(Number).includes(n));
     return out.length ? out : [1, 2];
   }
-  // Les mots écrits à la main dans une partie (« vos mots à vous deux ») restent dans ses roues, quel que soit le piment
+  /* ---------- Les roues : un tirage d’une vingtaine de mots, rangé en dégradé ----------
+     Le stock complet (piment et brocoli choisis) est la réserve ; chaque roue n’en montre qu’un tirage,
+     refait à chaque tour de composition (et au dé) : les mots jamais proposés entre vous d’abord.
+     Dans la roue, du plus tendre au plus brûlant, le décalé et le premier degré en alternance.
+     La loupe cherche dans toute la réserve ; un mot choisi là reste dans la roue pour la partie. */
+  const DRAW_N = 20;
+  function dkey(x) { return [x.s || '', x.i || '', x.t || ''].join('|'); }
+  // La réserve d’une roue : le piment, puis le ton (une roue sans mot de ce ton garde tous les siens)
+  function poolOf(r, levels, anyTon) {
+    const all = SOURCE[r].filter((x) => levels.includes(x.lvl || 1));
+    if (anyTon) return all;
+    const t = S.ton === 'b' || S.ton === 'e' ? S.ton : 'm';
+    const l = t === 'm' ? all : all.filter((x) => (t === 'b') === !!x.dc);
+    return l.length ? l : all;
+  }
+  const shuffled = (l) => { const a = l.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+  // Dans un niveau : le décalé et le premier degré en alternance, au prorata
+  function interleave(l) {
+    const a = shuffled(l.filter((x) => !x.dc)), b = shuffled(l.filter((x) => x.dc)), out = [];
+    let i = 0, j = 0;
+    while (i < a.length || j < b.length) {
+      if (j >= b.length || (i < a.length && i / a.length <= j / b.length)) out.push(a[i++]); else out.push(b[j++]);
+    }
+    return out;
+  }
+  function makeDraw(r, pool, keep) {
+    const seen = (S.seen && S.seen[r]) || [];
+    const n = Math.min(DRAW_N, pool.length);
+    const lv = [1, 2, 3].filter((l) => pool.some((x) => (x.lvl || 1) === l));
+    const size = (l) => pool.filter((x) => (x.lvl || 1) === l).length;
+    // Chaque niveau a sa part, au prorata de sa réserve (au moins quatre mots quand il en a)
+    const quota = {};
+    lv.forEach((l) => { quota[l] = Math.min(size(l), Math.max(Math.min(4, size(l)), Math.round(n * size(l) / pool.length))); });
+    let over = lv.reduce((t, l) => t + quota[l], 0) - n;
+    while (over > 0) { const l = lv.slice().sort((a, b) => quota[b] - quota[a])[0]; quota[l]--; over--; }
+    const out = [];
+    lv.forEach((l) => {
+      const g = pool.filter((x) => (x.lvl || 1) === l);
+      const fresh = shuffled(g.filter((x) => !seen.includes(dkey(x))));
+      const old = g.filter((x) => seen.includes(dkey(x))).sort((a, b) => seen.indexOf(dkey(a)) - seen.indexOf(dkey(b)));
+      let pick = fresh.concat(old).slice(0, quota[l]);
+      if (keep && (keep.lvl || 1) === l && g.includes(keep) && !pick.includes(keep)) pick = [keep].concat(pick.slice(0, -1));
+      out.push(...interleave(pick));
+    });
+    return out;
+  }
+  // Les mots écrits à la main (« vos mots à vous deux ») et ceux choisis à la loupe restent dans la roue
   function buildLists(levels) {
+    S.draw = S.draw || [null, null, null];
+    S.kept = S.kept || [[], [], []];
+    const sig = levels.join('') + (S.ton || 'm') + '|' + SOURCE.map((l) => l.length).join(',');
     for (let r = 0; r < 3; r++) {
+      const pool = poolOf(r, levels);
+      let pick = null;
+      if (S.draw[r] && S.draw[r].sig === sig) {
+        const byKey = new Map(pool.map((x) => [dkey(x), x]));
+        pick = S.draw[r].keys.map((k) => byKey.get(k)).filter(Boolean);
+      }
+      if (!pick || pick.length < Math.min(6, pool.length)) {
+        const cur = LISTS[r] && S.idx ? LISTS[r][S.idx[r]] : null;
+        pick = makeDraw(r, pool, cur);
+        S.draw[r] = { sig, keys: pick.map(dkey) };
+      }
+      // Les mots gardés depuis la loupe rejoignent leur niveau, à la fin
       const all = SOURCE[r].filter((x) => levels.includes(x.lvl || 1));
-      // Le ton : 'b' que du brocoli (les mots décalés), 'm' un peu de tout, 'e' que des étoiles (premier degré)
-      const t = S.ton === 'b' || S.ton === 'e' ? S.ton : 'm';
-      let l = t === 'm' ? all : all.filter((x) => (t === 'b') === !!x.dc);
-      if (!l.length) l = all; // une roue sans mot de ce ton garde tous les siens
-      LISTS[r] = l.concat(S.mine[r] || [], [FREE[r]]);
+      S.kept[r].forEach((k) => {
+        const x = all.find((y) => dkey(y) === k);
+        if (!x || pick.includes(x)) return;
+        let at = -1;
+        pick.forEach((y, i) => { if ((y.lvl || 1) <= (x.lvl || 1)) at = i; });
+        pick.splice(at + 1, 0, x);
+      });
+      LISTS[r] = pick.concat(S.mine[r] || [], [FREE[r]]);
     }
   }
+  // Un nouveau tirage (nouveau tour, dé, piment ou ton changé) ; chaque roue garde le mot qu’elle montrait
+  function newDraw() { S.draw = [null, null, null]; }
   const PLACEHOLDER = ['écris ton action', 'écris ton endroit', 'écris ta manière'];
   const REEL_NAMES = ['l’action', 'l’endroit', 'la manière'];
 
@@ -835,6 +901,7 @@
   }
   function shuffle(includeDir, best) {
     if (includeDir) { S.dir = Math.random() < 0.5 ? 'me' : 'te'; }
+    newDraw(); relist(); renderReels(); // de nouveaux mots dans les roues
     pulse();
     let pending = 3;
     reels.forEach((rl, k) => {
@@ -1057,14 +1124,25 @@
   const LOUPE_PH = ['Chercher ou écrire ton action', 'Chercher ou écrire ton endroit', 'Chercher ou écrire ta manière'];
   const drum = { items: [], nodes: [], p: 0, raf: 0, drag: null, lastTick: 0, nf: 8, h: 38, R: 100, theta: 1 };
   const drumMod = (i, n) => ((i % n) + n) % n;
+  // Le texte d’un mot de la réserve, tel qu’il s’afficherait dans la roue
+  function itemLabel(r, x) {
+    if (r === 0) return ((S.dir === 'me' ? x.s : x.i) || '').replace(PREP_TAIL, '');
+    if (r === 1) {
+      const base = x.t || (S.dir === 'me' ? x.s : x.i) || '';
+      const prep = actionPrep(reels[0] ? reels[0].index : S.idx[0]);
+      if (prep === 'de') return withDe(base);
+      return prep === 'à' && !/^(à|au|aux)\s/i.test(base) ? withA(base) : base;
+    }
+    return x.t || (S.dir === 'me' ? x.s : x.i) || '';
+  }
+  // Sans recherche : toute la réserve (piment et ton choisis). En cherchant : tous les tons, au piment choisi.
   function loupeItems() {
     const r = loupeR, q = plain(loupeQ.value.trim()), out = [];
-    LISTS[r].forEach((x, i) => {
-      if (x.free) return;
-      if (r === 0 && x.m && x.d && x.d !== S.dir) return; // une action écrite à la main garde son sens
-      const t = labelFor(r, i);
-      if (q && !plain(t).includes(q)) return;
-      out.push({ i, t, lvl: x.lvl || 1, m: !!x.m });
+    const src = poolOf(r, S.levels, !!q).concat((S.mine[r] || []).filter((x) => !(r === 0 && x.m && x.d && x.d !== S.dir)));
+    src.forEach((x) => {
+      const t = itemLabel(r, x);
+      if (!t || (q && !plain(t).includes(q))) return;
+      out.push({ x, t, lvl: x.lvl || 1, m: !!x.m });
     });
     // Vos mots d’abord, puis Tendre, Pimenté, Brûlant : on sent le piment monter en tournant
     return out.filter((it) => it.m).concat([1, 2, 3].flatMap((l) => out.filter((it) => !it.m && it.lvl === l)));
@@ -1091,7 +1169,7 @@
       drumStrip.appendChild(d);
       return d;
     });
-    const k = drum.items.findIndex((it) => it.i === keepI);
+    const k = drum.items.findIndex((it) => it.x === keepI);
     drum.p = k >= 0 ? k : 0;
     drum.lastTick = Math.round(drum.p);
     $('#loupe-empty').hidden = !!n;
@@ -1222,8 +1300,8 @@
     drumEl.className = 'reel loupe-drum ' + [...reels[r].el.classList].filter((c) => /^strip/.test(c)).join(' ');
     $('#loupe-write').hidden = true;
     show(ovLoupe);
-    buildDrum(reels[r].index);
-    requestAnimationFrame(() => buildDrum(reels[r].index)); // une fois la feuille posée, à la bonne taille
+    buildDrum(LISTS[r][reels[r].index]);
+    requestAnimationFrame(() => buildDrum(LISTS[r][reels[r].index])); // une fois la feuille posée, à la bonne taille
     drumEl.focus({ preventScroll: true });
   }
   function renderWrite() {
@@ -1246,8 +1324,16 @@
     const r = loupeR, rl = reels[r];
     audio(); sClick(); haptic(10);
     closeLoupe();
-    if (it.i === rl.index) { rl.settle(); return; }
-    rl.spinTo(it.i, 0, 520);
+    let i = LISTS[r].indexOf(it.x);
+    if (i < 0) {
+      // Un mot de la réserve, hors du tirage : il rejoint la roue pour la partie
+      S.kept[r] = S.kept[r].filter((k) => k !== dkey(it.x)).concat(dkey(it.x)).slice(-30);
+      relist(); renderReels();
+      i = LISTS[r].indexOf(it.x);
+      if (i < 0) return;
+    }
+    if (i === rl.index) { rl.settle(); return; }
+    rl.spinTo(i, 0, 520);
   }
   function loupeWrite(text) {
     const r = loupeR, rl = reels[r];
@@ -1260,7 +1346,7 @@
     openEditor(r); // l’aperçu de la phrase, et la bonne forme du verbe
   }
   loupeQ.addEventListener('input', () => {
-    const cur = drum.items.length ? drum.items[drumMod(Math.round(drum.p), drum.nf) % drum.items.length].i : -1;
+    const cur = drum.items.length ? drum.items[drumMod(Math.round(drum.p), drum.nf) % drum.items.length].x : null;
     buildDrum(cur);
     renderWrite();
   });
@@ -1907,6 +1993,7 @@
     const prev = LISTS.map((l, r) => l[S.idx[r]]);
     S.levels = levels;
     if (!duo && !opts.nosave) save('levels', levels);
+    newDraw();
     buildLists(levels);
     reels.forEach((rl, r) => {
       let i = LISTS[r].indexOf(prev[r]);
@@ -1978,6 +2065,7 @@
     const cur = LISTS.map((l, r) => l[S.idx[r]]);
     S.ton = t;
     renderTon();
+    newDraw();
     relist();
     // Un mot qui sort de la roue laisse sa place à un mot du nouveau ton, tiré au hasard
     const gone = cur.map((x, r) => !!x && !x.free && LISTS[r].indexOf(x) < 0);
@@ -2279,6 +2367,7 @@
   function enterGame(st, spin) {
     duo.stage = 'game';
     S.cont = false;
+    S.kept = [[], [], []]; newDraw();
     hide($('#ov-duo')); hide($('#ov-invited'));
     hide(el.ovStart);
     $('#steps').classList.remove('is-duo');
@@ -3330,6 +3419,7 @@
     S.t0 = Date.now();
     hide(el.ovStart);
     S.kiff = null;
+    S.kept = [[], [], []]; newDraw();
     const mem = (load('paires', {}) || {})[pairKey()];
     S.ton = tonOf(mem); // le brocoli comme vous l’avez laissé
     renderTon();
