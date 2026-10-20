@@ -2026,7 +2026,7 @@
     const b = $('#piment-open');
     if (b) {
       b.innerHTML = '<svg class="roues-chili" viewBox="0 0 24 24" aria-hidden="true"><use href="#chili"/></svg><svg class="ic roues-barjot" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-barjot"/></svg>';
-      b.setAttribute('aria-label', 'Dans les roues : ' + levelNames() + ', ' + (TON_TXT[S.ton] || TON_TXT.m) + '. Changer');
+      b.setAttribute('aria-label', 'Dans les roues : ' + dot(levelNames() + ', ' + (TON_TXT[S.ton] || TON_TXT.m)) + ' Changer');
     }
     const u = unlocked();
     document.querySelectorAll('.piment-list input[type="checkbox"]').forEach((c) => {
@@ -2037,7 +2037,7 @@
       lab.classList.toggle('is-locked', lock);
       const d = lab.querySelector('.piment-tdesc');
       if (!d.dataset.desc) d.dataset.desc = d.textContent;
-      d.textContent = lock ? (+c.value === 2 ? 'Après un tour de kiff kiff : une envie de chacun·e.' : 'Après un tour de kiff kiff en Pimenté.') : d.dataset.desc;
+      d.textContent = lock ? (+c.value === 2 ? 'Il s’ouvre après un kiff kiff chacun·e.' : 'Il s’ouvre après un tour en Pimenté.') : d.dataset.desc;
     });
     document.documentElement.dataset.piment = S.levels.join('');
   }
@@ -2046,7 +2046,10 @@
      Dans la feuille « Dans les roues », à côté du piment : c’est le même genre de choix (ce que les roues tirent).
      Celui ou celle qui compose le change sans demander ; un exemple d’envie montre tout de suite l’effet. */
   const TONS = ['b', 'm', 'e'];
-  const TON_TXT = { b: 'barjot', m: 'un peu de tout', e: 'premier degré' };
+  const TON_TXT = { b: 'wtf\u00a0!?', m: 'un peu de tout', e: 'prem’deug' };
+  // Sous les trois boutons : ce que le ton met dans les roues (rien à dire pour « un peu de tout »)
+  const TON_DESC = { b: 'Des envies qu’on peut vivre aussi… ou pas.', m: '', e: 'Du premier degré, des envies qu’on a vraiment envie de vivre.' };
+  const dot = (t) => (/[!?….]$/.test(t) ? t : t + '.');
   const tonBox = $('#ton');
   const tonOf = (st) => (TONS.includes(st && st.ton) ? st.ton : st && st.decale === false ? 'e' : 'm');
   function renderTon() {
@@ -2054,18 +2057,12 @@
     if (tonBox) tonBox.querySelectorAll('[data-ton]').forEach((b) => b.setAttribute('aria-checked', b.dataset.ton === S.ton ? 'true' : 'false'));
     if (typeof renderLevel === 'function' && reels.length) renderLevel();
   }
-  // L’exemple en bas de la feuille : une envie tirée des roues telles qu’elles sont réglées
+  // Sous le ton : sa description, puis comment les roues tirent leurs mots
   function renderRouesEx() {
     const box = $('#roues-ex');
     if (!box || !LISTS[0].length) return;
-    const idx = [0, 1, 2].map((r) => { const n = LISTS[r].length - 1; return n > 0 ? Math.floor(Math.random() * n) : 0; });
-    const p = parts(idx, S.dir);
-    let t = ('J’ai envie ' + glue(p.dir, p.act) + ' ' + p.obj + ' ' + p.man).replace(/\s+/g, ' ').trim();
-    if (!/[!?…]$/.test(t)) t += '.';
-    const n = [0, 1, 2].map((r) => poolOf(r, S.levels).length);
-    const nb = n[0] + ' actions, ' + n[1] + ' endroits, ' + n[2] + ' manières';
-    box.innerHTML = '<b>Par exemple :</b> «\u00a0' + esc(t) + '\u00a0»<span class="roues-n">' +
-      (n.every((k) => k > DRAW_N) ? DRAW_N + ' mots par roue, tirés parmi ' + nb + '.' : 'Dans les roues : ' + nb + '.') + '</span>';
+    const d = TON_DESC[S.ton] || '';
+    box.innerHTML = (d ? '<span class="roues-desc">' + esc(d) + '</span>' : '') + '<span class="roues-n">Mots tirés au hasard selon ces réglages, à chaque tour.</span>';
   }
   function setTon(t) {
     if (!myTurn() || S.phase !== 'compose' || reels.some((rl) => rl.busy)) { sNope(); haptic(20); return; }
@@ -3233,7 +3230,7 @@
       // Le réglage a changé : les roues tournent sur leur nouveau tirage, et on dit ce qu’elles tirent
       if (rouesAvant && rouesSig() !== rouesAvant && S.phase === 'compose' && myTurn()) {
         setTimeout(() => shuffle(false), 120);
-        flashHint('Roues\u00a0: ' + levelNames() + ', ' + TON_TXT[S.ton] + '.');
+        flashHint('Roues\u00a0: ' + dot(levelNames() + ', ' + TON_TXT[S.ton]));
       }
       rouesAvant = '';
       if (S.mustRestart) { $('#resume').hidden = true; $('#welcome-go').textContent = 'Nouvelle partie'; }
@@ -3291,7 +3288,7 @@
       $('#piment-home-list').hidden = prog;
       $('#piment-prog').hidden = !prog;
       if (prog) {
-        const when = ['Pour commencer', 'Après un tour de kiff kiff : une envie de chacun·e', 'Après un tour de kiff kiff en Pimenté'];
+        const when = ['Pour commencer', 'Il s’ouvre après un kiff kiff chacun·e.', 'Il s’ouvre après un tour en Pimenté.'];
         $('#piment-prog').innerHTML = D.niveaux.map((lv, i) => '<div class="piment-toggle' + (i ? ' is-locked' : '') + '"><span class="piment-toggle-body">' +
           '<span class="pgroup pgroup--' + lv.n + ' is-on">' + CHILI.repeat(lv.n) + '</span><span class="piment-toggle-text"><span class="piment-name">' + lv.nom + '</span>' +
           '<span class="piment-tdesc">' + when[i] + '</span></span></span></div>').join('');

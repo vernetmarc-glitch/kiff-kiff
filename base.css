@@ -933,7 +933,9 @@ body:has(#ov-deal:not([hidden])) .deco-candles { display: none; }
 .ton-mix .ic { width: 18px; height: 18px; }
 .roues-ex { margin: 2px 0 0; padding: 10px 12px; border-radius: 12px; font-size: 14.5px; line-height: 1.35; text-align: left; background: color-mix(in srgb, currentColor 7%, transparent); }
 .roues-ex:empty { display: none; }
-.roues-n { display: block; margin-top: 4px; font-size: 13px; opacity: .75; }
+.roues-desc { display: block; }
+.roues-n { display: block; font-size: 13px; opacity: .75; }
+.roues-desc + .roues-n { margin-top: 6px; }
 
 /* La petite loupe, discrète, au coin bas droit de chaque roue */
 .reel-loupe { position: absolute; z-index: 4; right: 2px; bottom: 0; width: 32px; height: 30px; padding: 0; border: 0; background: none; display: grid; place-items: center; color: var(--reel-loupe, currentColor); opacity: .5; cursor: pointer; -webkit-tap-highlight-color: transparent; }

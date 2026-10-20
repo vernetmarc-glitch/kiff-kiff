@@ -16,9 +16,9 @@
  */
 window.ROUE_DATA = {
   niveaux: [
-    { n: 1, nom: "Tendre", desc: "Câlins, chatouilles et bêtises." },
-    { n: 2, nom: "Pimenté", desc: "Ça chauffe : fesses, tétons et morsures." },
-    { n: 3, nom: "Brûlant", desc: "Carrément cochon, entre adultes consentants." }
+    { n: 1, nom: "Tendre", desc: "Des frissons, des bisous, ça se chauffe tranquille." },
+    { n: 2, nom: "Pimenté", desc: "Ça monte : on mordille, on fesse un peu, la tension monte." },
+    { n: 3, nom: "Brûlant", desc: "Du bon cochon, entre adultes qui en ont envie." }
   ],
 
   actions: [
