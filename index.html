@@ -30,7 +30,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,62..125,100..900;1,62..125,100..900&family=Bagel+Fat+One&family=Abril+Fatface&family=Merriweather:ital,opsz,wght@0,18..144,400..900;1,18..144,400..900&family=Baskervville:ital,wght@0,400..700;1,400..700&family=Jost:wght@300..700&family=Great+Vibes&family=Cinzel:wght@400..900&family=Syne:wght@600..800&family=Manrope:wght@400..800&family=Anton&family=Courier+Prime:wght@400;700&display=swap">
-<link rel="stylesheet" href="base.css?v=76">
+<link rel="stylesheet" href="base.css?v=77">
 <link rel="stylesheet" href="skins/arty.css?v=64" data-skin-sheet="arty">
 <link rel="stylesheet" href="skins/pomme.css?v=63" data-skin-sheet="pomme">
 <link rel="stylesheet" href="skins/redcorner.css?v=61" data-skin-sheet="redcorner">
@@ -117,6 +117,8 @@
   <symbol id="i-installer" viewBox="0 0 24 24"><rect x="6.5" y="2.5" width="11" height="19" rx="2.5"/><path d="M12 7v7"/><path d="M9 11l3 3 3-3"/></symbol>
   <symbol id="i-lien" viewBox="0 0 24 24"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></symbol>
   <symbol id="i-kiff" viewBox="0 0 24 24"><path d="M12 6.2A6.5 6.5 0 0 1 12 17.8A6.5 6.5 0 0 1 12 6.2Z" fill="currentColor" fill-opacity=".5" stroke="none"/><circle cx="9" cy="12" r="6.5"/><circle cx="15" cy="12" r="6.5"/></symbol>
+  <symbol id="i-roues" viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="17" height="4.6" rx="1.6"/><rect x="3.5" y="9.7" width="17" height="4.6" rx="1.6"/><rect x="3.5" y="15.9" width="17" height="4.6" rx="1.6"/></symbol>
+  <symbol id="i-ajuster" viewBox="0 0 24 24"><path d="M4 8h13"/><path d="M14 4.5L17.5 8 14 11.5"/><path d="M20 16H7"/><path d="M10 12.5L6.5 16l3.5 3.5"/></symbol>
   <symbol id="i-telephones" viewBox="0 0 24 24"><rect x="2.5" y="5" width="8" height="14" rx="2"/><rect x="13.5" y="5" width="8" height="14" rx="2"/><path d="M6 16.5h1"/><path d="M17 16.5h1"/></symbol>
   <symbol id="i-avertir" viewBox="0 0 24 24"><path d="M6.5 16.5V11a5.5 5.5 0 0 1 11 0v5.5l1.5 1.5H5z"/><path d="M10 20.5a2.2 2.2 0 0 0 4 0"/><path d="M3.3 9a9 9 0 0 1 2.6-5"/><path d="M20.7 9a9 9 0 0 0-2.6-5"/></symbol>
   <symbol id="i-avertir-non" viewBox="0 0 24 24"><path d="M6.5 16.5V11a5.5 5.5 0 0 1 11 0v5.5l1.5 1.5H5z"/><path d="M10 20.5a2.2 2.2 0 0 0 4 0"/><path d="M4 4l16 16"/></symbol>
@@ -233,10 +235,10 @@
       <section class="step" data-step="2" aria-labelledby="rules-title">
         <div class="sheet step-sheet">
           <h2 class="step-title" id="rules-title">Le principe</h2>
-          <ol class="rules">
-            <li><b id="rule-a">Cerise</b> compose une envie avec trois roues.</li>
-            <li><b id="rule-b">Pistache</b> dit «&nbsp;J’ai envie aussi&nbsp;», ou «&nbsp;Oui, mais…&nbsp;» et change une seule chose.</li>
-            <li>Un kiff kiff, c’est quand vos deux envies se rejoignent. On peut passer à tout moment, sans se justifier.</li>
+          <ol class="rules rules--ic">
+            <li><svg class="ic rule-ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-roues"/></svg><b id="rule-a">Cerise</b> compose une envie avec trois roues.</li>
+            <li><svg class="ic rule-ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-ajuster"/></svg><b id="rule-b">Pistache</b> dit «&nbsp;J’ai envie aussi&nbsp;», ou «&nbsp;Oui, mais…&nbsp;» et change une seule chose.</li>
+            <li><svg class="ic rule-ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-kiff"/></svg>Un kiff kiff, c’est quand vos deux envies se rejoignent. On peut passer à tout moment, sans se justifier.</li>
           </ol>
           <button class="btn" id="rules-ok" type="button">Compris</button>
           <button class="link-btn step-back" type="button"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-retour"/></svg>Retour</button>
@@ -278,10 +280,10 @@
       <section class="step" data-step="1" aria-labelledby="inv-rules-title">
         <div class="sheet step-sheet">
           <h2 class="step-title" id="inv-rules-title">Le principe</h2>
-          <ol class="rules">
-            <li id="inv-rule-1"><b>Tu commences</b>&nbsp;: tu fais tourner trois roues, «&nbsp;J’ai envie que tu me…&nbsp;», et tu proposes l’envie à <b class="inv-a">Cerise</b>.</li>
-            <li id="inv-rule-2"><b class="inv-a">Cerise</b> répond sur son téléphone&nbsp;: «&nbsp;J’ai envie aussi&nbsp;», ou «&nbsp;Oui, mais…&nbsp;» en changeant une seule chose. Puis c’est son tour de proposer.</li>
-            <li>Un kiff kiff, c’est quand vos deux envies se rejoignent. Chacun·e peut passer à tout moment, sans se justifier.</li>
+          <ol class="rules rules--ic">
+            <li><svg class="ic rule-ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-roues"/></svg><span id="inv-rule-1"><b>Tu commences</b>&nbsp;: trois roues, «&nbsp;J’ai envie que tu me…&nbsp;».</span></li>
+            <li><svg class="ic rule-ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-ajuster"/></svg><span id="inv-rule-2"><b class="inv-a">Cerise</b> répond «&nbsp;J’ai envie aussi&nbsp;», ou «&nbsp;Oui, mais…&nbsp;» en changeant une chose.</span></li>
+            <li><svg class="ic rule-ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-kiff"/></svg>Vos envies se rejoignent&nbsp;: kiff kiff. On passe quand on veut, sans se justifier.</li>
           </ol>
           <p class="step-text inv-piments" id="inv-piments"></p>
           <button class="btn" id="inv-ok" type="button">Compris</button>
@@ -589,6 +591,6 @@
 <script src="config.js?v=61"></script>
 <script src="duo.js?v=62"></script>
 <script src="push.js?v=64"></script>
-<script src="app.js?v=81"></script>
+<script src="app.js?v=82"></script>
 </body>
 </html>

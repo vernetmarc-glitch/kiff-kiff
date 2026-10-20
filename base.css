@@ -495,6 +495,8 @@ body:has(#ov-deal:not([hidden])) .deco-candles { display: none; }
   font-weight: 800; font-size: 16px;
   background: var(--pill-on-bg, currentColor); color: var(--pill-on-fg, #fff);
 }
+.rules--ic li::before { content: ''; }
+.rules--ic .rule-ic { position: absolute; left: 6px; top: calc(-.1em + 6px); width: 20px; height: 20px; z-index: 1; color: var(--pill-on-fg, #fff); }
 .step-sheet > .btn { align-self: stretch; margin-top: 6px; }
 .step-sheet > .link-btn { align-self: center; }
 .step-back { font-size: 14px; opacity: .85; padding-top: 0; }

@@ -2355,13 +2355,13 @@
     const lv = parseLevels(st.levels);
     const chip = (n) => '<span class="inv-piment"><span class="pgroup pgroup--' + n + ' is-on">' + CHILI.repeat(n) + '</span> ' + esc(D.niveaux[n - 1].nom) + '</span>';
     $('#inv-piments').innerHTML = st.prog
-      ? 'Vous commencez en ' + chip(1) + '. Le piment peut monter après un tour de kiff kiff, si vous en avez envie tous les deux.'
+      ? 'Vous commencez en ' + chip(1) + '. Le piment monte en jouant, à deux.'
       : 'Piments choisis par ' + esc(A) + '&nbsp;: ' + lv.map(chip).join(' ');
     const r1 = $('#inv-rule-1'), r2 = $('#inv-rule-2');
     if (!r1.dataset.html) { r1.dataset.html = r1.innerHTML; r2.dataset.html = r2.innerHTML; }
     if (st.gift) {
-      r1.innerHTML = '<b class="inv-a"></b> t’a glissé une première envie&nbsp;: tu choisiras de la découvrir, juste après.';
-      r2.innerHTML = 'Tu réponds «&nbsp;J’ai envie aussi&nbsp;», ou «&nbsp;Oui, mais…&nbsp;» en changeant une seule chose. Puis chacun·e son tour&nbsp;: trois roues, «&nbsp;J’ai envie que tu me…&nbsp;», et on propose.';
+      r1.innerHTML = '<b class="inv-a"></b> t’a glissé une envie&nbsp;: tu la découvres juste après.';
+      r2.innerHTML = 'Tu réponds «&nbsp;J’ai envie aussi&nbsp;», ou «&nbsp;Oui, mais…&nbsp;» en changeant une chose. Puis chacun·e son tour.';
     } else { r1.innerHTML = r1.dataset.html; r2.innerHTML = r2.dataset.html; }
     document.querySelectorAll('#ov-invited .inv-a').forEach((b) => { b.textContent = A; });
     // Première visite : on découvre le jeu dans l’ambiance de qui invite (chacun·e peut ensuite choisir la sienne)
