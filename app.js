@@ -33,7 +33,14 @@
   }
   // Les mots écrits à la main dans une partie (« vos mots à vous deux ») restent dans ses roues, quel que soit le piment
   function buildLists(levels) {
-    for (let r = 0; r < 3; r++) LISTS[r] = SOURCE[r].filter((x) => levels.includes(x.lvl || 1) && (S.decale !== false || !x.dc)).concat(S.mine[r] || [], [FREE[r]]);
+    for (let r = 0; r < 3; r++) {
+      const all = SOURCE[r].filter((x) => levels.includes(x.lvl || 1));
+      // Le ton : 'b' que du brocoli (les mots décalés), 'm' un peu de tout, 'e' que des étoiles (premier degré)
+      const t = S.ton === 'b' || S.ton === 'e' ? S.ton : 'm';
+      let l = t === 'm' ? all : all.filter((x) => (t === 'b') === !!x.dc);
+      if (!l.length) l = all; // une roue sans mot de ce ton garde tous les siens
+      LISTS[r] = l.concat(S.mine[r] || [], [FREE[r]]);
+    }
   }
   const PLACEHOLDER = ['écris ton action', 'écris ton endroit', 'écris ta manière'];
   const REEL_NAMES = ['l’action', 'l’endroit', 'la manière'];
@@ -68,7 +75,7 @@
     prog: false, // partie à distance où le piment se débloque en jouant (Tendre, puis Pimenté, puis Brûlant)
     gift: null, // l’envie glissée dans l’invitation { keys, custom, dir }
     gifting: false, // je compose l’envie de l’invitation
-    decale: true // le brocoli : les mots décalés sont dans les roues (sinon, que du premier degré)
+    ton: 'm' // le ton des roues : 'b' brocoli (mots décalés), 'm' brocoli et étoiles, 'e' étoiles (premier degré)
   };
   buildLists(S.levels);
   const nameOf = (i) => (S.names[i] || '').trim() || (i === 0 ? 'Cerise' : 'Pistache');
@@ -822,7 +829,7 @@
   function savePair() {
     if (duo) return;
     const all = load('paires', {}) || {};
-    all[pairKey()] = { mine: S.mine, seen: S.seen, kiffs: (S.kiffs || []).slice(-60), decale: S.decale !== false, t: Date.now() };
+    all[pairKey()] = { mine: S.mine, seen: S.seen, kiffs: (S.kiffs || []).slice(-60), ton: S.ton, t: Date.now() };
     const keep = Object.keys(all).sort((a, b) => (all[b].t || 0) - (all[a].t || 0)).slice(0, 20);
     save('paires', Object.fromEntries(keep.map((k) => [k, all[k]])));
   }
@@ -1945,37 +1952,58 @@
     document.documentElement.dataset.piment = S.levels.join('');
   }
 
-  /* ---------- Le brocoli : les mots décalés, ou que du premier degré ----------
-     Rien ne l’annonce : on le découvre en jouant. Celui ou celle qui compose le bascule, sans demander. */
+  /* ---------- Le brocoli : un curseur à trois positions ----------
+     Brocoli (que des mots décalés), brocoli et étoiles (un peu de tout, au départ), étoiles (que du premier degré).
+     Rien ne l’annonce : on le découvre en jouant. Celui ou celle qui compose le règle, sans demander. */
+  const TONS = ['b', 'm', 'e'];
+  const TON_TXT = { b: 'que du brocoli, les mots décalés', m: 'brocoli et étoiles, un peu de tout', e: 'que des étoiles, le premier degré' };
+  const TON_HINT = { b: 'Que du brocoli : place aux mots décalés.', m: 'Brocoli et étoiles : un peu de tout.', e: 'Que des étoiles : le premier degré.' };
   const tonBtn = $('#ton');
+  const tonOf = (st) => (TONS.includes(st && st.ton) ? st.ton : st && st.decale === false ? 'e' : 'm');
   function renderTon() {
     if (!tonBtn) return;
-    const on = S.decale !== false;
-    tonBtn.setAttribute('aria-checked', on ? 'true' : 'false');
-    tonBtn.setAttribute('aria-label', on ? 'Mots décalés : oui (brocoli)' : 'Mots décalés : non, que du premier degré');
+    if (!TONS.includes(S.ton)) S.ton = 'm';
+    tonBtn.dataset.ton = S.ton;
+    tonBtn.setAttribute('aria-valuenow', String(TONS.indexOf(S.ton)));
+    tonBtn.setAttribute('aria-valuetext', TON_TXT[S.ton]);
   }
-  function toggleTon() {
+  function setTon(t) {
     audio();
     if (!myTurn() || S.phase !== 'compose' || reels.some((rl) => rl.busy)) {
       sNope(); haptic(20);
       tonBtn.classList.remove('is-nope'); void tonBtn.offsetWidth; tonBtn.classList.add('is-nope');
       return;
     }
+    if (t === S.ton) return;
     const cur = LISTS.map((l, r) => l[S.idx[r]]);
-    S.decale = S.decale === false;
+    S.ton = t;
     renderTon();
     relist();
-    // Un mot décalé qui sort de la roue laisse sa place à un mot premier degré, tiré au hasard
+    // Un mot qui sort de la roue laisse sa place à un mot du nouveau ton, tiré au hasard
     const gone = cur.map((x, r) => !!x && !x.free && LISTS[r].indexOf(x) < 0);
     renderReels();
     gone.forEach((g, r) => { if (g) reels[r].spinTo(pickIndex(r), 1, 700 + r * 160); });
     sSwitchOn(); haptic(12);
-    flashHint(S.decale ? 'Avec brocoli : les mots décalés reviennent.' : 'Sans brocoli : que du premier degré.');
+    flashHint(TON_HINT[t]);
     savePair();
     if (duo) sync();
     render();
   }
-  if (tonBtn) tonBtn.addEventListener('click', toggleTon);
+  if (tonBtn) {
+    // On touche la position voulue (gauche, milieu, droite) ; les flèches marchent aussi
+    tonBtn.addEventListener('click', (e) => {
+      const box = tonBtn.getBoundingClientRect();
+      const x = e.detail === 0 ? null : (e.clientX - box.left) / box.width;
+      const t = x == null ? TONS[(TONS.indexOf(S.ton) + 1) % 3] : TONS[Math.max(0, Math.min(2, Math.floor(x * 3)))];
+      if (t === S.ton && x != null) { setTon(TONS[(TONS.indexOf(S.ton) + 1) % 3]); return; } // retoucher sa position avance d’un cran
+      setTon(t);
+    });
+    tonBtn.addEventListener('keydown', (e) => {
+      const k = TONS.indexOf(S.ton);
+      if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') { e.preventDefault(); if (k > 0) setTon(TONS[k - 1]); }
+      else if (e.key === 'ArrowRight' || e.key === 'ArrowUp') { e.preventDefault(); if (k < 2) setTon(TONS[k + 1]); }
+    });
+  }
 
   /* ---------- Ambiances ---------- */
   const SKINS = ['arty', 'pomme', 'redcorner', 'minuit', 'classex'];
@@ -2168,7 +2196,8 @@
       push: pushPair(), // adresses d’avertissement des deux téléphones (l’état est chiffré)
       // avant d’entrer dans la partie (invitation, arrivée), rien de ce téléphone ne s’y mêle
       cont: !!S.cont, // une partie commencée sur un téléphone, qui continue à distance
-      decale: S.decale !== false,
+      ton: S.ton,
+      decale: S.ton !== 'e', // pour un téléphone pas encore à jour
       mine: inGame || S.cont ? S.mine.map((l) => l.slice(-MINE_MAX)) : [[], [], []],
       seen: inGame || S.cont ? S.seen.map((l) => l.slice(-SEEN_MAX)) : [[], [], []]
     };
@@ -2261,7 +2290,7 @@
       S.seen[r] = remote.concat(S.seen[r].filter((k) => !remote.includes(k))).slice(-SEEN_MAX);
     });
     S.prog = !!st.prog;
-    S.decale = st.decale !== false;
+    S.ton = tonOf(st);
     renderTon();
     if (lv.join() !== S.levels.join()) { S.levels = lv; renderLevel(); }
     buildLists(lv);
@@ -2518,7 +2547,7 @@
     S.custom = ['', '', ''];
     // À distance, on commence toujours en Tendre : le piment se débloque en jouant
     S.prog = true; S.gift = null; S.gifting = false;
-    S.decale = true; renderTon(); // une nouvelle rencontre commence avec le brocoli
+    S.ton = 'm'; renderTon(); // une nouvelle rencontre commence avec un peu de tout
     S.kiff = null; S.kiffs = [];
     setLevels([1], { silent: true, remote: true });
     S.lvOk = [1];
@@ -3292,7 +3321,7 @@
     hide(el.ovStart);
     S.kiff = null;
     const mem = (load('paires', {}) || {})[pairKey()];
-    S.decale = !(mem && mem.decale === false); // le brocoli comme vous l’avez laissé
+    S.ton = tonOf(mem); // le brocoli comme vous l’avez laissé
     renderTon();
     setMemory(mem); // vos mots et ce que vous vous êtes déjà proposé
     // vos kiff kiff, dont les envies gardées pour plus tard

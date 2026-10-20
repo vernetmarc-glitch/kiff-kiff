@@ -919,16 +919,17 @@ body:has(#ov-deal:not([hidden])) .deco-candles { display: none; }
 .loupe-write .ic { width: 20px; height: 20px; flex: none; }
 #loupe-pick { align-self: stretch; }
 
-/* Le brocoli : un petit interrupteur à côté de « J’ai envie… », brocoli (mots décalés) ou étoiles (premier degré) */
-.ton-switch { position: relative; flex: none; margin-left: auto; width: 54px; height: 30px; padding: 0 4px; border: 0; border-radius: 999px; display: inline-flex; align-items: center; justify-content: space-between; cursor: pointer; color: inherit;
-  background: color-mix(in srgb, currentColor 10%, transparent); box-shadow: inset 0 0 0 1.5px color-mix(in srgb, currentColor 35%, transparent); -webkit-tap-highlight-color: transparent; }
+/* Le brocoli : un curseur à trois positions à côté de « J’ai envie… » (brocoli, brocoli et étoiles, étoiles) */
+.ton-switch { position: relative; flex: none; margin-left: auto; width: 80px; height: 30px; padding: 0 4px; border: 0; border-radius: 999px; display: inline-flex; align-items: center; justify-content: space-between; cursor: pointer; color: inherit;
+  background: color-mix(in srgb, currentColor 10%, transparent); box-shadow: inset 0 0 0 1.5px color-mix(in srgb, currentColor 35%, transparent); -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
 .ton-switch::before { content: ''; position: absolute; inset: -7px -2px; } /* une cible de doigt plus grande que le dessin */
 .ton-knob { position: absolute; top: 3px; left: 3px; width: 24px; height: 24px; border-radius: 50%; background: var(--pill-on-bg, currentColor); transition: transform .28s cubic-bezier(.3, 1.4, .5, 1); }
-.ton-switch[aria-checked="false"] .ton-knob { transform: translateX(24px); }
-.ton-ic { position: relative; width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; transition: opacity .25s, color .25s; }
-.ton-switch[aria-checked="true"] .ton-ic--b, .ton-switch[aria-checked="false"] .ton-ic--s { color: var(--pill-on-fg, #fff); }
-.ton-switch[aria-checked="true"] .ton-ic--s, .ton-switch[aria-checked="false"] .ton-ic--b { opacity: .55; }
-.ton-switch[aria-checked="false"] .ton-ic--s path { fill: currentColor; }
+.ton-switch[data-ton="m"] .ton-knob { transform: translateX(25px); }
+.ton-switch[data-ton="e"] .ton-knob { transform: translateX(50px); }
+.ton-ic { position: relative; width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; opacity: .5; transition: opacity .25s, color .25s; }
+.ton-ic--m { stroke-width: 2.1; }
+.ton-switch[data-ton="b"] .ton-ic--b, .ton-switch[data-ton="m"] .ton-ic--m, .ton-switch[data-ton="e"] .ton-ic--s { opacity: 1; color: var(--pill-on-fg, #fff); }
+.ton-switch[data-ton="e"] .ton-ic--s path, .ton-switch[data-ton="m"] .ton-ic--m .ton-fill { fill: currentColor; }
 .ton-switch:focus-visible { outline: 2px dashed currentColor; outline-offset: 3px; }
 .ton-switch.is-nope { animation: nope .32s ease; }
 .switch--top .ton-switch + .kiffs-btn { margin-left: 8px; }
