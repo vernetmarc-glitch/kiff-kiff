@@ -122,6 +122,7 @@
         ret('j1', 'encore jouées à J+1') + ret('j7', 'encore jouées à J+7') + ret('j30', 'encore jouées à J+30') +
         kpi(fmt(c['notif:activee'] || 0), 'avertissements activés', 'sur des téléphones de parties à distance') +
         kpi(fmt(c['notif:envoyee'] || 0), 'avertissements envoyés', fmt(c['notif:expiree'] || 0) + ' adresses expirées, ' + fmt(c['notif:refusee'] || 0) + ' refusés') +
+        kpi(fmt(c['notif:rappel'] || 0), 'rappels envoyés', 'deux jours après un tour resté sans réponse (compris dans les avertissements)') +
         kpi(pct(c['notif:ouverte'] || 0, c['notif:envoyee'] || 0), 'des avertissements touchés') + '</div>' +
       '<h2 class="sec">Le jeu</h2><div class="kpis">' +
         kpi(pct(c.kiff || 0, c.envie || 0), 'des envies deviennent kiff kiff') + kpi(pct(c.mais || 0, c.envie || 0), 'des envies passent par « Oui, mais… »') +

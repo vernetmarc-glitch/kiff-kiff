@@ -8,6 +8,8 @@
  *   4. Déployer > Nouveau déploiement > type « Application Web »
  *        Exécuter en tant que : moi · Qui a accès : Tout le monde > Déployer > Autoriser l’accès.
  *   5. Copier l’adresse de l’application Web (elle finit par /exec).
+ *   6. Une fois : choisir la fonction « installerRappels » et cliquer Exécuter (le rappel de deux jours
+ *      passe toutes les heures ; Google demande l’autorisation de créer ce déclencheur).
  *
  * Les onglets « mots », « compteurs », « choix » et « parties » se créent tout seuls.
  * Les notifications (« À toi de jouer ») passent aussi par ce script : il crée tout seul sa paire
@@ -30,6 +32,8 @@ const ENT_COMPTEURS = ['compteur', 'valeur'];
 const ENT_CHOIX = ['roue', 'mot', 'envies', 'kiffs'];
 const ENT_PARTIES = ['partie', 'etat', 'seq', 'maj', 'cree'];
 const GARDER_JOURS = 120; // une partie sans nouvelle depuis si longtemps est effacée
+const ENT_RAPPELS = ['partie', 'seq', 'adresse', 'corps', 'quand'];
+const RAPPEL_HEURES = 48; // un seul rappel, deux jours après un coup resté sans réponse
 
 function doGet(e) {
   const action = (e && e.parameter && e.parameter.action) || '';
@@ -51,6 +55,7 @@ function doPost(e) {
   }
   if (corps.action === 'partie') return sortie(ecrirePartie(corps));
   if (corps.action === 'push') return sortie(envoyerNotification(corps));
+  if (corps.action === 'rappel') return sortie(enregistrerRappel(corps));
   if (corps.action === 'check') return sortie({ ok: String(corps.motDePasse || '') === MOT_DE_PASSE });
   if (corps.action === 'save') {
     if (String(corps.motDePasse || '') !== MOT_DE_PASSE) return sortie({ ok: false, erreur: 'mot de passe' });
@@ -354,6 +359,74 @@ function envoyerNotification_(c) {
   const code = reponse.getResponseCode();
   noterEvenement({ type: 'notif', detail: code < 300 ? 'envoyee' : (code === 404 || code === 410 ? 'expiree' : 'refusee') });
   return { ok: code < 300, code: code };
+}
+
+/* ---------- Un seul rappel, deux jours plus tard ----------
+ * Avec « À toi de jouer », le téléphone qui vient de jouer confie aussi un rappel, déjà chiffré
+ * pour l’autre téléphone (« C’est toujours à toi de jouer. »). Il attend ici deux jours, dans l’onglet
+ * « rappels », puis part si la partie n’a pas bougé entre-temps ; sinon il est effacé. Un rappel par
+ * partie et par téléphone : le suivant remplace le précédent. Le service de notification le range
+ * à la place du premier avertissement de la partie : jamais deux messages pour la même partie.
+ * Une fois, depuis l’éditeur : choisir la fonction « installerRappels » et cliquer Exécuter. */
+function enregistrerRappel(c) {
+  const id = String(c.partie || '');
+  const seq = Number(c.seq) || 0;
+  const adresse = String(c.adresse || '');
+  const corps = String(c.corps || '');
+  if (!ID_PARTIE.test(id) || !seq) return { ok: false, erreur: 'partie' };
+  if (!PUSH_HOTES.test(adresse) || adresse.length > 1000) return { ok: false, erreur: 'adresse' };
+  if (!corps || corps.length > 5000 || !/^[A-Za-z0-9_-]+$/.test(corps)) return { ok: false, erreur: 'corps' };
+  const verrou = LockService.getScriptLock();
+  verrou.waitLock(15000);
+  try {
+    const f = feuille('rappels', ENT_RAPPELS);
+    const v = f.getDataRange().getValues();
+    const quand = new Date(Date.now() + RAPPEL_HEURES * 3600e3);
+    for (let j = v.length - 1; j >= 1; j--) {
+      if (String(v[j][0]) === id && String(v[j][2]) === adresse) f.deleteRow(j + 1);
+    }
+    f.appendRow([id, seq, adresse, 'k' + corps, quand]);
+  } finally {
+    verrou.releaseLock();
+  }
+  try { installerRappels(); } catch (e) { /* l’installation se fait aussi à la main, une fois */ }
+  return { ok: true };
+}
+// Toutes les heures : les rappels arrivés à échéance partent, si la partie attend toujours
+function envoyerRappels() {
+  const verrou = LockService.getScriptLock();
+  if (!verrou.tryLock(20000)) return;
+  try {
+    const f = feuille('rappels', ENT_RAPPELS);
+    const v = f.getDataRange().getValues();
+    if (v.length < 2) return;
+    const p = feuille('parties', ENT_PARTIES).getDataRange().getValues();
+    const seqDe = {};
+    for (let j = 1; j < p.length; j++) seqDe[String(p[j][0])] = Number(p[j][2]) || 0;
+    const now = Date.now();
+    for (let j = v.length - 1; j >= 1; j--) {
+      const quand = v[j][4] instanceof Date ? v[j][4].getTime() : 0;
+      if (quand > now) continue;
+      const id = String(v[j][0]);
+      const attend = id in seqDe && seqDe[id] <= (Number(v[j][1]) || 0);
+      f.deleteRow(j + 1);
+      if (!attend) continue;
+      const corps = String(v[j][3]).replace(/^k/, '');
+      try {
+        const r = envoyerNotification_({ adresse: String(v[j][2]), corps: corps, urgence: 'normal' });
+        noterEvenement({ type: 'notif', detail: r && r.ok ? 'rappel' : 'rappel-echec' });
+      } catch (e) { /* une adresse expirée : rien à faire */ }
+    }
+  } finally {
+    verrou.releaseLock();
+  }
+}
+function installerRappels() {
+  const props = PropertiesService.getScriptProperties();
+  if (props.getProperty('rappels_ok') === '1') return;
+  const deja = ScriptApp.getProjectTriggers().some(function (t) { return t.getHandlerFunction() === 'envoyerRappels'; });
+  if (!deja) ScriptApp.newTrigger('envoyerRappels').timeBased().everyHours(1).create();
+  props.setProperty('rappels_ok', '1');
 }
 
 /* La paire de clés VAPID : créée une fois, gardée dans les propriétés du script */

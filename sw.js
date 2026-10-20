@@ -48,6 +48,7 @@ self.addEventListener('fetch', (e) => {
 const PARTIE = /^[a-z2-9]{12}$/;
 // Discret, comme une appli de rencontre : on dit qu’il y a du nouveau, jamais qui ni quoi
 function avis(m) {
+  if (m.k === 'rappel') return m.ph === 'review' ? 'Une proposition t’attend toujours.' : 'C’est toujours à toi de jouer.';
   if (m.k === 'kiff') return 'Un kiff kiff vous attend !';
   if (m.k === 'arrivee') return 'Ton invitation est acceptée : la partie commence.';
   if (m.ph === 'review') return 'Une proposition t’attend.';

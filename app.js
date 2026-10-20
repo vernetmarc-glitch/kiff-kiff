@@ -1920,6 +1920,8 @@
     const up = kind === 'kiff' && st.prog && unlockedIn(k2) > unlockedIn(k2.slice(0, -1)) ? 1 : 0;
     // Pas de prénom dans l’avertissement : l’écran verrouillé ne dit jamais avec qui l’on joue
     KP.send(sub, { k: kind, r: duo.info.room, ph: st.phase, u: up });
+    // Si le tour attend encore dans deux jours, un seul rappel (il remplace l’avertissement de la partie)
+    if (kind === 'tour' && KP.remind && st.seq) KP.remind(sub, { k: 'rappel', r: duo.info.room, ph: st.phase }, duo.info.room, st.seq);
   }
 
   /* Mes parties à deux : chaque téléphone se souvient des siennes, pour jouer chacun·e à son rythme.

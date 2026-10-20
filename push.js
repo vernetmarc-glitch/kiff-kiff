@@ -157,7 +157,17 @@
     } catch (e) { return false; }
   }
 
+  /* Un rappel, deux jours plus tard, si la partie n’a pas bougé : chiffré ici comme l’avertissement */
+  async function remind(sub, msg, partie, seq) {
+    if (!api() || !sub || !sub.e || !sub.p || !sub.a || !partie || !seq) return false;
+    try {
+      const corps = b64u.enc(await encrypt(sub, msg));
+      await fetch(api(), { method: 'POST', mode: 'no-cors', keepalive: true, body: JSON.stringify({ action: 'rappel', partie, seq, adresse: sub.e, corps }) });
+      return true;
+    } catch (e) { return false; }
+  }
+
   const sameSub = (a, b) => (!a && !b) || (!!a && !!b && a.e === b.e && a.p === b.p && a.a === b.a);
 
-  window.KiffPush = { status, current, enable, disable, send, sameSub, ios, standalone, _encrypt: encrypt };
+  window.KiffPush = { status, current, enable, disable, send, remind, sameSub, ios, standalone, _encrypt: encrypt };
 })();
