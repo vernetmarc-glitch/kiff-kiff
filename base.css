@@ -172,6 +172,9 @@ body[data-phase="adjust"] .is-changed > .stamp:active { filter: brightness(1.15)
 .press-row > .stamp--dir { position: relative; inset: auto; flex: none; display: none; }
 .press-row.is-changed > .stamp--dir { display: inline-flex; transform: rotate(8deg) scale(1); }
 .reel.is-nope { animation: nope .32s ease; }
+/* Prénom manquant : le champ tremble et se souligne */
+input.is-missing { animation: nope .32s ease; box-shadow: inset 0 -3px 0 currentColor !important; }
+label:has(+ input.is-missing), .name1-box:has(input.is-missing) label { font-weight: 800; opacity: 1; }
 @keyframes nope {
   20% { translate: -7px 0; }
   50% { translate: 6px 0; }

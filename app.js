@@ -72,6 +72,23 @@
   buildLists(S.levels);
   const nameOf = (i) => (S.names[i] || '').trim() || (i === 0 ? 'Cerise' : 'Pistache');
   const other = (i) => 1 - i;
+  // Un prénom est demandé avant de jouer : le champ vide tremble et prend la main
+  function needName(input) {
+    if (input.value.trim()) return false;
+    if (!input.dataset.ph) input.dataset.ph = input.placeholder;
+    input.placeholder = '';
+    input.setAttribute('aria-invalid', 'true');
+    input.classList.remove('is-missing'); void input.offsetWidth; input.classList.add('is-missing');
+    input.focus();
+    sNope(); haptic(20);
+    return true;
+  }
+  document.addEventListener('input', (e) => {
+    const t = e.target;
+    if (!t.classList || !t.classList.contains('is-missing')) return;
+    t.classList.remove('is-missing'); t.removeAttribute('aria-invalid');
+    if (t.dataset.ph) t.placeholder = t.dataset.ph;
+  });
 
   /* ---------- Grammaire ---------- */
   const VOWEL = /^[aeiouyàâäéèêëîïôöûüùœæh]/i;
@@ -2170,6 +2187,7 @@
     e.preventDefault();
     audio();
     if (!duo || !duo.remote) return;
+    if (needName($('#inv-name'))) return;
     document.activeElement && document.activeElement.blur();
     hide(ovInv);
     joinGame($('#inv-name').value);
@@ -2352,6 +2370,7 @@
     e.preventDefault();
     audio();
     const stage = ovDuo.dataset.stage;
+    if ((stage === 'setup' || stage === 'join') && needName(duoName)) return;
     if (stage === 'setup') createDuo();
     else if (stage === 'gift-ask') startGift();
     else if (stage === 'invite') leaveDuo(false, true);
@@ -2679,10 +2698,11 @@
       where = w;
       document.querySelectorAll('.where-btn').forEach((b) => b.setAttribute('aria-pressed', b.dataset.where === w ? 'true' : 'false'));
       $('#name1-box').hidden = w !== 'here';
-      $('#start-go').hidden = w !== 'here';
     };
     setWhere(load('where', 'here') === 'duo' ? 'duo' : 'here');
     const toRules = () => {
+      if (needName($('#name0'))) return;
+      if (where === 'here' && needName($('#name1'))) return;
       readNames();
       if (where === 'duo') S.names[1] = '';
       // La deuxième personne propose en premier
@@ -2710,12 +2730,12 @@
     document.querySelectorAll('.where-btn').forEach((b) => b.addEventListener('click', () => {
       audio();
       setWhere(b.dataset.where);
-      if (where === 'duo') { toRules(); return; }  // réponse donnée : on glisse tout de suite
+      if (where === 'duo') { if ($('#name0').value.trim()) toRules(); else needName($('#name0')); return; }  // réponse donnée : on glisse tout de suite
       sClick(); haptic(8);
       setTimeout(() => $('#name1').focus(), 60);
     }));
     $('#name0').addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') { e.preventDefault(); if (where === 'here') $('#name1').focus(); else document.activeElement.blur(); }
+      if (e.key === 'Enter') { e.preventDefault(); if (where === 'here') $('#name1').focus(); else toRules(); }
     });
     $('#start-form').addEventListener('submit', (e) => { e.preventDefault(); audio(); toRules(); });
     $('#rules-ok').addEventListener('click', () => { audio(); sClick(); haptic(8); save('rulesSeen', true); goStep(3); });
