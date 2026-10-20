@@ -433,9 +433,11 @@
         if (e.target !== el) return;
         if (e.key === 'ArrowDown') { e.preventDefault(); this.step(1); }
         else if (e.key === 'ArrowUp') { e.preventDefault(); this.step(-1); }
-        else if ((e.key === 'Enter' || e.key === ' ') && isFree(this.r, this.index)) {
+        else if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault();
-          if (this.canMove()) openEditor(this.r); else this.nope();
+          if (!this.canMove()) this.nope();
+          else if (isFree(this.r, this.index)) openEditor(this.r);
+          else openLoupe(this.r);
         }
       });
     }
@@ -446,6 +448,7 @@
       if (y < -h / 2) this.step(-1);
       else if (y > h / 2) this.step(1);
       else if (isFree(this.r, this.index)) openEditor(this.r);
+      else if (this.canMove()) openLoupe(this.r);
       else this.settle();
     }
   }
@@ -503,7 +506,7 @@
     const B = esc(nameOf(other(S.proposer)));
     const ch = changes();
     let h = '';
-    if (S.phase === 'compose') h = '<b>' + A + '</b>, compose ton envie : fais glisser les roues.';
+    if (S.phase === 'compose') h = '<b>' + A + '</b>, à toi : glisse ou touche les roues.';
     else if (S.phase === 'adjust' && !ch.length) h = '<b>' + B + '</b>, change une seule chose : une roue, ou « que tu me / de te ». Les choix de ' + A + ' sont surlignés.';
     else if (S.phase === 'adjust') h = 'Tu as changé ' + CHANGE_NAMES[ch[0]] + '. <button class="undo" type="button" id="undo">Revenir à l’envie de ' + A + '</button>';
     el.hint.innerHTML = h;
@@ -1035,6 +1038,93 @@
     setTimeout(() => editInput.focus(), 60);
   }
   editInput.addEventListener('input', editPreview);
+
+  /* La loupe : toucher le mot du centre ouvre toute la roue, rangée par piment, avec un champ pour chercher ou écrire */
+  const ovLoupe = $('#ov-loupe'), loupeQ = $('#loupe-q');
+  let loupeR = -1, loupeFrom = null;
+  const plain = (t) => (t || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[’']/g, ' ');
+  const LOUPE_PH = ['Chercher ou écrire ton action', 'Chercher ou écrire ton endroit', 'Chercher ou écrire ta manière'];
+  function openLoupe(r) {
+    audio(); sClick(); haptic(8);
+    loupeR = r;
+    loupeFrom = reels[r].el;
+    $('#loupe-title').textContent = REEL_NAMES[r].charAt(0).toUpperCase() + REEL_NAMES[r].slice(1);
+    loupeQ.value = '';
+    loupeQ.placeholder = LOUPE_PH[r];
+    renderLoupe();
+    show(ovLoupe);
+    // La liste s’ouvre sur le mot en cours, une fois la feuille posée
+    const center = () => {
+      const list = $('#loupe-list'), on = list.querySelector('.loupe-item.is-on');
+      if (!on) return;
+      list.scrollTop = on.getBoundingClientRect().top - list.getBoundingClientRect().top + list.scrollTop - list.clientHeight / 2 + on.offsetHeight / 2;
+      on.focus({ preventScroll: true });
+    };
+    requestAnimationFrame(center); setTimeout(center, 120); setTimeout(center, 320);
+  }
+  function renderLoupe() {
+    const r = loupeR, cur = reels[r].index;
+    const q = plain(loupeQ.value.trim());
+    const items = [];
+    LISTS[r].forEach((x, i) => {
+      if (x.free) return;
+      if (r === 0 && x.m && x.d && x.d !== S.dir) return; // une action écrite à la main garde son sens
+      const t = labelFor(r, i);
+      if (q && !plain(t).includes(q)) return;
+      items.push({ i, t, lvl: x.lvl || 1, m: !!x.m });
+    });
+    const row = (it) => '<li><button class="loupe-item' + (it.i === cur ? ' is-on' : '') + '" type="button" data-i="' + it.i + '"' + (it.i === cur ? ' aria-current="true"' : '') + '>' +
+      '<span class="loupe-txt">' + esc(it.t) + '</span>' +
+      (it.m ? '<svg class="ic loupe-mine" viewBox="0 0 24 24" aria-label="écrit par vous"><use href="#i-ecrire"/></svg>' : '') +
+      (it.lvl > 1 ? '<span class="reel-chilis reel-chilis--' + it.lvl + '" aria-label="' + D.niveaux[it.lvl - 1].nom + '">' + '<svg class="chili is-on" viewBox="0 0 24 24" aria-hidden="true"><use href="#chili"/></svg>'.repeat(it.lvl) + '</span>' : '') +
+      '</button></li>';
+    let html = '';
+    const typed = loupeQ.value.replace(/\s+/g, ' ').trim();
+    if (typed && !items.some((it) => plain(it.t) === plain(typed))) {
+      html += '<li><button class="loupe-item loupe-write" type="button" data-write="1"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-ecrire"/></svg><span class="loupe-txt">Écrire «\u00a0' + esc(typed) + '\u00a0»</span></button></li>';
+    }
+    const groups = [['Vos mots', items.filter((it) => it.m)]].concat([1, 2, 3].map((l) => [D.niveaux[l - 1].nom, items.filter((it) => !it.m && it.lvl === l)]));
+    const shown = groups.filter(([, l]) => l.length);
+    shown.forEach(([name, l]) => { if (shown.length > 1 || !q) html += '<li class="loupe-head" aria-hidden="true">' + esc(name) + '</li>'; html += l.map(row).join(''); });
+    $('#loupe-list').innerHTML = html;
+  }
+  function closeLoupe(focus = true) {
+    hide(ovLoupe);
+    loupeQ.blur();
+    if (focus && loupeFrom) loupeFrom.focus({ preventScroll: true });
+    loupeR = -1;
+  }
+  function loupeWrite(text) {
+    const r = loupeR, rl = reels[r];
+    const fi = LISTS[r].findIndex((x) => x.free);
+    closeLoupe(false);
+    if (fi < 0) return;
+    rl.p = Math.round(rl.p) + shortest(rl.index, fi, rl.n); rl.lastTick = rl.p;
+    S.custom[r] = text.slice(0, 40);
+    renderReels();
+    openEditor(r); // l’aperçu de la phrase, et la bonne forme du verbe
+  }
+  loupeQ.addEventListener('input', renderLoupe);
+  loupeQ.addEventListener('keydown', (e) => {
+    if (e.key !== 'Enter') return;
+    e.preventDefault();
+    const first = $('#loupe-list button');
+    if (first) first.click();
+  });
+  $('#loupe-list').addEventListener('click', (e) => {
+    const b = e.target.closest('button');
+    if (!b || loupeR < 0) return;
+    audio();
+    if (b.dataset.write) { loupeWrite(loupeQ.value.replace(/\s+/g, ' ').trim()); return; }
+    const r = loupeR, i = +b.dataset.i, rl = reels[r];
+    closeLoupe();
+    sClick(); haptic(10);
+    if (i === rl.index) { rl.settle(); return; }
+    rl.spinTo(i, 0, 520);
+  });
+  $('#loupe-close').addEventListener('click', () => { audio(); closeLoupe(); });
+  ovLoupe.addEventListener('click', (e) => { if (e.target === ovLoupe) closeLoupe(); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !ovLoupe.hidden) closeLoupe(); });
   $('#edit-form').addEventListener('submit', (e) => {
     e.preventDefault();
     const v = editInput.value.replace(/\s+/g, ' ').trim().slice(0, 40);
