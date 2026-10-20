@@ -19,6 +19,63 @@
 
   const D = window.ROUE_DATA;
   const $ = (s) => document.querySelector(s);
+
+  /* ---------- Les textes : textes.js (la liste d’origine), modifiables dans l’Atelier ----------
+     T(clé, { variable: valeur }) rend un texte simple ; TH(…) le rend en HTML (**gras**).
+     La typographie se fait toute seule : apostrophe courbe, espace insécable devant ? ! : ; ». */
+  const TX = window.KIFF_TX || {};
+  const typo = (s) => String(s).replace(/'/g, '’').replace(/ +([?!:;»]|\p{Extended_Pictographic})/gu, '\u00a0$1').replace(/« +/g, '«\u00a0');
+  const tidy = (s) => s.replace(/([!?…])\.(?=\s|$)/g, '$1');
+  function T(k, v) {
+    const raw = TX[k];
+    if (raw == null) return '';
+    const s = typo(raw).replace(/\*\*/g, '');
+    return tidy(v ? s.replace(/\{([^{}]+)\}/g, (m, n) => (v[n] != null ? String(v[n]) : m)) : s);
+  }
+  const escT = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  function TH(k, v) {
+    const raw = TX[k];
+    if (raw == null) return '';
+    const s = escT(typo(raw)).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>');
+    return tidy(v ? s.replace(/\{([^{}]+)\}/g, (m, n) => (v[n] == null ? m : typeof v[n] === 'object' ? v[n].html : escT(v[n]))) : s);
+  }
+  // Une liste : une ligne par élément
+  const TL = (k) => T(k).split('\n').map((x) => x.trim()).filter(Boolean);
+  // Les textes posés dans la page (data-t) ; les éléments marqués data-tk y gardent leur place : {prénom}…
+  function fillT(node, k) {
+    const raw = TX[k];
+    if (raw == null) return;
+    const kids = {};
+    node.querySelectorAll('[data-tk]').forEach((c) => { kids[c.dataset.tk] = c; });
+    const frag = document.createDocumentFragment();
+    const used = new Set();
+    const vars = (into, txt) => txt.split(/(\{[^{}]+\})/).forEach((p) => {
+      if (!p) return;
+      const kid = /^\{[^{}]+\}$/.test(p) && kids[p.slice(1, -1)];
+      if (kid && !used.has(kid)) { used.add(kid); kid.hidden = false; into.appendChild(kid); } else into.appendChild(document.createTextNode(p));
+    });
+    const inline = (into, txt) => tidy(typo(txt)).split(/(\*\*.+?\*\*)/).forEach((p) => {
+      if (!p) return;
+      if (/^\*\*.+\*\*$/.test(p)) { const b = document.createElement('b'); vars(b, p.slice(2, -2)); into.appendChild(b); } else vars(into, p);
+    });
+    if (node.hasAttribute('data-t-par')) {
+      String(raw).split(/\n\s*\n/).map((x) => x.trim()).filter(Boolean).forEach((para) => { const p = document.createElement('p'); inline(p, para); frag.appendChild(p); });
+    } else inline(frag, raw);
+    // Un élément du jeu (un prénom…) que le texte n’utilise plus reste là, caché : le jeu s’en sert encore
+    Object.values(kids).forEach((kid) => { if (!used.has(kid)) { kid.hidden = true; frag.appendChild(kid); } });
+    node.textContent = '';
+    node.appendChild(frag);
+    if (node.hasAttribute('data-ink')) node.setAttribute('data-ink', node.textContent);
+  }
+  function applyTexts(root = document) {
+    root.querySelectorAll('[data-t]').forEach((n) => fillT(n, n.dataset.t));
+    root.querySelectorAll('[data-t-ph]').forEach((n) => { if (TX[n.dataset.tPh] != null) n.placeholder = T(n.dataset.tPh); });
+  }
+  // Les noms et descriptions du piment viennent aussi des textes
+  D.niveaux.forEach((lv) => {
+    if (TX['roues.niveau-' + lv.n] != null) lv.nom = T('roues.niveau-' + lv.n);
+    if (TX['roues.niveau-' + lv.n + '-desc'] != null) lv.desc = T('roues.niveau-' + lv.n + '-desc');
+  });
   const mod = (a, n) => ((a % n) + n) % n;
 
   /* Piment : les roues ne montrent que les cases de niveau inférieur ou égal */
@@ -108,8 +165,8 @@
   }
   // Un nouveau tirage (nouveau tour, dé, piment ou ton changé) ; chaque roue garde le mot qu’elle montrait
   function newDraw() { S.draw = [null, null, null]; }
-  const PLACEHOLDER = ['écris ton action', 'écris ton endroit', 'écris ta manière'];
-  const REEL_NAMES = ['l’action', 'l’endroit', 'la manière'];
+  const PLACEHOLDER = { get 0() { return T('jeu.vide-0'); }, get 1() { return T('jeu.vide-1'); }, get 2() { return T('jeu.vide-2'); } };
+  const REEL_NAMES = { get 0() { return T('jeu.nom-0'); }, get 1() { return T('jeu.nom-1'); }, get 2() { return T('jeu.nom-2'); } };
 
   /* ---------- Stockage local (confort, jamais indispensable) ---------- */
   let store = null;
@@ -410,7 +467,7 @@
       sNope(); haptic(20);
       clearTimeout(this._nopeT);
       this._nopeT = setTimeout(() => this.el.classList.remove('show-lock'), 1400);
-      if (S.phase === 'adjust' && this.locked) flashHint('Une seule modification par tour. Reviens à l’envie de ' + nameOf(S.proposer) + ' pour changer celle-ci.');
+      if (S.phase === 'adjust' && this.locked) flashHint(T('jeu.une-seule', { prénom: nameOf(S.proposer) }));
     }
     stop() { if (this.raf) cancelAnimationFrame(this.raf); this.raf = 0; }
 
@@ -553,7 +610,7 @@
     if (S.original && S.dir !== S.original.dir) ch.push('dir');
     return ch;
   }
-  const CHANGE_NAMES = { 0: 'l’action', 1: 'l’endroit', 2: 'la manière', dir: 'le sens de la phrase' };
+  const CHANGE_NAMES = { get 0() { return T('jeu.nom-0'); }, get 1() { return T('jeu.nom-1'); }, get 2() { return T('jeu.nom-2'); }, get dir() { return T('jeu.nom-sens'); } };
 
   /* ---------- Rendu ---------- */
   function renderDir() {
@@ -583,9 +640,10 @@
     const B = esc(nameOf(other(S.proposer)));
     const ch = changes();
     let h = '';
-    if (S.phase === 'compose') h = '<b>' + A + '</b>, à toi : glisse ou touche les roues.';
-    else if (S.phase === 'adjust' && !ch.length) h = '<b>' + B + '</b>, change une seule chose : une roue, ou « que tu me / de te ». Les choix de ' + A + ' sont surlignés.';
-    else if (S.phase === 'adjust') h = 'Tu as changé ' + CHANGE_NAMES[ch[0]] + '. <button class="undo" type="button" id="undo">Revenir à l’envie de ' + A + '</button>';
+    const nA = nameOf(S.proposer);
+    if (S.phase === 'compose') h = TH('jeu.consigne', { prénom: { html: '<b>' + A + '</b>' } });
+    else if (S.phase === 'adjust' && !ch.length) h = TH('jeu.consigne-mais', { prénom: { html: '<b>' + B + '</b>' }, autre: nA });
+    else if (S.phase === 'adjust') h = TH('jeu.change', { chose: CHANGE_NAMES[ch[0]] }) + ' <button class="undo" type="button" id="undo">' + TH('jeu.revenir', { prénom: nA }) + '</button>';
     el.hint.innerHTML = h;
     const u = $('#undo');
     if (u) u.addEventListener('click', () => { audio(); resetAdjust(); });
@@ -608,12 +666,13 @@
 
     // En bas : un seul bouton pour la personne qui a la main (et « On passe » pendant l’ajustement)
     el.actAlt.hidden = ph !== 'adjust';
-    if (ph === 'compose') { el.actMain.textContent = S.gifting ? 'Glisser dans l’invitation' : 'Proposer à ' + B; el.actMain.disabled = false; }
-    else if (ph === 'adjust') { el.actMain.textContent = ch.length ? 'Modification faite' : 'J’ai envie aussi'; el.actMain.disabled = false; }
+    if (ph === 'compose') { el.actMain.textContent = S.gifting ? T('jeu.glisser') : T('jeu.proposer', { prénom: B }); el.actMain.disabled = false; }
+    else if (ph === 'adjust') { el.actMain.textContent = ch.length ? T('jeu.fait') : T('jeu.aussi'); el.actMain.disabled = false; }
     else { el.actMain.disabled = true; }
     el.actMain.classList.toggle('is-done', ph === 'adjust' && ch.length > 0);
     el.pass.hidden = ph === 'adjust';
-    el.pass.textContent = S.gifting ? 'Sans envie' : 'On passe';
+    el.pass.textContent = S.gifting ? T('jeu.sans-envie') : T('jeu.passe');
+    el.actAlt.textContent = T('jeu.passe');
 
     // « que tu me / de te » : à la composition, ou comme unique changement de l’ajustement
     const dirFree = ph === 'compose' || (ph === 'adjust' && (!ch.length || ch.includes('dir')));
@@ -670,16 +729,16 @@
     const A = nameOf(S.proposer), B = nameOf(other(S.proposer));
     const to = kind === 'offer' ? B : A;
     const kick = $('#offer-kicker');
-    kick.textContent = duo ? (kind === 'offer' ? lowered : '') : 'Passe le téléphone à ' + to + '.';
+    kick.textContent = duo ? (kind === 'offer' ? lowered : '') : T('offre.passe-tel', { prénom: to });
     kick.hidden = !kick.textContent;
     lowered = '';
-    $('#offer-title').textContent = kind === 'offer' ? 'L’envie de ' + A : B + ' a ajusté ton envie';
+    $('#offer-title').textContent = kind === 'offer' ? T('offre.titre', { prénom: A }) : T('offre.titre-ajuste', { prénom: B });
     $('#offer-sentence').innerHTML = sentenceHtml(kind === 'reconfirm' ? changes() : []);
-    $('#offer-yes').textContent = kind === 'offer' ? 'J’ai envie aussi' : 'J’ai envie';
+    $('#offer-yes').textContent = kind === 'offer' ? T('offre.oui') : T('offre.oui-ajuste');
     $('#offer-but').hidden = kind !== 'offer';
     const back = $('#offer-back');
     back.hidden = !!duo;
-    back.textContent = 'Oups, ' + (kind === 'offer' ? A : B) + ' n’avait pas fini';
+    back.textContent = T('offre.oups', { prénom: kind === 'offer' ? A : B });
     hide(el.ovOne);
     show(el.ovOffer);
     $('#offer-yes').focus({ preventScroll: true });
@@ -701,7 +760,7 @@
     }
     hide(ovHot);
     if (want === 'offer' && S.lvOk && S.levels.join() !== S.lvOk.join()) {
-      lowered = nameOf(S.proposer) + ' a baissé le piment : ' + levelNames() + '.';
+      lowered = T('montee.baisse', { prénom: nameOf(S.proposer), piment: levelNames() });
       S.lvOk = S.levels.slice();
     }
     if (want && (offerKind !== want || el.ovOffer.hidden)) showOffer(want);
@@ -710,13 +769,11 @@
   function showHot() {
     const A = nameOf(S.proposer);
     const added = S.levels.filter((n) => !S.lvOk.includes(n));
-    $('#hot-title').textContent = A + ' monte le piment';
-    $('#hot-text').textContent = 'Vous jouiez en ' + levelNames(S.lvOk) + '. ' + A + ' propose d’ajouter ' +
-      (added.length > 1 ? 'les niveaux ' : 'le niveau ') + added.map((n) => D.niveaux[n - 1].nom).join(' et ') +
-      ', et son envie peut en venir.';
+    $('#hot-title').textContent = T('montee.titre', { prénom: A });
+    $('#hot-text').textContent = T(added.length > 1 ? 'montee.texte-plusieurs' : 'montee.texte', { piment: levelNames(S.lvOk), prénom: A, niveaux: added.map((n) => D.niveaux[n - 1].nom).join(' et ') });
     $('#hot-levels').innerHTML = added.map((n) => '<p class="hot-level"><span class="pgroup pgroup--' + n + ' is-on">' + CHILI.repeat(n) + '</span>' +
       '<span><b>' + esc(D.niveaux[n - 1].nom) + '</b> · ' + esc(D.niveaux[n - 1].desc) + '</span></p>').join('');
-    $('#hot-no').textContent = 'Non, on reste en ' + levelNames(S.lvOk);
+    $('#hot-no').textContent = T('montee.non', { piment: levelNames(S.lvOk) });
     show(ovHot);
     sSwitchOn(); haptic(30);
     $('#hot-yes').focus({ preventScroll: true });
@@ -751,7 +808,7 @@
     audio();
     if (S.phase !== 'review' || !myTurn()) return;
     report('mais');
-    $('#one-text').textContent = 'Tu peux changer une seule chose : une roue, ou « que tu me / de te ». Choisis-la bien.';
+    $('#one-text').textContent = T('mais.texte');
     show(el.ovOne);
     sClick(); haptic(8);
     $('#one-ok').focus({ preventScroll: true });
@@ -927,7 +984,7 @@
     const m = missingFree();
     if (m === undefined) return false;
     reels[m].nope();
-    flashHint('Écris ' + REEL_NAMES[m] + ' ou choisis une autre case.');
+    flashHint(T('jeu.ecris', { roue: REEL_NAMES[m] }));
     return true;
   }
 
@@ -1002,8 +1059,8 @@
     const A = nameOf(S.proposer);
     if (S.phase === 'adjust') {
       const ch = changes();
-      if (ch.length && !ch.includes('dir')) { sNope(); haptic(20); flashHint('Une seule modification par tour. Reviens à l’envie de ' + A + ' pour changer le sens.'); return; }
-      if (isFree(0, S.idx[0])) { sNope(); haptic(20); flashHint('Avec une action écrite à la main, le sens ne peut pas changer.'); return; }
+      if (ch.length && !ch.includes('dir')) { sNope(); haptic(20); flashHint(T('jeu.une-seule-sens', { prénom: A })); return; }
+      if (isFree(0, S.idx[0])) { sNope(); haptic(20); flashHint(T('jeu.sens-libre')); return; }
     } else if (S.phase !== 'compose') { sNope(); haptic(20); return; }
     if (S.dir === b.dataset.dir) return;
     S.dir = b.dataset.dir;
@@ -1031,8 +1088,8 @@
     audio();
     if (S.gifting) { endGift(false); return; } // finalement, inviter sans envie
     const A = nameOf(S.proposer), B = nameOf(other(S.proposer));
-    $('#pass-same').textContent = A + ' propose autre chose';
-    $('#pass-other').textContent = B + ' propose à son tour';
+    $('#pass-same').textContent = T('passe.meme', { prénom: A });
+    $('#pass-other').textContent = T('passe.autre', { prénom: B });
     show(el.ovPass);
     sSwitchOff();
   });
@@ -1067,11 +1124,11 @@
   $('#pass-cancel').addEventListener('click', () => { hide(el.ovPass); if (S.phase === 'celebrate') show(el.ovParty); });
 
   function handoffNewTurn(to, text, then) {
-    $('#handoff-title').textContent = 'Au tour de ' + nameOf(to);
-    $('#handoff-kicker').textContent = 'Passe-lui le téléphone.';
-    $('#handoff-text').textContent = text || 'C’est toi qui proposes maintenant.';
+    $('#handoff-title').textContent = T('passage.titre', { prénom: nameOf(to) });
+    $('#handoff-kicker').textContent = T('passage.kicker');
+    $('#handoff-text').textContent = text || T('passage.texte');
     const go = $('#handoff-go');
-    go.textContent = 'C’est moi, ' + nameOf(to);
+    go.textContent = T('passage.go', { prénom: nameOf(to) });
     go.onclick = () => { hide(el.ovHandoff); startComposition(to); if (then) then(); };
     $('#handoff-back').hidden = true;
     show(el.ovHandoff);
@@ -1100,14 +1157,8 @@
   function openEditor(r) {
     editing = r;
     S.idx[r] = reels[r].index;
-    const titles = ['Ton action', 'Ton endroit', 'Ta manière'];
-    const hints = [
-      S.dir === 'me'
-        ? 'Écris le verbe comme après « que tu me » : chatouilles, mordilles, lis un poème à…'
-        : 'Écris le verbe comme après « de te » : chatouiller, mordiller, lire un poème à…',
-      'Par exemple : le nombril, les mollets, la paume de la main.',
-      'Par exemple : en rougissant, au ralenti, avec un accent belge.'
-    ];
+    const titles = [T('libre.titre-0'), T('libre.titre-1'), T('libre.titre-2')];
+    const hints = [S.dir === 'me' ? T('libre.aide-0-me') : T('libre.aide-0-te'), T('libre.aide-1'), T('libre.aide-2')];
     $('#edit-label').textContent = titles[r];
     $('#edit-hint').textContent = hints[r];
     editInput.value = S.custom[r];
@@ -1124,7 +1175,7 @@
   const drumStrip = drumEl.querySelector('.reel-strip');
   let loupeR = -1, loupeFrom = null;
   const plain = (t) => (t || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[’']/g, ' ');
-  const LOUPE_PH = ['Chercher ou écrire ton action', 'Chercher ou écrire ton endroit', 'Chercher ou écrire ta manière'];
+  const LOUPE_PH = { get 0() { return T('loupe.chercher-0'); }, get 1() { return T('loupe.chercher-1'); }, get 2() { return T('loupe.chercher-2'); } };
   const drum = { items: [], nodes: [], p: 0, raf: 0, drag: null, lastTick: 0, nf: 8, h: 38, R: 100, theta: 1 };
   const drumMod = (i, n) => ((i % n) + n) % n;
   // Le texte d’un mot de la réserve, tel qu’il s’afficherait dans la roue
@@ -1311,7 +1362,7 @@
     const typed = loupeQ.value.replace(/\s+/g, ' ').trim();
     const show_ = !!typed && !drum.items.some((it) => plain(it.t) === plain(typed));
     $('#loupe-write').hidden = !show_;
-    $('#loupe-write-text').textContent = 'Écrire « ' + typed + ' »';
+    $('#loupe-write-text').textContent = T('loupe.ecrire', { mot: typed });
   }
   function closeLoupe(focus = true) {
     drumStop();
@@ -1395,7 +1446,7 @@
   }
   const toLive = () => (S.kiffs || []).filter((k) => k.v === 0);
   const kiffCount = () => Math.max((S.kiffs || []).length, S.kiff ? S.kiff.n : 0);
-  const ordinal = (n) => (n === 1 ? 'premier' : n + 'ᵉ');
+  const ordinal = (n) => (n === 1 ? T('fete.premier') : n + 'ᵉ');
   function renderKiffs() {
     const n = kiffCount();
     const B = duo ? nameOf(other(duo.seat)) : '';
@@ -1405,7 +1456,7 @@
     btn.setAttribute('aria-label', n + ' kiff kiff trouvé' + (n > 1 ? 's' : '') + (B ? ' avec ' + B : ' ensemble') + '. Voir l’historique');
     const wk = $('#wait-kiffs');
     wk.hidden = !n;
-    $('#wait-kiffs-label').textContent = n + ' kiff kiff';
+    $('#wait-kiffs-label').textContent = T('attente.kiffs', { nombre: n });
     wk.setAttribute('aria-label', 'Vos kiff kiff (' + n + ')');
     // Les envies gardées pour plus tard : un badge sur le compteur
     const a = toLive().length;
@@ -1428,7 +1479,7 @@
     partyFoot();
     const n = kiffCount();
     $('#party-count').hidden = !n;
-    $('#party-count-text').textContent = 'Votre ' + ordinal(n) + ' kiff kiff ensemble';
+    $('#party-count-text').textContent = T('fete.compte', { rang: ordinal(n) });
     $('#party-history').setAttribute('aria-label', 'Votre ' + ordinal(n) + ' kiff kiff ensemble. Revoir vos kiff kiff');
   }
   const ovKiffs = $('#ov-kiffs');
@@ -1442,9 +1493,7 @@
     const list = (S.kiffs || []).slice().reverse();
     const n = kiffCount();
     const B = duo ? nameOf(other(duo.seat)) : '';
-    $('#kiffs-title').textContent = B ? 'Vos kiff kiff avec ' + B : 'Vos kiff kiff';
-    $('#kiffs-count').textContent = n + ' kiff kiff trouvé' + (n > 1 ? 's' : '') + ' ensemble' +
-      (n > list.length ? ' (les plus anciens datent d’avant l’historique).' : '.');
+    $('#kiffs-title').textContent = B ? T('kiffs.titre-avec', { prénom: B }) : T('kiffs.titre');
     renderKiffList();
     show(ovKiffs);
     $('#kiffs-close').focus({ preventScroll: true });
@@ -1453,15 +1502,15 @@
   function renderKiffList() {
     const all = (S.kiffs || []).map((k, i) => ({ k, i })).reverse();
     const item = ({ k, i }, live) => '<li class="kiffs-item' + (live ? ' is-live' : '') + '"><div class="kiffs-body"><p class="kiffs-text">' + esc(k.t || '') + '</p>' +
-      '<p class="kiffs-meta">Envie de ' + esc(k.w || '…') + (k.d ? ' · ' + dayOf(k.d) : '') + '</p></div>' +
-      (live ? '<div class="kiffs-acts"><button class="icon-btn kiffs-done" type="button" data-i="' + i + '" aria-label="Vécue : ' + esc(k.t || '') + '">' + OK_SVG + '<span class="icon-label">Vécue</span></button>' +
+      '<p class="kiffs-meta">' + TH('kiffs.envie-de', { prénom: k.w || '…' }) + (k.d ? ' · ' + dayOf(k.d) : '') + '</p></div>' +
+      (live ? '<div class="kiffs-acts"><button class="icon-btn kiffs-done" type="button" data-i="' + i + '" aria-label="' + esc(T('kiffs.vecue')) + ' : ' + esc(k.t || '') + '">' + OK_SVG + '<span class="icon-label">' + TH('kiffs.vecue') + '</span></button>' +
         '<button class="icon-btn icon-btn--bare kiffs-drop" type="button" data-i="' + i + '" aria-label="On passe : ' + esc(k.t || '') + '"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-fermer"/></svg></button></div>' : '') + '</li>';
     const live = all.filter(({ k }) => k.v === 0), done = all.filter(({ k }) => k.v !== 0);
     $('#kiffs-list').innerHTML =
-      (live.length ? '<li class="kiffs-head">À vivre</li>' + live.map((x) => item(x, true)).join('') : '') +
-      (done.length ? (live.length ? '<li class="kiffs-head">Vécues</li>' : '') + done.map((x) => item(x, false)).join('') : '');
+      (live.length ? '<li class="kiffs-head">' + TH('kiffs.a-vivre') + '</li>' + live.map((x) => item(x, true)).join('') : '') +
+      (done.length ? (live.length ? '<li class="kiffs-head">' + TH('kiffs.vecues') + '</li>' : '') + done.map((x) => item(x, false)).join('') : '');
     const n = kiffCount();
-    $('#kiffs-count').textContent = n + ' kiff kiff trouvé' + (n > 1 ? 's' : '') + ' ensemble' + (live.length ? ', dont ' + live.length + ' à vivre.' : '.');
+    $('#kiffs-count').textContent = T(n > 1 ? (live.length ? 'kiffs.compte-dont' : 'kiffs.compte') : (live.length ? 'kiffs.compte-1-dont' : 'kiffs.compte-1'), { nombre: n, vivre: live.length });
   }
   // Marquer une envie vécue, ou passer : à deux téléphones, ça vaut pour les deux
   $('#kiffs-list').addEventListener('click', (e) => {
@@ -1514,20 +1563,20 @@
       const far = !!duo;
       next.dataset.act = far ? 'later' : 'now';
       later.dataset.act = far ? 'now' : 'later';
-      next.textContent = far ? 'On la garde pour plus tard' : 'On la vit maintenant';
-      later.textContent = far ? 'On la vit maintenant' : 'On la garde pour plus tard';
-      $('.party-text').textContent = 'Vous en avez envie tous les deux.';
+      next.textContent = far ? T('fete.garder') : T('fete.vivre');
+      later.textContent = far ? T('fete.vivre') : T('fete.garder');
+      $('.party-text').textContent = T('fete.texte');
     } else if (mode === 'vivre') {
       next.dataset.act = 'done';
-      next.textContent = 'C’est fait ! À ' + B + ' de proposer';
-      setInk('À vous.');
-      $('.party-text').textContent = 'Posez le téléphone, il vous attend.';
+      next.textContent = T('fete.fait', { prénom: B });
+      setInk(T('fete.a-vous'));
+      $('.party-text').textContent = T('fete.posez');
       $('#party-count').hidden = true; $('#party-unlock').hidden = true;
       document.querySelector('#ov-party .party-foot').hidden = true;
       stopConfetti();
     } else {
       next.dataset.act = 'next';
-      next.textContent = 'Voir la suite de la partie';
+      next.textContent = T('fete.suite');
       if (info) $('.party-text').textContent = info;
     }
   }
@@ -1545,7 +1594,7 @@
     box.hidden = !up;
     if (!up) return;
     $('#party-unlock-chili').innerHTML = '<span class="pgroup pgroup--' + now + ' is-on">' + CHILI.repeat(now) + '</span>';
-    $('#party-unlock-text').textContent = D.niveaux[now - 1].nom + ' débloqué';
+    $('#party-unlock-text').textContent = T('fete.debloque', { niveau: D.niveaux[now - 1].nom });
     box.querySelector('.pill').setAttribute('aria-label', D.niveaux[now - 1].nom + ' débloqué : le piment peut monter, si vous en avez envie tous les deux.');
   }
   function celebrateLate() {
@@ -1554,8 +1603,8 @@
     const by = S.kiff.by === 0 || S.kiff.by === 1 ? S.kiff.by : other(duo.seat);
     $('#party-sentence').textContent = S.kiff.text;
     const kept = S.kiff.c === 'later';
-    partyMode('suite', kept ? (S.kiff.cb === duo.seat ? 'Gardée pour plus tard.' : nameOf(S.kiff.cb) + ' la garde pour plus tard.') :
-      by === duo.seat ? 'Vous en avez envie tous les deux.' : nameOf(by) + ' a dit oui pendant ton absence.');
+    partyMode('suite', kept ? (S.kiff.cb === duo.seat ? T('fete.gardee') : T('fete.gardee-par', { prénom: nameOf(S.kiff.cb) })) :
+      by === duo.seat ? T('fete.texte') : T('fete.absence', { prénom: nameOf(by) }));
     partyCount();
     partyUnlock();
     show(el.ovParty);
@@ -1565,11 +1614,10 @@
     markKiffSeen();
   }
   /* Le titre de la célébration change à chaque kiff kiff (les exclamations de Marc), jamais deux fois de suite le même */
-  const CHEERS = ['Bon appétit\u00a0!', 'C’est servi\u00a0!', 'Savourez\u00a0!', 'À la vôtre\u00a0!', 'Santé\u00a0!', 'Samba\u00a0!', 'It’s a match!',
-    'Wopopoooo\u00a0!', 'Et… c’est un Kiff-Kiff\u00a0!!', 'Banco\u00a0!', 'C’est parti\u00a0!', 'Enjoy!', 'Get ready!'];
   function cheer() {
     const last = load('cheer', '');
-    const pool = CHEERS.filter((c) => c !== last);
+    const all = TL('fete.cris');
+    const pool = all.length > 1 ? all.filter((c) => c !== last) : all.concat(['Kiff Kiff !']);
     const c = pool[Math.floor(Math.random() * pool.length)];
     save('cheer', c);
     setInk(c);
@@ -1599,7 +1647,7 @@
   }
   /* « Tu kiffes ? » : partager le jeu, offrir un café, lire l’histoire du jeu */
   const APP_URL = 'https://kiff-kiff.fr/';
-  const DEAL_TEXT = 'Tiens, je crois que ça te fera pas de mal : Kiff Kiff, un petit jeu à deux pour pimenter un peu les choses.';
+  const dealText = () => T('tukiffes.message');
   const ovDeal = $('#ov-deal');
   // Depuis la célébration, ou depuis le lien discret de l’accueil
   let dealFrom = null;
@@ -1625,21 +1673,21 @@
     const done = $('#deal-done');
     if (typeof navigator.share === 'function') {
       try {
-        await navigator.share({ title: 'Kiff Kiff', text: DEAL_TEXT, url: APP_URL });
+        await navigator.share({ title: 'Kiff Kiff', text: dealText(), url: APP_URL });
         report('partage', null, 'envoye');
         sSwitchOn(); haptic(15);
-        done.textContent = 'Kiff dealé. Merci pour elle, ou pour lui.';
+        done.textContent = T('tukiffes.envoye');
         done.hidden = false;
       } catch (e) { /* partage annulé */ }
       return;
     }
     // Sans partage natif : on copie le message avec le lien
     try {
-      await navigator.clipboard.writeText(DEAL_TEXT + ' ' + APP_URL);
+      await navigator.clipboard.writeText(dealText() + ' ' + APP_URL);
       report('partage', null, 'copie');
-      done.textContent = 'Message copié : colle-le à qui tu veux.';
+      done.textContent = T('tukiffes.copie');
     } catch (e) {
-      done.textContent = DEAL_TEXT + ' ' + APP_URL;
+      done.textContent = dealText() + ' ' + APP_URL;
     }
     done.hidden = false;
     sClick(); haptic(8);
@@ -1678,7 +1726,7 @@
       if (duo && S.kiff) { S.kiff.c = 'later'; S.kiff.cb = duo.seat; }
       sSwitchOn(); haptic(15);
       const done = $('#party-done');
-      done.textContent = 'Gardée pour plus tard.';
+      done.textContent = T('fete.gardee');
       done.hidden = false;
       $('#party-next').disabled = true; $('#party-later').disabled = true;
       setTimeout(() => { $('#party-next').disabled = false; $('#party-later').disabled = false; renderKiffs(); partyContinue(); }, 900);
@@ -1700,7 +1748,8 @@
   }
   /* L’image partagée d’une envie : même mise en page pour toutes les ambiances (emblème, KIFF KIFF,
      la carte de l’envie, un QR code vers le jeu), aux couleurs et aux polices de l’ambiance où l’on joue. */
-  const TAGLINE = 'Quand vos envies se rejoignent, c’est kiff kiff.';
+  const tagline = () => T('image.accroche');
+  const Tx = T; // dans le dessin de l’image, « T » désigne le thème
   const roundRect = (c, x, y, w, h, r) => { c.beginPath(); c.moveTo(x + r, y); c.arcTo(x + w, y, x + w, y + h, r); c.arcTo(x + w, y + h, x, y + h, r); c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath(); };
   const IMG = {
     redcorner: {
@@ -1835,7 +1884,7 @@
     if (K.inner) { c.strokeStyle = K.inner; c.lineWidth = 3; c.strokeRect(cx + 14, cy + 14, cw - 28, ch - 28); }
     if (K.notch) { c.fillStyle = K.notch; [cx, cx + cw].forEach((x) => { c.beginPath(); c.arc(x, cy + ch / 2, 26, 0, Math.PI * 2); c.fill(); }); }
     c.fillStyle = T.lead.color; c.font = T.lead.font;
-    c.fillText('J’ai envie…', W / 2, cy + 110);
+    c.fillText(Tx('image.lead'), W / 2, cy + 110);
     c.fillStyle = T.body.color; c.font = T.body.font.replace('{s}', fs + 4);
     lines.forEach((l, i) => c.fillText(l, W / 2, cy + 190 + i * lh));
     if (K.stamp) {
@@ -1859,17 +1908,17 @@
       for (let r = 0; r < n; r++) for (let k = 0; k < n; k++) if (qr.isDark(r, k)) c.fillRect(qx + (k + 2) * m, qy + (r + 2) * m, Math.ceil(m), Math.ceil(m));
       c.textAlign = 'left';
       const tx = 360, tw = W - 120 - tx;
-      c.fillStyle = T.t1[1]; fit('Scanne et joue à deux', T.t1[0], tw, 46); c.fillText('Scanne et joue à deux', tx, 1124);
+      c.fillStyle = T.t1[1]; fit(Tx('image.scanne'), T.t1[0], tw, 46); c.fillText(Tx('image.scanne'), tx, 1124);
       // la phrase du jeu sur deux lignes, coupée à la virgule
-      const tl = TAGLINE.replace(/, /, ',\n').split('\n');
+      const tl = tagline().replace(/, /, ',\n').split('\n');
       let ts = T.t2[2] + 2;
       do { ts -= 2; c.font = T.t2[0].replace('{s}', ts); } while (ts > 20 && tl.some((l) => c.measureText(l).width > tw));
       c.fillStyle = T.t2[1];
       tl.forEach((l, i) => c.fillText(l, tx, 1174 + i * Math.round(ts * 1.15)));
-      c.fillStyle = T.t3[1]; fit('Kiff Kiff · jeu de séduction pour adultes', T.t3[0], tw, 26); c.fillText('Kiff Kiff · jeu de séduction pour adultes', tx, 1276);
+      c.fillStyle = T.t3[1]; fit(Tx('image.pied'), T.t3[0], tw, 26); c.fillText(Tx('image.pied'), tx, 1276);
     } catch (e) {
       c.fillStyle = T.t2[1]; c.font = T.t2[0].replace('{s}', T.t2[2]);
-      c.fillText(TAGLINE, W / 2, 1160);
+      c.fillText(tagline(), W / 2, 1160);
     }
     return new Promise((res) => cv.toBlob(res, 'image/png'));
   }
@@ -1882,7 +1931,7 @@
     const file = new File([blob], 'kiff-kiff.png', { type: 'image/png' });
     report('partage', null, 'image');
     if (navigator.canShare && navigator.canShare({ files: [file] })) {
-      try { await navigator.share({ files: [file], title: 'Kiff Kiff', text: TAGLINE + ' ' + APP_URL }); } catch (e) { /* annulé */ }
+      try { await navigator.share({ files: [file], title: 'Kiff Kiff', text: tagline() + ' ' + APP_URL }); } catch (e) { /* annulé */ }
       return;
     }
     const a = document.createElement('a');
@@ -1890,7 +1939,7 @@
     document.body.appendChild(a); a.click(); a.remove();
     setTimeout(() => URL.revokeObjectURL(a.href), 4000);
     const done = $('#party-done');
-    done.textContent = 'Image enregistrée dans tes téléchargements.';
+    done.textContent = T('fete.image-ok');
     done.hidden = false;
     btn.focus({ preventScroll: true });
   });
@@ -2020,7 +2069,7 @@
     if (!p) return;
     const up = hotter();
     p.hidden = !up;
-    if (up) p.textContent = nameOf(other(duo.seat)) + ' devra d’abord accepter ce piment plus chaud, avant de voir ton envie.';
+    if (up) p.textContent = T('roues.monter-distance', { prénom: nameOf(other(duo.seat)) });
   }
   function renderLevel() {
     const b = $('#piment-open');
@@ -2037,7 +2086,7 @@
       lab.classList.toggle('is-locked', lock);
       const d = lab.querySelector('.piment-tdesc');
       if (!d.dataset.desc) d.dataset.desc = d.textContent;
-      d.textContent = lock ? (+c.value === 2 ? 'Il s’ouvre après un kiff kiff chacun·e.' : 'Il s’ouvre après un tour en Pimenté.') : d.dataset.desc;
+      d.textContent = lock ? T('roues.verrou-' + c.value) : d.dataset.desc;
     });
     document.documentElement.dataset.piment = S.levels.join('');
   }
@@ -2046,9 +2095,10 @@
      Dans la feuille « Dans les roues », à côté du piment : c’est le même genre de choix (ce que les roues tirent).
      Celui ou celle qui compose le change sans demander ; un exemple d’envie montre tout de suite l’effet. */
   const TONS = ['b', 'm', 'e'];
-  const TON_TXT = { b: 'wtf\u00a0!?', m: 'un peu de tout', e: 'prem’deug' };
+  // Le nom du ton, en minuscules dans les phrases (« Roues : Tendre, wtf !? »)
+  const TON_TXT = { get b() { return T('roues.ton-b').toLowerCase(); }, get m() { return T('roues.ton-m').toLowerCase(); }, get e() { return T('roues.ton-e').toLowerCase(); } };
   // Sous les trois boutons : ce que le ton met dans les roues (rien à dire pour « un peu de tout »)
-  const TON_DESC = { b: 'Des envies qu’on peut vivre aussi… ou pas.', m: '', e: 'Du premier degré, des envies qu’on a vraiment envie de vivre.' };
+  const TON_DESC = { get b() { return T('roues.ton-b-desc'); }, get m() { return T('roues.ton-m-desc'); }, get e() { return T('roues.ton-e-desc'); } };
   const dot = (t) => (/[!?….]$/.test(t) ? t : t + '.');
   const tonBox = $('#ton');
   const tonOf = (st) => (TONS.includes(st && st.ton) ? st.ton : st && st.decale === false ? 'e' : 'm');
@@ -2062,7 +2112,7 @@
     const box = $('#roues-ex');
     if (!box || !LISTS[0].length) return;
     const d = TON_DESC[S.ton] || '';
-    box.innerHTML = (d ? '<span class="roues-desc">' + esc(d) + '</span>' : '') + '<span class="roues-n">Mots tirés au hasard selon ces réglages, à chaque tour.</span>';
+    box.innerHTML = (d ? '<span class="roues-desc">' + esc(d) + '</span>' : '') + '<span class="roues-n">' + TH('roues.tirage') + '</span>';
   }
   function setTon(t) {
     if (!myTurn() || S.phase !== 'compose' || reels.some((rl) => rl.busy)) { sNope(); haptic(20); return; }
@@ -2088,6 +2138,16 @@
       void k;
     });
   }
+  // La petite loupe au coin de chaque roue : elle ouvre la roue en grand (comme toucher le mot du centre)
+  document.querySelectorAll('.reel[data-reel] .reel-loupe').forEach((b) => {
+    const r = +b.closest('.reel').dataset.reel;
+    b.addEventListener('pointerdown', (e) => e.stopPropagation()); // ce n’est pas un coup de roue
+    b.addEventListener('pointerup', (e) => e.stopPropagation());
+    b.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (reels[r].canMove()) openLoupe(r); else reels[r].nope();
+    });
+  });
 
   /* ---------- Ambiances ---------- */
   const SKINS = ['arty', 'pomme', 'redcorner', 'minuit', 'classex'];
@@ -2330,7 +2390,7 @@
     duo.nk = notifKey(st);
     duo.lastPhase = st.phase;
     if (st.phase === 'ended') {
-      if (duo.stage === 'game') note('Fin de la partie à deux', nameOf(st.endBy === 0 ? 0 : 1) + ' a arrêté la partie.', () => leaveDuo(false));
+      if (duo.stage === 'game') note(T('nouvelles.fin'), T('nouvelles.fin-texte', { prénom: nameOf(st.endBy === 0 ? 0 : 1) }), () => leaveDuo(false));
       else duoError('ended');
       return;
     }
@@ -2343,7 +2403,7 @@
       const wasInvite = duo.stage === 'invite';
       enterGame(st, wasInvite);
       if (wasInvite) { sSwitchOn(); haptic(30); report('partie', null, 'deux'); }
-      if (wasInvite && st.pass && st.pass.why === 'cadeau') note(nameOf(1) + ' commence', nameOf(1) + ' préfère proposer en premier. Pas besoin d’expliquer pourquoi.');
+      if (wasInvite && st.pass && st.pass.why === 'cadeau') note(T('nouvelles.commence', { prénom: nameOf(1) }), T('nouvelles.commence-texte', { prénom: nameOf(1) }));
       pushRefresh();
     } else {
       showJoin(st);
@@ -2406,11 +2466,10 @@
       duo.passN = pn;
       if (st.pass.by !== duo.seat && st.pass.why === 'piment') {
         hide(el.ovPass);
-        note('On garde le piment d’avant', nameOf(st.pass.by) + ' préfère rester en ' + levelNames(parseLevels(st.lvOk || st.levels)) + '. Pas besoin d’expliquer pourquoi. Propose une autre envie avec ce piment-là.');
+        note(T('nouvelles.piment'), T('nouvelles.piment-texte', { prénom: nameOf(st.pass.by), piment: levelNames(parseLevels(st.lvOk || st.levels)) }));
       } else if (st.pass.by !== duo.seat) {
         hide(el.ovPass);
-        note('On passe.', nameOf(st.pass.by) + ' a passé. Pas besoin d’expliquer pourquoi. ' +
-          (S.proposer === duo.seat ? 'C’est à toi de proposer.' : nameOf(S.proposer) + ' propose autre chose.'));
+        note(T('nouvelles.passe'), T(S.proposer === duo.seat ? 'nouvelles.passe-toi' : 'nouvelles.passe-autre', { prénom: nameOf(st.pass.by), autre: nameOf(S.proposer) }));
       }
     }
     S.pass = st.pass || null;
@@ -2429,7 +2488,7 @@
     else if (missed && !lateKiff) celebrateLate();
     if (S.phase !== 'celebrate' && !lateKiff && !el.ovParty.hidden) {
       // L’autre a gardé l’envie pour plus tard : la célébration reste, avec ce qu’il ou elle a choisi
-      if (S.kiff && S.kiff.c === 'later' && S.kiff.cb !== duo.seat) { lateKiff = true; partyMode('suite', nameOf(S.kiff.cb) + ' la garde pour plus tard.'); markKiffSeen(); }
+      if (S.kiff && S.kiff.c === 'later' && S.kiff.cb !== duo.seat) { lateKiff = true; partyMode('suite', T('fete.gardee-par', { prénom: nameOf(S.kiff.cb) })); markKiffSeen(); }
       else { hide(el.ovParty); stopConfetti(); }
     }
     if (S.phase === 'celebrate' && !el.ovParty.hidden && S.kiff && S.kiff.c === 'now' && el.ovParty.dataset.mode === 'fete') partyMode('vivre');
@@ -2451,20 +2510,20 @@
     const A = nameOf(S.proposer), B = nameOf(other(S.proposer));
     let title, kicker, sent = '';
     if (S.phase === 'compose') {
-      title = 'Au tour de ' + A;
-      kicker = A + ' compose une envie.';
+      title = T('attente.tour', { prénom: A });
+      kicker = T('attente.compose', { prénom: A });
     } else if (S.phase === 'review') {
-      title = 'Envie envoyée';
-      kicker = hotter() ? B + ' doit d’abord accepter le nouveau piment.' : B + ' la lit.';
+      title = T('attente.envoyee');
+      kicker = hotter() ? T('attente.piment', { prénom: B }) : T('attente.lit', { prénom: B });
       sent = S.original ? sentenceFrom(S.original) : sentence();
     } else if (S.phase === 'adjust') {
-      title = B + ' ajuste ton envie';
-      kicker = B + ' change une seule chose.';
+      title = T('attente.ajuste', { prénom: B });
+      kicker = T('attente.ajuste-texte', { prénom: B });
       sent = S.original ? sentenceFrom(S.original) : sentence();
     } else {
       const ch = changes();
-      title = 'Au tour de ' + A;
-      kicker = 'Tu as changé ' + CHANGE_NAMES[ch.length ? ch[0] : 0] + '. ' + A + ' relit.';
+      title = T('attente.tour', { prénom: A });
+      kicker = T('attente.relit', { chose: CHANGE_NAMES[ch.length ? ch[0] : 0], prénom: A });
       sent = sentence();
     }
     $('#wait-title').textContent = title;
@@ -2486,23 +2545,23 @@
     dn.setAttribute('aria-pressed', pushStatus === 'on' ? 'true' : 'false');
     $('#duo-notif-state').textContent = pushStatus === 'on' ? 'activé' : 'désactivé';
     // La cloche dit clairement son état : allumée et « Averti·e » quand c’est activé
-    document.querySelectorAll('.notif-word').forEach((w) => { w.textContent = pushStatus === 'on' ? 'Averti·e' : 'M’avertir'; });
-    if (inv) $('#duo-wait-text').textContent = presenceFlash || (duo.partnerOn ? 'L’autre téléphone est là : il découvre le jeu…' : (pushStatus === 'on' ? 'En attente de l’autre téléphone. Ton téléphone t’avertira.' : 'En attente de l’autre téléphone…'));
+    document.querySelectorAll('.notif-word').forEach((w) => { w.textContent = pushStatus === 'on' ? T('attente.averti') : T('attente.avertir'); });
+    if (inv) $('#duo-wait-text').textContent = presenceFlash || (duo.partnerOn ? T('duo.attente-la') : (pushStatus === 'on' ? T('duo.attente-averti') : T('duo.attente')));
     const line = $('#duo-status');
     if (!duo || duo.stage !== 'game') { line.hidden = true; return; }
     const B = nameOf(other(duo.seat));
     let msg = '';
-    if (duo.online === false) msg = 'Connexion perdue. Je réessaie…';
-    else if (duo.partnerOn === false) msg = B + ' n’est pas connecté·e : la partie l’attendra.';
+    if (duo.online === false) msg = T('attente.perdue');
+    else if (duo.partnerOn === false) msg = T('attente.pas-connecte', { prénom: B });
     line.textContent = msg;
     line.hidden = !msg;
     // Une ligne de présence ; les actions sont des icônes (Prévenir, M’avertir, kiff kiff, Accueil)
     const away = duo.partnerOn !== true;
     const on = pushStatus === 'on';
-    let pres = B + ' est là.';
+    let pres = T('attente.la', { prénom: B });
     if (duo.online === false) pres = msg;
     else if (presenceFlash) pres = presenceFlash;
-    else if (away) pres = B + ' n’est pas là' + (on ? '. Ton téléphone t’avertira.' : ' : la partie l’attendra.');
+    else if (away) pres = T(on ? 'attente.absent-averti' : 'attente.absent', { prénom: B });
     $('#wait-presence-text').textContent = pres;
     $('#wait-presence').classList.toggle('is-off', away || duo.online === false);
     const nudge = $('#wait-nudge');
@@ -2514,7 +2573,7 @@
     $('#wait-notif-state').textContent = on ? 'activé' : 'désactivé';
     const ht = $('#duo-home-text');
     const nk = kiffCount();
-    if (ht) ht.textContent = 'En cours : partie à deux avec ' + B + (msg ? '. ' + msg : ', connecté·e.') + (nk ? ' ' + nk + ' kiff kiff ensemble.' : '');
+    if (ht) ht.textContent = T(msg ? 'accueil.en-cours-msg' : 'accueil.en-cours', { prénom: B, etat: msg }) + (nk ? ' ' + T('accueil.en-cours-kiffs', { nombre: nk }) : '');
   }
 
   const duoHandlers = {
@@ -2538,7 +2597,7 @@
     $('#duo-share').hidden = !o.qr;
     $('#duo-name-label').hidden = !o.name;
     duoName.hidden = !o.name;
-    $('#duo-name-label').textContent = 'Ton prénom';
+    $('#duo-name-label').textContent = T('duo.ton-prenom');
     $('#duo-wait').hidden = !o.wait;
     $('#duo-notif').hidden = o.stage !== 'invite';
     $('#duo-wait-text').textContent = o.wait || '';
@@ -2547,7 +2606,7 @@
     $('#duo-go').hidden = !o.go;
     $('#duo-go').textContent = o.go || '';
     $('#duo-go').disabled = false;
-    $('#duo-cancel').textContent = o.cancel || 'Annuler';
+    $('#duo-cancel').textContent = o.cancel || T('duo.annuler');
     ovDuo.dataset.stage = o.stage;
     ovDuo.dataset.retry = '';
     if (!ovInv.hidden) hide(ovInv);
@@ -2555,12 +2614,12 @@
   }
   function openDuoSetup() {
     duoName.value = S.names[0] || $('#name0').value.trim() || '';
-    duoName.placeholder = 'Cerise';
+    duoName.placeholder = T('joueurs.exemple-1');
     duoSheet({
       stage: 'setup',
-      title: 'Sur deux téléphones',
-      text: 'Chacun·e joue sur son téléphone : l’un·e propose sur le sien, l’autre répond sur le sien. Tu crées la partie, puis tu invites l’autre.',
-      name: true, go: 'Créer la partie'
+      title: T('duo.titre'),
+      text: T('duo.creer-texte'),
+      name: true, go: T('duo.creer')
     });
     if (!KiffDuoOk()) duoError('support');
   }
@@ -2573,16 +2632,16 @@
     const B = nameOf(1);
     duoSheet({
       stage: 'cont',
-      title: 'Continuer à distance',
-      text: B + ' continue sur son téléphone, toi sur celui-ci. Vos kiff kiff et vos mots vous suivent.',
-      go: 'Inviter ' + B, cancel: 'Annuler'
+      title: T('duo.continuer'),
+      text: T('duo.continuer-texte', { prénom: B }),
+      go: T('duo.inviter', { prénom: B }), cancel: T('duo.annuler')
     });
     if (!KiffDuoOk()) duoError('support');
   }
   async function continueDuo() {
     applyPendingMots();
     const keep = { names: S.names.slice(), levels: S.levels.slice(), kiffs: (S.kiffs || []).slice(-60), mine: S.mine, seen: S.seen, proposer: S.proposer, t0: S.t0 };
-    duoSheet({ stage: 'creating', title: 'Continuer à distance', wait: 'J’ouvre la partie…', cancel: 'Annuler' });
+    duoSheet({ stage: 'creating', title: T('duo.continuer'), wait: T('duo.ouvre'), cancel: T('duo.annuler') });
     try { await loadDuoLibs(); } catch (e) { duoError('net'); return; }
     const id = window.KiffDuo.newId();
     duo = { seat: 0, id, seq: 0, lastBy: '', stage: 'creating', partnerOn: null, online: true, passN: null };
@@ -2613,7 +2672,7 @@
   async function createDuo(given) {
     applyPendingMots();
     const name = (given != null ? given : duoName.value).replace(/\s+/g, ' ').trim().slice(0, 20);
-    duoSheet({ stage: 'creating', title: 'Sur deux téléphones', wait: 'J’ouvre la partie…', cancel: 'Annuler' });
+    duoSheet({ stage: 'creating', title: T('duo.titre'), wait: T('duo.ouvre'), cancel: T('duo.annuler') });
     try { await loadDuoLibs(); } catch (e) { duoError('net'); return; }
     const id = window.KiffDuo.newId();
     duo = { seat: 0, id, seq: 0, lastBy: '', stage: 'creating', partnerOn: null, online: true, passN: null };
@@ -2646,9 +2705,9 @@
   function askGift() {
     duoSheet({
       stage: 'gift-ask',
-      title: 'Une envie dans l’invitation\u00a0?',
-      text: 'Compose une première envie, en Tendre. L’autre choisira de la découvrir après avoir compris le jeu.',
-      go: 'Composer', cancel: 'Sans envie'
+      title: T('duo.cadeau'),
+      text: T('duo.cadeau-texte'),
+      go: T('duo.composer'), cancel: T('jeu.sans-envie')
     });
   }
   function startGift() {
@@ -2680,9 +2739,9 @@
     $('#duo-send').hidden = typeof navigator.share !== 'function';
     duoSheet({
       stage: 'invite',
-      title: 'Invite l’autre téléphone',
-      text: (S.gift ? 'Ton envie est dans l’invitation. ' : '') + 'Fais scanner ce code par l’autre téléphone, ou envoie-lui le lien. Pas besoin d’attendre ici : la partie t’attendra sur l’accueil.',
-      qr: true, wait: duo.partnerOn ? 'L’autre téléphone est là : il découvre le jeu…' : 'En attente de l’autre téléphone…', go: 'Plus tard', cancel: 'Annuler la partie'
+      title: T('duo.invite'),
+      text: T(S.gift ? 'duo.invite-texte-envie' : 'duo.invite-texte'),
+      qr: true, wait: duo.partnerOn ? T('duo.attente-la') : T('duo.attente'), go: T('duo.plus-tard'), cancel: T('duo.annuler-partie')
     });
     renderDuoStatus();
   }
@@ -2691,19 +2750,20 @@
   let invSteps = null;
   function showInvited(st) {
     const A = (st.names && st.names[0] || '').trim() || 'Cerise';
-    $('#ov-invited .inv-from').innerHTML = '<b class="inv-a"></b> ' + (st.rencontre ? 'te propose un jeu avant de vous voir, chacun·e sur son téléphone. Vous commencez en Tendre.' : 't’invite à jouer, chacun·e sur son téléphone.');
-    $('#inv-name-help').textContent = A + ' verra ton prénom sur son téléphone.';
+    const bA = { html: '<b class="inv-a">' + esc(A) + '</b>' };
+    $('#ov-invited .inv-from').innerHTML = st.rencontre ? '<b class="inv-a"></b> te propose un jeu avant de vous voir, chacun·e sur son téléphone. Vous commencez en Tendre.' : TH('invite.de', { prénom: bA });
+    $('#inv-name-help').textContent = T('invite.prenom-aide', { prénom: A });
     const lv = parseLevels(st.levels);
     const chip = (n) => '<span class="inv-piment"><span class="pgroup pgroup--' + n + ' is-on">' + CHILI.repeat(n) + '</span> ' + esc(D.niveaux[n - 1].nom) + '</span>';
     $('#inv-piments').innerHTML = st.prog
-      ? 'Vous commencez en ' + chip(1) + '. Le piment monte en jouant, à deux.'
-      : 'Piments choisis par ' + esc(A) + '&nbsp;: ' + lv.map(chip).join(' ');
+      ? TH('invite.piment-monte', { piment: { html: chip(1) } })
+      : TH('invite.piments', { prénom: A, piments: { html: lv.map(chip).join(' ') } });
     const r1 = $('#inv-rule-1'), r2 = $('#inv-rule-2');
     if (!r1.dataset.html) { r1.dataset.html = r1.innerHTML; r2.dataset.html = r2.innerHTML; }
     if (st.gift) {
-      r1.innerHTML = '<b class="inv-a"></b> t’a glissé une envie&nbsp;: tu la découvres juste après.';
-      r2.innerHTML = 'Tu réponds «&nbsp;J’ai envie aussi&nbsp;», ou «&nbsp;Oui, mais…&nbsp;» en changeant une chose. Puis chacun·e son tour.';
-    } else { r1.innerHTML = r1.dataset.html; r2.innerHTML = r2.dataset.html; }
+      r1.innerHTML = TH('invite.regle-1-envie', { prénom: bA });
+      r2.innerHTML = TH('invite.regle-2-envie');
+    } else { r1.innerHTML = TH('invite.regle-1'); r2.innerHTML = TH('invite.regle-2', { prénom: bA }); }
     document.querySelectorAll('#ov-invited .inv-a').forEach((b) => { b.textContent = A; });
     // Première visite : on découvre le jeu dans l’ambiance de qui invite (chacun·e peut ensuite choisir la sienne)
     if (st.skin && SKINS.includes(st.skin) && !window.KIFF_SKIN_SET) { applySkin(st.skin); window.KIFF_SKIN_SET = true; }
@@ -2733,26 +2793,24 @@
     if (st.phase === 'lobby' && st.cont) {
       const A0 = (st.names && st.names[0] || '').trim() || 'Cerise';
       duoName.value = (st.names && st.names[1]) || load('duoName', '') || '';
-      duoName.placeholder = 'Pistache';
+      duoName.placeholder = T('invite.exemple');
       duoSheet({
         stage: 'join',
-        title: 'On continue à distance',
-        text: A0 + ' et toi continuez votre partie, chacun·e sur son téléphone. Vos kiff kiff vous suivent.',
-        name: true, go: 'Continuer', cancel: 'Jouer sur ce téléphone seulement'
+        title: T('duo.suite'),
+        text: T('duo.suite-texte', { prénom: A0 }),
+        name: true, go: T('duo.suite-ok'), cancel: T('invite.solo')
       });
       return;
     }
     if (st.phase === 'lobby') { showInvited(st); return; }
     duoName.value = load('duoName', '') || '';
-    duoName.placeholder = 'Pistache';
+    duoName.placeholder = T('invite.exemple');
     const A = (st.names && st.names[0] || '').trim() || 'Cerise';
     duoSheet({
       stage: 'join',
-      title: A + ' t’invite',
-      text: st.phase === 'lobby'
-        ? 'Kiff Kiff à deux téléphones : chacun·e joue sur le sien, et c’est toi qui proposes en premier. Écris ton prénom pour rejoindre la partie.'
-        : 'La partie de ' + A + ' est déjà commencée. Écris ton prénom pour la rejoindre.',
-      name: true, go: 'Rejoindre', cancel: 'Jouer sur ce téléphone seulement'
+      title: T('duo.rejoindre-titre', { prénom: A }),
+      text: T(st.phase === 'lobby' ? 'duo.rejoindre-texte' : 'duo.rejoindre-commencee', { prénom: A }),
+      name: true, go: T('duo.rejoindre'), cancel: T('invite.solo')
     });
     setTimeout(() => duoName.focus(), 80);
   }
@@ -2805,7 +2863,7 @@
   function showGift(next, gift) {
     giftNext = { next, gift };
     const A = ((next.names && next.names[0]) || '').trim();
-    $('#gift-title').textContent = A ? A + ' t’a glissé une envie' : 'Une envie t’attend';
+    $('#gift-title').textContent = A ? T('cadeau.titre', { prénom: A }) : T('cadeau.titre-anonyme');
     show(ovGift);
     sSwitchOn(); haptic(30);
     $('#gift-open').focus({ preventScroll: true });
@@ -2845,7 +2903,7 @@
     const id = same && stored.id ? stored.id : (KiffDuoOk() ? window.KiffDuo.newId() : 'x');
     hide(el.ovStart);
     try { history.replaceState(null, '', window.KiffDuo.link(info)); } catch (e) { /* rien */ }
-    duoSheet({ stage: 'connecting', title: 'Kiff Kiff à deux', wait: same ? 'Je retrouve la partie…' : 'Connexion à la partie…', cancel: same ? 'Revenir à l’accueil' : 'Jouer sur ce téléphone seulement' });
+    duoSheet({ stage: 'connecting', title: T('duo.connexion-titre'), wait: same ? T('duo.retrouve') : T('duo.connexion'), cancel: same ? T('duo.accueil') : T('invite.solo') });
     if (!KiffDuoOk()) { duoError('support'); return; }
     // Les deux téléphones doivent avoir les mêmes mots : on attend un instant ceux de l’atelier
     await Promise.race([motsReady, new Promise((r) => setTimeout(r, 4000))]);
@@ -2865,19 +2923,13 @@
   }
 
   function duoError(kind) {
-    const msgs = {
-      support: 'Ce navigateur ne sait pas jouer à deux téléphones. Essaie avec Safari ou Chrome à jour.',
-      net: 'Je n’arrive pas à charger le mode deux téléphones. Vérifie la connexion internet et réessaie.',
-      relay: 'Je n’arrive pas à joindre le relais qui relie les deux téléphones. Vérifie la connexion internet et réessaie.',
-      notfound: 'Je ne trouve pas cette partie. Le lien est peut-être incomplet, ou la partie a été fermée.',
-      ended: 'Cette partie est terminée. Créez-en une nouvelle.',
-      version: 'Vos deux téléphones n’ont pas les mêmes roues. Rechargez la page sur les deux téléphones.'
-    };
+    const msgs = { get support() { return T('duo.erreur-support'); }, get net() { return T('duo.erreur-net'); }, get relay() { return T('duo.erreur-relais'); },
+      get notfound() { return T('duo.erreur-introuvable'); }, get ended() { return T('duo.erreur-finie'); }, get version() { return T('duo.erreur-version'); } };
     const retry = kind === 'net' || kind === 'relay' || kind === 'notfound' || kind === 'version';
     if (kind === 'ended' && duo && duo.info) forgetGame(duo.info.room);
     duoSheet({
-      stage: 'error', title: 'Sur deux téléphones', error: msgs[kind] || msgs.relay,
-      go: retry ? 'Réessayer' : '', cancel: duo && duo.resume && kind !== 'ended' ? 'Revenir à l’accueil' : 'Jouer sur ce téléphone seulement'
+      stage: 'error', title: T('duo.titre'), error: msgs[kind] || msgs.relay,
+      go: retry ? T('duo.reessayer') : '', cancel: duo && duo.resume && kind !== 'ended' ? T('duo.accueil') : T('invite.solo')
     });
     ovDuo.dataset.retry = kind;
   }
@@ -2953,7 +3005,8 @@
   });
   function inviteText() {
     const me = (S.names[0] || '').trim();
-    if (S.gift) return (me ? me + ' t’invite à jouer à Kiff Kiff, et t’a glissé une envie.' : 'On joue à Kiff Kiff ? Une envie t’attend.') + ' Ouvre ce lien sur ton téléphone.';
+    if (S.gift) return me ? T('duo.message-envie', { prénom: me }) : T('duo.message-envie-anonyme');
+    if (!S.rencontre) return me ? T('duo.message', { prénom: me }) : T('duo.message-anonyme');
     const lead = S.rencontre ? (me ? me + ' te propose un jeu avant de vous voir : ' : 'On joue avant de se voir ? ') : (me ? me + ' t’invite à jouer à Kiff Kiff : ' : 'On joue à Kiff Kiff ? ');
     return lead + (/\? $/.test(lead) ? 'Quand' : 'quand') + ' vos envies se rejoignent, c’est kiff kiff. Ouvre ce lien sur ton téléphone.';
   }
@@ -2962,8 +3015,8 @@
     let ok = false;
     try { await navigator.clipboard.writeText(inviteText() + ' ' + url); ok = true; } catch (e) { ok = false; }
     if (ok) report('partage', null, 'invitation-copie');
-    $('#duo-copy').textContent = ok ? 'Invitation copiée' : 'Copie impossible';
-    setTimeout(() => { $('#duo-copy').textContent = 'Copier le lien'; }, 1800);
+    $('#duo-copy').textContent = ok ? T('duo.copiee') : T('duo.copie-impossible');
+    setTimeout(() => { $('#duo-copy').textContent = T('duo.copier'); }, 1800);
   });
   $('#duo-send').addEventListener('click', () => {
     if (!duo || !duo.info) return;
@@ -2976,7 +3029,7 @@
     if (!duo || !duo.info) return;
     audio(); sClick(); haptic(8);
     const url = window.KiffDuo.link(duo.info);
-    const text = 'À toi de jouer sur Kiff Kiff !';
+    const text = T('attente.message');
     report('partage', null, 'prevenir');
     if (typeof navigator.share === 'function') {
       try { await navigator.share({ title: 'Kiff Kiff', text, url }); } catch (e) { /* annulé */ }
@@ -2984,7 +3037,7 @@
     }
     let ok = false;
     try { await navigator.clipboard.writeText(text + ' ' + url); ok = true; } catch (e) { ok = false; }
-    flashPresence(ok ? 'Message copié : colle-le-lui.' : 'Copie impossible.');
+    flashPresence(ok ? T('attente.copie') : T('attente.copie-impossible'));
   });
   $('#wait-home').addEventListener('click', () => el.home.click());
   // Un mot bref à la place de la ligne de présence (copie, avertissements), puis elle revient
@@ -3001,14 +3054,14 @@
     if (!KP) return;
     audio(); sClick(); haptic(8);
     if (pushStatus === 'install') {
-      note('M’avertir sur iPhone', 'Ajoute d’abord Kiff Kiff à ton écran d’accueil : dans Safari, touche Partager, puis « Sur l’écran d’accueil ». Les parties lancées depuis l’icône t’avertiront.');
+      note(T('avertir.iphone'), T('avertir.iphone-texte'));
       return;
     }
     // L’autorisation a pu changer dans les réglages entre-temps : on relit avant de conclure
     if (pushStatus === 'blocked') pushStatus = await KP.status();
     if (pushStatus === 'blocked') {
       renderDuoStatus();
-      note('Avertissements bloqués', blockedHelp());
+      note(T('avertir.bloques'), blockedHelp());
       return;
     }
     if (pushStatus === 'on') {
@@ -3016,7 +3069,7 @@
       pushMine = null;
       pushStatus = 'off';
       pushChanged();
-      flashPresence('Avertissements coupés.');
+      flashPresence(T('avertir.coupes'));
       return;
     }
     btn.disabled = true;
@@ -3027,13 +3080,11 @@
       report('notif', null, 'erreur-' + res.erreur);
       if (res.erreur === 'attente') {
         // La demande du téléphone n’a pas abouti (sur Android, un filtre d’écran ou une bulle par-dessus bloque souvent le bouton)
-        note('Autoriser les avertissements', 'Le téléphone n’a pas enregistré ta réponse. Autorise-les dans ses réglages : appui long sur l’icône Kiff Kiff › Infos sur l’appli › Notifications. Puis touche à nouveau la cloche.');
+        note(T('avertir.autoriser'), T('avertir.autoriser-texte'));
         renderDuoStatus();
         return;
       }
-      note('Avertissements indisponibles', res.erreur === 'cle'
-        ? 'Je n’arrive pas à joindre le service d’avertissements de Kiff Kiff. Vérifie la connexion, puis touche à nouveau la cloche.'
-        : 'Ce navigateur n’arrive pas à activer les avertissements. Touche à nouveau la cloche ; sinon, essaie depuis Chrome, ou depuis l’icône de Kiff Kiff sur l’écran d’accueil.');
+      note(T('avertir.indisponibles'), res.erreur === 'cle' ? T('avertir.service') : T('avertir.navigateur'));
       renderDuoStatus();
       return;
     }
@@ -3042,19 +3093,19 @@
       pushStatus = 'on';
       report('notif', null, 'activee');
       pushChanged();
-      flashPresence('C’est noté : ton téléphone t’avertira.');
+      flashPresence(T('avertir.ok'));
       return;
     }
     pushStatus = await KP.status();
-    if (pushStatus === 'blocked') note('Avertissements bloqués', blockedHelp());
+    if (pushStatus === 'blocked') note(T('avertir.bloques'), blockedHelp());
     renderDuoStatus();
   }
   // Où débloquer, selon le téléphone : sur Android, c’est Chrome qui garde l’autorisation du site
   function blockedHelp() {
     const ua = navigator.userAgent;
-    if (/android/i.test(ua)) return 'Chrome bloque les avertissements de kiff-kiff.fr, même si l’appli les autorise. Dans Chrome : ⋮ › Paramètres › Paramètres des sites › Notifications › kiff-kiff.fr › Autoriser. Puis reviens ici et touche à nouveau la cloche.';
-    if (KP.ios) return 'Ton iPhone bloque les avertissements de Kiff Kiff. Réglages › Notifications › Kiff Kiff › Autoriser les notifications. Puis reviens ici et touche à nouveau la cloche.';
-    return 'Ton navigateur refuse les avertissements de Kiff Kiff. Autorise-les pour kiff-kiff.fr dans ses réglages (le cadenas à gauche de l’adresse), puis touche à nouveau la cloche.';
+    if (/android/i.test(ua)) return T('avertir.bloques-android');
+    if (KP.ios) return T('avertir.bloques-iphone');
+    return T('avertir.bloques-autre');
   }
   $('#wait-notif').addEventListener('click', (e) => toggleNotif(e.currentTarget));
   $('#duo-notif').addEventListener('click', (e) => toggleNotif(e.currentTarget));
@@ -3133,6 +3184,7 @@
       .then((res) => {
         clearTimeout(t);
         if (res && res.meilleurs && typeof res.meilleurs === 'object') { save('meilleurs', res.meilleurs); }
+        if (res && res.textes && typeof res.textes === 'object') receiveTexts(res.textes, res.versionTextes || '');
         if (res && res.ok && validMots(res.mots) && res.version !== window.KIFF_MOTS_VERSION) {
           save('mots', { api: API, version: res.version, mots: res.mots });
           pendingMots = res;
@@ -3142,6 +3194,23 @@
       })
       .catch(() => { clearTimeout(t); resolve(); });
   });
+  /* Les textes changés dans l’atelier : gardés pour la prochaine ouverture du jeu (config.js les pose avant tout) */
+  function receiveTexts(tx, version) {
+    if (version && version === window.KIFF_TEXTES_VERSION) return;
+    const base = window.KIFF_TX_BASE || {};
+    const clean = {};
+    Object.keys(tx).forEach((k) => { if (Object.prototype.hasOwnProperty.call(base, k) && typeof tx[k] === 'string') clean[k] = tx[k].slice(0, 3000); });
+    save('textes', { api: API, version, textes: clean });
+    const notif = {};
+    Object.keys(base).filter((k) => k.startsWith('notifs.')).forEach((k) => { notif[k] = typo(k in clean ? clean[k] : base[k]); });
+    shareNotifTexts(notif);
+  }
+  // Les avertissements sont écrits par le service worker : il lit leurs textes dans une petite réserve
+  function shareNotifTexts(notif) {
+    if (!window.caches) return;
+    if (!notif) { notif = {}; Object.keys(TX).filter((k) => k.startsWith('notifs.')).forEach((k) => { notif[k] = T(k); }); }
+    caches.open('kiffkiff-textes').then((c) => c.put('./textes-notifs.json', new Response(JSON.stringify(notif), { headers: { 'Content-Type': 'application/json' } }))).catch(() => {});
+  }
   function applyPendingMots() {
     if (!pendingMots) return;
     const res = pendingMots;
@@ -3161,6 +3230,8 @@
 
   /* ---------- Démarrage ---------- */
   function init() {
+    applyTexts();
+    shareNotifTexts();
     S.idx = LISTS.map((l) => Math.floor(Math.random() * (l.length - 1)));
     reels = [0, 1, 2].map((r) => new Reel(r));
     renderReels();
@@ -3220,7 +3291,7 @@
       audio();
       if (S.phase !== 'compose' || !myTurn()) {
         sNope(); haptic(20);
-        flashHint('Le piment et le ton se changent quand tu composes.');
+        flashHint(T('roues.refus'));
         return;
       }
       openPiment($('#piment-open'));
@@ -3230,10 +3301,10 @@
       // Le réglage a changé : les roues tournent sur leur nouveau tirage, et on dit ce qu’elles tirent
       if (rouesAvant && rouesSig() !== rouesAvant && S.phase === 'compose' && myTurn()) {
         setTimeout(() => shuffle(false), 120);
-        flashHint('Roues\u00a0: ' + dot(levelNames() + ', ' + TON_TXT[S.ton]));
+        flashHint(T('roues.apres', { piment: levelNames(), ton: TON_TXT[S.ton] }));
       }
       rouesAvant = '';
-      if (S.mustRestart) { $('#resume').hidden = true; $('#welcome-go').textContent = 'Nouvelle partie'; }
+      if (S.mustRestart) { $('#resume').hidden = true; $('#welcome-go').textContent = T('accueil.nouvelle'); }
       if (pimentFrom) pimentFrom.focus({ preventScroll: true });
     };
     $('#piment-done').addEventListener('click', closePiment);
@@ -3278,17 +3349,17 @@
       readNames();
       if (where === 'duo') S.names[1] = '';
       // La deuxième personne propose en premier
-      $('#rule-a').textContent = where === 'duo' ? 'L’autre' : nameOf(1);
+      $('#rule-a').textContent = where === 'duo' ? T('principe.autre') : nameOf(1);
       $('#rule-b').textContent = nameOf(0);
-      $('#piment-go').textContent = where === 'duo' ? 'Inviter l’autre téléphone' : 'C’est parti';
+      $('#piment-go').textContent = where === 'duo' ? T('depart.go-distance') : T('depart.go');
       // À distance, le piment se débloque en jouant : on le montre au lieu de le choisir
       const prog = where === 'duo';
-      $('#pick-title').textContent = prog ? 'Le piment monte en jouant' : 'Quels piments\u00a0?';
-      $('#pick-text').textContent = prog ? 'Vous commencez en Tendre. Le piment ne monte que si vous en avez envie tous les deux.' : 'Touche les niveaux que vous voulez dans les roues.';
+      $('#pick-title').textContent = prog ? T('depart.titre-distance') : T('depart.titre');
+      $('#pick-text').textContent = prog ? T('depart.texte-distance') : T('depart.texte');
       $('#piment-home-list').hidden = prog;
       $('#piment-prog').hidden = !prog;
       if (prog) {
-        const when = ['Pour commencer', 'Il s’ouvre après un kiff kiff chacun·e.', 'Il s’ouvre après un tour en Pimenté.'];
+        const when = [T('depart.tendre-distance'), T('roues.verrou-2'), T('roues.verrou-3')];
         $('#piment-prog').innerHTML = D.niveaux.map((lv, i) => '<div class="piment-toggle' + (i ? ' is-locked' : '') + '"><span class="piment-toggle-body">' +
           '<span class="pgroup pgroup--' + lv.n + ' is-on">' + CHILI.repeat(lv.n) + '</span><span class="piment-toggle-text"><span class="piment-name">' + lv.nom + '</span>' +
           '<span class="piment-tdesc">' + when[i] + '</span></span></span></div>').join('');
@@ -3432,7 +3503,7 @@
     S.phase = 'compose';
     render();
     save('rulesSeen', true);
-    handoffNewTurn(1, 'C’est toi qui proposes en premier.', () => setTimeout(() => shuffle(false, true), 250));
+    handoffNewTurn(1, T('passage.premier'), () => setTimeout(() => shuffle(false, true), 250));
   }
 
   /* Accueil : les parties à deux en cours, avec à qui c’est le tour */
@@ -3451,23 +3522,24 @@
     $('#games-title').hidden = many;
     $('#games-list').hidden = many;
     $('#games-open').hidden = !many;
-    $('#games-open-n').textContent = '(' + list.length + ')';
+    $('#games-open-n').textContent = T('parties.nombre', { nombre: list.length });
     $('#games-badge').hidden = !hot;
     $('#games-badge').textContent = hot;
     $('#games-open').setAttribute('aria-label', 'Parties à distance : ' + list.length + ' partie' + (list.length > 1 ? 's' : '') + (hot ? ', ' + hot + ' où c’est à toi' : ''));
     if (!many && !$('#ov-games').hidden) hide($('#ov-games'));
     const html = list.map((g) => {
       const B = ((g.names || [])[1 - g.seat] || '').trim();
-      const who = B ? 'Avec ' + B : (g.seat === 0 ? 'Invitation envoyée' : 'Partie à deux');
+      const who = B ? T('parties.avec', { prénom: B }) : (g.seat === 0 ? T('parties.invitation') : T('parties.a-deux'));
       const armed = stopArmed === g.room;
-      const turn = armed ? 'Touche encore × : ' + (B || 'l’autre') + ' sera prévenu·e'
-        : fresh(g) ? 'Kiff kiff trouvé ! Viens fêter ça'
-        : g.turn === 'me' ? 'À toi de jouer'
-        : g.turn === 'party' ? 'Kiff kiff trouvé'
-        : g.turn === 'lobby' ? (g.seat === 0 ? 'Personne n’a encore rejoint' : 'À rejoindre')
-        : 'Au tour de ' + (B || 'l’autre');
+      const Bo = B || T('parties.l-autre');
+      const turn = armed ? T('parties.confirmer', { prénom: Bo })
+        : fresh(g) ? T('parties.kiff-neuf')
+        : g.turn === 'me' ? T('parties.a-toi')
+        : g.turn === 'party' ? T('parties.kiff')
+        : g.turn === 'lobby' ? (g.seat === 0 ? T('parties.personne') : T('parties.a-rejoindre'))
+        : T('parties.tour', { prénom: Bo });
       return '<li class="game' + (g.turn === 'me' || fresh(g) ? ' is-mine' : '') + (fresh(g) ? ' is-kiff' : '') + '"><button class="game-btn" type="button" data-room="' + esc(g.room) + '">' +
-        '<span class="game-who">' + esc(who) + (g.nk ? '<span class="game-count"> · ' + g.nk + ' kiff kiff</span>' : '') + '</span><span class="game-turn">' + esc(turn) + '</span></button>' +
+        '<span class="game-who">' + esc(who) + (g.nk ? '<span class="game-count"> · ' + TH('parties.kiffs', { nombre: g.nk }) + '</span>' : '') + '</span><span class="game-turn">' + esc(turn) + '</span></button>' +
         '<button class="game-x' + (armed ? ' is-armed' : '') + '" type="button" data-forget="' + esc(g.room) + '" aria-label="' + (armed ? 'Confirmer : arrêter cette partie' : 'Arrêter cette partie') + '">×</button></li>';
     }).join('');
     $('#games-list').innerHTML = many ? '' : html;
@@ -3513,7 +3585,7 @@
     $('#welcome-go').classList.remove('btn--line');
     // L’accueil redevient l’accueil normal : « Commencer », et la partie quittée rejoint la liste
     renderIntro();
-    $('#welcome-go').textContent = 'Commencer';
+    $('#welcome-go').textContent = T('accueil.commencer');
     $('#resume').hidden = true;
     renderDuoStatus();
     renderGames();
@@ -3580,8 +3652,8 @@
     quitT = 0;
     const b = $('#duo-quit');
     if (!b) return;
-    const B = duo && duo.stage === 'game' ? nameOf(other(duo.seat)) : 'l’autre';
-    b.textContent = on ? 'Touche encore : ' + B + ' sera prévenu·e' : 'Arrêter cette partie';
+    const B = duo && duo.stage === 'game' ? nameOf(other(duo.seat)) : T('parties.l-autre');
+    b.textContent = on ? T('accueil.arreter-confirmer', { prénom: B }) : T('accueil.arreter');
     b.classList.toggle('is-armed', on);
     if (on) quitT = setTimeout(() => quitArmed(false), 4000);
   }
@@ -3598,7 +3670,7 @@
     $('#name1').value = own[1] || '';
     $('#resume').hidden = inDuo || !S.started || !!S.mustRestart;
     $('#home-cont').hidden = !!duo || !S.started || !!S.mustRestart;
-    $('#welcome-go').textContent = S.started ? 'Nouvelle partie' : 'Commencer';
+    $('#welcome-go').textContent = S.started ? T('accueil.nouvelle') : T('accueil.commencer');
     $('#welcome-go').classList.toggle('btn--line', inDuo);
     quitArmed(false);
     if (inDuo && offerKind) hideOffer(); // elle reviendra avec « Reprendre la partie »
@@ -3648,7 +3720,7 @@
         deferred = null;
         btn.hidden = true;
       } else if (ios) {
-        note('Installer Kiff Kiff', 'Dans Safari, touche le bouton Partager (le carré avec une flèche), puis « Sur l’écran d’accueil ».');
+        note(T('installer.titre'), T('installer.iphone'));
       }
     };
     btn.addEventListener('click', () => { audio(); installer.run(); });

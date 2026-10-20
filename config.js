@@ -23,3 +23,15 @@ window.KIFF_API = 'https://script.google.com/macros/s/AKfycby4c2tJl4cb1fWk3C86lt
     }
   } catch (e) { /* rien */ }
 })();
+/* Les textes changés dans l’atelier (onglet « Les textes ») : gardés sur le téléphone, servis dès l’ouverture. */
+(function () {
+  try {
+    var c = JSON.parse(localStorage.getItem('roue:textes') || 'null');
+    if (window.KIFF_API && c && c.api === window.KIFF_API && c.textes && window.KIFF_TX) {
+      Object.keys(c.textes).forEach(function (k) {
+        if (Object.prototype.hasOwnProperty.call(window.KIFF_TX, k) && typeof c.textes[k] === 'string') window.KIFF_TX[k] = c.textes[k];
+      });
+      window.KIFF_TEXTES_VERSION = c.version || '';
+    }
+  } catch (e) { /* rien */ }
+})();

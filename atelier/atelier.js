@@ -38,14 +38,20 @@
     b.classList.toggle('is-error', !!error);
   }
 
+  // Ce que dit le script quand il refuse un enregistrement
+  const refus = (e) => (e === 'absent' ? 'Le mot de passe n’est pas encore réglé dans le script : ajoute la propriété « motdepasse » (Réglages, Mise en place).'
+    : e === 'patiente' ? 'Trop d’essais ratés : l’enregistrement est bloqué dix minutes.'
+    : 'Mot de passe refusé. Vérifie-le dans Réglages.');
+
   /* ---------- Onglets ---------- */
   function showTab(name) {
-    ['stats', 'mots', 'reglages'].forEach((t) => {
+    ['stats', 'mots', 'textes', 'reglages'].forEach((t) => {
       $('#tab-' + t).setAttribute('aria-selected', t === name ? 'true' : 'false');
       $('#panel-' + t).hidden = t !== name;
     });
     store.set('tab', name);
     if (name === 'stats') loadStats();
+    if (name === 'textes') renderTexts();
     if (name === 'mots' && !stats && api) loadStats().then(() => { if (!$('#panel-mots').hidden && !$('#savebar').classList.contains('is-dirty')) renderWords(); });
   }
   $$('.tabs button').forEach((b) => b.addEventListener('click', () => showTab(b.id.slice(4))));
@@ -236,6 +242,25 @@
     $('#dirty').textContent = dirty ? 'Modifications non enregistrées' : 'Aucune modification';
     $('#save').disabled = !dirty;
     ROUES.forEach((r) => { $('[data-count="' + r + '"]').textContent = words[r].filter((x) => x.s.trim()).length; });
+    renderCounts();
+  }
+  /* Combien de mots par piment et par ton : la roue en tire 20, il en faut au moins autant pour chaque réglage.
+     Les mots à ajouter cochés comptent déjà, en plus. */
+  const NEED = 20;
+  function renderCounts() {
+    const box = $('#counts');
+    if (!box) return;
+    let sg = [];
+    try { sg = pending().filter((x) => x.on); } catch (e) { /* pas encore prêt */ }
+    const cell = (n, dc) => {
+      const have = words[roue].filter((x) => x.s.trim() && x.lvl === n && !!x.dc === dc).length;
+      const plus = sg.filter((x) => x.lvl === n && !!x.dc === dc).length;
+      const tot = have + plus;
+      return '<td class="' + (tot >= NEED ? 'is-ok' : 'is-low') + '"><b>' + tot + '</b>' + (plus ? '<span>' + have + ' + ' + plus + '</span>' : '') + '</td>';
+    };
+    box.innerHTML = '<table><caption>Mots par réglage : il en faut ' + NEED + ' pour remplir la roue' + (sg.length ? ' (dans la roue + à ajouter)' : '') + '</caption>' +
+      '<thead><tr><th></th><th scope="col">Premier degré</th><th scope="col">Décalé</th></tr></thead><tbody>' +
+      NIV.map((n) => '<tr><th scope="row">' + esc(n.nom) + '</th>' + cell(n.n, false) + cell(n.n, true) + '</tr>').join('') + '</tbody></table>';
   }
 
   const TRASH = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
@@ -273,7 +298,7 @@
   ROUES.forEach((r) => {
     SUG[r] = ((window.KIFF_SUGGESTIONS || {})[r] || []).map((x) => ({
       id: ++uid, on: true, lvl: x.lvl || 1, dc: !!x.dc, a: !!x.a,
-      s: x.t != null ? x.t : (x.s || ''), i: x.t != null ? '' : (x.i || ''), two: r !== 'action' && x.t == null
+      s: x.t != null ? x.t : (x.s || ''), i: x.t != null ? '' : (x.i || ''), two: r !== 'action' && x.t == null, lot: x.lot || 1
     }));
   });
   const norm = (t) => String(t || '').replace(/\s+/g, ' ').trim().toLowerCase();
@@ -290,8 +315,11 @@
       (x.i || x.two ? '<input type="text" data-k="i" value="' + esc(x.i) + '" maxlength="60" aria-label="Forme après « de te »" placeholder="forme « de te »">' : '') +
       (x.a ? '<span class="sg-note">avec « à »</span>' : '') + '</span></li>';
     box.innerHTML = '<summary><b>Mots à ajouter</b> <span class="n">' + list.length + '</span></summary>' +
-      '<p class="note">Ta sélection, prête à entrer dans la roue. Décoche ceux que tu ne veux pas, corrige si besoin, puis ajoute : ils rejoignent leur niveau, avec leur ton (barjot ou premier degré).</p>' +
-      [1, 2, 3].map((n) => { const l = list.filter((x) => x.lvl === n); return l.length ? '<h4 class="sg-head">' + esc(NIV[n - 1].nom) + '</h4><ul class="sg-list">' + l.map(row).join('') + '</ul>' : ''; }).join('') +
+      '<p class="note">Prêts à entrer dans la roue, rangés par piment et par ton. Décoche ceux que tu ne veux pas, corrige si besoin, puis ajoute. Le tableau au-dessus compte déjà les mots cochés.</p>' +
+      [1, 2, 3].map((n) => [false, true].map((dc) => {
+        const l = list.filter((x) => x.lvl === n && !!x.dc === dc);
+        return l.length ? '<h4 class="sg-head">' + esc(NIV[n - 1].nom) + ' · ' + (dc ? 'décalé' : 'premier degré') + ' <span class="n">' + l.length + '</span></h4><ul class="sg-list">' + l.map(row).join('') + '</ul>' : '';
+      }).join('')).join('') +
       '<div class="row-end"><button class="btn" type="button" id="sugg-add"' + (on ? '' : ' disabled') + '>Ajouter ' + on + ' mot' + (on > 1 ? 's' : '') + ' à la roue</button></div>';
   }
   const sgFind = (el) => { const li = el.closest('.sg'); return li ? SUG[roue].find((x) => x.id === +li.dataset.id) : null; };
@@ -306,6 +334,7 @@
     e.target.closest('.sg').classList.toggle('is-off', !x.on);
     const on = pending().filter((y) => y.on).length, b = $('#sugg-add');
     b.disabled = !on; b.textContent = 'Ajouter ' + on + ' mot' + (on > 1 ? 's' : '') + ' à la roue';
+    renderCounts();
   });
   $('#sugg').addEventListener('click', (e) => {
     if (!e.target.closest('#sugg-add')) return;
@@ -390,6 +419,7 @@
       try {
         const res = await call('GET', { action: 'mots' });
         if (res && res.ok && res.mots) d = res.mots;
+        if (res && res.ok) gotTexts(res);
       } catch (e) { banner('Je n’arrive pas à lire les mots de la feuille. Vérifie l’adresse dans Réglages.', true); }
     }
     if (!d) {
@@ -419,7 +449,7 @@
     $('#dirty').textContent = 'Enregistrement…';
     try {
       const res = await call('POST', null, { action: 'save', motDePasse: pwd, mots: data });
-      if (!res || !res.ok) throw new Error(res && res.erreur === 'mot de passe' ? 'mdp' : 'save');
+      if (!res || !res.ok) throw new Error(res && ['mot de passe', 'absent', 'patiente'].includes(res.erreur) ? 'mdp:' + res.erreur : 'save');
       saved = sig();
       words = fromData(data); saved = sig();
       renderWords();
@@ -436,11 +466,197 @@
         banner('Enregistré, mais l’atelier n’écrit pas à la même adresse que le jeu : vérifie l’adresse dans Réglages.', true);
       } else banner('Enregistré' + (nDc ? ', avec ' + nDc + ' mots décalés' : '') + '. Les téléphones auront les nouveaux mots à leur prochaine partie.');
     } catch (e) {
-      banner(e.message === 'mdp' ? 'Mot de passe refusé. Vérifie-le dans Réglages.' : 'L’enregistrement n’a pas marché. Réessaie dans un instant.', true);
+      banner(e.message.startsWith('mdp:') ? refus(e.message.slice(4)) : 'L’enregistrement n’a pas marché. Réessaie dans un instant.', true);
       markDirty();
     }
   });
-  window.addEventListener('beforeunload', (e) => { if (sig() !== saved) { e.preventDefault(); e.returnValue = ''; } });
+  window.addEventListener('beforeunload', (e) => { if (sig() !== saved || txSig() !== txSavedSig) { e.preventDefault(); e.returnValue = ''; } });
+
+  /* ---------- Les textes de l’appli ----------
+     La liste d’origine vient de textes.js ; la feuille ne garde que les textes changés.
+     Chaque texte montre une capture de l’écran où il s’affiche (ecrans.js, fait par un tour automatique du jeu). */
+  const TXG = window.KIFF_TEXTES || [];
+  const ECR = window.KIFF_ECRANS || { shots: [], ou: {} };
+  const SHOT = {};
+  ECR.shots.forEach((x) => { SHOT[x[0]] = { id: x[0], nom: x[1], groups: x[2], w: x[3], h: x[4] }; });
+  const TBASE = {}, TNOTE = {}, TGRP = {};
+  TXG.forEach((g) => g.textes.forEach((t) => { TBASE[t[0]] = t[1]; TNOTE[t[0]] = t[2] || ''; TGRP[t[0]] = g.id; }));
+  let txSaved = {}; // les textes changés, tels que la feuille les garde
+  let txCur = Object.assign({}, TBASE); // les textes à l’écran
+  let txScript = null; // le script en ligne sait-il garder les textes ?
+  const txOver = () => { const o = {}; Object.keys(TBASE).forEach((k) => { if (txCur[k] !== TBASE[k]) o[k] = txCur[k]; }); return o; };
+  const txSig = () => JSON.stringify(txOver());
+  let txSavedSig = '{}';
+  let txOpen = new Set(store.get('txOpen', []));
+  function gotTexts(res) {
+    txScript = Object.prototype.hasOwnProperty.call(res, 'textes');
+    if (txSig() !== txSavedSig) return; // des changements en cours : on ne les écrase pas
+    txSaved = {};
+    Object.keys(res.textes || {}).forEach((k) => { if (k in TBASE && typeof res.textes[k] === 'string') txSaved[k] = res.textes[k]; });
+    txCur = Object.assign({}, TBASE, txSaved);
+    txSavedSig = txSig();
+    if (!$('#panel-textes').hidden) renderTexts();
+  }
+  const vars = (t) => (String(t).match(/\{[^{}]+\}/g) || []);
+  function txWarn(k) {
+    const want = vars(TBASE[k]), have = vars(txCur[k]);
+    const miss = want.filter((v) => !have.includes(v)), extra = have.filter((v) => !want.includes(v));
+    const w = [];
+    if (miss.length) w.push('Il manque ' + miss.join(', ') + '.');
+    if (extra.length) w.push(extra.join(', ') + ' ne sera pas remplacé.');
+    if (!txCur[k].trim() && TBASE[k].trim()) w.push('Vide : rien ne s’affichera.');
+    return w.join(' ');
+  }
+  // La capture : un cadrage autour du texte, ou l’écran entier
+  function shotOf(k) {
+    const o = ECR.ou[k];
+    if (o && SHOT[o[0]]) return { s: SHOT[o[0]], r: o.slice(1, 5), alt: !!o[5] };
+    const g = ECR.shots.find((x) => x[2].includes(TGRP[k]));
+    return g ? { s: SHOT[g[0]], r: null } : null;
+  }
+  function shotSvg(sh, big) {
+    const { s, r } = sh, W = s.w, H = s.h;
+    let vb = [0, 0, W, H];
+    if (r && !big) {
+      const ratio = 2.2, pad = W * 0.05;
+      let w = Math.min(W, Math.max(r[2] + pad * 2, W * 0.6)), h = w / ratio;
+      if (r[3] + pad * 2 > h) { h = Math.min(H, r[3] + pad * 2); w = Math.min(W, h * ratio); }
+      const x = Math.max(0, Math.min(W - w, r[0] + r[2] / 2 - w / 2)), y = Math.max(0, Math.min(H - h, r[1] + r[3] / 2 - h / 2));
+      vb = [x, y, w, h];
+    }
+    const sw = Math.max(2, (big ? W : vb[2]) / 120);
+    return '<svg viewBox="' + vb.map((v) => Math.round(v)).join(' ') + '" preserveAspectRatio="xMidYMid meet" aria-hidden="true">' +
+      '<image href="ecrans/' + s.id + '.webp" width="' + W + '" height="' + H + '"/>' +
+      (r ? '<rect x="' + (r[0] - 5) + '" y="' + (r[1] - 5) + '" width="' + (r[2] + 10) + '" height="' + (r[3] + 10) + '" rx="8" fill="none" stroke="#FFD34D" stroke-width="' + sw + '"/>' : '') + '</svg>';
+  }
+  const isNotif = (k) => k.startsWith('notifs.');
+  const isMsg = (k) => /^(tukiffes\.message|duo\.message|attente\.message)/.test(k);
+  function visualHtml(k) {
+    if (isNotif(k)) return '<div class="tx-mock tx-mock--notif"><b>Kiff Kiff</b><span data-live="' + k + '">' + esc(txCur[k]) + '</span></div>';
+    if (isMsg(k)) return '<div class="tx-mock tx-mock--msg"><span data-live="' + k + '">' + esc(txCur[k]) + '</span> <u>https://kiff-kiff.fr/…</u></div>';
+    const sh = shotOf(k);
+    if (!sh) return '<div class="tx-mock">' + esc(TNOTE[k] || 'Dans certains cas seulement') + '</div>';
+    return '<button class="tx-shot' + (sh.r ? '' : ' is-whole') + '" type="button" data-shot="' + k + '" aria-label="Voir l’écran en grand : ' + esc(sh.s.nom) + '">' + shotSvg(sh, false) + '</button>';
+  }
+  function itemHtml(k) {
+    const sh = !isNotif(k) && !isMsg(k) ? shotOf(k) : null;
+    const where = TNOTE[k] + (sh && sh.alt ? ' (la capture montre un autre cas, au même endroit)' : sh && !sh.r ? ' (n’apparaît pas sur la capture : seulement dans certains cas)' : '');
+    const changed = txCur[k] !== TBASE[k], w = txWarn(k);
+    return '<div class="tx' + (changed ? ' is-changed' : '') + '" data-k="' + k + '">' + visualHtml(k) +
+      '<p class="tx-where">' + esc(where) + '</p>' +
+      '<textarea rows="1" data-k="' + k + '" aria-label="' + esc(TNOTE[k]) + '">' + esc(txCur[k]) + '</textarea>' +
+      '<div class="tx-foot"><span class="tx-warn">' + esc(w) + '</span><button class="tx-reset" type="button"' + (changed ? '' : ' hidden') + '>Revenir au texte d’origine</button></div></div>';
+  }
+  const fit = (ta) => { ta.style.height = 'auto'; ta.style.height = ta.scrollHeight + 2 + 'px'; };
+  const nrm = (t) => String(t).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+  function renderTexts() {
+    const box = $('#tx-groups');
+    const q = nrm($('#tx-q').value.trim()), only = $('#tx-only').getAttribute('aria-pressed') === 'true';
+    const keep = (k) => (!only || txCur[k] !== TBASE[k]) && (!q || nrm(txCur[k]).includes(q) || nrm(TBASE[k]).includes(q) || nrm(TNOTE[k]).includes(q));
+    box.innerHTML = TXG.map((g) => {
+      const ks = g.textes.map((t) => t[0]).filter(keep);
+      if (!ks.length) return '';
+      const nch = g.textes.filter((t) => txCur[t[0]] !== TBASE[t[0]]).length;
+      const open = q || only || txOpen.has(g.id);
+      return '<details class="tx-group" data-g="' + g.id + '"' + (open ? ' open' : '') + '><summary><b>' + esc(g.nom) + '</b> <span class="n">' + ks.length + '</span>' +
+        (nch ? '<span class="tx-badge">' + nch + ' changé' + (nch > 1 ? 's' : '') + '</span>' : '') + '</summary>' +
+        '<div class="tx-list">' + (open ? ks.map(itemHtml).join('') : '') + '</div></details>';
+    }).join('') || '<p class="empty">Aucun texte ne correspond.</p>';
+    $$('#tx-groups textarea').forEach(fit);
+    markTx();
+  }
+  function markTx() {
+    const dirty = txSig() !== txSavedSig;
+    $('#tx-savebar').classList.toggle('is-dirty', dirty);
+    const n = Object.keys(txOver()).length;
+    $('#tx-dirty').textContent = dirty ? 'Textes non enregistrés' : n ? n + ' texte' + (n > 1 ? 's' : '') + ' changé' + (n > 1 ? 's' : '') + ' dans l’appli' : 'Aucune modification';
+    $('#tx-save').disabled = !dirty;
+  }
+  $('#tx-groups').addEventListener('toggle', (e) => {
+    const d = e.target;
+    if (!d.classList || !d.classList.contains('tx-group')) return;
+    const id = d.dataset.g;
+    if (d.open) {
+      txOpen.add(id);
+      const list = d.querySelector('.tx-list');
+      if (!list.children.length) {
+        const g = TXG.find((x) => x.id === id);
+        list.innerHTML = g.textes.map((t) => itemHtml(t[0])).join('');
+        list.querySelectorAll('textarea').forEach(fit);
+      }
+    } else txOpen.delete(id);
+    store.set('txOpen', [...txOpen]);
+  }, true);
+  $('#tx-groups').addEventListener('input', (e) => {
+    const ta = e.target.closest('textarea[data-k]');
+    if (!ta) return;
+    const k = ta.dataset.k;
+    txCur[k] = ta.value;
+    fit(ta);
+    const it = ta.closest('.tx');
+    it.classList.toggle('is-changed', txCur[k] !== TBASE[k]);
+    it.querySelector('.tx-reset').hidden = txCur[k] === TBASE[k];
+    it.querySelector('.tx-warn').textContent = txWarn(k);
+    const live = it.querySelector('[data-live]');
+    if (live) live.textContent = txCur[k];
+    markTx();
+  });
+  $('#tx-groups').addEventListener('click', (e) => {
+    const rs = e.target.closest('.tx-reset');
+    if (rs) {
+      const it = rs.closest('.tx'), k = it.dataset.k;
+      txCur[k] = TBASE[k];
+      it.outerHTML = itemHtml(k);
+      const ta = $('#tx-groups textarea[data-k="' + k + '"]');
+      if (ta) fit(ta);
+      markTx();
+      return;
+    }
+    const b = e.target.closest('[data-shot]');
+    if (b) openShot(b.dataset.shot);
+  });
+  $('#tx-q').addEventListener('input', renderTexts);
+  $('#tx-only').addEventListener('click', (e) => {
+    const b = e.currentTarget;
+    b.setAttribute('aria-pressed', b.getAttribute('aria-pressed') === 'true' ? 'false' : 'true');
+    renderTexts();
+  });
+  // L’écran en grand, le texte entouré
+  function openShot(k) {
+    const sh = shotOf(k);
+    if (!sh) return;
+    let d = $('#tx-box');
+    if (!d) {
+      d = document.createElement('div');
+      d.id = 'tx-box'; d.className = 'tx-box'; d.setAttribute('role', 'dialog'); d.setAttribute('aria-modal', 'true');
+      document.body.appendChild(d);
+      d.addEventListener('click', () => { d.hidden = true; });
+      document.addEventListener('keydown', (ev) => { if (ev.key === 'Escape') d.hidden = true; });
+    }
+    d.innerHTML = '<figure>' + shotSvg(sh, true) + '<figcaption>' + esc(sh.s.nom) + ' · touche pour fermer</figcaption></figure>';
+    d.setAttribute('aria-label', sh.s.nom);
+    d.hidden = false;
+  }
+  $('#tx-save').addEventListener('click', async () => {
+    if (!api) { banner('Branche d’abord la feuille Google (onglet Réglages).', true); showTab('reglages'); return; }
+    if (!pwd) { banner('Écris le mot de passe de l’atelier dans Réglages.', true); showTab('reglages'); return; }
+    const over = txOver();
+    $('#tx-save').disabled = true;
+    $('#tx-dirty').textContent = 'Enregistrement…';
+    try {
+      const res = await call('POST', null, { action: 'textes', motDePasse: pwd, textes: over });
+      if (!res || !res.ok) throw new Error(res && ['mot de passe', 'absent', 'patiente', 'action'].includes(res.erreur) ? 'e:' + res.erreur : 'save');
+      txSaved = over; txSavedSig = txSig();
+      renderTexts();
+      const n = Object.keys(over).length;
+      banner(n ? 'Textes enregistrés : ' + n + ' changé' + (n > 1 ? 's' : '') + '. Les téléphones les auront à la prochaine ouverture du jeu.' : 'Enregistré : l’appli reprend tous ses textes d’origine.');
+    } catch (e) {
+      const k = e.message.startsWith('e:') ? e.message.slice(2) : '';
+      banner(k === 'action' ? 'Le script en ligne ne connaît pas encore les textes : recolle-le, puis Déployer › Gérer les déploiements › Nouvelle version (Réglages).'
+        : k ? refus(k) : 'L’enregistrement n’a pas marché. Réessaie dans un instant.', true);
+      markTx();
+    }
+  });
 
   /* ---------- Réglages ---------- */
   $('#api').value = api;
@@ -456,7 +672,7 @@
       const st = await call('GET', { action: 'stats' });
       if (!st || !st.ok) throw new Error();
       const ck = await call('POST', null, { action: 'check', motDePasse: pwd });
-      out.innerHTML = '<span class="ok">Feuille joignable</span> · ' + (ck && ck.ok ? '<span class="ok">mot de passe accepté</span>' : '<span class="ko">mot de passe refusé</span>');
+      out.innerHTML = '<span class="ok">Feuille joignable</span> · ' + (ck && ck.ok ? '<span class="ok">mot de passe accepté</span>' : '<span class="ko">' + esc(refus(ck && ck.erreur)) + '</span>');
       banner('');
       loadWords();
     } catch (e) {
@@ -479,6 +695,6 @@
   /* ---------- Démarrage ---------- */
   if (!api) banner('La feuille Google n’est pas encore branchée : les statistiques et l’enregistrement des mots attendent la mise en place (onglet Réglages).');
   const first = location.hash.slice(1) || store.get('tab', 'stats');
-  showTab(['stats', 'mots', 'reglages'].includes(first) ? first : 'stats');
+  showTab(['stats', 'mots', 'textes', 'reglages'].includes(first) ? first : 'stats');
   loadWords();
 })();

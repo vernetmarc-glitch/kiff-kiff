@@ -153,7 +153,7 @@
   <p class="duo-status" id="duo-status" hidden></p>
 
   <p class="switch switch--top is-static" id="sw-top" aria-checked="true">
-    <span class="sw-text"><span class="sw-label ink" data-ink="J’ai envie…">J’ai envie…</span><span class="sw-owner" id="owner-top"></span></span>
+    <span class="sw-text"><span class="sw-label ink" data-ink="J’ai envie…" data-t="jeu.titre">J’ai envie…</span><span class="sw-owner" id="owner-top"></span></span>
     <button class="sticker kiffs-btn" id="kiffs-open" type="button" aria-haspopup="dialog" hidden><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><use href="#i-kiff"/></svg><span class="kiffs-n" id="kiffs-n"></span><span class="kiffs-word">kiff kiff</span></button>
   </p>
 
@@ -164,16 +164,16 @@
         <span class="dir-or" aria-hidden="true">/</span>
         <button type="button" data-dir="te" aria-pressed="false">de te</button>
       </div>
-      <button class="stamp stamp--dir" type="button" tabindex="-1" aria-label="Annuler ce changement"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 12a7.5 7.5 0 1 0 2.4-5.5" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/><path d="M4 3.8v4.6h4.6" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="stamp-txt">annuler</span></button>
+      <button class="stamp stamp--dir" type="button" tabindex="-1" aria-label="Annuler ce changement"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 12a7.5 7.5 0 1 0 2.4-5.5" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/><path d="M4 3.8v4.6h4.6" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="stamp-txt" data-t="jeu.annuler">annuler</span></button>
       <button class="sticker sticker--dice" id="dice" type="button" aria-label="Au hasard">
         <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="4.5" fill="none" stroke="currentColor" stroke-width="2.2"/><g fill="currentColor"><circle cx="8.2" cy="8.2" r="1.6"/><circle cx="15.8" cy="15.8" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="15.8" cy="8.2" r="1.6"/><circle cx="8.2" cy="15.8" r="1.6"/></g></svg>
-        <span>Hasard</span>
+        <span data-t="jeu.hasard">Hasard</span>
       </button>
     </div>
     <div class="strips">
-      <div class="reel strip strip--pink" data-reel="0" tabindex="0" role="spinbutton" aria-label="Action"><div class="reel-strip"></div><span class="reel-shade" aria-hidden="true"></span><button class="reel-loupe" type="button" tabindex="-1" aria-label="Chercher dans l’action"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-loupe"/></svg></button><button class="stamp" type="button" tabindex="-1" aria-label="Annuler ce changement"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 12a7.5 7.5 0 1 0 2.4-5.5" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/><path d="M4 3.8v4.6h4.6" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="stamp-txt">annuler</span></button></div>
-      <div class="reel strip strip--blue" data-reel="1" tabindex="0" role="spinbutton" aria-label="Endroit"><div class="reel-strip"></div><span class="reel-shade" aria-hidden="true"></span><button class="reel-loupe" type="button" tabindex="-1" aria-label="Chercher dans l’endroit"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-loupe"/></svg></button><button class="stamp" type="button" tabindex="-1" aria-label="Annuler ce changement"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 12a7.5 7.5 0 1 0 2.4-5.5" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/><path d="M4 3.8v4.6h4.6" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="stamp-txt">annuler</span></button></div>
-      <div class="reel strip strip--pink2" data-reel="2" tabindex="0" role="spinbutton" aria-label="Manière"><div class="reel-strip"></div><span class="reel-shade" aria-hidden="true"></span><button class="reel-loupe" type="button" tabindex="-1" aria-label="Chercher dans la manière"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-loupe"/></svg></button><button class="stamp" type="button" tabindex="-1" aria-label="Annuler ce changement"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 12a7.5 7.5 0 1 0 2.4-5.5" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/><path d="M4 3.8v4.6h4.6" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="stamp-txt">annuler</span></button></div>
+      <div class="reel strip strip--pink" data-reel="0" tabindex="0" role="spinbutton" aria-label="Action"><div class="reel-strip"></div><span class="reel-shade" aria-hidden="true"></span><button class="reel-loupe" type="button" tabindex="-1" aria-label="Chercher dans l’action"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-loupe"/></svg></button><button class="stamp" type="button" tabindex="-1" aria-label="Annuler ce changement"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 12a7.5 7.5 0 1 0 2.4-5.5" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/><path d="M4 3.8v4.6h4.6" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="stamp-txt" data-t="jeu.annuler">annuler</span></button></div>
+      <div class="reel strip strip--blue" data-reel="1" tabindex="0" role="spinbutton" aria-label="Endroit"><div class="reel-strip"></div><span class="reel-shade" aria-hidden="true"></span><button class="reel-loupe" type="button" tabindex="-1" aria-label="Chercher dans l’endroit"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-loupe"/></svg></button><button class="stamp" type="button" tabindex="-1" aria-label="Annuler ce changement"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 12a7.5 7.5 0 1 0 2.4-5.5" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/><path d="M4 3.8v4.6h4.6" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="stamp-txt" data-t="jeu.annuler">annuler</span></button></div>
+      <div class="reel strip strip--pink2" data-reel="2" tabindex="0" role="spinbutton" aria-label="Manière"><div class="reel-strip"></div><span class="reel-shade" aria-hidden="true"></span><button class="reel-loupe" type="button" tabindex="-1" aria-label="Chercher dans la manière"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-loupe"/></svg></button><button class="stamp" type="button" tabindex="-1" aria-label="Annuler ce changement"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 12a7.5 7.5 0 1 0 2.4-5.5" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/><path d="M4 3.8v4.6h4.6" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="stamp-txt" data-t="jeu.annuler">annuler</span></button></div>
     </div>
   </section>
 
@@ -192,60 +192,60 @@
         <div class="sheet welcome">
           <svg class="emblem" viewBox="0 0 168 124" aria-hidden="true"><use href="#emblem"/></svg>
           <h2 class="poster-title"><span class="ink" data-ink="Kiff">Kiff</span><span class="ink" data-ink="Kiff">Kiff</span></h2>
-          <p class="welcome-intro" id="welcome-intro" hidden>Trois roues pour se proposer des envies, et savourer celles que vous partagez.</p>
+          <p class="welcome-intro" id="welcome-intro" hidden data-t="accueil.intro">Trois roues pour se proposer des envies, et savourer celles que vous partagez.</p>
           <div class="duo-home" id="duo-home" hidden>
             <p class="duo-home-text" id="duo-home-text"></p>
-            <button class="btn" id="duo-resume" type="button">Reprendre la partie</button>
-            <button class="link-btn" id="duo-quit" type="button">Arrêter cette partie</button>
+            <button class="btn" id="duo-resume" type="button" data-t="accueil.reprendre-duo">Reprendre la partie</button>
+            <button class="link-btn" id="duo-quit" type="button" data-t="accueil.arreter">Arrêter cette partie</button>
           </div>
-          <button class="btn" id="welcome-go" type="button">Commencer</button>
-          <p class="age-note">Réservé aux adultes&nbsp;: en jouant, tu confirmes avoir 18&nbsp;ans ou plus.</p>
-          <button class="link-btn resume-link" id="resume" type="button" hidden>Reprendre la partie en cours</button>
+          <button class="btn" id="welcome-go" type="button" data-t="accueil.commencer">Commencer</button>
+          <p class="age-note" data-t="accueil.age">Réservé aux adultes&nbsp;: en jouant, tu confirmes avoir 18&nbsp;ans ou plus.</p>
+          <button class="link-btn resume-link" id="resume" type="button" hidden data-t="accueil.reprendre">Reprendre la partie en cours</button>
           <div class="games" id="games" hidden>
-            <p class="games-title" id="games-title">Vos parties à deux</p>
+            <p class="games-title" id="games-title" data-t="accueil.parties">Vos parties à deux</p>
             <ul class="games-list" id="games-list"></ul>
             <!-- Plus d’une partie à distance : tout passe derrière un seul bouton, avec un badge d’activité -->
-            <button class="games-open" id="games-open" type="button" aria-haspopup="dialog" hidden><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-telephones"/></svg><span class="games-open-text">Parties à distance <span class="games-open-n" id="games-open-n"></span></span><span class="badge" id="games-badge" hidden></span></button>
+            <button class="games-open" id="games-open" type="button" aria-haspopup="dialog" hidden><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-telephones"/></svg><span class="games-open-text" data-t="accueil.parties-bouton">Parties à distance <span class="games-open-n" id="games-open-n" data-tk="nombre"></span></span><span class="badge" id="games-badge" hidden></span></button>
           </div>
           <nav class="home-icons" aria-label="Réglages et partage">
-            <button class="icon-btn" id="skin-open" type="button" aria-haspopup="dialog"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-ambiance"/></svg><span class="icon-label">Ambiance<span class="sr-only">&nbsp;: <span id="skin-current">Red Corner</span></span></span></button>
-            <button class="icon-btn" id="mute" type="button" aria-pressed="false"><svg class="ic ic--on" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-son"/></svg><svg class="ic ic--off" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-muet"/></svg><span class="icon-label">Son<span class="sr-only">&nbsp;: <span id="mute-state">activé</span></span></span></button>
-            <button class="icon-btn" id="home-cont" type="button" hidden><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-telephones"/></svg><span class="icon-label">À distance<span class="sr-only"> : continuer la partie sur deux téléphones</span></span></button>
-            <button class="icon-btn" id="install" type="button" hidden><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-installer"/></svg><span class="icon-label">Installer<span class="sr-only"> l’appli</span></span></button>
-            <button class="icon-btn" id="home-deal" type="button" aria-haspopup="dialog"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-tourner"/></svg><span class="icon-label">Tu kiffes&nbsp;?<span class="sr-only"> Partager le jeu, offrir un café, l’histoire du jeu</span></span></button>
+            <button class="icon-btn" id="skin-open" type="button" aria-haspopup="dialog"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-ambiance"/></svg><span class="icon-label"><span data-t="accueil.ambiance">Ambiance</span><span class="sr-only">&nbsp;: <span id="skin-current">Red Corner</span></span></span></button>
+            <button class="icon-btn" id="mute" type="button" aria-pressed="false"><svg class="ic ic--on" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-son"/></svg><svg class="ic ic--off" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-muet"/></svg><span class="icon-label"><span data-t="accueil.son">Son</span><span class="sr-only">&nbsp;: <span id="mute-state">activé</span></span></span></button>
+            <button class="icon-btn" id="home-cont" type="button" hidden><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-telephones"/></svg><span class="icon-label"><span data-t="accueil.distance">À distance</span><span class="sr-only"> : continuer la partie sur deux téléphones</span></span></button>
+            <button class="icon-btn" id="install" type="button" hidden><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-installer"/></svg><span class="icon-label"><span data-t="accueil.installer">Installer</span><span class="sr-only"> l’appli</span></span></button>
+            <button class="icon-btn" id="home-deal" type="button" aria-haspopup="dialog"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-tourner"/></svg><span class="icon-label"><span data-t="accueil.tukiffes">Tu kiffes&nbsp;?</span><span class="sr-only"> Partager le jeu, offrir un café, l’histoire du jeu</span></span></button>
           </nav>
         </div>
       </section>
 
       <section class="step" data-step="1" aria-labelledby="players-title">
         <form class="sheet step-sheet start-form" id="start-form" novalidate>
-          <h2 class="step-title" id="players-title">Qui joue&nbsp;?</h2>
-          <label for="name0">Ton prénom</label>
-          <input id="name0" maxlength="20" autocomplete="off" placeholder="Cerise" enterkeyhint="next">
-          <p class="where-label" id="where-label">L’autre joue…</p>
+          <h2 class="step-title" id="players-title" data-t="joueurs.titre">Qui joue&nbsp;?</h2>
+          <label for="name0" data-t="joueurs.ton-prenom">Ton prénom</label>
+          <input id="name0" maxlength="20" autocomplete="off" placeholder="Cerise" enterkeyhint="next" data-t-ph="joueurs.exemple-1">
+          <p class="where-label" id="where-label" data-t="joueurs.ou">L’autre joue…</p>
           <div class="where" role="group" aria-labelledby="where-label">
-            <button class="where-btn" type="button" data-where="here" aria-pressed="true">Sur ce téléphone</button>
-            <button class="where-btn" type="button" data-where="duo" aria-pressed="false">Sur son téléphone</button>
+            <button class="where-btn" type="button" data-where="here" aria-pressed="true" data-t="joueurs.ici">Sur ce téléphone</button>
+            <button class="where-btn" type="button" data-where="duo" aria-pressed="false" data-t="joueurs.distance">Sur son téléphone</button>
           </div>
           <div class="name1-box" id="name1-box">
-            <label for="name1">Son prénom (c’est l’autre qui commence)</label>
-            <input id="name1" maxlength="20" autocomplete="off" placeholder="Pistache" enterkeyhint="go">
+            <label for="name1" data-t="joueurs.son-prenom">Son prénom (c’est l’autre qui commence)</label>
+            <input id="name1" maxlength="20" autocomplete="off" placeholder="Pistache" enterkeyhint="go" data-t-ph="joueurs.exemple-2">
           </div>
-          <button class="btn" type="submit" id="start-go">Suivant</button>
-          <button class="link-btn step-back" type="button"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-retour"/></svg>Retour</button>
+          <button class="btn" type="submit" id="start-go" data-t="joueurs.suivant">Suivant</button>
+          <button class="link-btn step-back" type="button"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-retour"/></svg><span data-t="joueurs.retour">Retour</span></button>
         </form>
       </section>
 
       <section class="step" data-step="2" aria-labelledby="rules-title">
         <div class="sheet step-sheet">
-          <h2 class="step-title" id="rules-title">Le principe</h2>
+          <h2 class="step-title" id="rules-title" data-t="principe.titre">Le principe</h2>
           <ol class="rules rules--ic">
-            <li><svg class="ic rule-ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-roues"/></svg><b id="rule-a">Cerise</b> compose une envie avec trois roues.</li>
-            <li><svg class="ic rule-ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-ajuster"/></svg><b id="rule-b">Pistache</b> dit «&nbsp;J’ai envie aussi&nbsp;», ou «&nbsp;Oui, mais…&nbsp;» et change une seule chose.</li>
-            <li><svg class="ic rule-ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-kiff"/></svg>Un kiff kiff, c’est quand vos deux envies se rejoignent. On peut passer à tout moment, sans se justifier.</li>
+            <li><svg class="ic rule-ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-roues"/></svg><span data-t="principe.1"><b id="rule-a" data-tk="prénom">Cerise</b> compose une envie avec trois roues.</span></li>
+            <li><svg class="ic rule-ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-ajuster"/></svg><span data-t="principe.2"><b id="rule-b" data-tk="prénom">Pistache</b> dit «&nbsp;J’ai envie aussi&nbsp;», ou «&nbsp;Oui, mais…&nbsp;» et change une seule chose.</span></li>
+            <li><svg class="ic rule-ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-kiff"/></svg><span data-t="principe.3">Un kiff kiff, c’est quand vos deux envies se rejoignent. On peut passer à tout moment, sans se justifier.</span></li>
           </ol>
-          <button class="btn" id="rules-ok" type="button">Compris</button>
-          <button class="link-btn step-back" type="button"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-retour"/></svg>Retour</button>
+          <button class="btn" id="rules-ok" type="button" data-t="principe.ok">Compris</button>
+          <button class="link-btn step-back" type="button"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-retour"/></svg><span data-t="joueurs.retour">Retour</span></button>
         </div>
       </section>
 
@@ -255,10 +255,10 @@
           <p class="step-text" id="pick-text">Touche les niveaux que vous voulez dans les roues.</p>
           <div class="piment-list" id="piment-home-list" role="group" aria-labelledby="pick-title"></div>
           <div class="piment-list piment-prog" id="piment-prog" hidden></div>
-          <p class="piment-error" id="piment-home-error" hidden role="alert">Garde au moins un niveau coché.</p>
+          <p class="piment-error" id="piment-home-error" hidden role="alert" data-t="depart.erreur">Garde au moins un niveau coché.</p>
           <label class="rencontre" id="rencontre-box" hidden data-retire="piment progressif"><input type="checkbox" id="rencontre"><span><b>On ne s’est pas encore vus.</b> On commence en Tendre ; le piment ne montera que si vous êtes d’accord tous les deux.</span></label>
           <button class="btn" id="piment-go" type="button">C’est parti</button>
-          <button class="link-btn step-back" type="button"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-retour"/></svg>Retour</button>
+          <button class="link-btn step-back" type="button"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-retour"/></svg><span data-t="joueurs.retour">Retour</span></button>
         </div>
       </section>
     </div>
@@ -275,35 +275,35 @@
           <svg class="emblem" viewBox="0 0 168 124" aria-hidden="true"><use href="#emblem"/></svg>
           <h2 class="poster-title" id="inv-title"><span class="ink" data-ink="Kiff">Kiff</span><span class="ink" data-ink="Kiff">Kiff</span></h2>
           <p class="inv-from"><b class="inv-a">Cerise</b> t’invite à jouer, chacun·e sur son téléphone.</p>
-          <p class="poster-sub">Trois roues pour se proposer des envies, et savourer celles que vous partagez.</p>
-          <button class="btn" id="inv-go" type="button">Comment on joue&nbsp;?</button>
-          <p class="age-note">Réservé aux adultes&nbsp;: en jouant, tu confirmes avoir 18&nbsp;ans ou plus.</p>
+          <p class="poster-sub" data-t="invite.accroche">Trois roues pour se proposer des envies, et savourer celles que vous partagez.</p>
+          <button class="btn" id="inv-go" type="button" data-t="invite.comment">Comment on joue&nbsp;?</button>
+          <p class="age-note" data-t="accueil.age">Réservé aux adultes&nbsp;: en jouant, tu confirmes avoir 18&nbsp;ans ou plus.</p>
         </div>
       </section>
 
       <section class="step" data-step="1" aria-labelledby="inv-rules-title">
         <div class="sheet step-sheet">
-          <h2 class="step-title" id="inv-rules-title">Le principe</h2>
+          <h2 class="step-title" id="inv-rules-title" data-t="invite.principe">Le principe</h2>
           <ol class="rules rules--ic">
             <li><svg class="ic rule-ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-roues"/></svg><span id="inv-rule-1"><b>Tu commences</b>&nbsp;: trois roues, «&nbsp;J’ai envie que tu me…&nbsp;».</span></li>
             <li><svg class="ic rule-ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-ajuster"/></svg><span id="inv-rule-2"><b class="inv-a">Cerise</b> répond «&nbsp;J’ai envie aussi&nbsp;», ou «&nbsp;Oui, mais…&nbsp;» en changeant une chose.</span></li>
-            <li><svg class="ic rule-ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-kiff"/></svg>Vos envies se rejoignent&nbsp;: kiff kiff. On passe quand on veut, sans se justifier.</li>
+            <li><svg class="ic rule-ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-kiff"/></svg><span data-t="invite.regle-3">Vos envies se rejoignent&nbsp;: kiff kiff. On passe quand on veut, sans se justifier.</span></li>
           </ol>
           <p class="step-text inv-piments" id="inv-piments"></p>
-          <button class="btn" id="inv-ok" type="button">Compris</button>
-          <button class="link-btn step-back" type="button"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-retour"/></svg>Retour</button>
+          <button class="btn" id="inv-ok" type="button" data-t="invite.ok">Compris</button>
+          <button class="link-btn step-back" type="button"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-retour"/></svg><span data-t="joueurs.retour">Retour</span></button>
         </div>
       </section>
 
       <section class="step" data-step="2" aria-labelledby="inv-name-title">
         <form class="sheet step-sheet start-form" id="inv-form" novalidate>
-          <h2 class="step-title" id="inv-name-title">Et toi&nbsp;?</h2>
-          <label for="inv-name">Ton prénom</label>
-          <input id="inv-name" maxlength="20" autocomplete="off" placeholder="Pistache" enterkeyhint="go">
+          <h2 class="step-title" id="inv-name-title" data-t="invite.toi">Et toi&nbsp;?</h2>
+          <label for="inv-name" data-t="invite.ton-prenom">Ton prénom</label>
+          <input id="inv-name" maxlength="20" autocomplete="off" placeholder="Pistache" enterkeyhint="go" data-t-ph="invite.exemple">
           <p class="step-text" id="inv-name-help">Cerise le verra sur son téléphone.</p>
-          <button class="btn" type="submit" id="inv-join">Rejoindre la partie</button>
-          <button class="link-btn" type="button" id="inv-solo">Jouer sur ce téléphone seulement</button>
-          <button class="link-btn step-back" type="button"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-retour"/></svg>Retour</button>
+          <button class="btn" type="submit" id="inv-join" data-t="invite.rejoindre">Rejoindre la partie</button>
+          <button class="link-btn" type="button" id="inv-solo" data-t="invite.solo">Jouer sur ce téléphone seulement</button>
+          <button class="link-btn step-back" type="button"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-retour"/></svg><span data-t="joueurs.retour">Retour</span></button>
         </form>
       </section>
     </div>
@@ -313,7 +313,7 @@
 <!-- Choix de l’ambiance -->
 <div class="overlay overlay--edit overlay--skins" id="ov-skins" hidden role="dialog" aria-modal="true" aria-labelledby="skins-title">
   <div class="sheet sheet--edit sheet--skins">
-    <h2 class="edit-label" id="skins-title">Choisis l’ambiance</h2>
+    <h2 class="edit-label" id="skins-title" data-t="ambiance.titre">Choisis l’ambiance</h2>
     <div class="skin-list" role="radiogroup" aria-labelledby="skins-title">
       <label class="skin-opt"><input type="radio" name="skin" value="arty"><span class="skin-swatch skin-swatch--arty"></span><span class="skin-name">Arty</span></label>
       <label class="skin-opt"><input type="radio" name="skin" value="pomme"><span class="skin-swatch skin-swatch--pomme"></span><span class="skin-name">Pomme d’Amour</span></label>
@@ -322,7 +322,7 @@
       <label class="skin-opt"><input type="radio" name="skin" value="classex"><span class="skin-swatch skin-swatch--classex"></span><span class="skin-name">Classé X</span></label>
     </div>
     <div class="row row--end">
-      <button class="btn" id="skins-done" type="button">C’est choisi</button>
+      <button class="btn" id="skins-done" type="button" data-t="ambiance.ok">C’est choisi</button>
     </div>
   </div>
 </div>
@@ -330,21 +330,21 @@
 <!-- Niveau de piment -->
 <div class="overlay overlay--edit overlay--skins" id="ov-piment" hidden role="dialog" aria-modal="true" aria-labelledby="piment-title">
   <div class="sheet sheet--edit sheet--skins">
-    <h2 class="edit-label" id="piment-title">Dans les roues</h2>
-    <p class="edit-hint">Ce que les roues tirent pour vous. Le piment se choisit à deux.</p>
-    <p class="roues-sub" id="roues-piment">Piment</p>
+    <h2 class="edit-label" id="piment-title" data-t="roues.titre">Dans les roues</h2>
+    <p class="edit-hint" data-t="roues.sous-titre">Ce que les roues tirent pour vous. Le piment se choisit à deux.</p>
+    <p class="roues-sub" id="roues-piment" data-t="roues.piment">Piment</p>
     <div class="piment-list" id="piment-list" role="group" aria-labelledby="roues-piment"></div>
-    <p class="piment-error" id="piment-error" hidden role="alert">Garde au moins un piment, sinon les roues tournent à vide.</p>
+    <p class="piment-error" id="piment-error" hidden role="alert" data-t="roues.erreur">Garde au moins un piment, sinon les roues tournent à vide.</p>
     <p class="piment-duo" id="piment-duo" hidden role="status"></p>
-    <p class="roues-sub" id="roues-ton">Ton</p>
+    <p class="roues-sub" id="roues-ton" data-t="roues.ton">Ton</p>
     <div class="ton-choice" id="ton" role="radiogroup" aria-labelledby="roues-ton">
-      <button type="button" role="radio" data-ton="e" aria-checked="false"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-etoiles"/></svg><span>Prem’deug</span></button>
-      <button type="button" role="radio" data-ton="m" aria-checked="true"><span class="ton-mix" aria-hidden="true"><svg class="ic" viewBox="0 0 24 24"><use href="#i-etoiles"/></svg><svg class="ic" viewBox="0 0 24 24"><use href="#i-barjot"/></svg></span><span>Un peu de tout</span></button>
-      <button type="button" role="radio" data-ton="b" aria-checked="false"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-barjot"/></svg><span>wtf&nbsp;!?</span></button>
+      <button type="button" role="radio" data-ton="e" aria-checked="false"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-etoiles"/></svg><span data-t="roues.ton-e">Prem’deug</span></button>
+      <button type="button" role="radio" data-ton="m" aria-checked="true"><span class="ton-mix" aria-hidden="true"><svg class="ic" viewBox="0 0 24 24"><use href="#i-etoiles"/></svg><svg class="ic" viewBox="0 0 24 24"><use href="#i-barjot"/></svg></span><span data-t="roues.ton-m">Un peu de tout</span></button>
+      <button type="button" role="radio" data-ton="b" aria-checked="false"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-barjot"/></svg><span data-t="roues.ton-b">wtf&nbsp;!?</span></button>
     </div>
     <p class="roues-ex" id="roues-ex" aria-live="polite"></p>
     <div class="row row--end">
-      <button class="btn" id="piment-done" type="button">C’est choisi</button>
+      <button class="btn" id="piment-done" type="button" data-t="roues.ok">C’est choisi</button>
     </div>
   </div>
 </div>
@@ -358,8 +358,8 @@
     </div>
     <input id="loupe-q" maxlength="40" autocomplete="off" enterkeyhint="go" aria-controls="loupe-drum">
     <button class="btn btn--line loupe-write" id="loupe-write" type="button" hidden><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-ecrire"/></svg><span id="loupe-write-text"></span></button>
-    <div class="reel loupe-drum" id="loupe-drum" tabindex="0" role="spinbutton" aria-label="Toute la roue"><div class="reel-strip"></div><span class="reel-shade" aria-hidden="true"></span><p class="loupe-empty" id="loupe-empty" hidden>Aucun mot de la roue ne contient ça.</p></div>
-    <button class="btn" id="loupe-pick" type="button">Choisir</button>
+    <div class="reel loupe-drum" id="loupe-drum" tabindex="0" role="spinbutton" aria-label="Toute la roue"><div class="reel-strip"></div><span class="reel-shade" aria-hidden="true"></span><p class="loupe-empty" id="loupe-empty" hidden data-t="loupe.vide">Aucun mot de la roue ne contient ça.</p></div>
+    <button class="btn" id="loupe-pick" type="button" data-t="loupe.choisir">Choisir</button>
   </div>
 </div>
 
@@ -370,14 +370,14 @@
     <p class="duo-text" id="duo-text"></p>
     <div class="duo-qr" id="duo-qr" hidden></div>
     <div class="duo-share" id="duo-share" hidden>
-      <button class="btn" id="duo-send" type="button">Envoyer le lien</button>
-      <button class="btn btn--line" id="duo-copy" type="button">Copier le lien</button>
+      <button class="btn" id="duo-send" type="button" data-t="duo.envoyer">Envoyer le lien</button>
+      <button class="btn btn--line" id="duo-copy" type="button" data-t="duo.copier">Copier le lien</button>
     </div>
     <label class="duo-name-label" for="duo-name" id="duo-name-label">Ton prénom</label>
     <input id="duo-name" maxlength="20" autocomplete="off" enterkeyhint="go">
     <div class="duo-wait-row">
       <p class="duo-wait" id="duo-wait" hidden><span class="duo-dots" aria-hidden="true"><i></i><i></i><i></i></span> <span id="duo-wait-text"></span></p>
-      <button class="icon-btn duo-notif" id="duo-notif" type="button" aria-pressed="false" hidden><svg class="ic ic--on" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-avertir"/></svg><svg class="ic ic--off" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-avertir-non"/></svg><span class="icon-label"><span class="notif-word">M’avertir</span><span class="sr-only">&nbsp;: <span id="duo-notif-state">désactivé</span></span></span></button>
+      <button class="icon-btn duo-notif" id="duo-notif" type="button" aria-pressed="false" hidden><svg class="ic ic--on" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-avertir"/></svg><svg class="ic ic--off" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-avertir-non"/></svg><span class="icon-label"><span class="notif-word" data-t="attente.avertir">M’avertir</span><span class="sr-only">&nbsp;: <span id="duo-notif-state">désactivé</span></span></span></button>
     </div>
     <p class="duo-error" id="duo-error" hidden role="alert"></p>
     <div class="row">
@@ -395,12 +395,12 @@
     <svg class="emblem emblem--wait" id="wait-emblem" viewBox="0 0 168 124" aria-hidden="true"><use href="#emblem"/></svg>
     <p class="party-sentence wait-sentence" id="wait-sentence" hidden></p>
     <p class="wait-presence" id="wait-presence" role="status"><span class="presence-dot" aria-hidden="true"></span><span id="wait-presence-text"></span></p>
-    <button class="btn btn--line wait-pass" id="wait-pass" type="button">On passe</button>
+    <button class="btn btn--line wait-pass" id="wait-pass" type="button" data-t="attente.passe">On passe</button>
     <nav class="wait-icons" aria-label="Pendant l’attente">
-      <button class="icon-btn" id="wait-nudge" type="button" hidden><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-partager"/></svg><span class="icon-label" id="wait-nudge-label">Prévenir</span></button>
-      <button class="icon-btn" id="wait-notif" type="button" aria-pressed="false" hidden><svg class="ic ic--on" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-avertir"/></svg><svg class="ic ic--off" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-avertir-non"/></svg><span class="icon-label"><span class="notif-word">M’avertir</span><span class="sr-only">&nbsp;: <span id="wait-notif-state">désactivé</span></span></span></button>
+      <button class="icon-btn" id="wait-nudge" type="button" hidden><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-partager"/></svg><span class="icon-label" id="wait-nudge-label" data-t="attente.prevenir">Prévenir</span></button>
+      <button class="icon-btn" id="wait-notif" type="button" aria-pressed="false" hidden><svg class="ic ic--on" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-avertir"/></svg><svg class="ic ic--off" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-avertir-non"/></svg><span class="icon-label"><span class="notif-word" data-t="attente.avertir">M’avertir</span><span class="sr-only">&nbsp;: <span id="wait-notif-state">désactivé</span></span></span></button>
       <button class="icon-btn" id="wait-kiffs" type="button" hidden><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-kiffs"/></svg><span class="icon-label" id="wait-kiffs-label"></span></button>
-      <button class="icon-btn" id="wait-home" type="button"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-accueil"/></svg><span class="icon-label">Accueil</span></button>
+      <button class="icon-btn" id="wait-home" type="button"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-accueil"/></svg><span class="icon-label" data-t="attente.accueil">Accueil</span></button>
     </nav>
   </div>
 </div>
@@ -411,7 +411,7 @@
     <h2 class="edit-label" id="note-title"></h2>
     <p class="duo-text" id="note-text"></p>
     <div class="row row--end">
-      <button class="btn" id="note-ok" type="button">D’accord</button>
+      <button class="btn" id="note-ok" type="button" data-t="nouvelles.ok">D’accord</button>
     </div>
   </div>
 </div>
@@ -435,8 +435,8 @@
     <p class="party-sentence offer-sentence" id="offer-sentence"></p>
     <div class="stack">
       <button class="btn" id="offer-yes" type="button">J’ai envie aussi</button>
-      <button class="btn btn--line" id="offer-but" type="button">Oui, mais…</button>
-      <button class="link-btn" id="offer-pass" type="button">On passe</button>
+      <button class="btn btn--line" id="offer-but" type="button" data-t="offre.mais">Oui, mais…</button>
+      <button class="link-btn" id="offer-pass" type="button" data-t="offre.passe">On passe</button>
     </div>
     <button class="link-btn offer-back" id="offer-back" type="button" hidden></button>
   </div>
@@ -445,16 +445,16 @@
 <!-- Invitation : l’envie glissée par qui invite, qu’on choisit de découvrir -->
 <div class="overlay overlay--handoff overlay--offer overlay--gift" id="ov-gift" hidden role="dialog" aria-modal="true" aria-labelledby="gift-title">
   <div class="sheet">
-    <p class="handoff-kicker" id="gift-kicker">Une envie Tendre</p>
+    <p class="handoff-kicker" id="gift-kicker" data-t="cadeau.kicker">Une envie Tendre</p>
     <h2 class="handoff-title" id="gift-title"></h2>
     <div class="party-sentence offer-sentence gift-card" aria-hidden="true">
-      <span class="gift-lead">J’ai envie…</span>
+      <span class="gift-lead" data-t="cadeau.lead">J’ai envie…</span>
       <span class="gift-veil"><i></i><i></i><i></i></span>
       <svg class="emblem gift-seal" viewBox="0 0 168 124"><use href="#emblem"/></svg>
     </div>
     <div class="stack">
-      <button class="btn" id="gift-open" type="button">La découvrir</button>
-      <button class="btn btn--line" id="gift-later" type="button">Pas maintenant, je propose</button>
+      <button class="btn" id="gift-open" type="button" data-t="cadeau.ouvrir">La découvrir</button>
+      <button class="btn btn--line" id="gift-later" type="button" data-t="cadeau.plus-tard">Pas maintenant, je propose</button>
     </div>
   </div>
 </div>
@@ -462,12 +462,12 @@
 <!-- Deux téléphones : l’autre a monté le piment, on l’accepte avant de voir l’envie -->
 <div class="overlay overlay--handoff overlay--offer overlay--hot" id="ov-hot" hidden role="dialog" aria-modal="true" aria-labelledby="hot-title">
   <div class="sheet">
-    <p class="handoff-kicker">Avant de voir son envie</p>
+    <p class="handoff-kicker" data-t="montee.kicker">Avant de voir son envie</p>
     <h2 class="handoff-title" id="hot-title"></h2>
     <p class="handoff-text" id="hot-text"></p>
     <div class="hot-levels" id="hot-levels"></div>
     <div class="stack">
-      <button class="btn" id="hot-yes" type="button">D’accord, voir l’envie</button>
+      <button class="btn" id="hot-yes" type="button" data-t="montee.oui">D’accord, voir l’envie</button>
       <button class="btn btn--line" id="hot-no" type="button"></button>
     </div>
   </div>
@@ -476,11 +476,11 @@
 <!-- « Oui, mais… » : une seule modification -->
 <div class="overlay overlay--edit overlay--skins" id="ov-one" hidden role="dialog" aria-modal="true" aria-labelledby="one-title">
   <div class="sheet sheet--edit sheet--skins">
-    <h2 class="edit-label" id="one-title">Une seule modification</h2>
+    <h2 class="edit-label" id="one-title" data-t="mais.titre">Une seule modification</h2>
     <p class="duo-text" id="one-text"></p>
     <div class="row">
-      <button class="link-btn" id="one-back" type="button">Retour</button>
-      <button class="btn" id="one-ok" type="button">Compris</button>
+      <button class="link-btn" id="one-back" type="button" data-t="mais.retour">Retour</button>
+      <button class="btn" id="one-ok" type="button" data-t="mais.ok">Compris</button>
     </div>
   </div>
 </div>
@@ -488,12 +488,12 @@
 <!-- On passe -->
 <div class="overlay overlay--pass" id="ov-pass" hidden>
   <div class="sheet">
-    <h2 class="pass-title"><span class="ink" data-ink="On passe.">On passe.</span></h2>
-    <p class="pass-text">Pas besoin d’expliquer pourquoi.</p>
+    <h2 class="pass-title"><span class="ink" data-ink="On passe." data-t="passe.titre">On passe.</span></h2>
+    <p class="pass-text" data-t="passe.texte">Pas besoin d’expliquer pourquoi.</p>
     <div class="stack">
       <button class="btn" id="pass-same" type="button"></button>
       <button class="btn btn--line" id="pass-other" type="button"></button>
-      <button class="link-btn" id="pass-cancel" type="button">Finalement, on continue</button>
+      <button class="link-btn" id="pass-cancel" type="button" data-t="passe.annuler">Finalement, on continue</button>
     </div>
   </div>
 </div>
@@ -506,8 +506,8 @@
     <input id="edit-input" maxlength="40" autocomplete="off" enterkeyhint="done">
     <p class="edit-hint" id="edit-hint"></p>
     <div class="row">
-      <button class="link-btn" id="edit-cancel" type="button">Annuler</button>
-      <button class="btn" type="submit">Valider</button>
+      <button class="link-btn" id="edit-cancel" type="button" data-t="libre.annuler">Annuler</button>
+      <button class="btn" type="submit" data-t="libre.valider">Valider</button>
     </div>
   </form>
 </div>
@@ -518,7 +518,7 @@
   <div class="sheet">
     <svg class="emblem emblem--party" viewBox="0 0 168 124" aria-hidden="true"><path class="e-lens" d="M84 21.6A46 46 0 0 1 84 102.4A46 46 0 0 1 84 21.6Z"/><circle class="e-ring e-ring--1" cx="62" cy="62" r="46"/><circle class="e-ring e-ring--2" cx="106" cy="62" r="46"/></svg>
     <h2 class="party-title" id="party-title"><span class="ink ink--flat" data-ink="Kiff Kiff !">Kiff Kiff !</span></h2>
-    <p class="party-text">Vous en avez envie tous les deux.</p>
+    <p class="party-text" data-t="fete.texte">Vous en avez envie tous les deux.</p>
     <div class="party-card">
       <p class="party-sentence" id="party-sentence"></p>
       <button class="icon-btn icon-btn--card" id="party-image" type="button" aria-label="Envoyer cette envie en image"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-image"/></svg></button>
@@ -528,11 +528,11 @@
     <p class="party-count party-unlock" id="party-unlock" hidden><span class="pill" role="status"><span id="party-unlock-chili"></span><span id="party-unlock-text"></span></span></p>
     <button class="btn" id="party-next" type="button"></button>
     <button class="btn btn--line" id="party-later" type="button"></button>
-    <button class="link-btn" id="party-pass" type="button">Finalement, on passe</button>
+    <button class="link-btn" id="party-pass" type="button" data-t="fete.passe">Finalement, on passe</button>
   </div>
   <div class="party-foot">
-    <button class="link-btn foot-link party-deal" id="party-deal" type="button" aria-haspopup="dialog"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-tourner"/></svg>Vous kiffez&nbsp;?</button>
-    <button class="link-btn foot-link party-deal" id="party-install" type="button" hidden><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-installer"/></svg>Garder Kiff Kiff sur ton écran d’accueil</button>
+    <button class="link-btn foot-link party-deal" id="party-deal" type="button" aria-haspopup="dialog"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-tourner"/></svg><span data-t="fete.kiffez">Vous kiffez&nbsp;?</span></button>
+    <button class="link-btn foot-link party-deal" id="party-install" type="button" hidden><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-installer"/></svg><span data-t="fete.installer">Garder Kiff Kiff sur ton écran d’accueil</span></button>
   </div>
 </div>
 
@@ -542,7 +542,7 @@
     <h2 class="edit-label" id="kiffs-title">Vos kiff kiff</h2>
     <p class="duo-text kiffs-count" id="kiffs-count"></p>
     <ol class="kiffs-list" id="kiffs-list"></ol>
-    <div class="row row--end"><button class="btn" id="kiffs-close" type="button">Fermer</button></div>
+    <div class="row row--end"><button class="btn" id="kiffs-close" type="button" data-t="kiffs.fermer">Fermer</button></div>
   </div>
 </div>
 
@@ -550,7 +550,7 @@
 <div class="overlay overlay--edit overlay--skins" id="ov-games" hidden role="dialog" aria-modal="true" aria-labelledby="games-sheet-title">
   <div class="sheet sheet--edit sheet--skins sheet--games">
     <div class="deal-head">
-      <h2 class="edit-label" id="games-sheet-title">Parties à distance</h2>
+      <h2 class="edit-label" id="games-sheet-title" data-t="parties.titre">Parties à distance</h2>
       <button class="icon-btn icon-btn--bare" id="games-close" type="button" aria-label="Fermer"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-fermer"/></svg></button>
     </div>
     <ul class="games-list" id="games-sheet-list"></ul>
@@ -561,36 +561,36 @@
 <div class="overlay overlay--edit overlay--skins" id="ov-deal" hidden role="dialog" aria-modal="true" aria-labelledby="deal-title">
   <div class="sheet sheet--edit sheet--skins sheet--coffee">
     <div class="deal-head">
-      <h2 class="edit-label" id="deal-title">Tu kiffes&nbsp;?</h2>
+      <h2 class="edit-label" id="deal-title" data-t="tukiffes.titre">Tu kiffes&nbsp;?</h2>
       <button class="icon-btn icon-btn--bare" id="deal-close" type="button" aria-label="Fermer"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-fermer"/></svg></button>
     </div>
     <section class="deal-card" aria-labelledby="deal-share-title">
       <div class="deal-card-head">
         <div class="deal-qr" id="deal-qr" aria-hidden="true"></div>
         <div class="deal-card-text">
-          <h3 class="deal-card-title" id="deal-share-title">Faites découvrir le jeu</h3>
-          <p class="duo-text">Montrez le code, ou envoyez le lien à quelqu’un qui a envie de jouer.</p>
+          <h3 class="deal-card-title" id="deal-share-title" data-t="tukiffes.partager-titre">Faites découvrir le jeu</h3>
+          <p class="duo-text" data-t="tukiffes.partager-texte">Montrez le code, ou envoyez le lien à quelqu’un qui a envie de jouer.</p>
         </div>
       </div>
-      <button class="btn" id="deal-share" type="button"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-partager"/></svg>Envoyer le lien</button>
+      <button class="btn" id="deal-share" type="button"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-partager"/></svg><span data-t="tukiffes.envoyer">Envoyer le lien</span></button>
       <p class="deal-done" id="deal-done" hidden role="status"></p>
     </section>
     <section class="deal-card" aria-labelledby="deal-coffee-title">
       <div class="deal-card-head deal-card-head--icon">
         <span class="deal-badge" aria-hidden="true"><svg class="ic" viewBox="0 0 24 24"><use href="#i-cafe"/></svg></span>
-        <h3 class="deal-card-title" id="deal-coffee-title">Un petit caf’&nbsp;?</h3>
+        <h3 class="deal-card-title" id="deal-coffee-title" data-t="tukiffes.cafe-titre">Un petit caf’&nbsp;?</h3>
       </div>
-      <p class="duo-text deal-money">Hello les loupiots, c’est Marc ici&nbsp;💃 Ça vous a plu, Kiff Kiff, et vous voulez m’envoyer un peu de kiff en retour&nbsp;? C’est welcome&nbsp;🥰 Ça sera l’occasion de me faire un retour sur le jeu, ou d’ajouter vos formules truculentes. Bécots&nbsp;💋</p>
-      <a class="btn btn--line coffee-go" id="coffee-go" href="https://buymeacoffee.com/MarcVernet" data-config="don" target="_blank" rel="noopener"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-cafe"/></svg>Payez-moi un café</a>
+      <p class="duo-text deal-money" data-t="tukiffes.cafe-texte">Hello les loupiots, c’est Marc ici&nbsp;💃 Ça vous a plu, Kiff Kiff, et vous voulez m’envoyer un peu de kiff en retour&nbsp;? C’est welcome&nbsp;🥰 Ça sera l’occasion de me faire un retour sur le jeu, ou d’ajouter vos formules truculentes. Bécots&nbsp;💋</p>
+      <a class="btn btn--line coffee-go" id="coffee-go" href="https://buymeacoffee.com/MarcVernet" data-config="don" target="_blank" rel="noopener"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-cafe"/></svg><span data-t="tukiffes.cafe-bouton">Payez-moi un café</span></a>
     </section>
     <!-- La genèse du jeu, à déplier -->
     <details class="deal-card deal-story" id="deal-story">
       <summary class="deal-story-head">
         <span class="deal-badge" aria-hidden="true"><svg class="ic" viewBox="0 0 24 24"><use href="#i-kiff"/></svg></span>
-        <span class="deal-story-titles"><span class="deal-card-title">Kiff Kiff Story</span><span class="deal-story-sub">Pourquoi ce jeu&nbsp;?</span></span>
+        <span class="deal-story-titles"><span class="deal-card-title" data-t="tukiffes.story-titre">Kiff Kiff Story</span><span class="deal-story-sub" data-t="tukiffes.story-sous-titre">Pourquoi ce jeu&nbsp;?</span></span>
         <svg class="ic deal-story-chev" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-retour"/></svg>
       </summary>
-      <div class="deal-story-text">
+      <div class="deal-story-text" data-t="tukiffes.story" data-t-par>
         <p>Kiff Kiff a l’air d’un petit jeu de fesses comme les autres. Mais derrière ses petits airs légers, torrides ou cabotins, il y a, je crois, un peu plus de sens.</p>
         <p>On pourra y voir un descendant d’action-vérité, un jeu où le consentement n’était pas vraiment à la fête. Kiff Kiff s’inspire plutôt de la roue du consentement, un chouette jeu découvert dans le milieu sex-positif. Sur Kiff Kiff, le consentement est au cœur du jeu&nbsp;: il prend la forme d’une envie claire, que l’un·e comme l’autre peut exprimer.</p>
         <p>On y expérimente l’idée que consentir commence par une question qu’on se pose à soi&nbsp;: de quoi ai-je vraiment envie&nbsp;? Puis qu’on peut le dire simplement. Qu’une envie peut s’ajuster pour rejoindre celle de l’autre, ou être déclinée, sans que personne n’ait à se justifier.</p>
@@ -602,9 +602,10 @@
 </div>
 <!--/APP-->
 <script src="data.js?v=64"></script>
-<script src="config.js?v=61"></script>
+<script src="textes.js?v=1"></script>
+<script src="config.js?v=62"></script>
 <script src="duo.js?v=62"></script>
 <script src="push.js?v=65"></script>
-<script src="app.js?v=91"></script>
+<script src="app.js?v=92"></script>
 </body>
 </html>

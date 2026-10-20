@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500..800&family=Jost:wght@300..700&family=Baskervville:ital,wght@0,400..700;1,400..700&display=swap">
-<link rel="stylesheet" href="atelier.css?v=4">
+<link rel="stylesheet" href="atelier.css?v=5">
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
@@ -26,6 +26,7 @@
   <nav class="tabs" role="tablist" aria-label="Sections">
     <button role="tab" id="tab-stats" aria-controls="panel-stats" aria-selected="true">Statistiques</button>
     <button role="tab" id="tab-mots" aria-controls="panel-mots" aria-selected="false">Les mots</button>
+    <button role="tab" id="tab-textes" aria-controls="panel-textes" aria-selected="false">Les textes</button>
     <button role="tab" id="tab-reglages" aria-controls="panel-reglages" aria-selected="false">Réglages</button>
   </nav>
 </header>
@@ -61,11 +62,26 @@
       <button role="tab" data-roue="maniere" aria-selected="false">Manières <span class="count" data-count="maniere"></span></button>
     </div>
     <p class="note" id="words-help"></p>
+    <div class="counts" id="counts"></div>
     <details class="sugg" id="sugg" hidden open></details>
     <div id="groups"></div>
     <div class="savebar" id="savebar">
       <span id="dirty">Aucune modification</span>
       <button class="btn" id="save" type="button" disabled>Enregistrer dans l’appli</button>
+    </div>
+  </section>
+
+  <!-- Les textes de l’appli -->
+  <section class="panel" id="panel-textes" role="tabpanel" aria-labelledby="tab-textes" hidden>
+    <p class="note">Chaque texte de l’appli, écran par écran ; l’image montre où il s’affiche. Les mots entre accolades, comme {prénom}, sont remplacés par le jeu : garde-les. **mot** met en gras là où c’est possible.</p>
+    <div class="tx-tools">
+      <input type="search" id="tx-q" placeholder="Chercher un texte" autocomplete="off" aria-label="Chercher un texte">
+      <button class="chip" type="button" id="tx-only" aria-pressed="false">Changés</button>
+    </div>
+    <div id="tx-groups"></div>
+    <div class="savebar" id="tx-savebar">
+      <span id="tx-dirty">Aucune modification</span>
+      <button class="btn" id="tx-save" type="button" disabled>Enregistrer les textes</button>
     </div>
   </section>
 
@@ -76,7 +92,7 @@
       <label for="api">Adresse de l’application Web Google</label>
       <input id="api" type="url" placeholder="https://script.google.com/macros/s/…/exec" autocomplete="off" spellcheck="false">
       <label for="pwd">Mot de passe de l’atelier</label>
-      <input id="pwd" type="password" autocomplete="current-password" placeholder="celui écrit dans le script">
+      <input id="pwd" type="password" autocomplete="current-password" placeholder="celui des propriétés du script">
       <div class="row-end"><span class="note" id="conn"></span><button class="btn" id="test" type="button">Vérifier</button></div>
       <p class="note">Ces deux réglages restent dans ce navigateur. L’adresse doit aussi être mise dans <code>config.js</code> pour que les téléphones envoient leurs comptes.</p>
     </div>
@@ -85,7 +101,7 @@
       <ol class="steps">
         <li>Sur un <b>ordinateur</b>, va sur <a href="https://script.google.com/home/projects/create" target="_blank" rel="noopener">script.google.com</a> › <b>Nouveau projet</b>, connecté à ton compte Google. Nomme-le « Kiff Kiff ».</li>
         <li>Efface le code présent et colle celui-ci : <button class="btn btn--small" id="copy-code" type="button">Copier le code</button></li>
-        <li>En haut du code, remplace <code>change-moi</code> par ton mot de passe, puis <b>Enregistrer</b> (icône disquette).</li>
+        <li><b>Enregistrer</b> (icône disquette). Puis roue dentée <b>Paramètres du projet</b> › <b>Propriétés du script</b> › <b>Ajouter une propriété</b> : nom <code>motdepasse</code>, valeur : ton mot de passe › <b>Enregistrer</b>. Il reste là, jamais dans le code.</li>
         <li>Dans la liste des fonctions en haut, choisis <b>preparer</b>, puis <b>Exécuter</b>. Google demande l’autorisation : <i>Examiner les autorisations › ton compte › Paramètres avancés › Accéder à Kiff Kiff (non sécurisé) › Autoriser</i>. La feuille « Kiff Kiff — données » apparaît dans ton Drive.</li>
         <li><b>Déployer › Nouveau déploiement</b>, roue dentée › <b>Application Web</b>. Exécuter en tant que : <b>moi</b>. Qui a accès : <b>Tout le monde</b>. Puis <b>Déployer</b>.</li>
         <li>Copie l’adresse de l’application Web (elle finit par <code>/exec</code>), colle-la ci-dessus avec ton mot de passe, puis <b>Vérifier</b>.</li>
@@ -99,16 +115,18 @@
       <ol class="steps">
         <li>Sur <a href="https://script.google.com/home" target="_blank" rel="noopener">script.google.com</a>, ouvre le projet « Kiff Kiff ».</li>
         <li>Efface tout le code et colle le nouveau (bouton <b>Copier le code</b> ci-dessus).</li>
-        <li>Remets ton mot de passe à la place de <code>change-moi</code>, puis <b>Enregistrer</b>.</li>
+        <li><b>Enregistrer</b> (icône disquette). Le mot de passe ne bouge pas : il est dans les propriétés du script.</li>
         <li><b>Déployer › Gérer les déploiements</b>, crayon (Modifier), <b>Version : Nouvelle version</b>, puis <b>Déployer</b>. L’adresse reste la même.</li>
       </ol>
     </div>
   </section>
 </main>
 
-<script src="../data.js?v=63"></script>
-<script src="../config.js?v=50"></script>
-<script src="suggestions.js?v=2"></script>
-<script src="atelier.js?v=12"></script>
+<script src="../data.js?v=64"></script>
+<script src="../textes.js?v=1"></script>
+<script src="../config.js?v=62"></script>
+<script src="suggestions.js?v=3"></script>
+<script src="ecrans.js?v=1"></script>
+<script src="atelier.js?v=13"></script>
 </body>
 </html>

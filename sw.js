@@ -3,6 +3,7 @@
  * sinon la copie gardée au dernier passage : le jeu sur un téléphone marche hors ligne.
  * Le mode deux téléphones a besoin du réseau (relais), il n’est pas concerné. */
 const CACHE = 'kiffkiff-v1';
+const TEXTES = 'kiffkiff-textes'; // les textes des avertissements, changés dans l’atelier (posés là par le jeu)
 const CORE = ['./', './index.html', './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png', './icons/favicon.svg'];
 
 self.addEventListener('install', (e) => {
@@ -11,7 +12,7 @@ self.addEventListener('install', (e) => {
 self.addEventListener('activate', (e) => {
   e.waitUntil(
     caches.keys()
-      .then((keys) => Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k))))
+      .then((keys) => Promise.all(keys.filter((k) => k !== CACHE && k !== TEXTES).map((k) => caches.delete(k))))
       .then(() => self.clients.claim())
   );
 });
@@ -47,13 +48,17 @@ self.addEventListener('fetch', (e) => {
  * ni le prénom de l’autre : seulement le genre de nouvelle et la partie. */
 const PARTIE = /^[a-z2-9]{12}$/;
 // Discret, comme une appli de rencontre : on dit qu’il y a du nouveau, jamais qui ni quoi
-function avis(m) {
-  if (m.k === 'rappel') return m.ph === 'review' ? 'Une proposition t’attend toujours.' : 'C’est toujours à toi de jouer.';
-  if (m.k === 'kiff') return 'Un kiff kiff vous attend !';
-  if (m.k === 'arrivee') return 'Ton invitation est acceptée : la partie commence.';
-  if (m.ph === 'review') return 'Une proposition t’attend.';
-  if (m.ph === 'reconfirm') return 'Du nouveau : c’est à toi de répondre.';
-  return 'C’est à toi de jouer.';
+async function textes() {
+  try { const r = await (await caches.open(TEXTES)).match('./textes-notifs.json'); return r ? await r.json() : {}; } catch (err) { return {}; }
+}
+function avis(m, t) {
+  const x = (k, d) => (t && typeof t[k] === 'string' && t[k].trim() ? t[k] : d);
+  if (m.k === 'rappel') return m.ph === 'review' ? x('notifs.rappel-proposition', 'Une proposition t’attend toujours.') : x('notifs.rappel-tour', 'C’est toujours à toi de jouer.');
+  if (m.k === 'kiff') return x('notifs.kiff', 'Un kiff kiff vous attend !');
+  if (m.k === 'arrivee') return x('notifs.arrivee', 'Ton invitation est acceptée : la partie commence.');
+  if (m.ph === 'review') return x('notifs.proposition', 'Une proposition t’attend.');
+  if (m.ph === 'reconfirm') return x('notifs.reponse', 'Du nouveau : c’est à toi de répondre.');
+  return x('notifs.tour', 'C’est à toi de jouer.');
 }
 self.addEventListener('push', (e) => {
   let m = {};
@@ -65,7 +70,7 @@ self.addEventListener('push', (e) => {
     const wins = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
     if (!ios && wins.some((c) => c.visibilityState === 'visible' && c.focused)) return;
     return self.registration.showNotification('Kiff Kiff', {
-    body: avis(m),
+    body: avis(m, await textes()),
     icon: 'icons/icon-192.png',
     badge: 'icons/badge-96.png',
     tag: 'kk-' + (room || 'partie'),

@@ -209,3 +209,48 @@ main { max-width: 980px; margin: 0 auto; padding: 18px 16px 120px; }
 .perf--weak { color: var(--warn); font-weight: 600; }
 .perf--good { color: var(--ok); font-weight: 600; }
 @media (max-width: 420px) { .perf { padding-left: 66px; } }
+
+/* Mots par réglage */
+.counts { margin: 10px 0 4px; overflow-x: auto; }
+.counts table { border-collapse: separate; border-spacing: 4px; font-size: 14px; }
+.counts caption { text-align: left; color: var(--muted); font-size: 13.5px; padding: 0 4px 2px; }
+.counts th { font-weight: 500; text-align: left; padding: 2px 8px; color: var(--muted); }
+.counts thead th { font-size: 12.5px; text-transform: uppercase; letter-spacing: .04em; }
+.counts td { min-width: 96px; padding: 6px 10px; border-radius: 10px; background: var(--paper); box-shadow: inset 0 0 0 1px var(--line); font-variant-numeric: tabular-nums; }
+.counts td b { font-size: 18px; margin-right: 6px; }
+.counts td span { font-size: 12.5px; color: var(--muted); }
+.counts td.is-ok b { color: var(--ok); }
+.counts td.is-low { background: #FDECEE; box-shadow: inset 0 0 0 1px #F0B3BD; }
+.counts td.is-low b { color: var(--warn); }
+.sg-head .n { color: var(--muted); font-weight: 400; }
+
+/* Les textes */
+.tx-tools { display: flex; gap: 8px; align-items: center; margin: 12px 0 6px; }
+.tx-tools input { flex: 1; min-width: 0; min-height: 44px; padding: 8px 12px; border: 1px solid var(--line); border-radius: 12px; background: #fff; }
+.tx-group { margin-top: 10px; border-radius: 16px; background: var(--paper); box-shadow: inset 0 0 0 1px var(--line); }
+.tx-group > summary { cursor: pointer; padding: 14px 16px; display: flex; align-items: center; gap: 8px; font-size: 16px; list-style-position: inside; }
+.tx-group > summary .n { color: var(--muted); font-size: 14px; }
+.tx-badge { margin-left: auto; font-size: 12.5px; font-weight: 600; color: var(--wine); background: #FFF1D6; padding: 2px 8px; border-radius: 999px; }
+.tx-list { display: flex; flex-direction: column; gap: 14px; padding: 0 12px 14px; }
+.tx { display: flex; flex-direction: column; gap: 6px; padding: 10px; border-radius: 14px; background: #fff; box-shadow: inset 0 0 0 1px var(--line); }
+.tx.is-changed { box-shadow: inset 0 0 0 1.5px #E3B65C; background: #FFFAEE; }
+.tx-shot { display: block; width: 100%; padding: 0; border: 0; border-radius: 10px; overflow: hidden; cursor: zoom-in; background: var(--velvet-lo); }
+.tx-shot svg { display: block; width: 100%; height: auto; aspect-ratio: 2.2; }
+.tx-shot.is-whole svg { aspect-ratio: 2.2; }
+.tx-mock { padding: 12px 14px; border-radius: 12px; background: #F4EADC; color: var(--muted); font-size: 14px; }
+.tx-mock--notif { display: flex; flex-direction: column; gap: 2px; background: #EDE7E0; color: var(--ink); box-shadow: 0 2px 8px rgba(35, 3, 10, .12); }
+.tx-mock--notif b { font-size: 13px; }
+.tx-mock--msg { align-self: flex-end; max-width: 88%; background: #DCF3D3; color: var(--ink); border-radius: 14px 14px 4px 14px; }
+.tx-mock--msg u { color: #2B6CB0; }
+.tx-where { margin: 2px 0 0; font-size: 13px; color: var(--muted); }
+.tx textarea { width: 100%; min-height: 44px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 10px; background: #fff; font-family: var(--f-words); font-size: 17px; line-height: 1.35; resize: none; overflow: hidden; }
+.tx textarea:focus { outline: 2px solid var(--gold); outline-offset: 0; border-color: transparent; }
+.tx-foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.tx-foot:empty { display: none; }
+.tx-warn { font-size: 13px; color: var(--warn); font-weight: 600; }
+.tx-reset { margin-left: auto; border: 0; background: none; padding: 4px 0; color: var(--wine); text-decoration: underline; cursor: pointer; font-size: 13.5px; }
+.tx-box { position: fixed; inset: 0; z-index: 30; display: grid; place-items: center; padding: 16px; background: rgba(20, 2, 6, .82); cursor: zoom-out; }
+.tx-box figure { margin: 0; display: flex; flex-direction: column; align-items: center; gap: 8px; max-height: 100%; }
+.tx-box svg { display: block; max-width: 100%; max-height: calc(100vh - 80px); width: auto; height: calc(100vh - 80px); border-radius: 12px; }
+.tx-box figcaption { color: var(--cream); font-size: 14px; }
+#panel-textes .savebar.is-dirty #tx-dirty { color: var(--wine); font-weight: 600; }

@@ -3,22 +3,37 @@
  * Mise en place (une seule fois), depuis un ordinateur :
  *   1. Aller sur script.google.com > Nouveau projet (ou, depuis une feuille Google Sheets,
  *      menu Extensions > Apps Script). Effacer le code présent, coller tout ce fichier.
- *   3. Remplacer le mot de passe ci-dessous, Enregistrer, puis choisir la fonction « preparer »
- *      et cliquer Exécuter (Google demande l’autorisation : Paramètres avancés > Accéder au projet).
+ *   3. Enregistrer, puis choisir la fonction « preparer » et cliquer Exécuter
+ *      (Google demande l’autorisation : Paramètres avancés > Accéder au projet).
+ *      Le mot de passe de l’atelier ne s’écrit pas ici (ce code est public) : roue dentée
+ *      « Paramètres du projet » > Propriétés du script > Ajouter : nom « motdepasse », valeur : ton mot de passe.
  *   4. Déployer > Nouveau déploiement > type « Application Web »
  *        Exécuter en tant que : moi · Qui a accès : Tout le monde > Déployer > Autoriser l’accès.
  *   5. Copier l’adresse de l’application Web (elle finit par /exec).
  *   6. Une fois : choisir la fonction « installerRappels » et cliquer Exécuter (le rappel de deux jours
  *      passe toutes les heures ; Google demande l’autorisation de créer ce déclencheur).
  *
- * Les onglets « mots », « compteurs », « choix » et « parties » se créent tout seuls.
+ * Les onglets « mots », « textes », « compteurs », « choix » et « parties » se créent tout seuls.
+ * Avant chaque enregistrement depuis l’atelier, la version d’avant est copiée dans « mots (avant) »
+ * ou « textes (avant) » : une erreur se rattrape en recopiant cet onglet.
  * Les notifications (« À toi de jouer ») passent aussi par ce script : il crée tout seul sa paire
  * de clés au premier appel et la garde dans les propriétés du script, jamais dans le code.
  * Il ne fait que transmettre un message déjà chiffré par le téléphone pour l’autre téléphone.
  * Les comptes ne contiennent rien de personnel. L’onglet « parties » garde la dernière étape
  * des parties à deux téléphones, chiffrée par les téléphones : illisible ici, même pour toi.
  */
-const MOT_DE_PASSE = 'change-moi';
+/* Le mot de passe de l’atelier : dans les propriétés du script (« motdepasse »), jamais dans ce code.
+   Dix essais ratés en dix minutes bloquent l’enregistrement pendant dix minutes. */
+function motDePasseOk(mdp) {
+  const cache = CacheService.getScriptCache();
+  const rates = Number(cache.get('mdp_rates') || 0);
+  if (rates >= 10) return 'patiente';
+  const vrai = PropertiesService.getScriptProperties().getProperty('motdepasse') || '';
+  if (!vrai) return 'absent';
+  if (String(mdp || '') === vrai) return 'ok';
+  cache.put('mdp_rates', String(rates + 1), 600);
+  return 'non';
+}
 
 const ROUES = ['action', 'endroit', 'maniere'];
 // Les événements comptés (aucun identifiant, aucune phrase) ; « detail » précise une variante courte
@@ -28,6 +43,7 @@ const PAR_JOUR = ['visite', 'partie', 'envie', 'kiff', 'rejoint']; // aussi comp
 const ENT_JOURS = ['jour', 'type', 'valeur'];
 const DETAIL = /^[a-z0-9-]{1,16}$/;
 const ENT_MOTS = ['roue', 'niveau', 'que tu me', 'de te', 'avec à', 'ordre', 'décalé'];
+const ENT_TEXTES = ['clé', 'texte']; // seulement les textes changés dans l’atelier ; les autres restent ceux du jeu
 const ENT_COMPTEURS = ['compteur', 'valeur'];
 const ENT_CHOIX = ['roue', 'mot', 'envies', 'kiffs'];
 const ENT_PARTIES = ['partie', 'etat', 'seq', 'maj', 'cree'];
@@ -56,10 +72,12 @@ function doPost(e) {
   if (corps.action === 'partie') return sortie(ecrirePartie(corps));
   if (corps.action === 'push') return sortie(envoyerNotification(corps));
   if (corps.action === 'rappel') return sortie(enregistrerRappel(corps));
-  if (corps.action === 'check') return sortie({ ok: String(corps.motDePasse || '') === MOT_DE_PASSE });
-  if (corps.action === 'save') {
-    if (String(corps.motDePasse || '') !== MOT_DE_PASSE) return sortie({ ok: false, erreur: 'mot de passe' });
-    return sortie(ecrireMots(corps.mots));
+  if (corps.action === 'check' || corps.action === 'save' || corps.action === 'textes') {
+    const mdp = motDePasseOk(corps.motDePasse);
+    if (mdp !== 'ok') return sortie({ ok: false, erreur: mdp === 'non' ? 'mot de passe' : mdp });
+    if (corps.action === 'check') return sortie({ ok: true });
+    if (corps.action === 'save') return sortie(ecrireMots(corps.mots));
+    return sortie(ecrireTextes(corps.textes));
   }
   return sortie({ ok: false, erreur: 'action' });
 }
@@ -86,7 +104,7 @@ function classeurDonnees() {
    et créer la feuille. Son adresse s’affiche dans le journal d’exécution. */
 function preparer() {
   const c = classeurDonnees();
-  feuille('mots', ENT_MOTS); feuille('compteurs', ENT_COMPTEURS); feuille('choix', ENT_CHOIX); feuille('parties', ENT_PARTIES); feuille('jours', ENT_JOURS);
+  feuille('mots', ENT_MOTS); feuille('textes', ENT_TEXTES); feuille('compteurs', ENT_COMPTEURS); feuille('choix', ENT_CHOIX); feuille('parties', ENT_PARTIES); feuille('jours', ENT_JOURS);
   Logger.log('Feuille de données : ' + c.getUrl());
 }
 
@@ -125,7 +143,9 @@ function lireMots() {
       else if (roue === 'maniere') res.manieres.push(x);
     });
   const complet = res.actions.length > 2 && res.objets.length > 2 && res.manieres.length > 2;
-  return { ok: true, version: PropertiesService.getScriptProperties().getProperty('version') || '', mots: complet ? res : null, meilleurs: lireMeilleurs() };
+  const props = PropertiesService.getScriptProperties();
+  return { ok: true, version: props.getProperty('version') || '', mots: complet ? res : null, meilleurs: lireMeilleurs(),
+    textes: lireTextes(), versionTextes: props.getProperty('version_textes') || '' };
 }
 
 function ecrireMots(m) {
@@ -144,11 +164,53 @@ function ecrireMots(m) {
     m.actions.forEach(function (x) { ajoute('action', x); });
     m.objets.forEach(function (x) { ajoute('endroit', x); });
     m.manieres.forEach(function (x) { ajoute('maniere', x); });
+    sauvegarder(f, 'mots (avant)');
     f.clearContents();
     f.getRange(1, 1, 1, ENT_MOTS.length).setValues([ENT_MOTS]).setFontWeight('bold');
     if (lignes.length) f.getRange(2, 1, lignes.length, ENT_MOTS.length).setValues(lignes);
     const version = new Date().toISOString();
     PropertiesService.getScriptProperties().setProperty('version', version);
+    return { ok: true, version: version, total: lignes.length };
+  } finally {
+    verrou.releaseLock();
+  }
+}
+
+// La version d’avant, gardée dans un onglet à part : une erreur se rattrape
+function sauvegarder(f, nom) {
+  const classeur = classeurDonnees();
+  const v = f.getDataRange().getValues();
+  let b = classeur.getSheetByName(nom);
+  if (!b) b = classeur.insertSheet(nom);
+  b.clearContents();
+  if (v.length && v[0].length) b.getRange(1, 1, v.length, v[0].length).setValues(v);
+}
+
+/* ---------- Les textes de l’appli changés dans l’atelier ---------- */
+const CLE_TEXTE = /^[a-z0-9.-]{1,60}$/;
+function lireTextes() {
+  const res = {};
+  feuille('textes', ENT_TEXTES).getDataRange().getValues().slice(1).forEach(function (l) {
+    const k = String(l[0] || '').trim();
+    if (CLE_TEXTE.test(k)) res[k] = String(l[1] == null ? '' : l[1]);
+  });
+  return res;
+}
+function ecrireTextes(t) {
+  if (!t || typeof t !== 'object' || Array.isArray(t)) return { ok: false, erreur: 'textes' };
+  const lignes = Object.keys(t).filter(function (k) { return CLE_TEXTE.test(k) && typeof t[k] === 'string'; }).slice(0, 1000)
+    .map(function (k) { return [k, t[k].slice(0, 3000)]; });
+  const verrou = LockService.getScriptLock();
+  verrou.waitLock(15000);
+  try {
+    const f = feuille('textes', ENT_TEXTES);
+    sauvegarder(f, 'textes (avant)');
+    f.clearContents();
+    f.getRange(1, 1, 1, ENT_TEXTES.length).setValues([ENT_TEXTES]).setFontWeight('bold');
+    // Un texte qui commence par = + - @ reste du texte (pas une formule)
+    if (lignes.length) { const r = f.getRange(2, 1, lignes.length, 2); r.setNumberFormat('@'); r.setValues(lignes); }
+    const version = new Date().toISOString();
+    PropertiesService.getScriptProperties().setProperty('version_textes', version);
     return { ok: true, version: version, total: lignes.length };
   } finally {
     verrou.releaseLock();
