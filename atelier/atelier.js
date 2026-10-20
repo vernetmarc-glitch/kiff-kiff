@@ -346,8 +346,8 @@
     saved = sig();
     // Première fois avec la colonne « décalé » : on propose le classement de l’appli, à vérifier puis enregistrer
     const anyDc = ROUES.some((r) => words[r].some((x) => x.dc));
-    if (!anyDc && window.ROUE_DATA) {
-      const R = window.ROUE_DATA, src = { action: R.actions, endroit: R.objets, maniere: R.manieres };
+    if (!anyDc && (window.ROUE_BASE || window.ROUE_DATA)) {
+      const R = window.ROUE_BASE || window.ROUE_DATA, src = { action: R.actions, endroit: R.objets, maniere: R.manieres };
       const dcs = (r) => (src[r] || []).filter((x) => x && x.dc).map((x) => (x.s || x.t || '').trim());
       let n = 0;
       ROUES.forEach((r) => { const l = dcs(r); words[r].forEach((x) => { if (l.includes(x.s.trim())) { x.dc = true; n++; } }); });

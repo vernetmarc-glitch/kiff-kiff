@@ -159,3 +159,7 @@ window.ROUE_DATA = {
     { t: "en couinant salement", lvl: 3 }
   ]
 };
+
+/* Le classement d’origine (mots décalés compris), gardé à part : les mots reçus de l’atelier
+   peuvent remplacer ROUE_DATA (config.js) ; l’atelier propose les mots décalés à partir d’ici. */
+window.ROUE_BASE = JSON.parse(JSON.stringify(window.ROUE_DATA));
