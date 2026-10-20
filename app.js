@@ -818,7 +818,7 @@
   function savePair() {
     if (duo) return;
     const all = load('paires', {}) || {};
-    all[pairKey()] = { mine: S.mine, seen: S.seen, t: Date.now() };
+    all[pairKey()] = { mine: S.mine, seen: S.seen, kiffs: (S.kiffs || []).slice(-60), t: Date.now() };
     const keep = Object.keys(all).sort((a, b) => (all[b].t || 0) - (all[a].t || 0)).slice(0, 20);
     save('paires', Object.fromEntries(keep.map((k) => [k, all[k]])));
   }
@@ -1055,13 +1055,16 @@
   // L’historique : gardé dans l’état partagé à deux téléphones, en mémoire sur un seul
   function pushKiff() {
     // s : qui l’a proposée (sa place) ; lv : le piment accepté à ce moment-là (pour débloquer le suivant)
-    S.kiffs = (S.kiffs || []).concat({ t: sentence(), w: nameOf(S.proposer), d: Date.now(), s: S.proposer, lv: Math.max(...(S.lvOk || S.levels)) }).slice(-60);
+    // v : 0 à vivre, 1 vécue (sans v : une envie d’avant, vécue)
+    S.kiffs = (S.kiffs || []).concat({ t: sentence(), w: nameOf(S.proposer), d: Date.now(), s: S.proposer, lv: Math.max(...(S.lvOk || S.levels)), v: 0 }).slice(-60);
     if (S.kiffs.length === 1) {
       const min = S.t0 ? (Date.now() - S.t0) / 60000 : -1;
       report('premier', null, min < 0 ? 'inconnu' : min < 5 ? 'moins-5' : min < 15 ? '5-15' : min < 60 ? '15-60' : min < 1440 ? '1h-1j' : 'plus-1j');
     }
     renderKiffs();
+    savePair();
   }
+  const toLive = () => (S.kiffs || []).filter((k) => k.v === 0);
   const kiffCount = () => Math.max((S.kiffs || []).length, S.kiff ? S.kiff.n : 0);
   const ordinal = (n) => (n === 1 ? 'premier' : n + 'ᵉ');
   function renderKiffs() {
@@ -1075,6 +1078,14 @@
     wk.hidden = !n;
     $('#wait-kiffs-label').textContent = n + ' kiff kiff';
     wk.setAttribute('aria-label', 'Vos kiff kiff (' + n + ')');
+    // Les envies gardées pour plus tard : un badge sur le compteur
+    const a = toLive().length;
+    [['#kiffs-live', btn], ['#wait-live', wk]].forEach(([sel, host]) => {
+      let b = $(sel);
+      if (!b) { b = document.createElement('span'); b.className = 'badge badge--live'; b.id = sel.slice(1); b.setAttribute('aria-hidden', 'true'); host.appendChild(b); }
+      b.hidden = !a; b.textContent = a || '';
+    });
+    if (a) btn.setAttribute('aria-label', btn.getAttribute('aria-label') + ' (' + a + ' à vivre)');
   }
   // Le pied de la célébration : une seule demande à la fois
   function partyFoot() {
@@ -1105,11 +1116,38 @@
     $('#kiffs-title').textContent = B ? 'Vos kiff kiff avec ' + B : 'Vos kiff kiff';
     $('#kiffs-count').textContent = n + ' kiff kiff trouvé' + (n > 1 ? 's' : '') + ' ensemble' +
       (n > list.length ? ' (les plus anciens datent d’avant l’historique).' : '.');
-    $('#kiffs-list').innerHTML = list.map((k) => '<li class="kiffs-item"><p class="kiffs-text">' + esc(k.t || '') + '</p>' +
-      '<p class="kiffs-meta">Envie de ' + esc(k.w || '…') + (k.d ? ' · ' + dayOf(k.d) : '') + '</p></li>').join('');
+    renderKiffList();
     show(ovKiffs);
     $('#kiffs-close').focus({ preventScroll: true });
   }
+  const OK_SVG = '<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  function renderKiffList() {
+    const all = (S.kiffs || []).map((k, i) => ({ k, i })).reverse();
+    const item = ({ k, i }, live) => '<li class="kiffs-item' + (live ? ' is-live' : '') + '"><div class="kiffs-body"><p class="kiffs-text">' + esc(k.t || '') + '</p>' +
+      '<p class="kiffs-meta">Envie de ' + esc(k.w || '…') + (k.d ? ' · ' + dayOf(k.d) : '') + '</p></div>' +
+      (live ? '<div class="kiffs-acts"><button class="icon-btn kiffs-done" type="button" data-i="' + i + '" aria-label="Vécue : ' + esc(k.t || '') + '">' + OK_SVG + '<span class="icon-label">Vécue</span></button>' +
+        '<button class="icon-btn icon-btn--bare kiffs-drop" type="button" data-i="' + i + '" aria-label="On passe : ' + esc(k.t || '') + '"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-fermer"/></svg></button></div>' : '') + '</li>';
+    const live = all.filter(({ k }) => k.v === 0), done = all.filter(({ k }) => k.v !== 0);
+    $('#kiffs-list').innerHTML =
+      (live.length ? '<li class="kiffs-head">À vivre</li>' + live.map((x) => item(x, true)).join('') : '') +
+      (done.length ? (live.length ? '<li class="kiffs-head">Vécues</li>' : '') + done.map((x) => item(x, false)).join('') : '');
+    const n = kiffCount();
+    $('#kiffs-count').textContent = n + ' kiff kiff trouvé' + (n > 1 ? 's' : '') + ' ensemble' + (live.length ? ', dont ' + live.length + ' à vivre.' : '.');
+  }
+  // Marquer une envie vécue, ou passer : à deux téléphones, ça vaut pour les deux
+  $('#kiffs-list').addEventListener('click', (e) => {
+    const b = e.target.closest('button[data-i]');
+    if (!b) return;
+    const k = (S.kiffs || [])[+b.dataset.i];
+    if (!k) return;
+    audio();
+    if (b.classList.contains('kiffs-done')) { k.v = 1; sSwitchOn(); haptic(15); }
+    else { S.kiffs.splice(+b.dataset.i, 1); sClick(); haptic(8); }
+    renderKiffList(); renderKiffs(); savePair();
+    if (duo && duo.stage === 'game') sync();
+    const next = $('#kiffs-list button[data-i]');
+    (next || $('#kiffs-close')).focus({ preventScroll: true });
+  });
   const closeKiffs = () => { hide(ovKiffs); if (kiffsFrom) kiffsFrom.focus({ preventScroll: true }); };
   $('#kiffs-open').addEventListener('click', openKiffs);
   $('#wait-kiffs').addEventListener('click', openKiffs);
@@ -1131,11 +1169,42 @@
     save('kiffSeen', m);
   }
   let lateKiff = false;
+  /* La célébration : vivre l’envie maintenant, ou la garder pour plus tard (en premier à distance).
+     Ses modes : 'fete' (le choix), 'vivre' (« À vous. », le téléphone posé), 'suite' (l’autre a déjà choisi). */
+  function partyMode(mode, info) {
+    const ov = el.ovParty, next = $('#party-next'), later = $('#party-later');
+    ov.dataset.mode = mode;
+    const B = nameOf(other(S.proposer));
+    later.hidden = mode !== 'fete';
+    next.classList.toggle('btn--line', mode === 'vivre');
+    $('#party-pass').hidden = mode === 'suite';
+    $('#party-done').hidden = true;
+    $('#party-image').hidden = mode === 'vivre';
+    if (mode === 'fete') {
+      // À distance, on est rarement ensemble : garder l’envie passe en premier
+      const far = !!duo;
+      next.dataset.act = far ? 'later' : 'now';
+      later.dataset.act = far ? 'now' : 'later';
+      next.textContent = far ? 'On la garde pour plus tard' : 'On la vit maintenant';
+      later.textContent = far ? 'On la vit maintenant' : 'On la garde pour plus tard';
+      $('.party-text').textContent = 'Vous en avez envie tous les deux.';
+    } else if (mode === 'vivre') {
+      next.dataset.act = 'done';
+      next.textContent = 'C’est fait ! À ' + B + ' de proposer';
+      setInk('À vous.');
+      $('.party-text').textContent = 'Posez le téléphone, il vous attend.';
+      $('#party-count').hidden = true; $('#party-unlock').hidden = true;
+      document.querySelector('#ov-party .party-foot').hidden = true;
+      stopConfetti();
+    } else {
+      next.dataset.act = 'next';
+      next.textContent = 'Voir la suite de la partie';
+      if (info) $('.party-text').textContent = info;
+    }
+  }
   function partyNormal() {
     lateKiff = false;
-    $('#party-pass').hidden = false;
-    $('.party-text').textContent = 'Vous en avez envie tous les deux.';
-    $('#party-done').hidden = true;
+    partyMode('fete');
   }
   // La célébration manquée : d’abord le kiff kiff, ensuite la suite de la partie
   // Ce kiff kiff vient de débloquer un piment : on le dit sur la célébration
@@ -1155,10 +1224,9 @@
     cheer();
     const by = S.kiff.by === 0 || S.kiff.by === 1 ? S.kiff.by : other(duo.seat);
     $('#party-sentence').textContent = S.kiff.text;
-    $('.party-text').textContent = by === duo.seat ? 'Vous en avez envie tous les deux.' : nameOf(by) + ' a dit oui pendant ton absence.';
-    $('#party-done').hidden = true;
-    $('#party-next').textContent = 'Voir la suite de la partie';
-    $('#party-pass').hidden = true;
+    const kept = S.kiff.c === 'later';
+    partyMode('suite', kept ? (S.kiff.cb === duo.seat ? 'Gardée pour plus tard.' : nameOf(S.kiff.cb) + ' la garde pour plus tard.') :
+      by === duo.seat ? 'Vous en avez envie tous les deux.' : nameOf(by) + ' a dit oui pendant ton absence.');
     partyCount();
     partyUnlock();
     show(el.ovParty);
@@ -1175,6 +1243,9 @@
     const pool = CHEERS.filter((c) => c !== last);
     const c = pool[Math.floor(Math.random() * pool.length)];
     save('cheer', c);
+    setInk(c);
+  }
+  function setInk(c) {
     const h = $('#party-title'), ink = h.querySelector('.ink');
     // l’émoji garde ses couleurs, même sur un titre en feuille d’or
     ink.innerHTML = esc(c).replace(/(\p{Extended_Pictographic}\uFE0F?)/gu, '<span class="emo">$1</span>');
@@ -1188,7 +1259,6 @@
     S.phase = 'celebrate';
     document.body.dataset.phase = 'celebrate';
     $('#party-sentence').textContent = sentence();
-    $('#party-next').textContent = 'C’est fait ! À ' + nameOf(other(S.proposer)) + ' de proposer';
     partyCount();
     partyUnlock();
     markKiffSeen();
@@ -1248,18 +1318,45 @@
   if (window.KIFF_DON) $('#coffee-go').href = window.KIFF_DON;
   $('#coffee-go').addEventListener('click', () => { report('cafe'); sParty(); haptic(20); });
   $('#party-pass').addEventListener('click', () => {
+    const k = lastKiff();
+    if (k && k.v === 0) { S.kiffs.pop(); renderKiffs(); savePair(); }
     hide(el.ovParty);
     stopConfetti();
     el.pass.click();
   });
-  $('#party-next').addEventListener('click', () => {
+  // Le tour suivant, après une envie vécue ou gardée
+  function partyContinue() {
     hide(el.ovParty);
     stopConfetti();
-    if (lateKiff) { partyNormal(); render(); showTurnModal(); renderWait(); return; }
     startComposition(other(S.proposer));
     if (duo) { sync(); renderWait(); }
     if (!duo || myTurn()) setTimeout(() => { if (S.phase === 'compose' && myTurn()) shuffle(false); }, 500);
-  });
+  }
+  const lastKiff = () => (S.kiffs || [])[(S.kiffs || []).length - 1];
+  function partyAct(act) {
+    audio();
+    if (act === 'next') { hide(el.ovParty); stopConfetti(); partyNormal(); render(); showTurnModal(); renderWait(); return; }
+    if (act === 'now') {
+      sClick(); haptic(12);
+      partyMode('vivre');
+      if (duo && S.kiff) { S.kiff.c = 'now'; S.kiff.cb = duo.seat; sync(); }
+      $('#party-next').focus({ preventScroll: true });
+      return;
+    }
+    const k = lastKiff();
+    if (act === 'done') { if (k) k.v = 1; if (duo && S.kiff) S.kiff.c = 'done'; renderKiffs(); savePair(); partyContinue(); return; }
+    if (act === 'later') {
+      if (duo && S.kiff) { S.kiff.c = 'later'; S.kiff.cb = duo.seat; }
+      sSwitchOn(); haptic(15);
+      const done = $('#party-done');
+      done.textContent = 'Gardée pour plus tard.';
+      done.hidden = false;
+      $('#party-next').disabled = true; $('#party-later').disabled = true;
+      setTimeout(() => { $('#party-next').disabled = false; $('#party-later').disabled = false; renderKiffs(); partyContinue(); }, 900);
+    }
+  }
+  $('#party-next').addEventListener('click', (e) => partyAct(e.currentTarget.dataset.act));
+  $('#party-later').addEventListener('click', (e) => partyAct(e.currentTarget.dataset.act));
 
   /* La phrase en image, sans prénom, prête à poster */
   function wrapLines(ctx, text, maxW) {
@@ -1944,7 +2041,12 @@
     // L’autre a lancé le tour suivant et c’est à moi de composer : nouvelles roues
     if (!opts.first && prev.phase === 'celebrate' && S.phase === 'compose' && myTurn()) setTimeout(() => { if (S.phase === 'compose' && myTurn()) shuffle(false); }, 700);
     else if (missed && !lateKiff) celebrateLate();
-    if (S.phase !== 'celebrate' && !lateKiff && !el.ovParty.hidden) { hide(el.ovParty); stopConfetti(); }
+    if (S.phase !== 'celebrate' && !lateKiff && !el.ovParty.hidden) {
+      // L’autre a gardé l’envie pour plus tard : la célébration reste, avec ce qu’il ou elle a choisi
+      if (S.kiff && S.kiff.c === 'later' && S.kiff.cb !== duo.seat) { lateKiff = true; partyMode('suite', nameOf(S.kiff.cb) + ' la garde pour plus tard.'); markKiffSeen(); }
+      else { hide(el.ovParty); stopConfetti(); }
+    }
+    if (S.phase === 'celebrate' && !el.ovParty.hidden && S.kiff && S.kiff.c === 'now' && el.ovParty.dataset.mode === 'fete') partyMode('vivre');
     if (!myTurn() && !el.ovEdit.hidden) { hide(el.ovEdit); editing = -1; }
     if (arrived && S.phase !== 'celebrate') { sSwitchOn(); haptic(30); }
     renderReels();
@@ -2844,8 +2946,12 @@
     report('piment', null, S.levels.join(''));
     S.t0 = Date.now();
     hide(el.ovStart);
-    S.kiff = null; S.kiffs = []; renderKiffs();
-    setMemory((load('paires', {}) || {})[pairKey()]); // vos mots et ce que vous vous êtes déjà proposé
+    S.kiff = null;
+    const mem = (load('paires', {}) || {})[pairKey()];
+    setMemory(mem); // vos mots et ce que vous vous êtes déjà proposé
+    // vos kiff kiff, dont les envies gardées pour plus tard
+    S.kiffs = mem && Array.isArray(mem.kiffs) ? mem.kiffs.filter((k) => k && typeof k.t === 'string').slice(-60) : [];
+    renderKiffs();
     S.started = true;
     S.mustRestart = false;
     // La deuxième personne propose en premier : on lui passe le téléphone

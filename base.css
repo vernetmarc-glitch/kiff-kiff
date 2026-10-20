@@ -667,6 +667,20 @@ body:has(#ov-deal:not([hidden])) .deco-candles { display: none; }
 .kiffs-item { padding: 10px 12px; border-radius: 12px; box-shadow: inset 0 0 0 1.5px color-mix(in srgb, currentColor 25%, transparent); background: color-mix(in srgb, currentColor 5%, transparent); text-align: left; }
 .kiffs-text { margin: 0; font-family: var(--f-display, inherit); font-size: 16.5px; line-height: 1.3; }
 .kiffs-meta { margin: 4px 0 0; font-size: 13px; opacity: .7; }
+/* Les envies gardées pour plus tard, puis les vécues */
+.kiffs-head { margin: 6px 2px -2px; font-size: 12.5px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; opacity: .75; text-align: left; }
+.kiffs-head:first-child { margin-top: 0; }
+.kiffs-item { display: flex; align-items: center; gap: 8px; }
+.kiffs-body { flex: 1; min-width: 0; }
+.kiffs-acts { flex: none; display: flex; align-items: center; gap: 2px; }
+.kiffs-acts .icon-btn { min-width: 52px; }
+.kiffs-acts .icon-label { font-size: 12px; }
+.badge--live { min-width: 20px; height: 20px; padding: 0 6px; font-size: 12px; margin-left: 2px; animation: none; }
+#wait-kiffs { position: relative; }
+#wait-kiffs .badge--live { position: absolute; top: -4px; right: -6px; }
+#ov-party[data-mode="vivre"] .emblem--party { transform: scale(1.2); transition: transform .6s ease; }
+#ov-party[data-mode="vivre"] .sheet { animation: none; }
+#party-later[hidden], #party-image[hidden] { display: none; }
 .game-count { font-weight: 500; opacity: .75; }
 
 /* Déclaration d’âge, discrète sous le bouton de départ */
