@@ -1990,8 +1990,9 @@
       skin: currentSkin(), // l’ambiance de qui envoie : la personne invitée découvre le jeu dedans
       push: pushPair(), // adresses d’avertissement des deux téléphones (l’état est chiffré)
       // avant d’entrer dans la partie (invitation, arrivée), rien de ce téléphone ne s’y mêle
-      mine: inGame ? S.mine.map((l) => l.slice(-MINE_MAX)) : [[], [], []],
-      seen: inGame ? S.seen.map((l) => l.slice(-SEEN_MAX)) : [[], [], []]
+      cont: !!S.cont, // une partie commencée sur un téléphone, qui continue à distance
+      mine: inGame || S.cont ? S.mine.map((l) => l.slice(-MINE_MAX)) : [[], [], []],
+      seen: inGame || S.cont ? S.seen.map((l) => l.slice(-SEEN_MAX)) : [[], [], []]
     };
   }
   function pushState(extra) {
@@ -2060,6 +2061,7 @@
 
   function enterGame(st, spin) {
     duo.stage = 'game';
+    S.cont = false;
     hide($('#ov-duo')); hide($('#ov-invited'));
     hide(el.ovStart);
     $('#steps').classList.remove('is-duo');
@@ -2268,8 +2270,52 @@
     });
     if (!KiffDuoOk()) duoError('support');
   }
+  $('#home-cont').addEventListener('click', () => { audio(); sClick(); haptic(8); askContinue(); });
   const KiffDuoOk = () => !!(window.KiffDuo && window.KiffDuo.supported());
 
+  /* Continuer à distance : la partie commencée sur ce téléphone passe sur deux, avec ses prénoms, son piment,
+     vos mots et vos kiff kiff. Ce téléphone garde la place de qui l’a lancée (le premier prénom). */
+  function askContinue() {
+    const B = nameOf(1);
+    duoSheet({
+      stage: 'cont',
+      title: 'Continuer à distance',
+      text: B + ' continue sur son téléphone, toi sur celui-ci. Vos kiff kiff et vos mots vous suivent.',
+      go: 'Inviter ' + B, cancel: 'Annuler'
+    });
+    if (!KiffDuoOk()) duoError('support');
+  }
+  async function continueDuo() {
+    applyPendingMots();
+    const keep = { names: S.names.slice(), levels: S.levels.slice(), kiffs: (S.kiffs || []).slice(-60), mine: S.mine, seen: S.seen, proposer: S.proposer, t0: S.t0 };
+    duoSheet({ stage: 'creating', title: 'Continuer à distance', wait: 'J’ouvre la partie…', cancel: 'Annuler' });
+    try { await loadDuoLibs(); } catch (e) { duoError('net'); return; }
+    const id = window.KiffDuo.newId();
+    duo = { seat: 0, id, seq: 0, lastBy: '', stage: 'creating', partnerOn: null, online: true, passN: null };
+    let conn;
+    try { conn = await window.KiffDuo.create(id, duoHandlers); } catch (e) { duo = null; duoError('relay'); return; }
+    if (!duo || duo.id !== id) { conn.close(true); return; }
+    duo.conn = conn;
+    duo.info = conn.info;
+    try { history.replaceState(null, '', window.KiffDuo.link(conn.info)); } catch (e) { /* rien */ }
+    S.names = keep.names;
+    S.proposer = keep.proposer;
+    S.phase = 'lobby';
+    S.original = null; S.bottom = false; S.pass = null;
+    S.custom = ['', '', ''];
+    S.prog = false; S.gift = null; S.gifting = false; S.rencontre = false;
+    S.kiff = null; S.kiffs = keep.kiffs;
+    setLevels(keep.levels, { silent: true, remote: true });
+    S.lvOk = keep.levels.slice();
+    S.mine = keep.mine; S.seen = keep.seen;
+    S.cont = true;
+    S.t0 = keep.t0 || Date.now();
+    S.started = false;
+    pushState();
+    rememberGame({ phase: 'lobby', names: S.names });
+    report('invitation', null, 'continuer');
+    showInvite();
+  }
   async function createDuo(given) {
     applyPendingMots();
     const name = (given != null ? given : duoName.value).replace(/\s+/g, ' ').trim().slice(0, 20);
@@ -2389,6 +2435,18 @@
   function showJoin(st) {
     duo.stage = 'join';
     duo.remote = st;
+    if (st.phase === 'lobby' && st.cont) {
+      const A0 = (st.names && st.names[0] || '').trim() || 'Cerise';
+      duoName.value = (st.names && st.names[1]) || load('duoName', '') || '';
+      duoName.placeholder = 'Pistache';
+      duoSheet({
+        stage: 'join',
+        title: 'On continue à distance',
+        text: A0 + ' et toi continuez votre partie, chacun·e sur son téléphone. Vos kiff kiff vous suivent.',
+        name: true, go: 'Continuer', cancel: 'Jouer sur ce téléphone seulement'
+      });
+      return;
+    }
     if (st.phase === 'lobby') { showInvited(st); return; }
     duoName.value = load('duoName', '') || '';
     duoName.placeholder = 'Pistache';
@@ -2409,6 +2467,20 @@
     save('duoName', name);
     const next = Object.assign({}, st);
     next.names = [(st.names && st.names[0]) || '', name];
+    if (st.phase === 'lobby' && st.cont) {
+      // La partie continue où elle en était : même piment, même tour
+      const lv = parseLevels(st.levels);
+      buildLists(lv);
+      next.phase = 'compose';
+      next.proposer = st.proposer === 0 || st.proposer === 1 ? st.proposer : 1;
+      next.lvOk = parseLevels(st.lvOk || st.levels);
+      next.keys = [0, 1, 2].map((r) => keyOf(r, pickIndex(r, true)));
+      next.original = null; next.bottom = false; next.cont = false;
+      save('rulesSeen', true);
+      report('rejoint');
+      beginJoined(next);
+      return;
+    }
     if (st.phase === 'lobby') {
       // La partie commence : rouleaux au hasard, la personne invitée propose en premier
       const lv = parseLevels(st.levels);
@@ -2564,6 +2636,7 @@
     const stage = ovDuo.dataset.stage;
     if ((stage === 'setup' || stage === 'join') && needName(duoName)) return;
     if (stage === 'setup') createDuo();
+    else if (stage === 'cont') continueDuo();
     else if (stage === 'gift-ask') startGift();
     else if (stage === 'invite') leaveDuo(false, true);
     else if (stage === 'join' && duo && duo.remote) joinGame();
@@ -2578,7 +2651,7 @@
   $('#duo-cancel').addEventListener('click', () => {
     audio();
     const stage = ovDuo.dataset.stage;
-    if (stage === 'setup') { hide(ovDuo); return; }
+    if (stage === 'setup' || stage === 'cont') { hide(ovDuo); return; }
     if (stage === 'gift-ask') { showInvite(); return; }
     if (stage === 'invite') { leaveDuo(true); return; }
     leaveDuo(false, !!(duo && duo.resume) && ovDuo.dataset.retry !== 'ended');
@@ -3214,6 +3287,7 @@
     $('#name0').value = own[0] || '';
     $('#name1').value = own[1] || '';
     $('#resume').hidden = inDuo || !S.started || !!S.mustRestart;
+    $('#home-cont').hidden = !!duo || !S.started || !!S.mustRestart;
     $('#welcome-go').textContent = S.started ? 'Nouvelle partie' : 'Commencer';
     $('#welcome-go').classList.toggle('btn--line', inDuo);
     quitArmed(false);
