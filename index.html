@@ -30,7 +30,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,62..125,100..900;1,62..125,100..900&family=Bagel+Fat+One&family=Abril+Fatface&family=Merriweather:ital,opsz,wght@0,18..144,400..900;1,18..144,400..900&family=Baskervville:ital,wght@0,400..700;1,400..700&family=Jost:wght@300..700&family=Great+Vibes&family=Cinzel:wght@400..900&family=Syne:wght@600..800&family=Manrope:wght@400..800&family=Anton&family=Courier+Prime:wght@400;700&display=swap">
-<link rel="stylesheet" href="base.css?v=81">
+<link rel="stylesheet" href="base.css?v=82">
 <link rel="stylesheet" href="skins/arty.css?v=64" data-skin-sheet="arty">
 <link rel="stylesheet" href="skins/pomme.css?v=63" data-skin-sheet="pomme">
 <link rel="stylesheet" href="skins/redcorner.css?v=61" data-skin-sheet="redcorner">
@@ -118,6 +118,8 @@
   <symbol id="i-lien" viewBox="0 0 24 24"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></symbol>
   <symbol id="i-kiff" viewBox="0 0 24 24"><path d="M12 6.2A6.5 6.5 0 0 1 12 17.8A6.5 6.5 0 0 1 12 6.2Z" fill="currentColor" fill-opacity=".5" stroke="none"/><circle cx="9" cy="12" r="6.5"/><circle cx="15" cy="12" r="6.5"/></symbol>
   <symbol id="i-loupe" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.2"/><path d="M15.2 15.2l5 5"/></symbol>
+  <symbol id="i-barjot" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="8.6" cy="9.5" r="1.9"/><path d="M14.4 8.3l2.7 1.5-2.7 1.4"/><path d="M7.4 14.1c1.4 2.1 7.8 2.1 9.2 0"/><path d="M11.4 15.7v1.5a1.6 1.6 0 0 0 3.2 0v-1.8"/></symbol>
+  <symbol id="i-etoiles" viewBox="0 0 24 24"><path d="M10 6.5q.6 5.4 6 6-5.4.6-6 6-.6-5.4-6-6 5.4-.6 6-6z"/><path d="M17.6 3q.3 2.3 2.6 2.6-2.3.3-2.6 2.6-.3-2.3-2.6-2.6 2.3-.3 2.6-2.6z"/></symbol>
   <symbol id="i-roues" viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="17" height="4.6" rx="1.6"/><rect x="3.5" y="9.7" width="17" height="4.6" rx="1.6"/><rect x="3.5" y="15.9" width="17" height="4.6" rx="1.6"/></symbol>
   <symbol id="i-ajuster" viewBox="0 0 24 24"><path d="M4 8h13"/><path d="M14 4.5L17.5 8 14 11.5"/><path d="M20 16H7"/><path d="M10 12.5L6.5 16l3.5 3.5"/></symbol>
   <symbol id="i-telephones" viewBox="0 0 24 24"><rect x="2.5" y="5" width="8" height="14" rx="2"/><rect x="13.5" y="5" width="8" height="14" rx="2"/><path d="M6 16.5h1"/><path d="M17 16.5h1"/></symbol>
@@ -152,7 +154,6 @@
 
   <p class="switch switch--top is-static" id="sw-top" aria-checked="true">
     <span class="sw-text"><span class="sw-label ink" data-ink="J’ai envie…">J’ai envie…</span><span class="sw-owner" id="owner-top"></span></span>
-    <button class="ton-switch" id="ton" type="button" role="slider" aria-label="Le ton des roues" aria-valuemin="0" aria-valuemax="2" aria-valuenow="1" aria-valuetext="brocoli et étoiles, un peu de tout" data-ton="m"><span class="ton-knob" aria-hidden="true"></span><svg class="ton-ic ton-ic--b" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21.5v-6.2M12 17.6l-2.4-2.3M12 16.6l2.6-2.2"/><path d="M7.4 14.6a3.1 3.1 0 0 1-.6-6.1 3.6 3.6 0 0 1 6.8-2.6 3.3 3.3 0 0 1 4.9 3.6 2.9 2.9 0 0 1-1.2 5.1z"/></svg><svg class="ton-ic ton-ic--m" viewBox="0 0 24 24" aria-hidden="true"><g transform="translate(-1.5 3) scale(.66)"><path d="M12 21.5v-6.2M12 17.6l-2.4-2.3M12 16.6l2.6-2.2"/><path d="M7.4 14.6a3.1 3.1 0 0 1-.6-6.1 3.6 3.6 0 0 1 6.8-2.6 3.3 3.3 0 0 1 4.9 3.6 2.9 2.9 0 0 1-1.2 5.1z"/></g><g transform="translate(9.6 -1.2) scale(.6)"><path class="ton-fill" d="M10 6.5q.6 5.4 6 6-5.4.6-6 6-.6-5.4-6-6 5.4-.6 6-6z"/><path d="M17.6 3q.3 2.3 2.6 2.6-2.3.3-2.6 2.6-.3-2.3-2.6-2.6 2.3-.3 2.6-2.6z"/></g></svg><svg class="ton-ic ton-ic--s" viewBox="0 0 24 24" aria-hidden="true"><path d="M10 6.5q.6 5.4 6 6-5.4.6-6 6-.6-5.4-6-6 5.4-.6 6-6z"/><path d="M17.6 3q.3 2.3 2.6 2.6-2.3.3-2.6 2.6-.3-2.3-2.6-2.6 2.3-.3 2.6-2.6z"/></svg></button>
     <button class="sticker kiffs-btn" id="kiffs-open" type="button" aria-haspopup="dialog" hidden><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><use href="#i-kiff"/></svg><span class="kiffs-n" id="kiffs-n"></span><span class="kiffs-word">kiff kiff</span></button>
   </p>
 
@@ -329,11 +330,19 @@
 <!-- Niveau de piment -->
 <div class="overlay overlay--edit overlay--skins" id="ov-piment" hidden role="dialog" aria-modal="true" aria-labelledby="piment-title">
   <div class="sheet sheet--edit sheet--skins">
-    <h2 class="edit-label" id="piment-title">Piment</h2>
-    <p class="edit-hint">Coche un ou plusieurs niveaux. Choisissez-les ensemble : ils valent pour vous deux.</p>
-    <div class="piment-list" id="piment-list" role="group" aria-labelledby="piment-title"></div>
-    <p class="piment-error" id="piment-error" hidden role="alert">Garde au moins un niveau coché.</p>
+    <h2 class="edit-label" id="piment-title">Dans les roues</h2>
+    <p class="edit-hint">Ce que les roues tirent pour vous. Le piment se choisit à deux.</p>
+    <p class="roues-sub" id="roues-piment">Piment</p>
+    <div class="piment-list" id="piment-list" role="group" aria-labelledby="roues-piment"></div>
+    <p class="piment-error" id="piment-error" hidden role="alert">Garde au moins un piment, sinon les roues tournent à vide.</p>
     <p class="piment-duo" id="piment-duo" hidden role="status"></p>
+    <p class="roues-sub" id="roues-ton">Ton</p>
+    <div class="ton-choice" id="ton" role="radiogroup" aria-labelledby="roues-ton">
+      <button type="button" role="radio" data-ton="e" aria-checked="false"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-etoiles"/></svg><span>Premier degré</span></button>
+      <button type="button" role="radio" data-ton="m" aria-checked="true"><span class="ton-mix" aria-hidden="true"><svg class="ic" viewBox="0 0 24 24"><use href="#i-etoiles"/></svg><svg class="ic" viewBox="0 0 24 24"><use href="#i-barjot"/></svg></span><span>Un peu de tout</span></button>
+      <button type="button" role="radio" data-ton="b" aria-checked="false"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-barjot"/></svg><span>Barjot</span></button>
+    </div>
+    <p class="roues-ex" id="roues-ex" aria-live="polite"></p>
     <div class="row row--end">
       <button class="btn" id="piment-done" type="button">C’est choisi</button>
     </div>
@@ -596,6 +605,6 @@
 <script src="config.js?v=61"></script>
 <script src="duo.js?v=62"></script>
 <script src="push.js?v=65"></script>
-<script src="app.js?v=89"></script>
+<script src="app.js?v=90"></script>
 </body>
 </html>

@@ -919,21 +919,21 @@ body:has(#ov-deal:not([hidden])) .deco-candles { display: none; }
 .loupe-write .ic { width: 20px; height: 20px; flex: none; }
 #loupe-pick { align-self: stretch; }
 
-/* Le brocoli : un curseur à trois positions à côté de « J’ai envie… » (brocoli, brocoli et étoiles, étoiles) */
-.ton-switch { position: relative; flex: none; margin-left: auto; width: 80px; height: 30px; padding: 0 4px; border: 0; border-radius: 999px; display: inline-flex; align-items: center; justify-content: space-between; cursor: pointer; color: inherit;
-  background: color-mix(in srgb, currentColor 10%, transparent); box-shadow: inset 0 0 0 1.5px color-mix(in srgb, currentColor 35%, transparent); -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
-.ton-switch::before { content: ''; position: absolute; inset: -7px -2px; } /* une cible de doigt plus grande que le dessin */
-.ton-knob { position: absolute; top: 3px; left: 3px; width: 24px; height: 24px; border-radius: 50%; background: var(--pill-on-bg, currentColor); transition: transform .28s cubic-bezier(.3, 1.4, .5, 1); }
-.ton-switch[data-ton="m"] .ton-knob { transform: translateX(25px); }
-.ton-switch[data-ton="e"] .ton-knob { transform: translateX(50px); }
-.ton-ic { position: relative; width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; opacity: .5; transition: opacity .25s, color .25s; }
-.ton-ic--m { stroke-width: 2.1; }
-.ton-switch[data-ton="b"] .ton-ic--b, .ton-switch[data-ton="m"] .ton-ic--m, .ton-switch[data-ton="e"] .ton-ic--s { opacity: 1; color: var(--pill-on-fg, #fff); }
-.ton-switch[data-ton="e"] .ton-ic--s path, .ton-switch[data-ton="m"] .ton-ic--m .ton-fill { fill: currentColor; }
-.ton-switch:focus-visible { outline: 2px dashed currentColor; outline-offset: 3px; }
-.ton-switch.is-nope { animation: nope .32s ease; }
-.switch--top .ton-switch + .kiffs-btn { margin-left: 8px; }
-.switch--top .ton-switch ~ .kiffs-btn .kiffs-word { display: none; }
+/* Dans les roues : le bouton du haut (un piment et le visage barjot), et le ton dans la feuille */
+.piment-btn .roues-chili { width: 16px; height: 16px; color: var(--chili-color, currentColor); flex: none; }
+.piment-btn .roues-barjot { width: 19px; height: 19px; flex: none; margin-left: 2px; }
+.roues-sub { margin: 6px 0 -2px; font-size: 12.5px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; opacity: .75; text-align: left; }
+.ton-choice { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.ton-choice button { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; min-height: 64px; padding: 8px 4px; border: 0; border-radius: 14px; cursor: pointer; font: inherit; font-size: 13.5px; font-weight: 700; line-height: 1.15; color: inherit; text-align: center;
+  background: color-mix(in srgb, currentColor 8%, transparent); box-shadow: inset 0 0 0 1.5px color-mix(in srgb, currentColor 30%, transparent); -webkit-tap-highlight-color: transparent; }
+.ton-choice button[aria-checked="true"] { background: var(--pill-on-bg, currentColor); color: var(--pill-on-fg, #fff); box-shadow: none; }
+.ton-choice button:focus-visible { outline: 2px dashed currentColor; outline-offset: 3px; }
+.ton-choice .ic { width: 22px; height: 22px; }
+.ton-mix { display: inline-flex; }
+.ton-mix .ic { width: 18px; height: 18px; }
+.roues-ex { margin: 2px 0 0; padding: 10px 12px; border-radius: 12px; font-size: 14.5px; line-height: 1.35; text-align: left; background: color-mix(in srgb, currentColor 7%, transparent); }
+.roues-ex:empty { display: none; }
+.roues-n { display: block; margin-top: 4px; font-size: 13px; opacity: .75; }
 
 /* La petite loupe, discrète, au coin bas droit de chaque roue */
 .reel-loupe { position: absolute; z-index: 4; right: 2px; bottom: 0; width: 32px; height: 30px; padding: 0; border: 0; background: none; display: grid; place-items: center; color: var(--reel-loupe, currentColor); opacity: .5; cursor: pointer; -webkit-tap-highlight-color: transparent; }

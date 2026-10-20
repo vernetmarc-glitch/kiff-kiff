@@ -250,7 +250,7 @@
     if (r >= 0.6) return '<p class="perf perf--good">Très kiffée : ' + txt + '</p>';
     return '<p class="perf">' + txt + '</p>';
   }
-  // Décalé : un mot pour rire, que le brocoli des roues enlève quand on joue au premier degré
+  // Décalé : un mot pour rire (le ton barjot), que les roues enlèvent quand on joue au premier degré
   const dcHtml = (x) => '<label class="dc"><input type="checkbox" data-k="dc"' + (x.dc ? ' checked' : '') + '> décalé (pour rire)</label>';
   function rowHtml(x) {
     const lvl = [1, 2, 3].map((n) => '<button type="button" data-lvl="' + n + '" aria-pressed="' + (x.lvl === n) + '" aria-label="' + NIV[n - 1].nom + '">' + n + '</button>').join('');
@@ -285,12 +285,12 @@
     if (!list.length) { box.innerHTML = ''; return; }
     const on = list.filter((x) => x.on).length;
     const row = (x) => '<li class="sg' + (x.on ? '' : ' is-off') + '" data-id="' + x.id + '"><input type="checkbox" data-k="on"' + (x.on ? ' checked' : '') + ' aria-label="Ajouter ce mot">' +
-      '<span class="sg-tags"><span class="chilis" aria-label="' + esc(NIV[x.lvl - 1].nom) + '">' + CHILI.repeat(x.lvl) + '</span><span class="sg-ton' + (x.dc ? ' is-dc' : '') + '">' + (x.dc ? 'brocoli' : 'étoiles') + '</span></span>' +
+      '<span class="sg-tags"><span class="chilis" aria-label="' + esc(NIV[x.lvl - 1].nom) + '">' + CHILI.repeat(x.lvl) + '</span><span class="sg-ton' + (x.dc ? ' is-dc' : '') + '">' + (x.dc ? 'barjot' : 'premier degré') + '</span></span>' +
       '<span class="sg-fields"><input type="text" data-k="s" value="' + esc(x.s) + '" maxlength="60" aria-label="Le mot">' +
       (x.i || x.two ? '<input type="text" data-k="i" value="' + esc(x.i) + '" maxlength="60" aria-label="Forme après « de te »" placeholder="forme « de te »">' : '') +
       (x.a ? '<span class="sg-note">avec « à »</span>' : '') + '</span></li>';
     box.innerHTML = '<summary><b>Mots à ajouter</b> <span class="n">' + list.length + '</span></summary>' +
-      '<p class="note">Ta sélection, prête à entrer dans la roue. Décoche ceux que tu ne veux pas, corrige si besoin, puis ajoute : ils rejoignent leur niveau, avec leur ton (brocoli = décalé).</p>' +
+      '<p class="note">Ta sélection, prête à entrer dans la roue. Décoche ceux que tu ne veux pas, corrige si besoin, puis ajoute : ils rejoignent leur niveau, avec leur ton (barjot ou premier degré).</p>' +
       [1, 2, 3].map((n) => { const l = list.filter((x) => x.lvl === n); return l.length ? '<h4 class="sg-head">' + esc(NIV[n - 1].nom) + '</h4><ul class="sg-list">' + l.map(row).join('') + '</ul>' : ''; }).join('') +
       '<div class="row-end"><button class="btn" type="button" id="sugg-add"' + (on ? '' : ' disabled') + '>Ajouter ' + on + ' mot' + (on > 1 ? 's' : '') + ' à la roue</button></div>';
   }
@@ -406,7 +406,7 @@
       const dcs = (r) => (src[r] || []).filter((x) => x && x.dc).map((x) => (x.s || x.t || '').trim());
       let n = 0;
       ROUES.forEach((r) => { const l = dcs(r); words[r].forEach((x) => { if (l.includes(x.s.trim())) { x.dc = true; n++; } }); });
-      if (n) banner('J’ai coché « décalé » sur ' + n + ' mots (le brocoli des roues). Vérifie, puis « Enregistrer dans l’appli ».');
+      if (n) banner('J’ai coché « décalé » sur ' + n + ' mots (le ton barjot des roues). Vérifie, puis « Enregistrer dans l’appli ».');
     }
     renderWords();
   }

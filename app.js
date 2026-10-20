@@ -32,7 +32,7 @@
     return out.length ? out : [1, 2];
   }
   /* ---------- Les roues : un tirage d’une vingtaine de mots, rangé en dégradé ----------
-     Le stock complet (piment et brocoli choisis) est la réserve ; chaque roue n’en montre qu’un tirage,
+     Le stock complet (piment et ton choisis) est la réserve ; chaque roue n’en montre qu’un tirage,
      refait à chaque tour de composition (et au dé) : les mots jamais proposés entre vous d’abord.
      Dans la roue, du plus tendre au plus brûlant, le décalé et le premier degré en alternance.
      La loupe cherche dans toute la réserve ; un mot choisi là reste dans la roue pour la partie. */
@@ -141,7 +141,7 @@
     prog: false, // partie à distance où le piment se débloque en jouant (Tendre, puis Pimenté, puis Brûlant)
     gift: null, // l’envie glissée dans l’invitation { keys, custom, dir }
     gifting: false, // je compose l’envie de l’invitation
-    ton: 'm' // le ton des roues : 'b' brocoli (mots décalés), 'm' brocoli et étoiles, 'e' étoiles (premier degré)
+    ton: 'm' // le ton des roues : 'b' barjot (mots décalés), 'm' un peu de tout, 'e' premier degré
   };
   buildLists(S.levels);
   const nameOf = (i) => (S.names[i] || '').trim() || (i === 0 ? 'Cerise' : 'Pistache');
@@ -568,14 +568,17 @@
   }
 
   let hintFlashT = 0;
+  let hintFlash = '';
   function flashHint(text) {
+    hintFlash = text;
     el.hint.textContent = text;
     clearTimeout(hintFlashT);
-    hintFlashT = setTimeout(renderHint, 2600);
+    hintFlashT = setTimeout(() => { hintFlash = ''; renderHint(); }, 2600);
   }
   const esc = (s) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
   function renderHint() {
+    if (hintFlash) { el.hint.textContent = hintFlash; return; }
     const A = esc(nameOf(S.proposer));
     const B = esc(nameOf(other(S.proposer)));
     const ch = changes();
@@ -2022,8 +2025,8 @@
   function renderLevel() {
     const b = $('#piment-open');
     if (b) {
-      b.innerHTML = '<span class="pgroups">' + levelGroups() + '</span>';
-      b.setAttribute('aria-label', 'Piment : ' + levelNames() + '. Changer');
+      b.innerHTML = '<svg class="roues-chili" viewBox="0 0 24 24" aria-hidden="true"><use href="#chili"/></svg><svg class="ic roues-barjot" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-barjot"/></svg>';
+      b.setAttribute('aria-label', 'Dans les roues : ' + levelNames() + ', ' + (TON_TXT[S.ton] || TON_TXT.m) + '. Changer');
     }
     const u = unlocked();
     document.querySelectorAll('.piment-list input[type="checkbox"]').forEach((c) => {
@@ -2039,67 +2042,53 @@
     document.documentElement.dataset.piment = S.levels.join('');
   }
 
-  /* ---------- Le brocoli : un curseur à trois positions ----------
-     Brocoli (que des mots décalés), brocoli et étoiles (un peu de tout, au départ), étoiles (que du premier degré).
-     Rien ne l’annonce : on le découvre en jouant. Celui ou celle qui compose le règle, sans demander. */
+  /* ---------- Le ton des roues : premier degré, un peu de tout, barjot ----------
+     Dans la feuille « Dans les roues », à côté du piment : c’est le même genre de choix (ce que les roues tirent).
+     Celui ou celle qui compose le change sans demander ; un exemple d’envie montre tout de suite l’effet. */
   const TONS = ['b', 'm', 'e'];
-  const TON_TXT = { b: 'que du brocoli, les mots décalés', m: 'brocoli et étoiles, un peu de tout', e: 'que des étoiles, le premier degré' };
-  const TON_HINT = { b: 'Que du brocoli : place aux mots décalés.', m: 'Brocoli et étoiles : un peu de tout.', e: 'Que des étoiles : le premier degré.' };
-  const tonBtn = $('#ton');
+  const TON_TXT = { b: 'barjot', m: 'un peu de tout', e: 'premier degré' };
+  const tonBox = $('#ton');
   const tonOf = (st) => (TONS.includes(st && st.ton) ? st.ton : st && st.decale === false ? 'e' : 'm');
   function renderTon() {
-    if (!tonBtn) return;
     if (!TONS.includes(S.ton)) S.ton = 'm';
-    tonBtn.dataset.ton = S.ton;
-    tonBtn.setAttribute('aria-valuenow', String(TONS.indexOf(S.ton)));
-    tonBtn.setAttribute('aria-valuetext', TON_TXT[S.ton]);
+    if (tonBox) tonBox.querySelectorAll('[data-ton]').forEach((b) => b.setAttribute('aria-checked', b.dataset.ton === S.ton ? 'true' : 'false'));
+    if (typeof renderLevel === 'function' && reels.length) renderLevel();
+  }
+  // L’exemple en bas de la feuille : une envie tirée des roues telles qu’elles sont réglées
+  function renderRouesEx() {
+    const box = $('#roues-ex');
+    if (!box || !LISTS[0].length) return;
+    const idx = [0, 1, 2].map((r) => { const n = LISTS[r].length - 1; return n > 0 ? Math.floor(Math.random() * n) : 0; });
+    const p = parts(idx, S.dir);
+    let t = ('J’ai envie ' + glue(p.dir, p.act) + ' ' + p.obj + ' ' + p.man).replace(/\s+/g, ' ').trim();
+    if (!/[!?…]$/.test(t)) t += '.';
+    const n = [0, 1, 2].map((r) => poolOf(r, S.levels).length);
+    const nb = n[0] + ' actions, ' + n[1] + ' endroits, ' + n[2] + ' manières';
+    box.innerHTML = '<b>Par exemple :</b> «\u00a0' + esc(t) + '\u00a0»<span class="roues-n">' +
+      (n.every((k) => k > DRAW_N) ? DRAW_N + ' mots par roue, tirés parmi ' + nb + '.' : 'Dans les roues : ' + nb + '.') + '</span>';
   }
   function setTon(t) {
-    audio();
-    if (!myTurn() || S.phase !== 'compose' || reels.some((rl) => rl.busy)) {
-      sNope(); haptic(20);
-      tonBtn.classList.remove('is-nope'); void tonBtn.offsetWidth; tonBtn.classList.add('is-nope');
-      return;
-    }
+    if (!myTurn() || S.phase !== 'compose' || reels.some((rl) => rl.busy)) { sNope(); haptic(20); return; }
     if (t === S.ton) return;
-    const cur = LISTS.map((l, r) => l[S.idx[r]]);
+    audio();
     S.ton = t;
     renderTon();
     newDraw();
     relist();
-    // Un mot qui sort de la roue laisse sa place à un mot du nouveau ton, tiré au hasard
-    const gone = cur.map((x, r) => !!x && !x.free && LISTS[r].indexOf(x) < 0);
     renderReels();
-    gone.forEach((g, r) => { if (g) reels[r].spinTo(pickIndex(r), 1, 700 + r * 160); });
-    sSwitchOn(); haptic(12);
-    flashHint(TON_HINT[t]);
+    sClick(); haptic(8);
+    renderRouesEx();
     savePair();
     if (duo) sync();
     render();
   }
-  // La petite loupe au coin de chaque roue : elle ouvre la roue en grand (comme toucher le mot du centre)
-  document.querySelectorAll('.reel[data-reel] .reel-loupe').forEach((b) => {
-    const r = +b.closest('.reel').dataset.reel;
-    b.addEventListener('pointerdown', (e) => e.stopPropagation()); // ce n’est pas un coup de roue
-    b.addEventListener('pointerup', (e) => e.stopPropagation());
-    b.addEventListener('click', (e) => {
-      e.stopPropagation();
-      if (reels[r].canMove()) openLoupe(r); else reels[r].nope();
-    });
-  });
-  if (tonBtn) {
-    // On touche la position voulue (gauche, milieu, droite) ; les flèches marchent aussi
-    tonBtn.addEventListener('click', (e) => {
-      const box = tonBtn.getBoundingClientRect();
-      const x = e.detail === 0 ? null : (e.clientX - box.left) / box.width;
-      const t = x == null ? TONS[(TONS.indexOf(S.ton) + 1) % 3] : TONS[Math.max(0, Math.min(2, Math.floor(x * 3)))];
-      if (t === S.ton && x != null) { setTon(TONS[(TONS.indexOf(S.ton) + 1) % 3]); return; } // retoucher sa position avance d’un cran
-      setTon(t);
-    });
-    tonBtn.addEventListener('keydown', (e) => {
-      const k = TONS.indexOf(S.ton);
-      if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') { e.preventDefault(); if (k > 0) setTon(TONS[k - 1]); }
-      else if (e.key === 'ArrowRight' || e.key === 'ArrowUp') { e.preventDefault(); if (k < 2) setTon(TONS[k + 1]); }
+  if (tonBox) {
+    tonBox.addEventListener('click', (e) => { const b = e.target.closest('[data-ton]'); if (b) setTon(b.dataset.ton); });
+    tonBox.addEventListener('keydown', (e) => {
+      const k = TONS.indexOf(S.ton), order = ['e', 'm', 'b'], j = order.indexOf(S.ton);
+      if (e.key === 'ArrowRight' || e.key === 'ArrowDown') { e.preventDefault(); if (j < 2) { setTon(order[j + 1]); tonBox.querySelector('[data-ton="' + order[j + 1] + '"]').focus(); } }
+      else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); if (j > 0) { setTon(order[j - 1]); tonBox.querySelector('[data-ton="' + order[j - 1] + '"]').focus(); } }
+      void k;
     });
   }
 
@@ -3204,6 +3193,7 @@
         }
         sClick(); haptic(8);
         setLevels(next, { silent: S.phase === 'start' || !el.ovStart.hidden });
+        if (!ovPiment.hidden) renderRouesEx();
       }));
     };
     pimentList($('#piment-list'), $('#piment-error'));
@@ -3215,9 +3205,14 @@
     });
     renderLevel();
     let pimentFrom = null;
+    let rouesAvant = '';
+    const rouesSig = () => S.levels.join('') + S.ton;
     const openPiment = (from) => {
       pimentFrom = from;
+      rouesAvant = rouesSig();
       renderLevel();
+      renderTon();
+      renderRouesEx();
       $('#piment-error').hidden = true;
       renderPimentDuo();
       show(ovPiment);
@@ -3228,13 +3223,19 @@
       audio();
       if (S.phase !== 'compose' || !myTurn()) {
         sNope(); haptic(20);
-        flashHint('Le piment se règle pendant la composition, avant de proposer.');
+        flashHint('Le piment et le ton se changent quand tu composes.');
         return;
       }
       openPiment($('#piment-open'));
     });
     const closePiment = () => {
       hide(ovPiment);
+      // Le réglage a changé : les roues tournent sur leur nouveau tirage, et on dit ce qu’elles tirent
+      if (rouesAvant && rouesSig() !== rouesAvant && S.phase === 'compose' && myTurn()) {
+        setTimeout(() => shuffle(false), 120);
+        flashHint('Roues\u00a0: ' + levelNames() + ', ' + TON_TXT[S.ton] + '.');
+      }
+      rouesAvant = '';
       if (S.mustRestart) { $('#resume').hidden = true; $('#welcome-go').textContent = 'Nouvelle partie'; }
       if (pimentFrom) pimentFrom.focus({ preventScroll: true });
     };
@@ -3421,7 +3422,7 @@
     S.kiff = null;
     S.kept = [[], [], []]; newDraw();
     const mem = (load('paires', {}) || {})[pairKey()];
-    S.ton = tonOf(mem); // le brocoli comme vous l’avez laissé
+    S.ton = tonOf(mem); // le ton comme vous l’avez laissé
     renderTon();
     setMemory(mem); // vos mots et ce que vous vous êtes déjà proposé
     // vos kiff kiff, dont les envies gardées pour plus tard

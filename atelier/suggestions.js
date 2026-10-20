@@ -3,7 +3,7 @@
  * on les ajoute, puis « Enregistrer dans l’appli ». Un mot déjà dans la roue n’y apparaît plus.
  * Actions : s (après « que tu me »), i (après « de te », sinon proposé tout seul), a (avec « à »).
  * Endroits et manières : t, ou s / i quand le possessif change avec le sens.
- * lvl : 1 Tendre, 2 Pimenté, 3 Brûlant ; dc : décalé (le brocoli). */
+ * lvl : 1 Tendre, 2 Pimenté, 3 Brûlant ; dc : décalé (le ton barjot). */
 window.KIFF_SUGGESTIONS = {
   action: [
     { lvl: 1, s: 'frôles' }, { lvl: 1, s: 'enlaces' }, { lvl: 1, s: 'câlines' }, { lvl: 1, s: 'chatouilles' }, { lvl: 1, s: 'réchauffes' },
