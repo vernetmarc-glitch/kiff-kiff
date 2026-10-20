@@ -1039,11 +1039,170 @@
   }
   editInput.addEventListener('input', editPreview);
 
-  /* La loupe : toucher le mot du centre ouvre toute la roue, rangée par piment, avec un champ pour chercher ou écrire */
-  const ovLoupe = $('#ov-loupe'), loupeQ = $('#loupe-q');
+  /* La loupe : toucher le mot du centre ouvre toute la roue en grand. C’est un vrai tambour : une facette
+     par mot, un rayon calculé pour que les facettes en fassent le tour exactement (un tour complet ramène
+     au même mot), une courbure d’autant plus douce que la roue a de mots. Un champ cherche ou écrit. */
+  const ovLoupe = $('#ov-loupe'), loupeQ = $('#loupe-q'), drumEl = $('#loupe-drum');
+  const drumStrip = drumEl.querySelector('.reel-strip');
   let loupeR = -1, loupeFrom = null;
-  const plain = (t) => (t || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[’']/g, ' ');
+  const plain = (t) => (t || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[’']/g, ' ');
   const LOUPE_PH = ['Chercher ou écrire ton action', 'Chercher ou écrire ton endroit', 'Chercher ou écrire ta manière'];
+  const drum = { items: [], nodes: [], p: 0, raf: 0, drag: null, lastTick: 0, nf: 8, h: 38, R: 100, theta: 1 };
+  const drumMod = (i, n) => ((i % n) + n) % n;
+  function loupeItems() {
+    const r = loupeR, q = plain(loupeQ.value.trim()), out = [];
+    LISTS[r].forEach((x, i) => {
+      if (x.free) return;
+      if (r === 0 && x.m && x.d && x.d !== S.dir) return; // une action écrite à la main garde son sens
+      const t = labelFor(r, i);
+      if (q && !plain(t).includes(q)) return;
+      out.push({ i, t, lvl: x.lvl || 1, m: !!x.m });
+    });
+    // Vos mots d’abord, puis Tendre, Pimenté, Brûlant : on sent le piment monter en tournant
+    return out.filter((it) => it.m).concat([1, 2, 3].flatMap((l) => out.filter((it) => !it.m && it.lvl === l)));
+  }
+  function buildDrum(keepI) {
+    drum.items = loupeItems();
+    const n = drum.items.length;
+    drum.h = parseFloat(getComputedStyle(drumEl).getPropertyValue('--item-h')) || 38;
+    drum.nf = Math.max(n, 10); // en dessous de dix mots, des facettes restent nues
+    drum.theta = 2 * Math.PI / drum.nf;
+    drum.R = (drum.h / 2) / Math.tan(Math.PI / drum.nf);
+    drumStrip.style.perspective = Math.round(Math.max(700, drum.R * 3.2)) + 'px';
+    drumStrip.textContent = '';
+    drum.nodes = drum.items.map((it) => {
+      const d = document.createElement('div');
+      d.className = 'reel-item';
+      const len = it.t.length + (it.lvl > 1 ? it.lvl + 1 : 0);
+      d.classList.toggle('is-long', len > 22 && len <= 28);
+      d.classList.toggle('is-xlong', len > 28);
+      d.classList.toggle('is-xxlong', len > 36);
+      d.innerHTML = '<span class="reel-txt">' + esc(it.t) + '</span>' +
+        (it.m ? '<span class="reel-perso"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-ecrire"/></svg></span>' : '') +
+        (it.lvl > 1 ? '<span class="reel-chilis reel-chilis--' + it.lvl + '">' + '<svg class="chili is-on" viewBox="0 0 24 24" aria-hidden="true"><use href="#chili"/></svg>'.repeat(it.lvl) + '</span>' : '');
+      drumStrip.appendChild(d);
+      return d;
+    });
+    const k = drum.items.findIndex((it) => it.i === keepI);
+    drum.p = k >= 0 ? k : 0;
+    drum.lastTick = Math.round(drum.p);
+    $('#loupe-empty').hidden = !!n;
+    $('#loupe-pick').disabled = !n;
+    renderDrum();
+  }
+  function renderDrum() {
+    const { nf, theta, R } = drum;
+    drum.nodes.forEach((node, k) => {
+      let a = (k - drum.p) * theta;
+      a = a - 2 * Math.PI * Math.round(a / (2 * Math.PI)); // le chemin le plus court sur le tambour
+      const vis = Math.abs(a) < Math.PI / 2 - 0.02;
+      node.style.visibility = vis ? '' : 'hidden';
+      if (!vis) return;
+      const c = Math.cos(a);
+      node.style.opacity = Math.pow(c, 1.6).toFixed(3);
+      node.style.transform = 'translateY(' + (Math.sin(a) * R).toFixed(2) + 'px) translateZ(' + ((c - 1) * R).toFixed(2) + 'px) rotateX(' + (-a * 57.2958).toFixed(2) + 'deg)';
+      node.classList.toggle('is-center', Math.abs(a) < theta / 2);
+    });
+    const n = drum.items.length;
+    if (!n) return;
+    const cur = drum.items[drumMod(Math.round(drum.p), drum.nf) % n] || drum.items[0];
+    drumEl.setAttribute('aria-valuetext', cur.t + (cur.lvl > 1 ? (cur.lvl === 3 ? ', brûlant' : ', pimenté') : '') + (cur.m ? ', vos mots' : ''));
+    const t = Math.round(drum.p);
+    if (t !== drum.lastTick) { drum.lastTick = t; tick(); }
+  }
+  // Une facette nue (moins de dix mots) n’est jamais choisie : on glisse au mot le plus proche
+  function drumTarget(t) {
+    const n = drum.items.length, nf = drum.nf;
+    if (!n || n === nf) return t;
+    let best = t, bd = Infinity;
+    for (let d = -nf; d <= nf; d++) { const k = drumMod(t + d, nf); if (k < n && Math.abs(d) < bd) { bd = Math.abs(d); best = t + d; } }
+    return best;
+  }
+  function drumStop() { cancelAnimationFrame(drum.raf); drum.raf = 0; }
+  function drumTo(target, dur, then) {
+    drumStop();
+    drum.target = target;
+    const from = drum.p, t0 = performance.now();
+    const step = (now) => {
+      const k = Math.min(1, (now - t0) / dur);
+      drum.p = from + (target - from) * ease.outCubic(k);
+      renderDrum();
+      if (k < 1) { drum.raf = requestAnimationFrame(step); return; }
+      drum.raf = 0;
+      drum.target = null;
+      if (then) then();
+    };
+    drum.raf = requestAnimationFrame(step);
+  }
+  const drumSnap = () => drumTo(drumTarget(Math.round(drum.p)), 220);
+  // L’élan du doigt : la roue file, ralentit, puis se cale sur une facette
+  function drumFling(v) {
+    drumStop();
+    let last = performance.now();
+    const step = (now) => {
+      const dt = Math.min(40, now - last); last = now;
+      drum.p += v * dt;
+      v *= Math.pow(0.994, dt);
+      renderDrum();
+      if (Math.abs(v) > 0.0015) { drum.raf = requestAnimationFrame(step); return; }
+      drum.raf = 0;
+      drumSnap();
+    };
+    drum.raf = requestAnimationFrame(step);
+  }
+  drumEl.addEventListener('pointerdown', (e) => {
+    if (!drum.items.length) return;
+    drumStop();
+    drum.drag = { y: e.clientY, p: drum.p, moved: false, hist: [{ t: performance.now(), p: drum.p }] };
+    drumEl.setPointerCapture(e.pointerId);
+  });
+  drumEl.addEventListener('pointermove', (e) => {
+    const d = drum.drag;
+    if (!d) return;
+    const dy = e.clientY - d.y;
+    if (Math.abs(dy) > 5) d.moved = true;
+    drum.p = d.p - dy / drum.h;
+    d.hist.push({ t: performance.now(), p: drum.p });
+    if (d.hist.length > 6) d.hist.shift();
+    renderDrum();
+  });
+  const drumUp = (e) => {
+    const d = drum.drag;
+    if (!d) return;
+    drum.drag = null;
+    if (!d.moved) {
+      // Toucher une facette : elle vient au centre ; toucher celle du centre : on la choisit
+      const box = drumEl.getBoundingClientRect();
+      const y = Math.max(-0.98, Math.min(0.98, (e.clientY - (box.top + box.height / 2)) / drum.R));
+      const k = Math.round(drum.p + Math.asin(y) / drum.theta);
+      if (k === Math.round(drum.p)) { pickDrum(); return; }
+      sClick(); haptic(6);
+      drumTo(drumTarget(k), 260);
+      return;
+    }
+    const h = d.hist, a = h[0], b = h[h.length - 1];
+    const v = b.t > a.t ? (b.p - a.p) / (b.t - a.t) : 0;
+    if (Math.abs(v) > 0.004) drumFling(Math.max(-0.06, Math.min(0.06, v)));
+    else drumSnap();
+  };
+  drumEl.addEventListener('pointerup', drumUp);
+  drumEl.addEventListener('pointercancel', () => { drum.drag = null; drumSnap(); });
+  let wheelT = 0;
+  drumEl.addEventListener('wheel', (e) => {
+    if (!drum.items.length) return;
+    e.preventDefault();
+    drumStop();
+    drum.p += e.deltaY / drum.h / 2;
+    renderDrum();
+    clearTimeout(wheelT); wheelT = setTimeout(drumSnap, 120);
+  }, { passive: false });
+  drumEl.addEventListener('keydown', (e) => {
+    // Les touches s’additionnent : chaque appui avance d’une facette, même pendant l’animation
+    const base = drum.raf && drum.target != null ? drum.target : Math.round(drum.p);
+    if (e.key === 'ArrowDown') { e.preventDefault(); drumTo(drumTarget(base + 1), 170); }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); drumTo(drumTarget(base - 1), 170); }
+    else if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pickDrum(); }
+  });
   function openLoupe(r) {
     audio(); sClick(); haptic(8);
     loupeR = r;
@@ -1051,48 +1210,36 @@
     $('#loupe-title').textContent = REEL_NAMES[r].charAt(0).toUpperCase() + REEL_NAMES[r].slice(1);
     loupeQ.value = '';
     loupeQ.placeholder = LOUPE_PH[r];
-    renderLoupe();
+    // Le tambour prend l’allure de la roue touchée
+    drumEl.className = 'reel loupe-drum ' + [...reels[r].el.classList].filter((c) => /^strip/.test(c)).join(' ');
+    $('#loupe-write').hidden = true;
     show(ovLoupe);
-    // La liste s’ouvre sur le mot en cours, une fois la feuille posée
-    const center = () => {
-      const list = $('#loupe-list'), on = list.querySelector('.loupe-item.is-on');
-      if (!on) return;
-      list.scrollTop = on.getBoundingClientRect().top - list.getBoundingClientRect().top + list.scrollTop - list.clientHeight / 2 + on.offsetHeight / 2;
-      on.focus({ preventScroll: true });
-    };
-    requestAnimationFrame(center); setTimeout(center, 120); setTimeout(center, 320);
+    buildDrum(reels[r].index);
+    requestAnimationFrame(() => buildDrum(reels[r].index)); // une fois la feuille posée, à la bonne taille
+    drumEl.focus({ preventScroll: true });
   }
-  function renderLoupe() {
-    const r = loupeR, cur = reels[r].index;
-    const q = plain(loupeQ.value.trim());
-    const items = [];
-    LISTS[r].forEach((x, i) => {
-      if (x.free) return;
-      if (r === 0 && x.m && x.d && x.d !== S.dir) return; // une action écrite à la main garde son sens
-      const t = labelFor(r, i);
-      if (q && !plain(t).includes(q)) return;
-      items.push({ i, t, lvl: x.lvl || 1, m: !!x.m });
-    });
-    const row = (it) => '<li><button class="loupe-item' + (it.i === cur ? ' is-on' : '') + '" type="button" data-i="' + it.i + '"' + (it.i === cur ? ' aria-current="true"' : '') + '>' +
-      '<span class="loupe-txt">' + esc(it.t) + '</span>' +
-      (it.m ? '<svg class="ic loupe-mine" viewBox="0 0 24 24" aria-label="écrit par vous"><use href="#i-ecrire"/></svg>' : '') +
-      (it.lvl > 1 ? '<span class="reel-chilis reel-chilis--' + it.lvl + '" aria-label="' + D.niveaux[it.lvl - 1].nom + '">' + '<svg class="chili is-on" viewBox="0 0 24 24" aria-hidden="true"><use href="#chili"/></svg>'.repeat(it.lvl) + '</span>' : '') +
-      '</button></li>';
-    let html = '';
+  function renderWrite() {
     const typed = loupeQ.value.replace(/\s+/g, ' ').trim();
-    if (typed && !items.some((it) => plain(it.t) === plain(typed))) {
-      html += '<li><button class="loupe-item loupe-write" type="button" data-write="1"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-ecrire"/></svg><span class="loupe-txt">Écrire «\u00a0' + esc(typed) + '\u00a0»</span></button></li>';
-    }
-    const groups = [['Vos mots', items.filter((it) => it.m)]].concat([1, 2, 3].map((l) => [D.niveaux[l - 1].nom, items.filter((it) => !it.m && it.lvl === l)]));
-    const shown = groups.filter(([, l]) => l.length);
-    shown.forEach(([name, l]) => { if (shown.length > 1 || !q) html += '<li class="loupe-head" aria-hidden="true">' + esc(name) + '</li>'; html += l.map(row).join(''); });
-    $('#loupe-list').innerHTML = html;
+    const show_ = !!typed && !drum.items.some((it) => plain(it.t) === plain(typed));
+    $('#loupe-write').hidden = !show_;
+    $('#loupe-write-text').textContent = 'Écrire « ' + typed + ' »';
   }
   function closeLoupe(focus = true) {
+    drumStop();
     hide(ovLoupe);
     loupeQ.blur();
     if (focus && loupeFrom) loupeFrom.focus({ preventScroll: true });
     loupeR = -1;
+  }
+  function pickDrum() {
+    const n = drum.items.length;
+    if (!n || loupeR < 0) return;
+    const it = drum.items[drumMod(Math.round(drum.p), drum.nf) % n];
+    const r = loupeR, rl = reels[r];
+    audio(); sClick(); haptic(10);
+    closeLoupe();
+    if (it.i === rl.index) { rl.settle(); return; }
+    rl.spinTo(it.i, 0, 520);
   }
   function loupeWrite(text) {
     const r = loupeR, rl = reels[r];
@@ -1104,24 +1251,19 @@
     renderReels();
     openEditor(r); // l’aperçu de la phrase, et la bonne forme du verbe
   }
-  loupeQ.addEventListener('input', renderLoupe);
+  loupeQ.addEventListener('input', () => {
+    const cur = drum.items.length ? drum.items[drumMod(Math.round(drum.p), drum.nf) % drum.items.length].i : -1;
+    buildDrum(cur);
+    renderWrite();
+  });
   loupeQ.addEventListener('keydown', (e) => {
     if (e.key !== 'Enter') return;
     e.preventDefault();
-    const first = $('#loupe-list button');
-    if (first) first.click();
+    if (!$('#loupe-write').hidden && !drum.items.length) { $('#loupe-write').click(); return; }
+    pickDrum();
   });
-  $('#loupe-list').addEventListener('click', (e) => {
-    const b = e.target.closest('button');
-    if (!b || loupeR < 0) return;
-    audio();
-    if (b.dataset.write) { loupeWrite(loupeQ.value.replace(/\s+/g, ' ').trim()); return; }
-    const r = loupeR, i = +b.dataset.i, rl = reels[r];
-    closeLoupe();
-    sClick(); haptic(10);
-    if (i === rl.index) { rl.settle(); return; }
-    rl.spinTo(i, 0, 520);
-  });
+  $('#loupe-write').addEventListener('click', () => { audio(); loupeWrite(loupeQ.value.replace(/\s+/g, ' ').trim()); });
+  $('#loupe-pick').addEventListener('click', pickDrum);
   $('#loupe-close').addEventListener('click', () => { audio(); closeLoupe(); });
   ovLoupe.addEventListener('click', (e) => { if (e.target === ovLoupe) closeLoupe(); });
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !ovLoupe.hidden) closeLoupe(); });
