@@ -267,6 +267,60 @@
     return '<div class="word' + (x.isNew ? ' is-new' : '') + '" data-id="' + x.id + '"><div class="lvl" role="group" aria-label="Piment">' + lvl + '</div>' +
       '<div class="fields">' + fields + perfHtml(x) + '</div><button class="del" type="button" aria-label="Supprimer">' + TRASH + '</button></div>';
   }
+  /* Mots à ajouter : la sélection de Marc (suggestions.js), au-dessus de chaque roue.
+     On coche, on corrige si besoin, on ajoute ; un mot déjà dans la roue n’y apparaît plus. */
+  const SUG = {};
+  ROUES.forEach((r) => {
+    SUG[r] = ((window.KIFF_SUGGESTIONS || {})[r] || []).map((x) => ({
+      id: ++uid, on: true, lvl: x.lvl || 1, dc: !!x.dc, a: !!x.a,
+      s: x.t != null ? x.t : (x.s || ''), i: x.t != null ? '' : (x.i || ''), two: r !== 'action' && x.t == null
+    }));
+  });
+  const norm = (t) => String(t || '').replace(/\s+/g, ' ').trim().toLowerCase();
+  const pending = () => SUG[roue].filter((x) => x.s.trim() && !words[roue].some((y) => norm(y.s) === norm(x.s)));
+  function renderSugg() {
+    const box = $('#sugg');
+    const list = pending();
+    box.hidden = !list.length;
+    if (!list.length) { box.innerHTML = ''; return; }
+    const on = list.filter((x) => x.on).length;
+    const row = (x) => '<li class="sg' + (x.on ? '' : ' is-off') + '" data-id="' + x.id + '"><input type="checkbox" data-k="on"' + (x.on ? ' checked' : '') + ' aria-label="Ajouter ce mot">' +
+      '<span class="sg-tags"><span class="chilis" aria-label="' + esc(NIV[x.lvl - 1].nom) + '">' + CHILI.repeat(x.lvl) + '</span><span class="sg-ton' + (x.dc ? ' is-dc' : '') + '">' + (x.dc ? 'brocoli' : 'étoiles') + '</span></span>' +
+      '<span class="sg-fields"><input type="text" data-k="s" value="' + esc(x.s) + '" maxlength="60" aria-label="Le mot">' +
+      (x.i || x.two ? '<input type="text" data-k="i" value="' + esc(x.i) + '" maxlength="60" aria-label="Forme après « de te »" placeholder="forme « de te »">' : '') +
+      (x.a ? '<span class="sg-note">avec « à »</span>' : '') + '</span></li>';
+    box.innerHTML = '<summary><b>Mots à ajouter</b> <span class="n">' + list.length + '</span></summary>' +
+      '<p class="note">Ta sélection, prête à entrer dans la roue. Décoche ceux que tu ne veux pas, corrige si besoin, puis ajoute : ils rejoignent leur niveau, avec leur ton (brocoli = décalé).</p>' +
+      [1, 2, 3].map((n) => { const l = list.filter((x) => x.lvl === n); return l.length ? '<h4 class="sg-head">' + esc(NIV[n - 1].nom) + '</h4><ul class="sg-list">' + l.map(row).join('') + '</ul>' : ''; }).join('') +
+      '<div class="row-end"><button class="btn" type="button" id="sugg-add"' + (on ? '' : ' disabled') + '>Ajouter ' + on + ' mot' + (on > 1 ? 's' : '') + ' à la roue</button></div>';
+  }
+  const sgFind = (el) => { const li = el.closest('.sg'); return li ? SUG[roue].find((x) => x.id === +li.dataset.id) : null; };
+  $('#sugg').addEventListener('input', (e) => {
+    const x = sgFind(e.target); if (!x) return;
+    const k = e.target.dataset.k;
+    if (k === 's' || k === 'i') x[k] = e.target.value;
+  });
+  $('#sugg').addEventListener('change', (e) => {
+    const x = sgFind(e.target); if (!x || e.target.dataset.k !== 'on') return;
+    x.on = e.target.checked;
+    e.target.closest('.sg').classList.toggle('is-off', !x.on);
+    const on = pending().filter((y) => y.on).length, b = $('#sugg-add');
+    b.disabled = !on; b.textContent = 'Ajouter ' + on + ' mot' + (on > 1 ? 's' : '') + ' à la roue';
+  });
+  $('#sugg').addEventListener('click', (e) => {
+    if (!e.target.closest('#sugg-add')) return;
+    const add = pending().filter((x) => x.on);
+    add.forEach((x) => {
+      const w = roue === 'action'
+        ? { id: ++uid, lvl: x.lvl, s: x.s.trim(), i: x.i.trim(), a: x.a, dc: x.dc, isNew: true }
+        : { id: ++uid, lvl: x.lvl, s: x.s.trim(), i: x.two ? x.i.trim() : '', two: x.two, dc: x.dc, isNew: true };
+      const last = words[roue].map((y) => y.lvl).lastIndexOf(w.lvl);
+      words[roue].splice(last < 0 ? words[roue].length : last + 1, 0, w);
+    });
+    renderWords();
+    banner(add.length + ' mot' + (add.length > 1 ? 's' : '') + ' ajouté' + (add.length > 1 ? 's' : '') + ' à la roue (en doré). Vérifie, puis « Enregistrer dans l’appli ».');
+  });
+
   function renderWords() {
     $$('.wheels button').forEach((b) => b.setAttribute('aria-selected', b.dataset.roue === roue ? 'true' : 'false'));
     $('#words-help').textContent = roue === 'action'
@@ -278,6 +332,7 @@
         '<div class="rows">' + list.map(rowHtml).join('') + '</div>' +
         '<button class="add" type="button" data-add="' + n.n + '">+ Ajouter ' + (roue === 'action' ? 'une action' : roue === 'endroit' ? 'un endroit' : 'une manière') + ' ' + esc(n.nom.toLowerCase()) + (roue === 'action' || roue === 'maniere' ? (n.n === 1 ? '' : 'e') : '') + '</button></section>';
     }).join('');
+    renderSugg();
     markDirty();
   }
   const find = (el) => { const w = el.closest('.word'); return w ? words[roue].find((x) => x.id === +w.dataset.id) : null; };
