@@ -287,7 +287,7 @@
   function sentence() {
     const p = parts();
     const s = ('J’ai envie ' + glue(p.dir, p.act) + ' ' + p.obj + ' ' + p.man).replace(/\s+/g, ' ').trim();
-    return /[!?…]$/.test(s) ? s : s + '.';
+    return /[.!?…]$/.test(s) ? s : s + '.';
   }
 
   function labelFor(r, i) {
@@ -721,7 +721,7 @@
     const m = (t, on) => (on && t ? '<mark>' + esc(t) + '</mark>' : esc(t));
     const head = m(p.dir, marks.includes('dir')) + (p.dir.endsWith('’') ? '' : ' ') + m(p.act, marks.includes(0));
     const s = ('J’ai envie ' + head + ' ' + m(p.obj, marks.includes(1)) + ' ' + m(p.man, marks.includes(2))).replace(/\s+/g, ' ').trim();
-    return s + (/[!?…]$/.test(p.man.trim()) ? '' : '.');
+    return s + (/[.!?…]$/.test(p.man.trim()) ? '' : '.');
   }
 
   /* ---------- Modales du tour ---------- */
@@ -1155,7 +1155,8 @@
       if (r === 0) { const pre = esc(p.dir); return t.startsWith(pre) ? pre + (pre.endsWith('’') ? '' : ' ') + '<mark>' + esc(p.act) + '</mark>' : '<mark>' + t + '</mark>'; }
       return '<mark>' + t + '</mark>';
     }).join(' ');
-    $('#edit-preview').innerHTML = 'J’ai envie ' + html.replace(/(’) /g, '$1') + '.';
+    const body = html.replace(/(’) /g, '$1');
+    $('#edit-preview').innerHTML = 'J’ai envie ' + body + (/[.!?…](<\/mark>)?$/.test(body.trim()) ? '' : '.');
   }
   function openEditor(r) {
     editing = r;
@@ -2375,7 +2376,7 @@
     const p = parts(o.idx, o.dir);
     S.custom = keep;
     const s = ('J’ai envie ' + glue(p.dir, p.act) + ' ' + p.obj + ' ' + p.man).replace(/\s+/g, ' ').trim();
-    return /[!?…]$/.test(s) ? s : s + '.';
+    return /[.!?…]$/.test(s) ? s : s + '.';
   }
 
   /* L’autre téléphone a changé l’état de la partie */
