@@ -1193,25 +1193,46 @@
     }
     return x.t || (S.dir === 'me' ? x.s : x.i) || '';
   }
-  // Sans recherche : toute la réserve (piment et ton choisis). En cherchant : tous les tons, au piment choisi.
+  // La loupe montre la roue elle-même, en grand : les mots tirés pour ce tour (et vos mots), dans le même ordre.
+  // La recherche cherche parmi eux ; un mot absent s’écrit à la main.
   function loupeItems() {
     const r = loupeR, q = plain(loupeQ.value.trim()), out = [];
-    const src = poolOf(r, S.levels, !!q).concat((S.mine[r] || []).filter((x) => !(r === 0 && x.m && x.d && x.d !== S.dir)));
-    src.forEach((x) => {
+    LISTS[r].forEach((x) => {
+      if (x.free || (r === 0 && x.m && x.d && x.d !== S.dir)) return;
       const t = itemLabel(r, x);
       if (!t || (q && !plain(t).includes(q))) return;
       out.push({ x, t, lvl: x.lvl || 1, m: !!x.m });
     });
-    // Vos mots d’abord, puis Tendre, Pimenté, Brûlant : on sent le piment monter en tournant
-    return out.filter((it) => it.m).concat([1, 2, 3].flatMap((l) => out.filter((it) => !it.m && it.lvl === l)));
+    return out;
+  }
+  /* Un tapis qui défile : plat au milieu, il s’enroule en haut et en bas sur six mots,
+     comme une bande qui passe sur deux rouleaux. Le reste de la bande est derrière. */
+  const BELT_CURVE = 6;
+  function beltShape() {
+    const H = drumEl.clientHeight || 400, h = drum.h;
+    drum.theta = (Math.PI / 2) / BELT_CURVE;
+    drum.R = h / drum.theta;
+    drum.flat = Math.max(0, (H / 2 - drum.R) / h - 0.5);
+  }
+  function beltAt(d) {
+    const { h, R, theta, flat } = drum, sg = d < 0 ? -1 : 1, e = Math.abs(d) - flat;
+    if (e <= 0) return { y: d * h, z: 0, a: 0, vis: true };
+    const a = e * theta;
+    if (a >= Math.PI / 2 - 0.03) return { vis: false };
+    return { y: sg * (flat * h + Math.sin(a) * R), z: (Math.cos(a) - 1) * R, a: sg * a, vis: true };
+  }
+  // Où tombe le doigt sur le tapis : l’inverse de beltAt
+  function beltIndex(y) {
+    const { h, R, theta, flat } = drum, sg = y < 0 ? -1 : 1, e = Math.abs(y) - flat * h;
+    if (e <= 0) return y / h;
+    return sg * (flat + Math.asin(Math.min(0.99, e / R)) / theta);
   }
   function buildDrum(keepI) {
     drum.items = loupeItems();
     const n = drum.items.length;
     drum.h = parseFloat(getComputedStyle(drumEl).getPropertyValue('--item-h')) || 38;
-    drum.nf = Math.max(n, 10); // en dessous de dix mots, des facettes restent nues
-    drum.theta = 2 * Math.PI / drum.nf;
-    drum.R = (drum.h / 2) / Math.tan(Math.PI / drum.nf);
+    drum.nf = Math.max(n, 1);
+    beltShape();
     drumStrip.style.perspective = Math.round(Math.max(700, drum.R * 3.2)) + 'px';
     drumStrip.textContent = '';
     drum.nodes = drum.items.map((it) => {
@@ -1235,19 +1256,19 @@
     renderDrum();
   }
   function renderDrum() {
-    const { nf, theta, R } = drum;
-    drum.nodes.forEach((node, k) => {
-      let a = (k - drum.p) * theta;
-      a = a - 2 * Math.PI * Math.round(a / (2 * Math.PI)); // le chemin le plus court sur le tambour
-      const vis = Math.abs(a) < Math.PI / 2 - 0.02;
-      node.style.visibility = vis ? '' : 'hidden';
-      if (!vis) return;
-      const c = Math.cos(a);
-      node.style.opacity = Math.pow(c, 1.6).toFixed(3);
-      node.style.transform = 'translateY(' + (Math.sin(a) * R).toFixed(2) + 'px) translateZ(' + ((c - 1) * R).toFixed(2) + 'px) rotateX(' + (-a * 57.2958).toFixed(2) + 'deg)';
-      node.classList.toggle('is-center', Math.abs(a) < theta / 2);
-    });
     const n = drum.items.length;
+    drum.nodes.forEach((node, k) => {
+      let d = k - drum.p;
+      d -= n * Math.round(d / n); // le tapis boucle : le mot le plus proche du centre
+      const b = beltAt(d);
+      // Avec peu de mots, celui qui passe de l’autre côté de la bande s’efface au lieu de sauter
+      const edge = Math.max(0, Math.min(1, n / 2 - Math.abs(d)));
+      node.style.visibility = b.vis && edge > 0 ? '' : 'hidden';
+      if (!b.vis || edge <= 0) return;
+      node.style.opacity = (Math.pow(Math.cos(b.a), 1.4) * edge).toFixed(3);
+      node.style.transform = 'translateY(' + b.y.toFixed(2) + 'px) translateZ(' + b.z.toFixed(2) + 'px) rotateX(' + (-b.a * 57.2958).toFixed(2) + 'deg)';
+      node.classList.toggle('is-center', Math.abs(d) < 0.5);
+    });
     if (!n) return;
     const cur = drum.items[drumMod(Math.round(drum.p), drum.nf) % n] || drum.items[0];
     drumEl.setAttribute('aria-valuetext', cur.t + (cur.lvl > 1 ? (cur.lvl === 3 ? ', brûlant' : ', pimenté') : '') + (cur.m ? ', vos mots' : ''));
@@ -1317,8 +1338,7 @@
     if (!d.moved) {
       // Toucher une facette : elle vient au centre ; toucher celle du centre : on la choisit
       const box = drumEl.getBoundingClientRect();
-      const y = Math.max(-0.98, Math.min(0.98, (e.clientY - (box.top + box.height / 2)) / drum.R));
-      const k = Math.round(drum.p + Math.asin(y) / drum.theta);
+      const k = Math.round(drum.p + beltIndex(e.clientY - (box.top + box.height / 2)));
       if (k === Math.round(drum.p)) { pickDrum(); return; }
       sClick(); haptic(6);
       drumTo(drumTarget(k), 260);
@@ -1382,14 +1402,8 @@
     const r = loupeR, rl = reels[r];
     audio(); sClick(); haptic(10);
     closeLoupe();
-    let i = LISTS[r].indexOf(it.x);
-    if (i < 0) {
-      // Un mot de la réserve, hors du tirage : il rejoint la roue pour la partie
-      S.kept[r] = S.kept[r].filter((k) => k !== dkey(it.x)).concat(dkey(it.x)).slice(-30);
-      relist(); renderReels();
-      i = LISTS[r].indexOf(it.x);
-      if (i < 0) return;
-    }
+    const i = LISTS[r].indexOf(it.x);
+    if (i < 0) return;
     if (i === rl.index) { rl.settle(); return; }
     rl.spinTo(i, 0, 520);
   }

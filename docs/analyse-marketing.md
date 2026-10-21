@@ -214,6 +214,13 @@ Le réglage se change à chaque envie par qui compose, sans accord de l'autre (i
 - Les règles ne changent pas : la personne choisie répond « J'ai envie aussi », « Oui, mais… » ou « On passe », et rien n'est révélé aux autres.
 - À penser : le piment doit se consentir pour chaque paire de personnes, pas pour tout le groupe ; dire aux autres qu'une envie a été envoyée sans dire laquelle, ni à qui ? ; ce que voit le groupe d'un kiff kiff (rien, par défaut).
 
+**Des mots de saison** (idée de Marc, 21 octobre 2026). Des mots nouveaux en lien avec l'actualité ou la saison — Halloween, Noël, la Saint-Valentin, l'été, la rentrée… — qui entrent dans les roues pour quelques semaines, et un avertissement discret qui dit que de nouveaux mots sont arrivés, pour donner envie de rejouer.
+
+- Les mots de saison se mélangent aux autres dans le tirage de 20, avec un petit signe sur la roue (une icône, pas une phrase) ; ils pourraient avoir leur propre ton, comme le décalé, pour qui veut jouer « tout Halloween ».
+- Dans l'Atelier : un lot de mots avec une date de début et de fin, préparé à l'avance ; les mots sortent seuls à la fin de la saison et reviennent l'année suivante.
+- L'avertissement suit la règle du jeu : dire qu'il y a du nouveau, jamais un mot ni une envie (« De nouveaux mots sont arrivés dans les roues. »), une seule fois par saison, et seulement pour qui a accepté les avertissements.
+- Technique : aujourd'hui, l'adresse d'avertissement d'un téléphone ne vit que dans la partie chiffrée à deux ; pour prévenir tout le monde, chaque téléphone devrait aussi confier son adresse au script, avec son accord (une case « Me prévenir des nouveaux mots »). À mesurer : parties lancées dans les sept jours qui suivent l'avertissement.
+
 **Le Pass Kiff enrichi.** En plus du niveau Brûlant complet et des parties à distance illimitées, le Pass débloquerait les roues thématiques. Les roues de la semaine resteraient gratuites : elles servent la rétention. Prix à tester entre 7 et 15 €, payé une fois.
 
 ## Sources

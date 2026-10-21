@@ -903,11 +903,11 @@ body:has(#ov-deal:not([hidden])) .deco-candles { display: none; }
 
 /* La loupe : la roue en grand, un vrai tambour */
 .overlay--loupe .sheet--loupe { height: calc(100dvh - 32px); max-height: 820px; display: flex; flex-direction: column; gap: 10px; }
-.reel.loupe-drum { --item-h: 46px; flex: 1 1 auto; min-height: 220px; align-self: stretch; }
-.reel.loupe-drum .reel-item { font-size: 21px; }
-.reel.loupe-drum .reel-item.is-long { font-size: 18.5px; }
-.reel.loupe-drum .reel-item.is-xlong { font-size: 16.5px; }
-.reel.loupe-drum .reel-item.is-xxlong { font-size: 14.5px; }
+.reel.loupe-drum { --item-h: 44px; flex: 1 1 auto; min-height: 220px; align-self: stretch; }
+.reel.loupe-drum .reel-item { font-size: 23px; }
+.reel.loupe-drum .reel-item.is-long { font-size: 21px; }
+.reel.loupe-drum .reel-item.is-xlong { font-size: 18.5px; }
+.reel.loupe-drum .reel-item.is-xxlong { font-size: 16.5px; }
 .loupe-drum:focus-visible { outline: 2px dashed currentColor; outline-offset: 3px; }
 .loupe-drum .reel-strip { transform-style: preserve-3d; }
 .loupe-drum .reel-item { cursor: pointer; }
