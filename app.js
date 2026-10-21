@@ -368,7 +368,7 @@
       this.el = document.querySelector('[data-reel="' + r + '"]');
       this.strip = this.el.querySelector('.reel-strip');
       this.nodes = [];
-      for (let k = 0; k < 5; k++) {
+      for (let k = 0; k < 7; k++) {
         const d = document.createElement('div');
         d.className = 'reel-item';
         this.strip.appendChild(d);
@@ -388,13 +388,15 @@
     itemH() { return parseFloat(getComputedStyle(this.el).getPropertyValue('--item-h')) || 38; }
 
     render() {
+      // Un vrai tambour : une facette par mot (20 tirés, vos mots, la case à écrire), un tour complet ramène le même mot
       const h = this.itemH();
-      const theta = 0.42;
-      const R = h / theta;
+      const nf = Math.max(this.n, 10);
+      const theta = 2 * Math.PI / nf;
+      const R = (h / 2) / Math.tan(Math.PI / nf);
       const base = Math.round(this.p);
-      for (let j = 0; j < 5; j++) {
+      for (let j = 0; j < 7; j++) {
         const node = this.nodes[j];
-        const i = base + j - 2;
+        const i = base + j - 3;
         const d = i - this.p;
         const a = d * theta;
         const idx = mod(i, this.n);
@@ -440,8 +442,9 @@
         node.classList.toggle('is-original', S.phase === 'adjust' && !!S.original && S.original.idx[this.r] === idx);
         node.classList.toggle('is-center', Math.abs(d) < 0.5);
         const vis = Math.abs(a) < Math.PI / 2;
-        node.style.opacity = vis ? Math.pow(Math.cos(a), 2).toFixed(3) : '0';
-        node.style.transform = 'translateY(' + (Math.sin(a) * R).toFixed(2) + 'px) rotateX(' + (-a * 57.2958).toFixed(2) + 'deg)';
+        const c = Math.cos(a);
+        node.style.opacity = vis ? Math.pow(c, 2).toFixed(3) : '0';
+        node.style.transform = 'translateY(' + (Math.sin(a) * R).toFixed(2) + 'px) translateZ(' + ((c - 1) * R).toFixed(2) + 'px) rotateX(' + (-a * 57.2958).toFixed(2) + 'deg)';
       }
       const cur = LISTS[this.r][this.index];
       const orig = S.phase === 'adjust' && S.original && S.original.idx[this.r] === this.index;
