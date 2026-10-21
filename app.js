@@ -3175,24 +3175,34 @@
     return !!m && ok(m.actions, true) && ok(m.objets) && ok(m.manieres);
   }
   let pendingMots = null;
-  const motsReady = new Promise((resolve) => {
-    if (!API) { resolve(); return; }
+  // Les mots et les textes de l’atelier : demandés à l’ouverture, puis en revenant dans l’appli (toutes les 2 minutes au plus)
+  function fetchSheet(ms) {
     const ctl = window.AbortController ? new AbortController() : null;
-    const t = setTimeout(() => { if (ctl) ctl.abort(); resolve(); }, 6000);
-    fetch(API + '?action=mots', ctl ? { signal: ctl.signal } : {})
+    const t = ctl ? setTimeout(() => ctl.abort(), ms) : 0;
+    return fetch(API + '?action=mots', ctl ? { signal: ctl.signal } : {})
       .then((r) => r.json())
       .then((res) => {
         clearTimeout(t);
         if (res && res.meilleurs && typeof res.meilleurs === 'object') { save('meilleurs', res.meilleurs); }
-        if (res && res.textes && typeof res.textes === 'object') receiveTexts(res.textes, res.versionTextes || '');
         if (res && res.ok && validMots(res.mots) && res.version !== window.KIFF_MOTS_VERSION) {
           save('mots', { api: API, version: res.version, mots: res.mots });
           pendingMots = res;
           if (!S.started && !duo && reels.length) applyPendingMots();
         }
-        resolve();
+        if (res && res.textes && typeof res.textes === 'object') receiveTexts(res.textes, res.versionTextes || '');
       })
-      .catch(() => { clearTimeout(t); resolve(); });
+      .catch(() => { clearTimeout(t); });
+  }
+  let sheetT = Date.now();
+  const motsReady = new Promise((resolve) => {
+    if (!API) { resolve(); return; }
+    setTimeout(resolve, 6000);
+    fetchSheet(6000).then(resolve);
+  });
+  document.addEventListener('visibilitychange', () => {
+    if (!API || document.visibilityState !== 'visible' || Date.now() - sheetT < 120000) return;
+    sheetT = Date.now();
+    fetchSheet(10000);
   });
   /* Les textes changés dans l’atelier : gardés pour la prochaine ouverture du jeu (config.js les pose avant tout) */
   function receiveTexts(tx, version) {
@@ -3204,6 +3214,11 @@
     const notif = {};
     Object.keys(base).filter((k) => k.startsWith('notifs.')).forEach((k) => { notif[k] = typo(k in clean ? clean[k] : base[k]); });
     shareNotifTexts(notif);
+    // Personne ne joue encore (l’accueil, rien d’écrit) : on recharge pour montrer les nouveaux textes tout de suite.
+    // Sinon, ils arrivent à la prochaine ouverture du jeu.
+    const ae = document.activeElement;
+    const calm = version && !S.started && !duo && el.ovStart && !el.ovStart.hidden && ($('#steps').dataset.step || '0') === '0' && !(ae && /^(INPUT|TEXTAREA)$/.test(ae.tagName));
+    if (calm && document.visibilityState === 'visible') location.reload();
   }
   // Les avertissements sont écrits par le service worker : il lit leurs textes dans une petite réserve
   function shareNotifTexts(notif) {
