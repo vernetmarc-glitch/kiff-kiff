@@ -350,6 +350,52 @@
     banner(add.length + ' mot' + (add.length > 1 ? 's' : '') + ' ajouté' + (add.length > 1 ? 's' : '') + ' à la roue (en doré). Vérifie, puis « Enregistrer dans l’appli ».');
   });
 
+  /* Corrections à appliquer : la relecture des mots (corrections.js), sur les trois roues d’un coup.
+     Un mot déjà corrigé (ou introuvable) n’apparaît pas. */
+  const FIX = (window.KIFF_CORRECTIONS || []).map((c, k) => ({ ...c, k, on: true }));
+  const fnorm = (t) => String(t || '').replace(/[’']/g, "'").replace(/[\u00a0\s]+/g, ' ').trim().toLowerCase();
+  const fixTarget = (c) => words[c.roue].find((x) => fnorm(x.s) === fnorm(c.from));
+  const fixAfter = (c) => (c.to ? (c.to.t != null ? c.to.t : c.to.s + (c.to.i && c.to.i !== c.to.s ? ' / ' + c.to.i : '')) : '');
+  const fixDone = (c, x) => c.to && fnorm(x.s) === fnorm(c.to.t != null ? c.to.t : c.to.s) && (c.to.t != null || fnorm(x.i) === fnorm(c.to.i));
+  const fixPending = () => FIX.filter((c) => { const x = fixTarget(c); return x && !fixDone(c, x); });
+  function renderFix() {
+    const box = $('#fix');
+    if (!box) return;
+    const list = fixPending();
+    box.hidden = !list.length;
+    if (!list.length) { box.innerHTML = ''; return; }
+    const on = list.filter((c) => c.on).length;
+    const R = { action: 'Action', endroit: 'Endroit', maniere: 'Manière' };
+    box.innerHTML = '<summary><b>Corrections à appliquer</b> <span class="n">' + list.length + '</span></summary>' +
+      '<p class="note">La relecture des trois roues. Décoche celles que tu ne veux pas, puis applique : les mots corrigés passent en doré, puis « Enregistrer dans l’appli ».</p>' +
+      '<ul class="sg-list">' + list.map((c) => '<li class="sg fx' + (c.on ? '' : ' is-off') + '" data-k="' + c.k + '"><input type="checkbox" data-k="on"' + (c.on ? ' checked' : '') + ' aria-label="Appliquer cette correction">' +
+        '<span class="sg-tags"><span class="sg-ton">' + R[c.roue] + '</span></span>' +
+        '<span class="fx-text"><s>' + esc(c.from) + '</s> ' + (c.to ? '→ <b>' + esc(fixAfter(c)) + '</b>' : '<b class="fx-del">à supprimer</b>' + (c.why ? ' <span class="sg-note">(' + esc(c.why) + ')</span>' : '')) + '</span></li>').join('') + '</ul>' +
+      '<div class="row-end"><button class="btn" type="button" id="fix-apply"' + (on ? '' : ' disabled') + '>Appliquer ' + on + ' correction' + (on > 1 ? 's' : '') + '</button></div>';
+  }
+  $('#fix').addEventListener('change', (e) => {
+    const li = e.target.closest('.fx'); if (!li) return;
+    const c = FIX[+li.dataset.k]; c.on = e.target.checked;
+    li.classList.toggle('is-off', !c.on);
+    const on = fixPending().filter((y) => y.on).length, b = $('#fix-apply');
+    b.disabled = !on; b.textContent = 'Appliquer ' + on + ' correction' + (on > 1 ? 's' : '');
+  });
+  $('#fix').addEventListener('click', (e) => {
+    if (!e.target.closest('#fix-apply')) return;
+    const list = fixPending().filter((c) => c.on);
+    let n = 0;
+    list.forEach((c) => {
+      const x = fixTarget(c); if (!x) return;
+      if (!c.to) { words[c.roue] = words[c.roue].filter((y) => y !== x); n++; return; }
+      if (c.to.t != null) { x.s = c.to.t; x.i = ''; if (c.roue !== 'action') x.two = false; }
+      else { x.s = c.to.s; x.i = c.to.i || ''; if (c.roue !== 'action') x.two = true; }
+      if (c.to.a) x.a = true;
+      x.isNew = true; n++;
+    });
+    renderWords();
+    banner(n + ' correction' + (n > 1 ? 's' : '') + ' appliquée' + (n > 1 ? 's' : '') + ' (les mots corrigés sont en doré, dans leur roue). Vérifie, puis « Enregistrer dans l’appli ».');
+  });
+
   function renderWords() {
     $$('.wheels button').forEach((b) => b.setAttribute('aria-selected', b.dataset.roue === roue ? 'true' : 'false'));
     $('#words-help').textContent = roue === 'action'
@@ -362,6 +408,7 @@
         '<button class="add" type="button" data-add="' + n.n + '">+ Ajouter ' + (roue === 'action' ? 'une action' : roue === 'endroit' ? 'un endroit' : 'une manière') + ' ' + esc(n.nom.toLowerCase()) + (roue === 'action' || roue === 'maniere' ? (n.n === 1 ? '' : 'e') : '') + '</button></section>';
     }).join('');
     renderSugg();
+    renderFix();
     markDirty();
   }
   const find = (el) => { const w = el.closest('.word'); return w ? words[roue].find((x) => x.id === +w.dataset.id) : null; };

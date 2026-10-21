@@ -254,3 +254,8 @@ main { max-width: 980px; margin: 0 auto; padding: 18px 16px 120px; }
 .tx-box svg { display: block; max-width: 100%; max-height: calc(100vh - 80px); width: auto; height: calc(100vh - 80px); border-radius: 12px; }
 .tx-box figcaption { color: var(--cream); font-size: 14px; }
 #panel-textes .savebar.is-dirty #tx-dirty { color: var(--wine); font-weight: 600; }
+.sugg--fix { margin-bottom: 12px; }
+.fx { grid-template-columns: auto auto minmax(0, 1fr); }
+.fx-text { font-family: var(--f-words); font-size: 16px; line-height: 1.35; overflow-wrap: anywhere; }
+.fx-text s { color: var(--muted); }
+.fx-del { color: var(--warn); font-family: var(--f-ui); font-size: 14px; }
