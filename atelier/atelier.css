@@ -259,3 +259,11 @@ main { max-width: 980px; margin: 0 auto; padding: 18px 16px 120px; }
 .fx-text { font-family: var(--f-words); font-size: 16px; line-height: 1.35; overflow-wrap: anywhere; }
 .fx-text s { color: var(--muted); }
 .fx-del { color: var(--warn); font-family: var(--f-ui); font-size: 14px; }
+/* Longueur des mots : 32 caractères au plus */
+.len { margin: 0; padding-left: 80px; font-size: 12.5px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.len--ko { color: var(--warn); font-weight: 600; }
+.word.is-toolong { box-shadow: inset 0 0 0 1.5px #F0B3BD; background: #FFF6F7; }
+.long-n { display: inline-grid; place-items: center; min-width: 18px; height: 18px; margin-left: 6px; padding: 0 5px; border-radius: 999px; background: var(--warn); color: #fff; font-size: 11.5px; font-weight: 700; }
+.chip--long { margin: 4px 0 0; color: var(--warn); box-shadow: inset 0 0 0 1px #F0B3BD; }
+.chip--long[aria-pressed="true"] { background: var(--warn); color: #fff; }
+@media (max-width: 420px) { .len { padding-left: 66px; } }

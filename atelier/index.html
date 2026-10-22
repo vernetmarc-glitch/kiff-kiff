@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500..800&family=Jost:wght@300..700&family=Baskervville:ital,wght@0,400..700;1,400..700&display=swap">
-<link rel="stylesheet" href="atelier.css?v=6">
+<link rel="stylesheet" href="atelier.css?v=7">
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
@@ -57,12 +57,13 @@
   <!-- Les mots -->
   <section class="panel" id="panel-mots" role="tabpanel" aria-labelledby="tab-mots" hidden>
     <div class="wheels" role="tablist" aria-label="Roue">
-      <button role="tab" data-roue="action" aria-selected="true">Actions <span class="count" data-count="action"></span></button>
-      <button role="tab" data-roue="endroit" aria-selected="false">Endroits <span class="count" data-count="endroit"></span></button>
-      <button role="tab" data-roue="maniere" aria-selected="false">Manières <span class="count" data-count="maniere"></span></button>
+      <button role="tab" data-roue="action" aria-selected="true">Actions <span class="count" data-count="action"></span><span class="long-n" data-long="action" hidden title="Trop longs"></span></button>
+      <button role="tab" data-roue="endroit" aria-selected="false">Endroits <span class="count" data-count="endroit"></span><span class="long-n" data-long="endroit" hidden title="Trop longs"></span></button>
+      <button role="tab" data-roue="maniere" aria-selected="false">Manières <span class="count" data-count="maniere"></span><span class="long-n" data-long="maniere" hidden title="Trop longs"></span></button>
     </div>
     <p class="note" id="words-help"></p>
     <div class="counts" id="counts"></div>
+    <button class="chip chip--long" type="button" id="only-long" aria-pressed="false" hidden></button>
     <details class="sugg sugg--fix" id="fix" hidden open></details>
     <details class="sugg" id="sugg" hidden open></details>
     <div id="groups"></div>
@@ -129,6 +130,6 @@
 <script src="suggestions.js?v=3"></script>
 <script src="corrections.js?v=1"></script>
 <script src="ecrans.js?v=1"></script>
-<script src="atelier.js?v=14"></script>
+<script src="atelier.js?v=15"></script>
 </body>
 </html>

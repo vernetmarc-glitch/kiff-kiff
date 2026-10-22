@@ -241,7 +241,11 @@
     $('#savebar').classList.toggle('is-dirty', dirty);
     $('#dirty').textContent = dirty ? 'Modifications non enregistrées' : 'Aucune modification';
     $('#save').disabled = !dirty;
-    ROUES.forEach((r) => { $('[data-count="' + r + '"]').textContent = words[r].filter((x) => x.s.trim()).length; });
+    ROUES.forEach((r) => {
+      $('[data-count="' + r + '"]').textContent = words[r].filter((x) => x.s.trim()).length;
+      const nl = words[r].filter((x) => Math.max((x.s || '').trim().length, (x.i || '').trim().length) > MAXLEN).length;
+      const b = $('[data-long="' + r + '"]'); if (b) { b.hidden = !nl; b.textContent = nl; }
+    });
     renderCounts();
   }
   /* Combien de mots par piment et par ton : la roue en tire 20, il en faut au moins autant pour chaque réglage.
@@ -277,20 +281,26 @@
   }
   // Décalé : un mot pour rire (le ton barjot), que les roues enlèvent quand on joue au premier degré
   const dcHtml = (x) => '<label class="dc"><input type="checkbox" data-k="dc"' + (x.dc ? ' checked' : '') + '> décalé (pour rire)</label>';
+  /* La longueur d’un mot : 32 caractères au plus (espaces compris), pour tenir sur une ligne dans toutes les ambiances,
+     même sur un petit téléphone, avec les piments et la préposition d’un endroit (« de la »…). Au-delà de 22, le texte rapetisse. */
+  const MAXLEN = 32;
+  const longest = (x) => Math.max((x.s || '').trim().length, x.i && (roue === 'action' || x.two) ? x.i.trim().length : 0);
+  const tooLong = (x) => longest(x) > MAXLEN;
+  const lenHtml = (x) => { const n = longest(x); return n > MAXLEN ? '<p class="len len--ko">' + n + ' caractères : 32 au plus. Raccourcis-le, sinon il est coupé dans la roue.</p>' : n > 26 ? '<p class="len">' + n + ' / 32</p>' : '<p class="len" hidden></p>'; };
   function rowHtml(x) {
     const lvl = [1, 2, 3].map((n) => '<button type="button" data-lvl="' + n + '" aria-pressed="' + (x.lvl === n) + '" aria-label="' + NIV[n - 1].nom + '">' + n + '</button>').join('');
     let fields;
     if (roue === 'action') {
-      fields = '<div class="field"><span class="pre">que tu me</span><input type="text" data-k="s" value="' + esc(x.s) + '" placeholder="gratouilles, fasses gouzi-gouzi…" maxlength="60"></div>' +
-        '<div class="field"><span class="pre">de te</span><input type="text" data-k="i" value="' + esc(x.i) + '" placeholder="' + esc(suggestI(x.s) || 'gratouiller…') + '" maxlength="60"></div>' +
+      fields = '<div class="field"><span class="pre">que tu me</span><input type="text" data-k="s" value="' + esc(x.s) + '" placeholder="gratouilles, fasses gouzi-gouzi…" maxlength="32"></div>' +
+        '<div class="field"><span class="pre">de te</span><input type="text" data-k="i" value="' + esc(x.i) + '" placeholder="' + esc(suggestI(x.s) || 'gratouiller…') + '" maxlength="32"></div>' +
         '<div class="opts"><label><input type="checkbox" data-k="a"' + (x.a ? ' checked' : '') + '> avec « à » (au gros orteil, aux épaules)</label>' + dcHtml(x) + '</div>';
     } else {
-      fields = '<div class="field"><span class="pre">' + (x.two ? 'que tu me' : 'texte') + '</span><input type="text" data-k="s" value="' + esc(x.s) + '" placeholder="' + (roue === 'endroit' ? 'le gros orteil…' : 'en chantonnant…') + '" maxlength="60"></div>' +
-        (x.two ? '<div class="field"><span class="pre">de te</span><input type="text" data-k="i" value="' + esc(x.i) + '" placeholder="' + esc(swapPoss(x.s)) + '" maxlength="60"></div>' : '') +
+      fields = '<div class="field"><span class="pre">' + (x.two ? 'que tu me' : 'texte') + '</span><input type="text" data-k="s" value="' + esc(x.s) + '" placeholder="' + (roue === 'endroit' ? 'le gros orteil…' : 'en chantonnant…') + '" maxlength="32"></div>' +
+        (x.two ? '<div class="field"><span class="pre">de te</span><input type="text" data-k="i" value="' + esc(x.i) + '" placeholder="' + esc(swapPoss(x.s)) + '" maxlength="32"></div>' : '') +
         '<div class="opts"><label><input type="checkbox" data-k="two"' + (x.two ? ' checked' : '') + '> change selon le sens (mon / ton…)</label>' + dcHtml(x) + '</div>';
     }
-    return '<div class="word' + (x.isNew ? ' is-new' : '') + '" data-id="' + x.id + '"><div class="lvl" role="group" aria-label="Piment">' + lvl + '</div>' +
-      '<div class="fields">' + fields + perfHtml(x) + '</div><button class="del" type="button" aria-label="Supprimer">' + TRASH + '</button></div>';
+    return '<div class="word' + (x.isNew ? ' is-new' : '') + (tooLong(x) ? ' is-toolong' : '') + '" data-id="' + x.id + '"><div class="lvl" role="group" aria-label="Piment">' + lvl + '</div>' +
+      '<div class="fields">' + fields + lenHtml(x) + perfHtml(x) + '</div><button class="del" type="button" aria-label="Supprimer">' + TRASH + '</button></div>';
   }
   /* Mots à ajouter : la sélection de Marc (suggestions.js), au-dessus de chaque roue.
      On coche, on corrige si besoin, on ajoute ; un mot déjà dans la roue n’y apparaît plus. */
@@ -311,8 +321,8 @@
     const on = list.filter((x) => x.on).length;
     const row = (x) => '<li class="sg' + (x.on ? '' : ' is-off') + '" data-id="' + x.id + '"><input type="checkbox" data-k="on"' + (x.on ? ' checked' : '') + ' aria-label="Ajouter ce mot">' +
       '<span class="sg-tags"><span class="chilis" aria-label="' + esc(NIV[x.lvl - 1].nom) + '">' + CHILI.repeat(x.lvl) + '</span><span class="sg-ton' + (x.dc ? ' is-dc' : '') + '">' + (x.dc ? 'barjot' : 'premier degré') + '</span></span>' +
-      '<span class="sg-fields"><input type="text" data-k="s" value="' + esc(x.s) + '" maxlength="60" aria-label="Le mot">' +
-      (x.i || x.two ? '<input type="text" data-k="i" value="' + esc(x.i) + '" maxlength="60" aria-label="Forme après « de te »" placeholder="forme « de te »">' : '') +
+      '<span class="sg-fields"><input type="text" data-k="s" value="' + esc(x.s) + '" maxlength="32" aria-label="Le mot">' +
+      (x.i || x.two ? '<input type="text" data-k="i" value="' + esc(x.i) + '" maxlength="32" aria-label="Forme après « de te »" placeholder="forme « de te »">' : '') +
       (x.a ? '<span class="sg-note">avec « à »</span>' : '') + '</span></li>';
     box.innerHTML = '<summary><b>Mots à ajouter</b> <span class="n">' + list.length + '</span></summary>' +
       '<p class="note">Prêts à entrer dans la roue, rangés par piment et par ton. Décoche ceux que tu ne veux pas, corrige si besoin, puis ajoute. Le tableau au-dessus compte déjà les mots cochés.</p>' +
@@ -396,13 +406,20 @@
     banner(n + ' correction' + (n > 1 ? 's' : '') + ' appliquée' + (n > 1 ? 's' : '') + ' (les mots corrigés sont en doré, dans leur roue). Vérifie, puis « Enregistrer dans l’appli ».');
   });
 
+  let onlyLong = false;
+  $('#only-long').addEventListener('click', () => { onlyLong = !onlyLong; renderWords(); });
   function renderWords() {
     $$('.wheels button').forEach((b) => b.setAttribute('aria-selected', b.dataset.roue === roue ? 'true' : 'false'));
     $('#words-help').textContent = roue === 'action'
       ? 'Écris le verbe comme après « que tu me » ; la forme « de te » se propose toute seule (corrige-la si besoin). Une action peut finir par « de » (« glisses la langue le long de ») : l’endroit s’accorde tout seul (du bas du dos, des fesses, d’une épaule).'
       : 'Coche « change selon le sens » quand un possessif change : « que tu me … mon petit cœur » / « de te … ton petit cœur ».';
+    const nLong = words[roue].filter(tooLong).length;
+    if (!nLong) onlyLong = false;
+    $('#only-long').hidden = !nLong;
+    $('#only-long').setAttribute('aria-pressed', onlyLong ? 'true' : 'false');
+    $('#only-long').textContent = 'Trop longs : ' + nLong;
     $('#groups').innerHTML = NIV.map((n) => {
-      const list = words[roue].filter((x) => x.lvl === n.n);
+      const list = words[roue].filter((x) => x.lvl === n.n && (!onlyLong || tooLong(x)));
       return '<section class="group" data-lvl="' + n.n + '"><div class="group-head"><span class="chilis">' + CHILI.repeat(n.n) + '</span><h3>' + esc(n.nom) + '</h3><span class="n">' + list.length + '</span></div>' +
         '<div class="rows">' + list.map(rowHtml).join('') + '</div>' +
         '<button class="add" type="button" data-add="' + n.n + '">+ Ajouter ' + (roue === 'action' ? 'une action' : roue === 'endroit' ? 'un endroit' : 'une manière') + ' ' + esc(n.nom.toLowerCase()) + (roue === 'action' || roue === 'maniere' ? (n.n === 1 ? '' : 'e') : '') + '</button></section>';
@@ -427,7 +444,10 @@
         if (other) other.placeholder = roue === 'action' ? (suggestI(x.s) || 'gratouiller…') : swapPoss(x.s);
         if (roue !== 'action' && !x.two && hasPoss(x.s)) e.target.closest('.word').querySelector('.opts').classList.add('is-hint');
       }
-      e.target.closest('.word').classList.add('is-changed');
+      const w = e.target.closest('.word');
+      w.classList.add('is-changed');
+      w.classList.toggle('is-toolong', tooLong(x));
+      const ln = w.querySelector('.len'); if (ln) ln.outerHTML = lenHtml(x);
       markDirty();
     }
   });

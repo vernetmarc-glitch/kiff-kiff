@@ -138,9 +138,9 @@ body { background: var(--kraft); color: var(--ink); font-family: var(--f-ui); ca
 }
 .reel-item { font-family: var(--f-ui); font-weight: 400; font-size: 18px; color: var(--ink-2); }
 .reel-item.is-center { font-weight: 700; color: var(--paper); }
-.reel-item.is-long { font-size: 16px; }
-.reel-item.is-xlong { font-size: 14.5px; letter-spacing: -.02em; }
-.reel-item.is-xxlong { font-size: 13px; letter-spacing: -.03em; }
+.reel-item.is-long { font-size: 15.5px; letter-spacing: -.01em; }
+.reel-item.is-xlong { font-size: 13.5px; letter-spacing: -.035em; }
+.reel-item.is-xxlong { font-size: 12.5px; letter-spacing: -.045em; }
 .reel-item.is-placeholder { color: var(--red); font-weight: 700; }
 .reel-item.is-center.is-placeholder { color: #FF8A98; }
 .reel.is-locked { opacity: .4; }

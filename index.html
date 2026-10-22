@@ -35,7 +35,7 @@
 <link rel="stylesheet" href="skins/pomme.css?v=63" data-skin-sheet="pomme">
 <link rel="stylesheet" href="skins/redcorner.css?v=61" data-skin-sheet="redcorner">
 <link rel="stylesheet" href="skins/minuit.css?v=62" data-skin-sheet="minuit">
-<link rel="stylesheet" href="skins/classex.css?v=65" data-skin-sheet="classex">
+<link rel="stylesheet" href="skins/classex.css?v=66" data-skin-sheet="classex">
 <script>
 /* Déménagement vers kiff-kiff.fr : l’ancienne adresse apporte, dans le « # » du lien (jamais envoyé
    à un serveur), ce que le téléphone gardait là-bas : parties à deux, prénoms, ambiance, réglages.
@@ -356,7 +356,7 @@
       <h2 class="edit-label" id="loupe-title">L’endroit</h2>
       <button class="icon-btn icon-btn--bare" id="loupe-close" type="button" aria-label="Fermer"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-fermer"/></svg></button>
     </div>
-    <input id="loupe-q" maxlength="40" autocomplete="off" enterkeyhint="go" aria-controls="loupe-drum">
+    <input id="loupe-q" maxlength="32" autocomplete="off" enterkeyhint="go" aria-controls="loupe-drum">
     <button class="btn btn--line loupe-write" id="loupe-write" type="button" hidden><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-ecrire"/></svg><span id="loupe-write-text"></span></button>
     <div class="reel loupe-drum" id="loupe-drum" tabindex="0" role="spinbutton" aria-label="Toute la roue"><div class="reel-strip"></div><span class="reel-shade" aria-hidden="true"></span><p class="loupe-empty" id="loupe-empty" hidden data-t="loupe.vide">Aucun mot de la roue ne contient ça.</p></div>
     <button class="btn" id="loupe-pick" type="button" data-t="loupe.choisir">Choisir</button>
@@ -503,7 +503,7 @@
   <form class="sheet sheet--edit" id="edit-form">
     <label class="edit-label" for="edit-input" id="edit-label">À toi d’écrire</label>
     <p class="edit-preview" id="edit-preview"></p>
-    <input id="edit-input" maxlength="40" autocomplete="off" enterkeyhint="done">
+    <input id="edit-input" maxlength="32" autocomplete="off" enterkeyhint="done">
     <p class="edit-hint" id="edit-hint"></p>
     <div class="row">
       <button class="link-btn" id="edit-cancel" type="button" data-t="libre.annuler">Annuler</button>
@@ -606,6 +606,6 @@
 <script src="config.js?v=62"></script>
 <script src="duo.js?v=62"></script>
 <script src="push.js?v=65"></script>
-<script src="app.js?v=97"></script>
+<script src="app.js?v=98"></script>
 </body>
 </html>
