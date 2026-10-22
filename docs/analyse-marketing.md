@@ -84,6 +84,17 @@ Le meilleur rapport revenu / risque est un **Pass Kiff payé une fois** : niveau
 | Dons (actuel) | Buy Me a Coffee | 5 % de frais + paiement ([source](https://schoolmaker.com/blog/buy-me-a-coffee-pricing)) | Déjà en place | Revenu faible ; règles interdisant le contenu explicite |
 | Publicité | Régies adultes | — | — | Image dégradée ; les régies classiques refusent le contenu adulte |
 
+### Ce que le pack ouvre (22 octobre 2026)
+
+Le gratuit reste un vrai jeu : trois roues de 20 mots tirés à chaque tour, le zoom de la loupe, les trois réponses, Tendre et Pimenté. Le pack ouvre l'abondance et la liberté :
+- la recherche dans toute la réserve (« bite » trouve le chibre, le zgeg, la verge), et le mot choisi entre dans la roue pour toute la partie ;
+- écrire ses propres mots ;
+- sans doute Brûlant (un seul joueur suffit, comme prévu).
+
+Pour que le gratuit donne envie, son tirage vient d'une sélection marquée dans l'Atelier : les mots qui font le plus rire ou réagir. Les compteurs de « J'ai envie aussi » par mot, s'ils sont mesurés un jour de façon anonyme, aideraient à la choisir.
+
+Le moment d'achat est le toucher sur une fonction fermée. Au lieu d'un cadenas sec, une petite fenêtre la montre en mouvement pendant quelques secondes : la roue qui tourne sur des mots brûlants, des lettres qui se tapent dans la recherche, la liste qui se filtre, un mot qui entre dans la roue, son propre mot écrit. On voit ce qu'on gagne avant de payer. Une étoile pour garder des mots d'une partie à l'autre peut s'ajouter au pack plus tard.
+
 Ordre de grandeur, à titre d'hypothèse : 10 000 joueurs par mois, dont 3 % achètent un Pass à 9,99 €, donnent 300 ventes, soit environ 3 000 € par mois avant frais (10 à 15 % avec un prestataire adulte, 15 % sur un store). Le taux de 3 % est à mesurer ; on cite souvent 1 à 5 % pour les jeux freemium, repère non vérifié.
 
 ## Site web, PWA ou application

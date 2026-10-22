@@ -404,6 +404,9 @@ label:has(+ input.is-missing), .name1-box:has(input.is-missing) label { font-wei
 }
 .reel-chilis .chili { width: 1em; height: 1em; margin: 0 -2px; opacity: 1; }
 .reel-chilis--3 .chili { filter: drop-shadow(0 0 2px var(--reel-chili-glow, transparent)); }
+/* Dans les roues : le piment est posé juste après le texte centré, sans le décaler ni lui prendre de place.
+   Sur un mot long, il peut sortir du cadre : les mots d’à côté, presque toujours du même piment, le montrent encore. */
+.reel-txt > .reel-chilis { position: absolute; left: 100%; top: 50%; transform: translateY(-50%); margin-left: 6px; }
 
 /* ---------- Tour de jeu : début de phrase fixe, un seul bouton en bas ---------- */
 .switch.is-static { cursor: default; }
@@ -943,3 +946,14 @@ body:has(#ov-deal:not([hidden])) .deco-candles { display: none; }
 .reel-loupe:active { opacity: .9; }
 .reel.is-locked .reel-loupe { opacity: .25; }
 .loupe-drum .reel-loupe { display: none; }
+/* La recherche de la loupe : une liste qui se filtre en tapant, le passage trouvé surligné */
+.loupe-results { flex: 1 1 auto; min-height: 160px; overflow-y: auto; overscroll-behavior: contain; display: flex; flex-direction: column; gap: 2px; margin: 0 -4px; padding: 2px 4px 8px; text-align: left; }
+.loupe-results[hidden] { display: none; }
+.loupe-hit { display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; min-height: 46px; padding: 8px 12px; border: 0; border-radius: 12px; background: color-mix(in srgb, currentColor 6%, transparent); color: inherit; font: inherit; font-size: 18px; line-height: 1.25; text-align: left; cursor: pointer; }
+.loupe-hit:hover, .loupe-hit:focus-visible { background: color-mix(in srgb, currentColor 14%, transparent); }
+.loupe-hit:focus-visible { outline: 2px dashed currentColor; outline-offset: 1px; }
+.loupe-hit-txt { min-width: 0; overflow-wrap: anywhere; }
+.loupe-hit mark { background: color-mix(in srgb, var(--mark-bg, #FFD34D) 70%, transparent); color: inherit; border-radius: 3px; padding: 0 1px; }
+.loupe-hit .reel-chilis { margin-left: 0; }
+.loupe-sub { margin: 12px 4px 4px; font-size: 14px; font-weight: 700; opacity: .8; }
+.loupe-none { margin: 16px 4px; font-size: 16px; opacity: .85; }

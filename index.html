@@ -30,9 +30,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,62..125,100..900;1,62..125,100..900&family=Bagel+Fat+One&family=Abril+Fatface&family=Merriweather:ital,opsz,wght@0,18..144,400..900;1,18..144,400..900&family=Baskervville:ital,wght@0,400..700;1,400..700&family=Jost:wght@300..700&family=Great+Vibes&family=Cinzel:wght@400..900&family=Syne:wght@600..800&family=Manrope:wght@400..800&family=Anton&family=Courier+Prime:wght@400;700&display=swap">
-<link rel="stylesheet" href="base.css?v=84">
+<link rel="stylesheet" href="base.css?v=85">
 <link rel="stylesheet" href="skins/arty.css?v=64" data-skin-sheet="arty">
-<link rel="stylesheet" href="skins/pomme.css?v=63" data-skin-sheet="pomme">
+<link rel="stylesheet" href="skins/pomme.css?v=64" data-skin-sheet="pomme">
 <link rel="stylesheet" href="skins/redcorner.css?v=61" data-skin-sheet="redcorner">
 <link rel="stylesheet" href="skins/minuit.css?v=62" data-skin-sheet="minuit">
 <link rel="stylesheet" href="skins/classex.css?v=66" data-skin-sheet="classex">
@@ -358,7 +358,8 @@
     </div>
     <input id="loupe-q" maxlength="35" autocomplete="off" enterkeyhint="go" aria-controls="loupe-drum">
     <button class="btn btn--line loupe-write" id="loupe-write" type="button" hidden><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-ecrire"/></svg><span id="loupe-write-text"></span></button>
-    <div class="reel loupe-drum" id="loupe-drum" tabindex="0" role="spinbutton" aria-label="Toute la roue"><div class="reel-strip"></div><span class="reel-shade" aria-hidden="true"></span><p class="loupe-empty" id="loupe-empty" hidden data-t="loupe.vide">Aucun mot de la roue ne contient ça.</p></div>
+    <div class="reel loupe-drum" id="loupe-drum" tabindex="0" role="spinbutton" aria-label="Toute la roue"><div class="reel-strip"></div><span class="reel-shade" aria-hidden="true"></span><p class="loupe-empty" id="loupe-empty" hidden></p></div>
+    <div class="loupe-results" id="loupe-results" role="listbox" aria-label="Mots trouvés" hidden></div>
     <button class="btn" id="loupe-pick" type="button" data-t="loupe.choisir">Choisir</button>
   </div>
 </div>
@@ -602,10 +603,11 @@
 </div>
 <!--/APP-->
 <script src="data.js?v=64"></script>
-<script src="textes.js?v=1"></script>
+<script src="textes.js?v=2"></script>
+<script src="semantique.js?v=1"></script>
 <script src="config.js?v=62"></script>
 <script src="duo.js?v=62"></script>
 <script src="push.js?v=65"></script>
-<script src="app.js?v=99"></script>
+<script src="app.js?v=100"></script>
 </body>
 </html>

@@ -7,7 +7,7 @@
  * L’apostrophe courbe et l’espace avant ? ! : ; se font toutes seules. */
 window.KIFF_TEXTES = [
   { id: "accueil", nom: "Accueil", textes: [
-    ["accueil.intro", "Trois roues pour se proposer des envies, et savourer celles que vous partagez.", "Sous le titre, à la première visite"],
+    ["accueil.intro", "Trois roues pour se proposer des envies, et savourer celles que vous partagez.", "Sous le titre de l’accueil, toujours (vide : rien ne s’affiche)"],
     ["accueil.reprendre-duo", "Reprendre la partie", "Une partie à deux téléphones est en cours"],
     ["accueil.arreter", "Arrêter cette partie", "Sous « Reprendre la partie »"],
     ["accueil.arreter-confirmer", "Touche encore : {prénom} sera prévenu·e", "Après une première touche sur « Arrêter cette partie »"],
@@ -113,7 +113,8 @@ window.KIFF_TEXTES = [
     ["loupe.chercher-1", "Chercher ou écrire ton endroit", "En gris dans le champ, roue des endroits"],
     ["loupe.chercher-2", "Chercher ou écrire ta manière", "En gris dans le champ, roue des manières"],
     ["loupe.ecrire", "Écrire « {mot} »", "Le bouton qui apparaît quand le mot cherché n’est pas dans la roue"],
-    ["loupe.vide", "Aucun mot de la roue ne contient ça.", "Dans le tambour, quand la recherche ne trouve rien"],
+    ["loupe.vide", "Aucun mot ne ressemble à ça : écris le tien.", "Sous le champ, quand la recherche ne trouve rien"],
+    ["loupe.peut-etre", "Vous cherchez peut-être…", "Sous le champ, avant les mots proches par le sens de ce qu’on tape"],
     ["loupe.choisir", "Choisir", "Le bouton en bas"]
   ] },
   { id: "libre", nom: "Écrire sa case", textes: [

@@ -424,15 +424,16 @@
             tag.innerHTML = '<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-ecrire"/></svg>';
             node.appendChild(tag);
           }
-          // Estampille piment : 2 ou 3 piments à côté des cases pimentées et brûlantes
+          // Estampille piment : 2 ou 3 piments, sur le mot du centre seulement, posés après le texte centré :
+          // ils ne prennent pas de place au texte (le mot d’avant et celui d’après ont presque toujours le même piment)
           if (lvl > 1) {
             const tag = document.createElement('span');
             tag.className = 'reel-chilis reel-chilis--' + lvl;
             tag.innerHTML = '<svg class="chili is-on" viewBox="0 0 24 24" aria-hidden="true"><use href="#chili"/></svg>'.repeat(lvl);
-            node.appendChild(tag);
+            tx.appendChild(tag);
           }
           node._t = key;
-          const len = txt.length + (lvl > 1 ? lvl + 1 : 0);
+          const len = txt.length;
           node.classList.toggle('is-long', len > 22 && len <= 28);
           node.classList.toggle('is-xlong', len > 28);
           node.classList.toggle('is-xxlong', len > 36);
@@ -1194,17 +1195,93 @@
     return x.t || (S.dir === 'me' ? x.s : x.i) || '';
   }
   // La loupe montre la roue elle-même, en grand : les mots tirés pour ce tour (et vos mots), dans le même ordre.
-  // La recherche cherche parmi eux ; un mot absent s’écrit à la main.
   function loupeItems() {
-    const r = loupeR, q = plain(loupeQ.value.trim()), out = [];
+    const r = loupeR, out = [];
     LISTS[r].forEach((x) => {
       if (x.free || (r === 0 && x.m && x.d && x.d !== S.dir)) return;
       const t = itemLabel(r, x);
-      if (!t || (q && !plain(t).includes(q))) return;
-      out.push({ x, t, lvl: x.lvl || 1, m: !!x.m });
+      if (t) out.push({ x, t, lvl: x.lvl || 1, m: !!x.m });
     });
     return out;
   }
+  /* En tapant, la loupe cherche dans tous les mots du jeu (au piment et au ton choisis) : d’abord ceux qui contiennent
+     ce qu’on tape, puis « Vous cherchez peut-être… », les mots proches par le sens (semantique.js). Le passage qui
+     correspond est surligné. Choisir un mot hors du tirage le met dans la roue pour toute la partie. */
+  const fold = (c) => c.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/œ/g, 'oe').replace(/æ/g, 'ae').replace(/[’`]/g, "'");
+  function folded(t) {
+    let f = ''; const map = [];
+    for (let i = 0; i < t.length; i++) { const c = fold(t[i]); for (let k = 0; k < c.length; k++) { f += c[k]; map.push(i); } }
+    map.push(t.length);
+    return { f, map };
+  }
+  const markAt = (t, fm, a, b) => esc(t.slice(0, fm.map[a])) + '<mark>' + esc(t.slice(fm.map[a], fm.map[b])) + '</mark>' + esc(t.slice(fm.map[b]));
+  const FAMILLES = (window.KIFF_FAMILLES || []).map((g) => g.map(fold));
+  const wordStart = (f, i) => i === 0 || /[\s'(\-«]/.test(f[i - 1]);
+  function searchWords(qRaw) {
+    const r = loupeR, q = fold(qRaw.trim()).replace(/\s+/g, ' ');
+    const seen = new Set(), pool = [];
+    LISTS[r].concat(poolOf(r, S.levels)).forEach((x) => {
+      if (!x || x.free || seen.has(x) || (r === 0 && x.m && x.d && x.d !== S.dir)) return;
+      seen.add(x); pool.push(x);
+    });
+    const exact = [], near = [];
+    pool.forEach((x) => {
+      const t = itemLabel(r, x); if (!t) return;
+      const fm = folded(t), i = fm.f.indexOf(q);
+      if (i >= 0) exact.push({ x, t, lvl: x.lvl || 1, html: markAt(t, fm, i, i + q.length), w: wordStart(fm.f, i) ? 0 : 1 });
+    });
+    exact.sort((a, b) => a.w - b.w || a.lvl - b.lvl || a.t.localeCompare(b.t, 'fr'));
+    // Les familles touchées par ce qu’on tape (un mot de 3 lettres ou plus, ou une expression)
+    const toks = q.split(/[\s']+/).filter((w) => w.length >= 3);
+    // Une racine courte (3 lettres) ne vaut que pour un mot entier : « cou » ne donne pas « coude »
+    const short = (st) => !st.includes(' ') && st.length <= 3;
+    const hit = (stem) => (stem.includes(' ') ? q.includes(stem) || (q.length >= 4 && stem.startsWith(q)) : toks.some((w) => (short(stem) ? w === stem : w.startsWith(stem)) || (w.length >= 4 && stem.startsWith(w))));
+    const stems = [];
+    FAMILLES.forEach((g) => { if (g.some(hit)) g.forEach((st) => { if (!stems.includes(st)) stems.push(st); }); });
+    if (stems.length) {
+      const inExact = new Set(exact.map((e) => e.x));
+      pool.forEach((x) => {
+        if (inExact.has(x)) return;
+        const t = itemLabel(r, x); if (!t) return;
+        const fm = folded(t);
+        for (const st of stems) {
+          let i = fm.f.indexOf(st);
+          while (i >= 0 && !wordStart(fm.f, i)) i = fm.f.indexOf(st, i + 1);
+          if (i < 0) continue;
+          let j = i + st.length;
+          if (short(st) && /[a-z0-9]/.test(fm.f[j] || '')) continue;
+          if (!st.includes(' ')) while (j < fm.f.length && /[a-z0-9]/.test(fm.f[j])) j++;
+          near.push({ x, t, lvl: x.lvl || 1, own: hit(st) ? 0 : 1, k: stems.indexOf(st), html: markAt(t, fm, i, j) });
+          break;
+        }
+      });
+      near.sort((a, b) => a.own - b.own || a.k - b.k || a.lvl - b.lvl || a.t.localeCompare(b.t, 'fr'));
+    }
+    return { exact: exact.slice(0, 40), near: near.slice(0, 25) };
+  }
+  let found = { exact: [], near: [] };
+  function renderResults() {
+    const q = loupeQ.value.replace(/\s+/g, ' ').trim();
+    const box = $('#loupe-results');
+    const on = !!q;
+    box.hidden = !on;
+    drumEl.hidden = on;
+    $('#loupe-pick').hidden = on;
+    if (!on) return;
+    found = searchWords(q);
+    const CH = '<svg class="chili is-on" viewBox="0 0 24 24" aria-hidden="true"><use href="#chili"/></svg>';
+    const row = (it, k) => '<button class="loupe-hit" type="button" role="option" data-hit="' + k + '"><span class="loupe-hit-txt">' + it.html + '</span>' +
+      (it.lvl > 1 ? '<span class="reel-chilis reel-chilis--' + it.lvl + '">' + CH.repeat(it.lvl) + '</span>' : '') + '</button>';
+    box.innerHTML = found.exact.map((it, k) => row(it, 'e' + k)).join('') +
+      (found.near.length ? '<p class="loupe-sub">' + TH('loupe.peut-etre') + '</p>' + found.near.map((it, k) => row(it, 'n' + k)).join('') : '') +
+      (found.exact.length || found.near.length ? '' : '<p class="loupe-none">' + TH('loupe.vide') + '</p>');
+    box.scrollTop = 0;
+  }
+  $('#loupe-results').addEventListener('click', (e) => {
+    const b = e.target.closest('[data-hit]'); if (!b) return;
+    const k = b.dataset.hit, it = k[0] === 'e' ? found.exact[+k.slice(1)] : found.near[+k.slice(1)];
+    if (it) chooseWord(it.x);
+  });
   /* Un tapis qui défile : plat au milieu, il s’enroule en haut et en bas sur six mots,
      comme une bande qui passe sur deux rouleaux. Le reste de la bande est derrière. */
   const BELT_CURVE = 6;
@@ -1251,7 +1328,7 @@
     const k = drum.items.findIndex((it) => it.x === keepI);
     drum.p = k >= 0 ? k : 0;
     drum.lastTick = Math.round(drum.p);
-    $('#loupe-empty').hidden = !!n;
+    $('#loupe-empty').hidden = true;
     $('#loupe-pick').disabled = !n;
     renderDrum();
   }
@@ -1377,6 +1454,7 @@
     // Le tambour prend l’allure de la roue touchée
     drumEl.className = 'reel loupe-drum ' + [...reels[r].el.classList].filter((c) => /^strip/.test(c)).join(' ');
     $('#loupe-write').hidden = true;
+    renderResults();
     show(ovLoupe);
     buildDrum(LISTS[r][reels[r].index]);
     requestAnimationFrame(() => buildDrum(LISTS[r][reels[r].index])); // une fois la feuille posée, à la bonne taille
@@ -1384,7 +1462,7 @@
   }
   function renderWrite() {
     const typed = loupeQ.value.replace(/\s+/g, ' ').trim();
-    const show_ = !!typed && !drum.items.some((it) => plain(it.t) === plain(typed));
+    const show_ = !!typed && !found.exact.some((it) => plain(it.t) === plain(typed));
     $('#loupe-write').hidden = !show_;
     $('#loupe-write-text').textContent = T('loupe.ecrire', { mot: typed });
   }
@@ -1398,12 +1476,21 @@
   function pickDrum() {
     const n = drum.items.length;
     if (!n || loupeR < 0) return;
-    const it = drum.items[drumMod(Math.round(drum.p), drum.nf) % n];
+    chooseWord(drum.items[drumMod(Math.round(drum.p), drum.nf) % n].x);
+  }
+  function chooseWord(x) {
+    if (loupeR < 0) return;
     const r = loupeR, rl = reels[r];
     audio(); sClick(); haptic(10);
     closeLoupe();
-    const i = LISTS[r].indexOf(it.x);
-    if (i < 0) return;
+    let i = LISTS[r].indexOf(x);
+    if (i < 0) {
+      // Un mot de la réserve, hors du tirage : il rejoint la roue pour toute la partie
+      S.kept[r] = S.kept[r].filter((k) => k !== dkey(x)).concat(dkey(x)).slice(-30);
+      relist(); renderReels();
+      i = LISTS[r].indexOf(x);
+      if (i < 0) return;
+    }
     if (i === rl.index) { rl.settle(); return; }
     rl.spinTo(i, 0, 520);
   }
@@ -1417,16 +1504,15 @@
     renderReels();
     openEditor(r); // l’aperçu de la phrase, et la bonne forme du verbe
   }
-  loupeQ.addEventListener('input', () => {
-    const cur = drum.items.length ? drum.items[drumMod(Math.round(drum.p), drum.nf) % drum.items.length].x : null;
-    buildDrum(cur);
-    renderWrite();
-  });
+  loupeQ.addEventListener('input', () => { renderResults(); renderWrite(); });
   loupeQ.addEventListener('keydown', (e) => {
     if (e.key !== 'Enter') return;
     e.preventDefault();
-    if (!$('#loupe-write').hidden && !drum.items.length) { $('#loupe-write').click(); return; }
-    pickDrum();
+    if (!loupeQ.value.trim()) { pickDrum(); return; }
+    const first = found.exact[0] || found.near[0];
+    if (first && plain(first.t) === plain(loupeQ.value.trim())) { chooseWord(first.x); return; }
+    if (!$('#loupe-write').hidden) { $('#loupe-write').click(); return; }
+    if (first) chooseWord(first.x);
   });
   $('#loupe-write').addEventListener('click', () => { audio(); loupeWrite(loupeQ.value.replace(/\s+/g, ' ').trim()); });
   $('#loupe-pick').addEventListener('click', pickDrum);
@@ -3717,11 +3803,10 @@
     renderDuoStatus();
   }
 
-  /* ---------- Accueil : une phrase d’intro pour qui découvre le jeu ---------- */
+  /* ---------- Accueil : la phrase sous le titre, toujours là (elle se change dans l’Atelier ; vide, elle disparaît) ---------- */
   function renderIntro() {
     const inDuo = $('#steps').classList.contains('is-duo');
-    const novice = !load('rulesSeen', false) && !S.started && !games().length;
-    $('#welcome-intro').hidden = inDuo || !novice;
+    $('#welcome-intro').hidden = inDuo || !T('accueil.intro').trim();
   }
 
   /* ---------- Appli sur l’écran d’accueil ---------- */
