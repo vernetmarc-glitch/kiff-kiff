@@ -281,22 +281,22 @@
   }
   // Décalé : un mot pour rire (le ton barjot), que les roues enlèvent quand on joue au premier degré
   const dcHtml = (x) => '<label class="dc"><input type="checkbox" data-k="dc"' + (x.dc ? ' checked' : '') + '> décalé (pour rire)</label>';
-  /* La longueur d’un mot : 32 caractères au plus (espaces compris), pour tenir sur une ligne dans toutes les ambiances,
+  /* La longueur d’un mot : 35 caractères au plus (espaces compris), pour tenir sur une ligne dans toutes les ambiances,
      même sur un petit téléphone, avec les piments et la préposition d’un endroit (« de la »…). Au-delà de 22, le texte rapetisse. */
-  const MAXLEN = 32;
+  const MAXLEN = 35;
   const longest = (x) => Math.max((x.s || '').trim().length, x.i && (roue === 'action' || x.two) ? x.i.trim().length : 0);
   const tooLong = (x) => longest(x) > MAXLEN;
-  const lenHtml = (x) => { const n = longest(x); return n > MAXLEN ? '<p class="len len--ko">' + n + ' caractères : 32 au plus. Raccourcis-le, sinon il est coupé dans la roue.</p>' : n > 26 ? '<p class="len">' + n + ' / 32</p>' : '<p class="len" hidden></p>'; };
+  const lenHtml = (x) => { const n = longest(x); return n > MAXLEN ? '<p class="len len--ko">' + n + ' caractères : 35 au plus. Raccourcis-le, sinon il est coupé dans la roue.</p>' : n > 29 ? '<p class="len">' + n + ' / 35</p>' : '<p class="len" hidden></p>'; };
   function rowHtml(x) {
     const lvl = [1, 2, 3].map((n) => '<button type="button" data-lvl="' + n + '" aria-pressed="' + (x.lvl === n) + '" aria-label="' + NIV[n - 1].nom + '">' + n + '</button>').join('');
     let fields;
     if (roue === 'action') {
-      fields = '<div class="field"><span class="pre">que tu me</span><input type="text" data-k="s" value="' + esc(x.s) + '" placeholder="gratouilles, fasses gouzi-gouzi…" maxlength="32"></div>' +
-        '<div class="field"><span class="pre">de te</span><input type="text" data-k="i" value="' + esc(x.i) + '" placeholder="' + esc(suggestI(x.s) || 'gratouiller…') + '" maxlength="32"></div>' +
+      fields = '<div class="field"><span class="pre">que tu me</span><input type="text" data-k="s" value="' + esc(x.s) + '" placeholder="gratouilles, fasses gouzi-gouzi…" maxlength="35"></div>' +
+        '<div class="field"><span class="pre">de te</span><input type="text" data-k="i" value="' + esc(x.i) + '" placeholder="' + esc(suggestI(x.s) || 'gratouiller…') + '" maxlength="35"></div>' +
         '<div class="opts"><label><input type="checkbox" data-k="a"' + (x.a ? ' checked' : '') + '> avec « à » (au gros orteil, aux épaules)</label>' + dcHtml(x) + '</div>';
     } else {
-      fields = '<div class="field"><span class="pre">' + (x.two ? 'que tu me' : 'texte') + '</span><input type="text" data-k="s" value="' + esc(x.s) + '" placeholder="' + (roue === 'endroit' ? 'le gros orteil…' : 'en chantonnant…') + '" maxlength="32"></div>' +
-        (x.two ? '<div class="field"><span class="pre">de te</span><input type="text" data-k="i" value="' + esc(x.i) + '" placeholder="' + esc(swapPoss(x.s)) + '" maxlength="32"></div>' : '') +
+      fields = '<div class="field"><span class="pre">' + (x.two ? 'que tu me' : 'texte') + '</span><input type="text" data-k="s" value="' + esc(x.s) + '" placeholder="' + (roue === 'endroit' ? 'le gros orteil…' : 'en chantonnant…') + '" maxlength="35"></div>' +
+        (x.two ? '<div class="field"><span class="pre">de te</span><input type="text" data-k="i" value="' + esc(x.i) + '" placeholder="' + esc(swapPoss(x.s)) + '" maxlength="35"></div>' : '') +
         '<div class="opts"><label><input type="checkbox" data-k="two"' + (x.two ? ' checked' : '') + '> change selon le sens (mon / ton…)</label>' + dcHtml(x) + '</div>';
     }
     return '<div class="word' + (x.isNew ? ' is-new' : '') + (tooLong(x) ? ' is-toolong' : '') + '" data-id="' + x.id + '"><div class="lvl" role="group" aria-label="Piment">' + lvl + '</div>' +
@@ -321,8 +321,8 @@
     const on = list.filter((x) => x.on).length;
     const row = (x) => '<li class="sg' + (x.on ? '' : ' is-off') + '" data-id="' + x.id + '"><input type="checkbox" data-k="on"' + (x.on ? ' checked' : '') + ' aria-label="Ajouter ce mot">' +
       '<span class="sg-tags"><span class="chilis" aria-label="' + esc(NIV[x.lvl - 1].nom) + '">' + CHILI.repeat(x.lvl) + '</span><span class="sg-ton' + (x.dc ? ' is-dc' : '') + '">' + (x.dc ? 'barjot' : 'premier degré') + '</span></span>' +
-      '<span class="sg-fields"><input type="text" data-k="s" value="' + esc(x.s) + '" maxlength="32" aria-label="Le mot">' +
-      (x.i || x.two ? '<input type="text" data-k="i" value="' + esc(x.i) + '" maxlength="32" aria-label="Forme après « de te »" placeholder="forme « de te »">' : '') +
+      '<span class="sg-fields"><input type="text" data-k="s" value="' + esc(x.s) + '" maxlength="35" aria-label="Le mot">' +
+      (x.i || x.two ? '<input type="text" data-k="i" value="' + esc(x.i) + '" maxlength="35" aria-label="Forme après « de te »" placeholder="forme « de te »">' : '') +
       (x.a ? '<span class="sg-note">avec « à »</span>' : '') + '</span></li>';
     box.innerHTML = '<summary><b>Mots à ajouter</b> <span class="n">' + list.length + '</span></summary>' +
       '<p class="note">Prêts à entrer dans la roue, rangés par piment et par ton. Décoche ceux que tu ne veux pas, corrige si besoin, puis ajoute. Le tableau au-dessus compte déjà les mots cochés.</p>' +

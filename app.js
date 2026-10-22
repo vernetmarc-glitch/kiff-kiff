@@ -1413,7 +1413,7 @@
     closeLoupe(false);
     if (fi < 0) return;
     rl.p = Math.round(rl.p) + shortest(rl.index, fi, rl.n); rl.lastTick = rl.p;
-    S.custom[r] = text.slice(0, 32);
+    S.custom[r] = text.slice(0, 35);
     renderReels();
     openEditor(r); // l’aperçu de la phrase, et la bonne forme du verbe
   }
@@ -1435,7 +1435,7 @@
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !ovLoupe.hidden) closeLoupe(); });
   $('#edit-form').addEventListener('submit', (e) => {
     e.preventDefault();
-    const v = editInput.value.replace(/\s+/g, ' ').trim().slice(0, 32);
+    const v = editInput.value.replace(/\s+/g, ' ').trim().slice(0, 35);
     S.custom[editing] = v;
     hide(el.ovEdit);
     editInput.blur();
