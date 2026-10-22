@@ -3375,6 +3375,7 @@
     /* Piment : niveaux à cocher, depuis l’accueil ou le jeu */
     const ovPiment = $('#ov-piment');
     // Les mêmes trois niveaux à cocher : sur l’écran d’accueil et dans la fenêtre du jeu
+    let brulantOk = false; // remis à zéro à chaque nouvelle partie sur un téléphone
     const pimentList = (list, err) => {
       list.innerHTML = D.niveaux.map((lv) =>
         '<label class="piment-toggle"><input type="checkbox" value="' + lv.n + '">' +
@@ -3393,16 +3394,48 @@
           err._t = setTimeout(() => { err.hidden = true; }, 2400);
           return;
         }
-        sClick(); haptic(8);
-        setLevels(next, { silent: S.phase === 'start' || !el.ovStart.hidden });
-        if (!ovPiment.hidden) renderRouesEx();
+        const apply = () => {
+          sClick(); haptic(8);
+          setLevels(next, { silent: S.phase === 'start' || !el.ovStart.hidden });
+          if (!ovPiment.hidden) renderRouesEx();
+        };
+        // Sur un téléphone, Brûlant se coche à deux : on demande si tout le monde est d’accord
+        if (+c.value === 3 && c.checked && !duo && !brulantOk) {
+          c.checked = false;
+          askBrulant(() => { c.checked = true; apply(); });
+          return;
+        }
+        apply();
       }));
     };
+    /* Brûlant sur un téléphone : une fois par partie, les deux disent qu’ils sont d’accord */
+    const ovBrulant = $('#ov-brulant');
+    let brulantYes = null, brulantNo = null, brulantFocus = null;
+    const askBrulant = (yes, no) => {
+      brulantYes = yes; brulantNo = no || null;
+      brulantFocus = document.activeElement;
+      show(ovBrulant);
+      sSwitchOn(); haptic(20);
+      $('#brulant-yes').focus({ preventScroll: true });
+    };
+    const closeBrulant = (ok) => {
+      hide(ovBrulant);
+      if (brulantFocus && brulantFocus.focus) brulantFocus.focus({ preventScroll: true });
+      const go = ok ? brulantYes : brulantNo; brulantYes = brulantNo = null;
+      if (ok) brulantOk = true;
+      if (go) go();
+    };
+    $('#brulant-yes').addEventListener('click', () => { audio(); closeBrulant(true); });
+    $('#brulant-no').addEventListener('click', () => { audio(); haptic(10); closeBrulant(false); });
+    ovBrulant.addEventListener('click', (e) => { if (e.target === ovBrulant) closeBrulant(false); });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !ovBrulant.hidden) closeBrulant(false); });
     pimentList($('#piment-list'), $('#piment-error'));
     pimentList($('#piment-home-list'), $('#piment-home-error'));
     $('#piment-go').addEventListener('click', () => {
       audio(); sSwitchOn(); haptic(12);
       if (where === 'duo') createDuo(S.names[0] || '');
+      // Brûlant gardé de la dernière fois : on le confirme à deux avant de commencer
+      else if (S.levels.includes(3) && !brulantOk) askBrulant(launchGame, () => setLevels(S.levels.filter((n) => n !== 3).length ? S.levels.filter((n) => n !== 3) : [2], { silent: true }));
       else launchGame();
     });
     renderLevel();
@@ -3469,7 +3502,7 @@
     };
     /* Accueil en quatre écrans : accueil → joueurs → principe → piment → la partie commence */
     // Une nouvelle partie ne touche pas aux autres : celle qui était ouverte attend dans la liste
-    $('#welcome-go').addEventListener('click', () => { audio(); sClick(); haptic(8); if (duo) parkDuo(); goStep(1); });
+    $('#welcome-go').addEventListener('click', () => { audio(); sClick(); haptic(8); if (duo) parkDuo(); brulantOk = false; goStep(1); });
     // L’autre joue sur ce téléphone (on écrit son prénom) ou sur le sien (on l’invitera)
     const setWhere = (w) => {
       where = w;

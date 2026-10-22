@@ -326,6 +326,10 @@ window.KIFF_TEXTES = [
   ] },
   { id: "montee", nom: "Le piment monte (à distance)", textes: [
     ["montee.baisse", "{prénom} a baissé le piment : {piment}.", "Au-dessus de l’envie reçue, à distance, quand l’autre a baissé le piment"],
+    ["brulant.titre", "Brûlant ?", "Sur un téléphone, quand on coche Brûlant : titre de la petite fenêtre"],
+    ["brulant.texte", "Les propositions peuvent être bien bien cochonnes…", "Sous le titre"],
+    ["brulant.oui", "On est d’accord tous les deux", "Bouton principal : Brûlant est coché"],
+    ["brulant.non", "Pas cette fois", "Bouton : Brûlant reste décoché"],
     ["montee.kicker", "Avant de voir son envie", "Au-dessus du titre"],
     ["montee.titre", "{prénom} monte le piment", "Titre"],
     ["montee.texte", "Vous jouiez en {piment}. {prénom} propose d’ajouter le niveau {niveaux}, et son envie peut en venir.", "Texte, un niveau ajouté"],
