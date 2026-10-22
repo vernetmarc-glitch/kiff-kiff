@@ -70,6 +70,7 @@ window.KIFF_TEXTES = [
     ["jeu.nom-sens", "le sens de la phrase", "Dans « Tu as changé le sens de la phrase »"],
     ["jeu.une-seule", "Une seule modification par tour. Reviens à l’envie de {prénom} pour changer celle-ci.", "Consigne, un instant, quand on touche une deuxième roue pendant « Oui, mais… »"],
     ["jeu.consigne", "{prénom}, à toi : glisse ou touche les roues.", "La consigne en haut, quand on compose (le prénom est en gras)"],
+    ["jeu.nouveaux-mots", "Nouveaux mots dans les roues", "La consigne, 3 secondes, quand un nouveau tour tire de nouveaux mots"],
     ["jeu.consigne-mais", "{prénom}, change une seule chose : une roue, ou « que tu me / de te ». Les choix de {autre} sont surlignés.", "La consigne pendant « Oui, mais… »"],
     ["jeu.change", "Tu as changé {chose}.", "La consigne après le changement, pendant « Oui, mais… »"],
     ["jeu.revenir", "Revenir à l’envie de {prénom}", "Le lien juste après « Tu as changé… »"],
@@ -188,6 +189,7 @@ window.KIFF_TEXTES = [
     ["kiffs.compte-1-dont", "{nombre} kiff kiff trouvé ensemble, dont {vivre} à vivre.", "Sous le titre, un seul kiff kiff, gardé pour plus tard"],
     ["kiffs.compte", "{nombre} kiff kiff trouvés ensemble.", "Sous le titre, plusieurs kiff kiff"],
     ["kiffs.compte-dont", "{nombre} kiff kiff trouvés ensemble, dont {vivre} à vivre.", "Sous le titre, avec des envies gardées pour plus tard"],
+    ["kiffs.decouverts", "{nombre} mots découverts sur {total}.", "Sous le compte des kiff kiff : les mots déjà sortis dans vos roues, sur toute la réserve"],
     ["kiffs.a-vivre", "À vivre", "Titre de la liste des envies gardées pour plus tard"],
     ["kiffs.vecues", "Vécues", "Titre de la liste des envies vécues"],
     ["kiffs.fermer", "Fermer", "Bouton"]

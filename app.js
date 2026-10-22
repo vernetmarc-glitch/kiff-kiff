@@ -115,6 +115,7 @@
   }
   function makeDraw(r, pool, keep) {
     const seen = (S.seen && S.seen[r]) || [];
+    const found = foundSet();
     const n = Math.min(DRAW_N, pool.length);
     const lv = [1, 2, 3].filter((l) => pool.some((x) => (x.lvl || 1) === l));
     const size = (l) => pool.filter((x) => (x.lvl || 1) === l).length;
@@ -126,9 +127,12 @@
     const out = [];
     lv.forEach((l) => {
       const g = pool.filter((x) => (x.lvl || 1) === l);
-      const fresh = shuffled(g.filter((x) => !seen.includes(dkey(x))));
+      // Les mots jamais sortis dans vos roues d’abord, puis ceux déjà vus mais jamais proposés, puis les plus anciens
+      const unseen = g.filter((x) => !seen.includes(dkey(x)));
+      const neuf = shuffled(unseen.filter((x) => !found.has(wordHash(dkey(x)))));
+      const vu = shuffled(unseen.filter((x) => found.has(wordHash(dkey(x)))));
       const old = g.filter((x) => seen.includes(dkey(x))).sort((a, b) => seen.indexOf(dkey(a)) - seen.indexOf(dkey(b)));
-      let pick = fresh.concat(old).slice(0, quota[l]);
+      let pick = neuf.concat(vu, old).slice(0, quota[l]);
       if (keep && (keep.lvl || 1) === l && g.includes(keep) && !pick.includes(keep)) pick = [keep].concat(pick.slice(0, -1));
       out.push(...interleave(pick));
     });
@@ -165,6 +169,32 @@
   }
   // Un nouveau tirage (nouveau tour, dé, piment ou ton changé) ; chaque roue garde le mot qu’elle montrait
   function newDraw() { S.draw = [null, null, null]; }
+  /* Les mots découverts : tous ceux qu’un tirage a mis dans les roues, pour ces deux prénoms (ou cette partie à distance).
+     Gardés sur le téléphone seulement, en empreintes courtes ; « Vos kiff kiff » dit combien sur toute la réserve. */
+  function wordHash(k) { let h = 2166136261; for (let i = 0; i < k.length; i++) { h ^= k.charCodeAt(i); h = Math.imul(h, 16777619); } return (h >>> 0).toString(36); }
+  function foundKey() { return duo && duo.info ? 'd:' + duo.info.room : pairKey(); }
+  function addFound(keys) {
+    if (!S.started || !keys.length) return;
+    const all = load('decouverts', {}) || {};
+    const k = foundKey(), cur = all[k] && Array.isArray(all[k].h) ? all[k].h : [];
+    const set = new Set(cur);
+    keys.forEach((x) => set.add(wordHash(x)));
+    if (set.size === cur.length) return;
+    all[k] = { h: [...set].slice(-3000), t: Date.now() };
+    const keep = Object.keys(all).sort((a, b) => (all[b].t || 0) - (all[a].t || 0)).slice(0, 20);
+    save('decouverts', Object.fromEntries(keep.map((x) => [x, all[x]])));
+  }
+  function foundSet() {
+    if (!S.started) return new Set();
+    const all = load('decouverts', {}) || {};
+    return new Set((all[foundKey()] || {}).h || []);
+  }
+  function foundCount() {
+    const mine = foundSet();
+    let n = 0, total = 0;
+    SOURCE.forEach((l) => l.forEach((x) => { total++; if (mine.has(wordHash(dkey(x)))) n++; }));
+    return { n, total };
+  }
   const PLACEHOLDER = { get 0() { return T('jeu.vide-0'); }, get 1() { return T('jeu.vide-1'); }, get 2() { return T('jeu.vide-2'); } };
   const REEL_NAMES = { get 0() { return T('jeu.nom-0'); }, get 1() { return T('jeu.nom-1'); }, get 2() { return T('jeu.nom-2'); } };
 
@@ -630,11 +660,11 @@
 
   let hintFlashT = 0;
   let hintFlash = '';
-  function flashHint(text) {
+  function flashHint(text, ms) {
     hintFlash = text;
     el.hint.textContent = text;
     clearTimeout(hintFlashT);
-    hintFlashT = setTimeout(() => { hintFlash = ''; renderHint(); }, 2600);
+    hintFlashT = setTimeout(() => { hintFlash = ''; renderHint(); }, ms || 2600);
   }
   const esc = (s) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
@@ -963,10 +993,13 @@
     const keep = Object.keys(all).sort((a, b) => (all[b].t || 0) - (all[a].t || 0)).slice(0, 20);
     save('paires', Object.fromEntries(keep.map((k) => [k, all[k]])));
   }
-  function shuffle(includeDir, best) {
+  function shuffle(includeDir, best, announce) {
     if (includeDir) { S.dir = Math.random() < 0.5 ? 'me' : 'te'; }
     newDraw(); relist(); renderReels(); // de nouveaux mots dans les roues
+    S.draw.forEach((d) => { if (d) addFound(d.keys); });
     pulse();
+    // Un nouveau tour : les roues tournent seules sur un nouveau tirage, et la consigne le dit un instant
+    if (announce) setTimeout(() => flashHint(T('jeu.nouveaux-mots'), 3000), 0);
     let pending = 3;
     reels.forEach((rl, k) => {
       const target = pickIndex(k, best);
@@ -1104,7 +1137,10 @@
     startComposition(to);
     sync();
     renderWait();
+    if (myTurn()) setTimeout(() => { if (S.phase === 'compose' && myTurn()) shuffle(false, false, true); }, 500);
   }
+  // Un nouveau tour sur un téléphone, après « On passe » : nouvelles roues
+  const freshTurn = () => setTimeout(() => { if (S.phase === 'compose') shuffle(false, false, true); }, 400);
   $('#pass-same').addEventListener('click', () => {
     hide(el.ovPass);
     report('passe');
@@ -1112,8 +1148,8 @@
     if (duo) { duoPass(S.proposer); return; }
     const A = S.proposer;
     // Si c’est l’autre qui tient le téléphone, on le rend à A
-    if (S.phase === 'review' || S.phase === 'adjust') { hideOffer(); handoffNewTurn(A); return; }
-    startComposition(A);
+    if (S.phase === 'review' || S.phase === 'adjust') { hideOffer(); handoffNewTurn(A, null, freshTurn); return; }
+    startComposition(A); freshTurn();
   });
   $('#pass-other').addEventListener('click', () => {
     hide(el.ovPass);
@@ -1122,8 +1158,8 @@
     const to = other(S.proposer);
     if (duo) { duoPass(to); return; }
     hideOffer();
-    if (S.phase === 'review' || S.phase === 'adjust') { startComposition(to); return; }
-    handoffNewTurn(to);
+    if (S.phase === 'review' || S.phase === 'adjust') { startComposition(to); freshTurn(); return; }
+    handoffNewTurn(to, null, freshTurn);
   });
   $('#pass-cancel').addEventListener('click', () => { hide(el.ovPass); if (S.phase === 'celebrate') show(el.ovParty); });
 
@@ -1620,6 +1656,9 @@
       (done.length ? (live.length ? '<li class="kiffs-head">' + TH('kiffs.vecues') + '</li>' : '') + done.map((x) => item(x, false)).join('') : '');
     const n = kiffCount();
     $('#kiffs-count').textContent = T(n > 1 ? (live.length ? 'kiffs.compte-dont' : 'kiffs.compte') : (live.length ? 'kiffs.compte-1-dont' : 'kiffs.compte-1'), { nombre: n, vivre: live.length });
+    const f = foundCount();
+    $('#kiffs-found').hidden = !f.n;
+    $('#kiffs-found').textContent = T('kiffs.decouverts', { nombre: f.n, total: f.total });
   }
   // Marquer une envie vécue, ou passer : à deux téléphones, ça vaut pour les deux
   $('#kiffs-list').addEventListener('click', (e) => {
@@ -1826,7 +1865,7 @@
     stopConfetti();
     startComposition(other(S.proposer));
     if (duo) { sync(); renderWait(); }
-    if (!duo || myTurn()) setTimeout(() => { if (S.phase === 'compose' && myTurn()) shuffle(false); }, 500);
+    if (!duo || myTurn()) setTimeout(() => { if (S.phase === 'compose' && myTurn()) shuffle(false, false, true); }, 500);
   }
   const lastKiff = () => (S.kiffs || [])[(S.kiffs || []).length - 1];
   function partyAct(act) {
@@ -2603,7 +2642,7 @@
     const missed = !!S.kiff && S.phase !== 'celebrate' && S.kiff.n > kiffSeen(duo.info.room);
     if (S.phase === 'celebrate' && prev.phase !== 'celebrate') celebrate();
     // L’autre a lancé le tour suivant et c’est à moi de composer : nouvelles roues
-    if (!opts.first && prev.phase === 'celebrate' && S.phase === 'compose' && myTurn()) setTimeout(() => { if (S.phase === 'compose' && myTurn()) shuffle(false); }, 700);
+    if (!opts.first && S.phase === 'compose' && myTurn() && (prev.phase !== 'compose' || prev.proposer !== S.proposer)) setTimeout(() => { if (S.phase === 'compose' && myTurn()) shuffle(false, false, true); }, 700);
     else if (missed && !lateKiff) celebrateLate();
     if (S.phase !== 'celebrate' && !lateKiff && !el.ovParty.hidden) {
       // L’autre a gardé l’envie pour plus tard : la célébration reste, avec ce qu’il ou elle a choisi
