@@ -21,7 +21,8 @@ window.KIFF_TEXTES = [
     ["accueil.son", "Son", "Icône en bas de l’accueil"],
     ["accueil.distance", "À distance", "Icône en bas de l’accueil : continuer la partie sur deux téléphones"],
     ["accueil.installer", "Installer", "Icône en bas de l’accueil"],
-    ["accueil.tukiffes", "Tu kiffes ?", "Icône en bas de l’accueil : partager, café, histoire du jeu"],
+    ["accueil.tourner", "Fais tourner !", "Icône en bas de l’accueil : faire découvrir le jeu"],
+    ["accueil.quiestla", "Qui est là ?", "Icône en bas de l’accueil : l’histoire du jeu, le café, un retour"],
     ["accueil.en-cours", "En cours : partie à deux avec {prénom}, connecté·e.", "Au-dessus de « Reprendre la partie », à distance"],
     ["accueil.en-cours-msg", "En cours : partie à deux avec {prénom}. {etat}", "Même chose, quand la connexion pose problème ({etat} : le message de connexion)"],
     ["accueil.en-cours-kiffs", "{nombre} kiff kiff ensemble.", "À la suite, quand il y a déjà des kiff kiff"]
@@ -198,7 +199,9 @@ window.KIFF_TEXTES = [
     ["image.pied", "Kiff Kiff · jeu de séduction pour adultes", "Tout en bas de l’image"]
   ] },
   { id: "tukiffes", nom: "Tu kiffes ?", textes: [
-    ["tukiffes.titre", "Tu kiffes ?", "Titre de la feuille"],
+    ["tukiffes.titre", "Tu kiffes ?", "Titre de la feuille ouverte par « Vous kiffez ? » de la célébration (partage et café)"],
+    ["tourner.titre", "Fais tourner !", "Titre de la feuille ouverte par « Fais tourner » (le partage seul)"],
+    ["quiestla.titre", "Qui est là ?", "Titre de la feuille ouverte par « Qui est là ? » (histoire, café, retour)"],
     ["tukiffes.partager-titre", "Faites découvrir le jeu", "Titre de la première carte"],
     ["tukiffes.partager-texte", "Montrez le code, ou envoyez le lien à quelqu’un qui a envie de jouer.", "Texte de la première carte"],
     ["tukiffes.envoyer", "Envoyer le lien", "Bouton de la première carte"],
@@ -210,7 +213,12 @@ window.KIFF_TEXTES = [
     ["tukiffes.cafe-bouton", "Payez-moi un café", "Bouton de la deuxième carte"],
     ["tukiffes.story-titre", "Kiff Kiff Story", "Titre de la troisième carte"],
     ["tukiffes.story-sous-titre", "Pourquoi ce jeu ?", "Sous « Kiff Kiff Story »"],
-    ["tukiffes.story", "Kiff Kiff a l’air d’un petit jeu de fesses comme les autres. Mais derrière ses petits airs légers, torrides ou cabotins, il y a, je crois, un peu plus de sens.\n\nOn pourra y voir un descendant d’action-vérité, un jeu où le consentement n’était pas vraiment à la fête. Kiff Kiff s’inspire plutôt de la roue du consentement, un chouette jeu découvert dans le milieu sex-positif. Sur Kiff Kiff, le consentement est au cœur du jeu : il prend la forme d’une envie claire, que l’un·e comme l’autre peut exprimer.\n\nOn y expérimente l’idée que consentir commence par une question qu’on se pose à soi : de quoi ai-je vraiment envie ? Puis qu’on peut le dire simplement. Qu’une envie peut s’ajuster pour rejoindre celle de l’autre, ou être déclinée, sans que personne n’ait à se justifier.\n\nUn vrai oui n’est, on le sait, ni un oui arraché, ni un oui lâché du bout des lèvres comme on finit par accepter une demande peu engageante. C’est ici un « j’ai envie aussi », qui invite chacun·e à se poser la question de sa propre envie.\n\nLe jeu propose aussi de voir le sexe autrement que comme une chasse, ou un rapport où l’un·e demande et l’autre finit par céder : plutôt comme un échange, où chacun·e partage ses envies à son tour, d’autant plus librement qu’iel sait que l’autre pourra les ajuster ou les décliner sans difficulté.", "Le texte qui se déplie ; une ligne vide entre deux paragraphes"]
+    ["tukiffes.story", "Kiff Kiff a l’air d’un petit jeu de fesses comme les autres. Mais derrière ses petits airs légers, torrides ou cabotins, il y a, je crois, un peu plus de sens.\n\nOn pourra y voir un descendant d’action-vérité, un jeu où le consentement n’était pas vraiment à la fête. Kiff Kiff s’inspire plutôt de la roue du consentement, un chouette jeu découvert dans le milieu sex-positif. Sur Kiff Kiff, le consentement est au cœur du jeu : il prend la forme d’une envie claire, que l’un·e comme l’autre peut exprimer.\n\nOn y expérimente l’idée que consentir commence par une question qu’on se pose à soi : de quoi ai-je vraiment envie ? Puis qu’on peut le dire simplement. Qu’une envie peut s’ajuster pour rejoindre celle de l’autre, ou être déclinée, sans que personne n’ait à se justifier.\n\nUn vrai oui n’est, on le sait, ni un oui arraché, ni un oui lâché du bout des lèvres comme on finit par accepter une demande peu engageante. C’est ici un « j’ai envie aussi », qui invite chacun·e à se poser la question de sa propre envie.\n\nLe jeu propose aussi de voir le sexe autrement que comme une chasse, ou un rapport où l’un·e demande et l’autre finit par céder : plutôt comme un échange, où chacun·e partage ses envies à son tour, d’autant plus librement qu’iel sait que l’autre pourra les ajuster ou les décliner sans difficulté.", "Le texte qui se déplie ; une ligne vide entre deux paragraphes"],
+    ["retour.titre", "Un mot à me glisser ?", "« Qui est là ? » : titre de la carte du mail"],
+    ["retour.texte", "Une idée de mots, un fou rire, une envie qui a fait mouche, ou quelque chose qui vous chiffonne (le genre, le type d’humour, le consentement, que sais-je encore) : écrivez-moi, je lis tout.", "Texte de la carte du mail"],
+    ["retour.bouton", "M’écrire", "Bouton qui ouvre un mail"],
+    ["retour.adresse", "jasg@gmail.com", "L’adresse mail qui reçoit les retours (visible par les joueurs ; vide : la carte ne s’affiche pas)"],
+    ["retour.sujet", "Kiff Kiff : un retour", "L’objet du mail"],
   ] },
   { id: "ambiance", nom: "L’ambiance", textes: [
     ["ambiance.titre", "Choisis l’ambiance", "Titre de la feuille"],

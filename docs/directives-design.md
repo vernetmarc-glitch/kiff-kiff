@@ -13,7 +13,7 @@ Un jeu sensuel ne se raconte pas qu'avec des mots. Les écrans où l'on joue (co
 1. **Un point focal qui n'est pas du texte** sur chaque écran clé : l'emblème sur l'accueil, un cœur qui bat sur la célébration, les roues sur l'écran de jeu.
 2. **60 mots au plus** sur un écran de jeu ou d'accueil, mention d'âge comprise. Au-delà, l'écran se lit plus qu'il ne se joue.
 3. **Une seule action principale par écran**, en bouton plein. Les autres en contour, en icône ou en lien.
-4. **Les actions du jeu restent en texte** (« Commencer », « Proposer à Lou », « J'ai envie aussi », « On passe »). **Les actions secondaires passent en icônes** (son, ambiance, « Tu kiffes ? », partager, prévenir, m'avertir, historique, café, retour, accueil, fermer).
+4. **Les actions du jeu restent en texte** (« Commencer », « Proposer à Lou », « J'ai envie aussi », « On passe »). **Les actions secondaires passent en icônes** (son, ambiance, « Fais tourner ! », « Qui est là ? », partager, prévenir, m'avertir, historique, café, retour, accueil, fermer).
 5. **Le geste sur l'objet** : on partage une phrase depuis une icône posée sur la carte de la phrase, pas depuis un lien en dessous.
 6. **Pas de répétition** : une phrase qui redit ce que montre le bouton ou l'écran disparaît.
 7. **Le contenu au centre vertical** de l'écran sur les écrans courts (accueil, célébration), pour éviter le tiers vide en bas sur un grand téléphone.
@@ -24,7 +24,7 @@ Un jeu sensuel ne se raconte pas qu'avec des mots. Les écrans où l'on joue (co
 
 - **Un seul jeu d'icônes** pour toute l'appli : grille de 24 px, trait de 1,6 px, bouts et angles arrondis, sans remplissage.
 - La couleur est celle du texte de l'ambiance (`currentColor`) : le même dessin sert partout.
-- Bouton à icône seule : rond de 48 px, avec un nom lisible par les lecteurs d'écran (`aria-label`). Un mot court dessous quand le sens n'est pas évident (accueil : « Ambiance », « Son », « Tu kiffes ? » ; attente : « Prévenir », « M'avertir », « Accueil »).
+- Bouton à icône seule : rond de 48 px, avec un nom lisible par les lecteurs d'écran (`aria-label`). Un mot court dessous quand le sens n'est pas évident (accueil : « Ambiance », « Son », « Fais tourner ! », « Qui est là ? » ; attente : « Prévenir », « M'avertir », « Accueil »).
 - Un réglage qu'on allume ou éteint garde un seul bouton, dont l'icône change d'état (son / son coupé, cloche / cloche barrée), avec l'état dit aux lecteurs d'écran.
 - Pilule icône + texte quand l'information compte (« Votre 3e kiff ensemble »).
 - Jamais d'émoji comme icône.
@@ -40,7 +40,7 @@ Un jeu sensuel ne se raconte pas qu'avec des mots. Les écrans où l'on joue (co
 ## Texte (UX copy)
 
 - Clair, concis, utile, humain. Les boutons commencent par un verbe et disent le résultat.
-- **Un seul nom par idée.** « Tu kiffes ? » (proposé le 19 octobre 2026, à la place de « Faites tourner ») pour la fenêtre qui réunit le partage du jeu, le café et l'histoire du jeu ; « Vous kiffez ? » sur la célébration, qui s'adresse aux deux. Une partie à deux : « partie à deux ». Un accord : « kiff kiff ».
+- **Un seul nom par idée.** « Fais tourner ! » pour faire découvrir le jeu, « Qui est là ? » pour l'histoire du jeu, le café et le mot à Marc (22 octobre 2026, à la place de « Tu kiffes ? », qui reste le titre de la fenêtre ouverte depuis la célébration) ; « Vous kiffez ? » sur la célébration, qui s'adresse aux deux. Une partie à deux : « partie à deux ». Un accord : « kiff kiff ».
 - Le tutoiement pour la personne qui tient le téléphone, le « vous » pour s'adresser aux deux (« Vous avez kiffé ? »).
 - **Dire ce qui se passe, pas ce qui ne se passe pas.** On célèbre les envies plutôt que de se protéger : « Quand vos envies se rejoignent, c'est kiff kiff. » plutôt que « Rien ne se passe sans deux « j'ai envie » ». On garde « sans se justifier » et « pas besoin d'expliquer pourquoi », qui rassurent sans interdire.
 - Pas d'émoji dans le texte de l'interface. Exception : le mot signé de Marc.

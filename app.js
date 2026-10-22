@@ -1760,19 +1760,29 @@
   const ovDeal = $('#ov-deal');
   // Depuis la célébration, ou depuis le lien discret de l’accueil
   let dealFrom = null;
+  // Trois portes, une feuille : « Fais tourner » (le partage), « Qui est là ? » (l’histoire, le café, un retour),
+  // et « Vous kiffez ? » de la célébration (le partage et le café)
   const openDeal = (e) => {
     audio(); sClick(); haptic(8);
     dealFrom = e.currentTarget;
-    report('partage', null, dealFrom.id === 'home-deal' ? 'fenetre-accueil' : 'fenetre-fete');
+    const mode = dealFrom.id === 'home-deal' ? 'tourner' : dealFrom.id === 'home-who' ? 'qui' : 'fete';
+    if (mode !== 'qui') report('partage', null, mode === 'tourner' ? 'fenetre-accueil' : 'fenetre-fete');
+    $('#deal-title').textContent = T(mode === 'tourner' ? 'tourner.titre' : mode === 'qui' ? 'quiestla.titre' : 'tukiffes.titre');
+    const mail = T('retour.adresse').trim();
+    ovDeal.querySelectorAll('[data-in]').forEach((el) => { el.hidden = !el.dataset.in.split(' ').includes(mode) || (el.id === 'deal-mail' && !mail.includes('@')); });
+    if (mail.includes('@')) $('#mail-go').href = 'mailto:' + mail + '?subject=' + encodeURIComponent(T('retour.sujet'));
+    $('#deal-story').open = false;
     $('#deal-done').hidden = true;
     show(ovDeal);
-    $('#deal-share').focus({ preventScroll: true });
+    ovDeal.querySelector('.sheet').scrollTop = 0;
+    (mode === 'qui' ? $('#deal-close') : $('#deal-share')).focus({ preventScroll: true });
     // Le QR code du jeu : on le montre, l’autre le scanne, rien à recopier
     const qr = $('#deal-qr');
     if (!qr.firstChild) loadScript('vendor/qrcode.js?v=1.4.4').then(() => { if (window.KiffDuo && window.KiffDuo.qrSvg) qr.innerHTML = window.KiffDuo.qrSvg(APP_URL); }).catch(() => {});
   };
   $('#party-deal').addEventListener('click', openDeal);
   $('#home-deal').addEventListener('click', openDeal);
+  $('#home-who').addEventListener('click', openDeal);
   const closeDeal = () => { hide(ovDeal); if (dealFrom) dealFrom.focus({ preventScroll: true }); };
   $('#deal-close').addEventListener('click', () => { audio(); closeDeal(); });
   ovDeal.addEventListener('click', (e) => { if (e.target === ovDeal) closeDeal(); });

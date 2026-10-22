@@ -97,10 +97,12 @@ async def main():
         await snap(pg, 'accueil', 'L’accueil, à la première visite', ['accueil'])
         await pg.click('#skin-open'); await snap(pg, 'ambiance', 'Choisis l’ambiance', ['ambiance'])
         await pg.click('#skins-done'); await pg.wait_for_timeout(300)
-        await pg.click('#home-deal'); await snap(pg, 'tukiffes', 'Tu kiffes ?', ['tukiffes'], 900)
+        await pg.click('#home-deal'); await snap(pg, 'tourner', 'Fais tourner !', ['tukiffes'], 900)
+        await pg.click('#deal-close'); await pg.wait_for_timeout(300)
+        await pg.click('#home-who'); await snap(pg, 'quiestla', 'Qui est là ?', ['tukiffes'], 900)
         await pg.click('#deal-story summary'); await pg.wait_for_timeout(300)
         await pg.evaluate("document.querySelector('#deal-story').scrollIntoView({block:'start'})")
-        await snap(pg, 'tukiffes-histoire', 'Tu kiffes ? L’histoire du jeu', ['tukiffes'])
+        await snap(pg, 'quiestla-histoire', 'Qui est là ? L’histoire du jeu', ['tukiffes'])
         await pg.click('#deal-close'); await pg.wait_for_timeout(300)
         # Un téléphone : départ, principe, piments
         await pg.click('#welcome-go'); await snap(pg, 'joueurs', 'Qui joue ?', ['joueurs'], 700)
@@ -126,7 +128,8 @@ async def main():
         await pg.click('#one-ok'); await snap(pg, 'jeu-mais', 'Pendant « Oui, mais… »', ['jeu'], 600)
         for _ in range(6):
             await pg.focus('.reel[data-reel="1"]'); await pg.keyboard.press('ArrowDown'); await pg.wait_for_timeout(900)
-            if (await pg.inner_text('#act-main')).strip().startswith('Modification'): break
+            v = await pg.get_attribute('.reel[data-reel="1"]', 'aria-valuetext') or ''
+            if (await pg.inner_text('#act-main')).strip().startswith('Modification') and not v.startswith('écris'): break
         await snap(pg, 'jeu-change', 'Après le changement', ['jeu'], 200)
         await pg.click('#act-main'); await pg.wait_for_selector('#offer-yes', state='visible'); await snap(pg, 'offre-ajustee', 'L’envie ajustée', ['offre'], 500)
         await pg.click('#offer-yes'); await snap(pg, 'fete', 'Kiff kiff !', ['fete'], 1400)

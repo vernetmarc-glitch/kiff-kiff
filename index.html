@@ -30,7 +30,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,62..125,100..900;1,62..125,100..900&family=Bagel+Fat+One&family=Abril+Fatface&family=Merriweather:ital,opsz,wght@0,18..144,400..900;1,18..144,400..900&family=Baskervville:ital,wght@0,400..700;1,400..700&family=Jost:wght@300..700&family=Great+Vibes&family=Cinzel:wght@400..900&family=Syne:wght@600..800&family=Manrope:wght@400..800&family=Anton&family=Courier+Prime:wght@400;700&display=swap">
-<link rel="stylesheet" href="base.css?v=85">
+<link rel="stylesheet" href="base.css?v=86">
 <link rel="stylesheet" href="skins/arty.css?v=64" data-skin-sheet="arty">
 <link rel="stylesheet" href="skins/pomme.css?v=64" data-skin-sheet="pomme">
 <link rel="stylesheet" href="skins/redcorner.css?v=61" data-skin-sheet="redcorner">
@@ -126,6 +126,8 @@
   <symbol id="i-avertir" viewBox="0 0 24 24"><path d="M6.5 16.5V11a5.5 5.5 0 0 1 11 0v5.5l1.5 1.5H5z"/><path d="M10 20.5a2.2 2.2 0 0 0 4 0"/><path d="M3.3 9a9 9 0 0 1 2.6-5"/><path d="M20.7 9a9 9 0 0 0-2.6-5"/></symbol>
   <symbol id="i-avertir-non" viewBox="0 0 24 24"><path d="M6.5 16.5V11a5.5 5.5 0 0 1 11 0v5.5l1.5 1.5H5z"/><path d="M10 20.5a2.2 2.2 0 0 0 4 0"/><path d="M4 4l16 16"/></symbol>
   <symbol id="i-accueil" viewBox="0 0 24 24"><path d="M4 11l8-6.5 8 6.5"/><path d="M6.5 9.5v10h11v-10"/><path d="M10.2 19.5v-5h3.6v5"/></symbol>
+  <symbol id="i-qui" viewBox="0 0 24 24"><path d="M4 11.5a7.5 6.5 0 0 1 15 0a7.5 6.5 0 0 1-10.6 5.9L4.5 19.5l1.2-3.6A6.3 6.3 0 0 1 4 11.5z"/><path d="M8.6 11.5h.01M11.5 11.5h.01M14.4 11.5h.01" stroke-width="2.4"/></symbol>
+  <symbol id="i-mail" viewBox="0 0 24 24"><rect x="3.5" y="5.5" width="17" height="13" rx="2"/><path d="M4 7l8 6 8-6"/></symbol>
   <symbol id="i-fermer" viewBox="0 0 24 24"><path d="M6 6l12 12"/><path d="M18 6L6 18"/></symbol>
 </svg>
 <div class="grain" aria-hidden="true"></div>
@@ -212,7 +214,8 @@
             <button class="icon-btn" id="mute" type="button" aria-pressed="false"><svg class="ic ic--on" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-son"/></svg><svg class="ic ic--off" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-muet"/></svg><span class="icon-label"><span data-t="accueil.son">Son</span><span class="sr-only">&nbsp;: <span id="mute-state">activé</span></span></span></button>
             <button class="icon-btn" id="home-cont" type="button" hidden><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-telephones"/></svg><span class="icon-label"><span data-t="accueil.distance">À distance</span><span class="sr-only"> : continuer la partie sur deux téléphones</span></span></button>
             <button class="icon-btn" id="install" type="button" hidden><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-installer"/></svg><span class="icon-label"><span data-t="accueil.installer">Installer</span><span class="sr-only"> l’appli</span></span></button>
-            <button class="icon-btn" id="home-deal" type="button" aria-haspopup="dialog"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-tourner"/></svg><span class="icon-label"><span data-t="accueil.tukiffes">Tu kiffes&nbsp;?</span><span class="sr-only"> Partager le jeu, offrir un café, l’histoire du jeu</span></span></button>
+            <button class="icon-btn" id="home-deal" type="button" aria-haspopup="dialog"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-tourner"/></svg><span class="icon-label"><span data-t="accueil.tourner">Fais tourner&nbsp;!</span><span class="sr-only"> : faire découvrir le jeu</span></span></button>
+            <button class="icon-btn" id="home-who" type="button" aria-haspopup="dialog"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-qui"/></svg><span class="icon-label"><span data-t="accueil.quiestla">Qui est là&nbsp;?</span><span class="sr-only"> L’histoire du jeu, un café, un retour</span></span></button>
           </nav>
         </div>
       </section>
@@ -565,7 +568,7 @@
       <h2 class="edit-label" id="deal-title" data-t="tukiffes.titre">Tu kiffes&nbsp;?</h2>
       <button class="icon-btn icon-btn--bare" id="deal-close" type="button" aria-label="Fermer"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-fermer"/></svg></button>
     </div>
-    <section class="deal-card" aria-labelledby="deal-share-title">
+    <section class="deal-card" aria-labelledby="deal-share-title" data-in="tourner fete">
       <div class="deal-card-head">
         <div class="deal-qr" id="deal-qr" aria-hidden="true"></div>
         <div class="deal-card-text">
@@ -576,16 +579,8 @@
       <button class="btn" id="deal-share" type="button"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-partager"/></svg><span data-t="tukiffes.envoyer">Envoyer le lien</span></button>
       <p class="deal-done" id="deal-done" hidden role="status"></p>
     </section>
-    <section class="deal-card" aria-labelledby="deal-coffee-title">
-      <div class="deal-card-head deal-card-head--icon">
-        <span class="deal-badge" aria-hidden="true"><svg class="ic" viewBox="0 0 24 24"><use href="#i-cafe"/></svg></span>
-        <h3 class="deal-card-title" id="deal-coffee-title" data-t="tukiffes.cafe-titre">Un petit caf’&nbsp;?</h3>
-      </div>
-      <p class="duo-text deal-money" data-t="tukiffes.cafe-texte">Hello les loupiots, c’est Marc ici&nbsp;💃 Ça vous a plu, Kiff Kiff, et vous voulez m’envoyer un peu de kiff en retour&nbsp;? C’est welcome&nbsp;🥰 Ça sera l’occasion de me faire un retour sur le jeu, ou d’ajouter vos formules truculentes. Bécots&nbsp;💋</p>
-      <a class="btn btn--line coffee-go" id="coffee-go" href="https://buymeacoffee.com/MarcVernet" data-config="don" target="_blank" rel="noopener"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-cafe"/></svg><span data-t="tukiffes.cafe-bouton">Payez-moi un café</span></a>
-    </section>
     <!-- La genèse du jeu, à déplier -->
-    <details class="deal-card deal-story" id="deal-story">
+    <details class="deal-card deal-story" id="deal-story" data-in="qui">
       <summary class="deal-story-head">
         <span class="deal-badge" aria-hidden="true"><svg class="ic" viewBox="0 0 24 24"><use href="#i-kiff"/></svg></span>
         <span class="deal-story-titles"><span class="deal-card-title" data-t="tukiffes.story-titre">Kiff Kiff Story</span><span class="deal-story-sub" data-t="tukiffes.story-sous-titre">Pourquoi ce jeu&nbsp;?</span></span>
@@ -599,15 +594,32 @@
         <p>Le jeu propose aussi de voir le sexe autrement que comme une chasse, ou un rapport où l’un·e demande et l’autre finit par céder&nbsp;: plutôt comme un échange, où chacun·e partage ses envies à son tour, d’autant plus librement qu’iel sait que l’autre pourra les ajuster ou les décliner sans difficulté.</p>
       </div>
     </details>
+    <section class="deal-card" aria-labelledby="deal-coffee-title" data-in="qui fete">
+      <div class="deal-card-head deal-card-head--icon">
+        <span class="deal-badge" aria-hidden="true"><svg class="ic" viewBox="0 0 24 24"><use href="#i-cafe"/></svg></span>
+        <h3 class="deal-card-title" id="deal-coffee-title" data-t="tukiffes.cafe-titre">Un petit caf’&nbsp;?</h3>
+      </div>
+      <p class="duo-text deal-money" data-t="tukiffes.cafe-texte">Hello les loupiots, c’est Marc ici&nbsp;💃 Ça vous a plu, Kiff Kiff, et vous voulez m’envoyer un peu de kiff en retour&nbsp;? C’est welcome&nbsp;🥰 Ça sera l’occasion de me faire un retour sur le jeu, ou d’ajouter vos formules truculentes. Bécots&nbsp;💋</p>
+      <a class="btn btn--line coffee-go" id="coffee-go" href="https://buymeacoffee.com/MarcVernet" data-config="don" target="_blank" rel="noopener"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-cafe"/></svg><span data-t="tukiffes.cafe-bouton">Payez-moi un café</span></a>
+    </section>
+    <!-- Un retour à Marc, par mail -->
+    <section class="deal-card" aria-labelledby="deal-mail-title" data-in="qui" id="deal-mail">
+      <div class="deal-card-head deal-card-head--icon">
+        <span class="deal-badge" aria-hidden="true"><svg class="ic" viewBox="0 0 24 24"><use href="#i-mail"/></svg></span>
+        <h3 class="deal-card-title" id="deal-mail-title" data-t="retour.titre">Un mot à me glisser&nbsp;?</h3>
+      </div>
+      <p class="duo-text" data-t="retour.texte">Une idée de mots, un fou rire, une envie qui a fait mouche, ou quelque chose qui vous chiffonne (le genre, le type d’humour, le consentement, que sais-je encore)&nbsp;: écrivez-moi, je lis tout.</p>
+      <a class="btn btn--line" id="mail-go" href="#"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-mail"/></svg><span data-t="retour.bouton">M’écrire</span></a>
+    </section>
   </div>
 </div>
 <!--/APP-->
 <script src="data.js?v=64"></script>
-<script src="textes.js?v=2"></script>
+<script src="textes.js?v=3"></script>
 <script src="semantique.js?v=1"></script>
 <script src="config.js?v=62"></script>
 <script src="duo.js?v=62"></script>
 <script src="push.js?v=65"></script>
-<script src="app.js?v=101"></script>
+<script src="app.js?v=102"></script>
 </body>
 </html>

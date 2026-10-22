@@ -822,7 +822,7 @@ body:has(#ov-deal:not([hidden])) .deco-candles { display: none; }
 }
 
 /* Kiff Kiff Story : la genèse du jeu, à déplier sous le café */
-.deal-story { padding: 0; gap: 0; }
+.deal-story { padding: 0; gap: 0; align-self: stretch; }
 .deal-story-head { display: flex; align-items: center; gap: 14px; min-height: 64px; padding: 10px 16px; cursor: pointer; list-style: none; border-radius: inherit; }
 .deal-story-head::-webkit-details-marker { display: none; }
 .deal-story-head:focus-visible { outline: 2px dashed currentColor; outline-offset: -4px; }
