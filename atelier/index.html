@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500..800&family=Jost:wght@300..700&family=Baskervville:ital,wght@0,400..700;1,400..700&display=swap">
-<link rel="stylesheet" href="atelier.css?v=7">
+<link rel="stylesheet" href="atelier.css?v=8">
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
@@ -90,6 +90,11 @@
   <!-- Réglages -->
   <section class="panel" id="panel-reglages" role="tabpanel" aria-labelledby="tab-reglages" hidden>
     <div class="card">
+      <h2>Ce téléphone</h2>
+      <label class="self-row"><input type="checkbox" id="sans-compte"> <span>Ne pas compter mes parties dans les statistiques</span></label>
+      <p class="note" id="sans-compte-note">Vaut pour le jeu ouvert dans ce même navigateur (sur Android, l’appli installée aussi). Ouvrir <code>kiff-kiff.fr/?compte=non</code> fait pareil, <code>?compte=oui</code> annule. Sur iPhone, l’appli installée sur l’écran d’accueil garde ses propres réglages.</p>
+    </div>
+    <div class="card">
       <h2>Connexion</h2>
       <label for="api">Adresse de l’application Web Google</label>
       <input id="api" type="url" placeholder="https://script.google.com/macros/s/…/exec" autocomplete="off" spellcheck="false">
@@ -130,6 +135,6 @@
 <script src="suggestions.js?v=3"></script>
 <script src="corrections.js?v=1"></script>
 <script src="ecrans.js?v=2"></script>
-<script src="atelier.js?v=16"></script>
+<script src="atelier.js?v=17"></script>
 </body>
 </html>

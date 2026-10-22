@@ -3310,6 +3310,11 @@
   const isBot = (() => {
     try {
       const ua = navigator.userAgent || '';
+      // Le téléphone de Marc (réglé dans l’atelier, ou ?compte=non) ne compte pas
+      const q = new URLSearchParams(location.search).get('compte');
+      if (q === 'non') localStorage.setItem('roue:sanscompte', '1');
+      if (q === 'oui') localStorage.removeItem('roue:sanscompte');
+      if (localStorage.getItem('roue:sanscompte') === '1') return true;
       return !ua || BOT_UA.test(ua) || navigator.webdriver === true || (navigator.languages && navigator.languages.length === 0) || document.visibilityState === 'prerender';
     } catch (e) { return false; }
   })();

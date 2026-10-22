@@ -764,4 +764,16 @@
   const first = location.hash.slice(1) || store.get('tab', 'stats');
   showTab(['stats', 'mots', 'textes', 'reglages'].includes(first) ? first : 'stats');
   loadWords();
+  // Ce téléphone ne compte pas : le jeu (même adresse) lit roue:sanscompte avant d’envoyer ses comptes
+  (function () {
+    const box = document.getElementById('sans-compte');
+    if (!box) return;
+    try { box.checked = localStorage.getItem('roue:sanscompte') === '1'; } catch (e) { /* rien */ }
+    box.addEventListener('change', () => {
+      try {
+        if (box.checked) localStorage.setItem('roue:sanscompte', '1'); else localStorage.removeItem('roue:sanscompte');
+        banner(box.checked ? 'Ce téléphone ne compte plus.' : 'Ce téléphone compte à nouveau.');
+      } catch (e) { banner('Ce navigateur refuse de garder le réglage.', true); }
+    });
+  })();
 })();
