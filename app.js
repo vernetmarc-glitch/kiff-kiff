@@ -3303,9 +3303,30 @@
   // detail : une variante courte (« un », « deux », « 123 »…), jamais une donnée de personne
   // Les comptes partent groupés : une seule requête par moment de jeu (moins d’appels au script)
   let queue = [], queueT = 0;
+  /* Les robots (moteurs de recherche, aperçus de liens, tests automatiques) ne comptent pas.
+     On les reconnaît à leur nom, aux marques des navigateurs pilotés par programme ;
+     et rien ne part avant un signe de vie humain (un toucher, une touche, un défilement) ou 8 secondes à l’écran. */
+  const BOT_UA = /[a-z]bot\/|\bbot\b|\+https?:\/\/|crawl|spider|slurp|headless|lighthouse|pagespeed|gtmetrix|pingdom|uptime|monitor|facebookexternalhit|embedly|preview|yandex|baidu|semrush|ahrefs|python|curl|wget|httpclient|axios|node-fetch|go-http|java\/|phantomjs|selenium|puppeteer|playwright/i;
+  const isBot = (() => {
+    try {
+      const ua = navigator.userAgent || '';
+      return !ua || BOT_UA.test(ua) || navigator.webdriver === true || (navigator.languages && navigator.languages.length === 0) || document.visibilityState === 'prerender';
+    } catch (e) { return false; }
+  })();
+  let human = false, humanT = 0;
+  const isHuman = () => {
+    if (human) return;
+    human = true; clearTimeout(humanT);
+    ['pointerdown', 'keydown', 'touchstart', 'wheel', 'scroll'].forEach((ev) => window.removeEventListener(ev, isHuman, true));
+    if (queue.length && !queueT) queueT = setTimeout(flushReports, 600);
+  };
+  ['pointerdown', 'keydown', 'touchstart', 'wheel', 'scroll'].forEach((ev) => window.addEventListener(ev, isHuman, { capture: true, passive: true }));
+  const humanTimer = () => { if (!human && document.visibilityState === 'visible') humanT = setTimeout(isHuman, 8000); };
+  humanTimer();
+  document.addEventListener('visibilitychange', () => { clearTimeout(humanT); humanTimer(); });
   function flushReports() {
     clearTimeout(queueT); queueT = 0;
-    if (!API || !queue.length) return;
+    if (!API || !queue.length || isBot || !human) return;
     const liste = queue.splice(0, 30);
     try {
       fetch(API, { method: 'POST', mode: 'no-cors', keepalive: true, body: JSON.stringify({ action: 'events', liste }) }).catch(() => {});
@@ -3313,7 +3334,7 @@
     if (queue.length) flushReports();
   }
   function report(type, choix, detail) {
-    if (!API) return;
+    if (!API || isBot) return;
     queue.push({ type, choix: choix || null, detail: detail || null });
     if (!queueT) queueT = setTimeout(flushReports, 2500);
   }
