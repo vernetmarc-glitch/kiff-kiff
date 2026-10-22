@@ -208,6 +208,7 @@ window.KIFF_TEXTES = [
     ["tukiffes.message", "Tiens, je crois que ça te fera pas de mal : Kiff Kiff, un petit jeu à deux pour pimenter un peu les choses.", "Le message envoyé avec le lien du jeu"],
     ["tukiffes.envoye", "Kiff dealé. Merci pour elle, ou pour lui.", "Sous le bouton, après l’envoi"],
     ["tukiffes.copie", "Message copié : colle-le à qui tu veux.", "Sous le bouton, quand le téléphone copie au lieu d’envoyer"],
+    ["tukiffes.note", "Kiff Kiff est un peu trop chaud pour être accepté sur les stores, le site ne ressort pas sur Google, alors allons-y gaiement niveau bouche à oreille.", "Petite note sous « Envoyer le lien »"],
     ["tukiffes.cafe-titre", "Un petit caf’ ?", "Titre de la deuxième carte"],
     ["tukiffes.cafe-texte", "Hello les loupiots, c’est Marc ici 💃 Ça vous a plu, Kiff Kiff, et vous voulez m’envoyer un peu de kiff en retour ? C’est welcome 🥰 Ça sera l’occasion de me faire un retour sur le jeu, ou d’ajouter vos formules truculentes. Bécots 💋", "Le mot de Marc"],
     ["tukiffes.cafe-bouton", "Payez-moi un café", "Bouton de la deuxième carte"],
