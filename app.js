@@ -1225,10 +1225,15 @@
       seen.add(x); pool.push(x);
     });
     const exact = [], near = [];
+    // Un verbe tapé à l’infinitif ou conjugué trouve ses autres formes : « sucer » donne « suces » et « suçotes », pas « suçon »
+    const vm = /^([a-z]{3,}?)(?:er|ir|re|ee|ees|es|ez|ent|e)$/.exec(q.length >= 4 && !/[\s']/.test(q) ? q : '');
+    const verb = vm && vm[1].length >= 3 ? new RegExp('(^|[\\s\'(\\-«])(' + vm[1] + '(?:ot|ouill)?(?:e|es|er|ent|ez|ons|ee|ees|ant)?)(?![a-z0-9])') : null;
     pool.forEach((x) => {
       const t = itemLabel(r, x); if (!t) return;
       const fm = folded(t), i = fm.f.indexOf(q);
-      if (i >= 0) exact.push({ x, t, lvl: x.lvl || 1, html: markAt(t, fm, i, i + q.length), w: wordStart(fm.f, i) ? 0 : 1 });
+      if (i >= 0) { exact.push({ x, t, lvl: x.lvl || 1, html: markAt(t, fm, i, i + q.length), w: wordStart(fm.f, i) ? 0 : 1 }); return; }
+      const m = verb && verb.exec(fm.f);
+      if (m) { const a = m.index + m[1].length; exact.push({ x, t, lvl: x.lvl || 1, html: markAt(t, fm, a, a + m[2].length), w: 0 }); }
     });
     exact.sort((a, b) => a.w - b.w || a.lvl - b.lvl || a.t.localeCompare(b.t, 'fr'));
     // Les familles touchées par ce qu’on tape (un mot de 3 lettres ou plus, ou une expression)
