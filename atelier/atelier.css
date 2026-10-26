@@ -274,6 +274,8 @@ main { max-width: 980px; margin: 0 auto; padding: 18px 16px 120px; }
 .gratuit-n { margin: 8px 0 0; font-size: 14px; }
 .gratuit-n.is-ok b { color: #2E7D32; }
 .opts label.gr { font-weight: 600; }
+.counts table.gratuit-t { margin-top: 10px; }
+.gratuit-t tr.is-here th { color: var(--ink, inherit); font-weight: 700; }
 /* Journal : les derniers comptes */
 .journal { list-style: none; margin: 0; padding: 0; font-size: 14px; max-height: 420px; overflow-y: auto; border-radius: 12px; box-shadow: inset 0 0 0 1px var(--line, #ddd); }
 .journal li { display: grid; grid-template-columns: 9.5em 1fr auto; gap: 10px; padding: 7px 12px; border-top: 1px solid var(--line, #eee); }

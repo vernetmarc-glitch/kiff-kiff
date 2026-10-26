@@ -296,12 +296,36 @@
       NIV.map((n) => '<tr><th scope="row">' + esc(n.nom) + '</th>' + cell(n.n, false) + cell(n.n, true) + '</tr>').join('') + '</tbody></table>' +
       gratuitHtml();
   }
-  // La version gratuite : 20 mots par roue, Tendre et Pimenté, cochés « gratuit » (sinon le jeu complète dans l’ordre de la liste)
+  // La version gratuite : 20 mots par roue, Tendre et Pimenté. Le jeu prend d’abord les mots cochés « gratuit »
+  // (les 20 premiers), puis complète dans l’ordre de la liste, un tendre, un pimenté… (comme freePick dans app.js)
+  const GRATUIT_N = 20;
+  function gratuitServi(r) {
+    const pool = words[r].filter((x) => x.s.trim() && x.lvl < 3);
+    const coches = pool.filter((x) => x.g);
+    const pick = coches.slice(0, GRATUIT_N);
+    if (pick.length < GRATUIT_N) {
+      const rest = [1, 2].map((n) => pool.filter((x) => x.lvl === n && !x.g));
+      for (let i = 0; pick.length < GRATUIT_N && rest.some((l) => i < l.length); i++) rest.forEach((l) => { if (l[i] && pick.length < GRATUIT_N) pick.push(l[i]); });
+    }
+    return { pick, coches };
+  }
   function gratuitHtml() {
-    const g = words[roue].filter((x) => x.s.trim() && x.g && x.lvl < 3);
-    const t = g.filter((x) => x.lvl === 1).length, p = g.length - t;
-    return '<p class="gratuit-n' + (g.length === 20 ? ' is-ok' : '') + '">Version gratuite : <b>' + g.length + ' / 20</b> mots cochés « gratuit » (' + t + ' tendres, ' + p + ' pimentés)' +
-      (g.length < 20 ? '. Le jeu complète avec les premiers de la liste.' : g.length > 20 ? '. Seuls les 20 premiers servent.' : '.') + '</p>';
+    const NOMS = { action: 'Action', endroit: 'Endroit', maniere: 'Manière' };
+    const cell = (list, coches, n, cls) => {
+      const c = list.filter((x) => n === 0 || x.lvl === n).length;
+      const k = list.filter((x) => (n === 0 || x.lvl === n) && x.g).length;
+      return '<td' + (cls ? ' class="' + cls + '"' : '') + '><b>' + c + '</b><span>' + (k === c ? (c ? 'tous cochés' : '') : k + (k > 1 ? ' cochés' : ' coché')) + '</span></td>';
+    };
+    const rows = ROUES.map((r) => {
+      const { pick, coches } = gratuitServi(r);
+      const tot = pick.length;
+      return '<tr' + (r === roue ? ' class="is-here"' : '') + '><th scope="row">' + NOMS[r] + '</th>' + cell(pick, coches, 1) + cell(pick, coches, 2) +
+        cell(pick, coches, 0, tot === GRATUIT_N ? 'is-ok' : 'is-low') + '</tr>';
+    }).join('');
+    const trop = ROUES.filter((r) => gratuitServi(r).coches.length > GRATUIT_N).map((r) => NOMS[r].toLowerCase());
+    return '<table class="gratuit-t"><caption>Version gratuite : les ' + GRATUIT_N + ' mots de chaque roue (d’abord les cochés « gratuit », puis les premiers de la liste)</caption>' +
+      '<thead><tr><th></th><th scope="col">Tendres</th><th scope="col">Pimentés</th><th scope="col">Total</th></tr></thead><tbody>' + rows + '</tbody></table>' +
+      (trop.length ? '<p class="gratuit-n">Plus de ' + GRATUIT_N + ' mots cochés (' + trop.join(', ') + ') : seuls les ' + GRATUIT_N + ' premiers servent.</p>' : '');
   }
   const renderGratuit = () => renderCounts();
 
