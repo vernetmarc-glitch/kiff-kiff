@@ -320,9 +320,11 @@ window.KIFF_TEXTES = [
     ["attente.la", "{prénom} est là.", "Ligne de présence, quand l’autre a l’appli ouverte"],
     ["attente.absent", "{prénom} n’est pas là : la partie l’attendra.", "Ligne de présence, quand l’autre n’a pas l’appli ouverte"],
     ["attente.absent-averti", "{prénom} n’est pas là. Ton téléphone t’avertira.", "Même chose, avertissements activés"],
-    ["attente.passe", "On passe", "Bouton sous l’envie"],
+    ["attente.attendre", "J’attends sa réponse", "Bouton principal de l’attente après une envie envoyée : revient à l’accueil"],
+    ["attente.attendre-envie", "J’attends son envie", "Bouton principal quand l’autre compose : revient à l’accueil"],
+    ["attente.installer", "Installer pour être averti·e", "Bouton principal de l’attente tant que l’appli n’est pas installée (une fois touché, il laisse la place à « J’attends sa réponse »)"],
+    ["attente.passe", "On passe", "Petit lien sous les boutons : on retire l’envie"],
     ["attente.prevenir", "Prévenir", "Icône : envoyer un message à l’autre (quand il ou elle n’est pas là)"],
-    ["attente.accueil", "Accueil", "Icône : revenir à l’accueil"],
     ["attente.message", "À toi de jouer sur Kiff Kiff !", "Le message envoyé par « Prévenir »"],
     ["attente.copie", "Message copié : colle-le-lui.", "Ligne de présence, après « Prévenir » quand le téléphone copie"],
     ["attente.copie-impossible", "Copie impossible.", "Ligne de présence, quand la copie échoue"]
@@ -389,12 +391,26 @@ window.KIFF_TEXTES = [
     ["notifs.reponse", "Du nouveau : c’est à toi de répondre.", "Notification, quand l’autre a ajusté ton envie"],
     ["notifs.kiff", "Un kiff kiff vous attend !", "Notification, quand un kiff kiff a été trouvé"],
     ["notifs.arrivee", "Ton invitation est acceptée : la partie commence.", "Notification, quand l’autre rejoint la partie"],
-    ["notifs.rappel-tour", "C’est toujours à toi de jouer.", "Le rappel, deux jours après, quand c’est ton tour"],
-    ["notifs.rappel-proposition", "Une proposition t’attend toujours.", "Le rappel, deux jours après, quand une proposition attend"]
+    ["notifs.rappel-tour", "Les roues t’attendent : à toi de jouer.", "Le rappel, deux jours après, quand c’est ton tour"],
+    ["notifs.rappel-proposition", "Une envie t’attend encore, toute chaude.", "Le rappel, deux jours après, quand une proposition attend"],
+    ["notifs.tour-nom", "À toi de jouer avec {prénom}.", "Sur iPhone (le prénom ne s’y voit qu’écran déverrouillé) : quand c’est ton tour de proposer"],
+    ["notifs.proposition-nom", "{prénom} t’a proposé une envie.", "Sur iPhone : quand l’autre t’a proposé une envie"],
+    ["notifs.reponse-nom", "{prénom} a ajusté ton envie : à toi de répondre.", "Sur iPhone : quand l’autre a ajusté ton envie"],
+    ["notifs.kiff-nom", "Kiff kiff avec {prénom} !", "Sur iPhone : quand un kiff kiff a été trouvé"],
+    ["notifs.arrivee-nom", "{prénom} a rejoint la partie : elle commence.", "Sur iPhone : quand l’autre rejoint la partie"],
+    ["notifs.rappel-tour-nom", "{prénom} attend ton envie… à toi de jouer.", "Sur iPhone : le rappel, deux jours après, quand c’est ton tour"],
+    ["notifs.rappel-proposition-nom", "L’envie de {prénom} t’attend encore, toute chaude.", "Sur iPhone : le rappel, deux jours après, quand une proposition attend"],
+    ["notifs.rappel-kiff", "Votre kiff kiff n’attend plus que vous.", "Le rappel, deux jours après, quand un kiff kiff attend"],
+    ["notifs.rappel-kiff-nom", "Votre kiff kiff avec {prénom} n’attend plus que vous.", "Sur iPhone : le rappel, deux jours après, quand un kiff kiff attend"]
   ] },
   { id: "installer", nom: "Installer l’appli", textes: [
     ["installer.titre", "Installer Kiff Kiff", "Titre, en touchant « Installer » sur un iPhone"],
-    ["installer.iphone", "Dans Safari, touche le bouton Partager (le carré avec une flèche), puis « Sur l’écran d’accueil ».", "Texte"]
+    ["installer.iphone", "Dans Safari, touche le bouton Partager (le carré avec une flèche), puis « Sur l’écran d’accueil ».", "Texte"],
+    ["installer.invite-titre", "Kiff Kiff sous la main", "Petite fenêtre qui invite à installer : la deuxième fois à l’accueil après une première envie, ou après le premier kiff kiff sur un téléphone"],
+    ["installer.invite", "Installe l’appli sur ton écran d’accueil : tu auras toujours de quoi partager tes envies avec celles et ceux que tu aimes chauffer.", "Texte"],
+    ["installer.invite-envie", "Installe l’appli : ton téléphone t’avertira dès que l’autre rejoint la partie, accepte ton envie ou propose la sienne.", "Même fenêtre, après l’envoi d’une invitation avec une envie"],
+    ["installer.oui", "Installer l’appli", "Bouton principal"],
+    ["installer.non", "Plus tard", "Lien"]
   ] }
 ];
 window.KIFF_TX = {};

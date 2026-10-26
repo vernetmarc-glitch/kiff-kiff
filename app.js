@@ -1033,6 +1033,7 @@
     markSeen();
     savePair();
     report('envie', choiceLabels());
+    if (!load('envieFaite', false)) { save('envieFaite', true); save('accueilApres', 0); }
     S.original = { idx: S.idx.slice(), custom: S.custom.slice(), dir: S.dir };
     S.phase = 'review';
     sSwitchOn(); haptic(15);
@@ -1615,7 +1616,7 @@
   // Le pied de la célébration : une seule demande à la fois
   function partyFoot() {
     const n = kiffCount();
-    const askInstall = n <= 1 && installer.can() && !load('installAsked', false);
+    const askInstall = false; // l’installation se propose après la célébration, dans sa petite fenêtre
     $('#party-install').hidden = !askInstall;
     $('#party-deal').hidden = askInstall || n < 2;
     document.querySelector('#ov-party .party-foot').hidden = $('#party-install').hidden && $('#party-deal').hidden;
@@ -1865,6 +1866,7 @@
     stopConfetti();
     startComposition(other(S.proposer));
     if (duo) { sync(); renderWait(); }
+    if (!duo && kiffCount() === 1) setTimeout(() => inviteInstall('kiff'), 900);
     if (!duo || myTurn()) setTimeout(() => { if (S.phase === 'compose' && myTurn()) shuffle(false, false, true); }, 500);
   }
   const lastKiff = () => (S.kiffs || [])[(S.kiffs || []).length - 1];
@@ -2423,10 +2425,12 @@
     if (!kind) return;
     const k2 = Array.isArray(st.kiffs) ? st.kiffs : [];
     const up = kind === 'kiff' && st.prog && unlockedIn(k2) > unlockedIn(k2.slice(0, -1)) ? 1 : 0;
-    // Pas de prénom dans l’avertissement : l’écran verrouillé ne dit jamais avec qui l’on joue
-    KP.send(sub, { k: kind, r: duo.info.room, ph: st.phase, u: up });
-    // Si le tour attend encore dans deux jours, un seul rappel (il remplace l’avertissement de la partie)
-    if (kind === 'tour' && KP.remind && st.seq) KP.remind(sub, { k: 'rappel', r: duo.info.room, ph: st.phase }, duo.info.room, st.seq);
+    // Mon prénom voyage chiffré pour le téléphone de l’autre seul : le serveur ne le lit pas.
+    // Son téléphone ne l’affiche que là où l’écran verrouillé cache le contenu des avertissements (iPhone)
+    const n = String(nameOf(duo.seat) || '').trim().slice(0, 30);
+    KP.send(sub, { k: kind, r: duo.info.room, ph: st.phase, u: up, n });
+    // Si le tour ou le kiff kiff attend encore dans deux jours, un seul rappel (il remplace l’avertissement de la partie)
+    if ((kind === 'tour' || kind === 'kiff') && KP.remind && st.seq) KP.remind(sub, { k: 'rappel', r: duo.info.room, ph: st.phase, n }, duo.info.room, st.seq);
   }
 
   /* Mes parties à deux : chaque téléphone se souvient des siennes, pour jouer chacun·e à son rythme.
@@ -2690,6 +2694,12 @@
     ws.hidden = !sent;
     ws.textContent = sent;
     $('#wait-emblem').style.display = sent ? 'none' : '';
+    // Après une envie envoyée, tant que l’appli n’est pas installée : l’installer d’abord, pour être averti·e de la réponse
+    const inst = S.phase !== 'compose' && installer.can() && !load('installAsked', false);
+    $('#wait-install').hidden = !inst;
+    const go = $('#wait-go');
+    go.textContent = T(S.phase === 'compose' ? 'attente.attendre-envie' : 'attente.attendre');
+    go.classList.toggle('btn--line', inst);
     show(ov);
     renderDuoStatus();
   }
@@ -3172,15 +3182,17 @@
     const url = duo && duo.info ? window.KiffDuo.link(duo.info) : '';
     let ok = false;
     try { await navigator.clipboard.writeText(inviteText() + ' ' + url); ok = true; } catch (e) { ok = false; }
-    if (ok) report('partage', null, 'invitation-copie');
+    if (ok) { report('partage', null, 'invitation-copie'); afterInvite(); }
     $('#duo-copy').textContent = ok ? T('duo.copiee') : T('duo.copie-impossible');
     setTimeout(() => { $('#duo-copy').textContent = T('duo.copier'); }, 1800);
   });
   $('#duo-send').addEventListener('click', () => {
     if (!duo || !duo.info) return;
     navigator.share({ title: 'Kiff Kiff', text: inviteText(), url: window.KiffDuo.link(duo.info) })
-      .then(() => report('partage', null, 'invitation')).catch(() => {});
+      .then(() => { report('partage', null, 'invitation'); afterInvite(); }).catch(() => {});
   });
+  // Une envie glissée dans l’invitation vient de partir : l’appli installée avertira de la suite
+  const afterInvite = () => { if (S.gift) setTimeout(() => inviteInstall('invitation'), 2000); };
   $('#wait-pass').addEventListener('click', () => el.pass.click());
   // Prévenir l’autre que c’est son tour : par le partage du téléphone (WhatsApp, SMS…)
   $('#wait-nudge').addEventListener('click', async () => {
@@ -3197,7 +3209,9 @@
     try { await navigator.clipboard.writeText(text + ' ' + url); ok = true; } catch (e) { ok = false; }
     flashPresence(ok ? T('attente.copie') : T('attente.copie-impossible'));
   });
-  $('#wait-home').addEventListener('click', () => el.home.click());
+  // L’attente : revenir à l’accueil en attendant, ou d’abord installer l’appli pour être averti·e
+  $('#wait-go').addEventListener('click', () => { audio(); sClick(); haptic(8); el.home.click(); });
+  $('#wait-install').addEventListener('click', () => { audio(); sClick(); haptic(8); save('installAsked', true); installer.run(); renderWait(); });
   // Un mot bref à la place de la ligne de présence (copie, avertissements), puis elle revient
   function flashPresence(t) {
     presenceFlash = t;
@@ -3914,6 +3928,7 @@
     refreshGames();
     renderWait();
     renderDuoStatus();
+    homeShown();
   }
 
   /* ---------- Accueil : la phrase sous le titre, toujours là (elle se change dans l’Atelier ; vide, elle disparaît) ---------- */
@@ -3924,6 +3939,30 @@
 
   /* ---------- Appli sur l’écran d’accueil ---------- */
   const installer = { can: () => false, run: () => {} };
+  // L’invitation à installer : une fois, au bon moment (la 2ᵉ fois à l’accueil après une première envie,
+  // ou après le premier kiff kiff sur un téléphone)
+  const ovInstall = $('#ov-install');
+  function inviteInstall(why) {
+    const seen = load('installInvites', {}) || {};
+    if (!installer.can() || load('installAsked', false) || seen[why]) return false;
+    if (!ovInstall.hidden || !$('#ov-brulant').hidden) return false;
+    seen[why] = 1; save('installInvites', seen);
+    $('#install-text').textContent = T(why === 'invitation' ? 'installer.invite-envie' : 'installer.invite');
+    show(ovInstall);
+    $('#install-yes').focus({ preventScroll: true });
+    return true;
+  }
+  function homeShown() {
+    if (!load('envieFaite', false)) return;
+    const n = (load('accueilApres', 0) || 0) + 1;
+    save('accueilApres', n);
+    // L’installation se propose quelques instants après : le temps que le navigateur dise si c’est possible
+    if (n >= 2) setTimeout(() => { if (!el.ovStart.hidden && ($('#steps').dataset.step || '0') === '0') inviteInstall('accueil'); }, 1500);
+  }
+  $('#install-yes').addEventListener('click', () => { audio(); sClick(); haptic(8); save('installAsked', true); hide(ovInstall); installer.run(); });
+  $('#install-no').addEventListener('click', () => { audio(); hide(ovInstall); });
+  ovInstall.addEventListener('click', (e) => { if (e.target === ovInstall) hide(ovInstall); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !ovInstall.hidden) hide(ovInstall); });
   function setupInstall() {
     if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
       navigator.serviceWorker.register('sw.js').catch(() => {});
@@ -3961,4 +4000,5 @@
   init();
   setupInstall();
   renderIntro();
+  if (!el.ovStart.hidden && !location.hash) homeShown();
 })();

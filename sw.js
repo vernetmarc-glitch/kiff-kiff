@@ -44,21 +44,28 @@ self.addEventListener('fetch', (e) => {
 });
 
 /* Avertissements (« À toi de jouer »), même l’appli fermée.
- * Le message arrive chiffré pour ce téléphone seul ; il ne contient jamais l’envie elle-même,
- * ni le prénom de l’autre : seulement le genre de nouvelle et la partie. */
+ * Le message arrive chiffré pour ce téléphone seul ; il ne contient jamais l’envie elle-même.
+ * Il porte le prénom de l’autre (chiffré, le serveur ne le lit pas) : comme les applis de rencontre,
+ * on l’affiche seulement sur iPhone, qui cache le contenu des avertissements tant que l’écran est verrouillé.
+ * Ailleurs, l’avertissement reste discret : du nouveau, jamais qui ni quoi. */
 const PARTIE = /^[a-z2-9]{12}$/;
-// Discret, comme une appli de rencontre : on dit qu’il y a du nouveau, jamais qui ni quoi
 async function textes() {
   try { const r = await (await caches.open(TEXTES)).match('./textes-notifs.json'); return r ? await r.json() : {}; } catch (err) { return {}; }
 }
-function avis(m, t) {
+function avis(m, t, nom) {
   const x = (k, d) => (t && typeof t[k] === 'string' && t[k].trim() ? t[k] : d);
-  if (m.k === 'rappel') return m.ph === 'review' ? x('notifs.rappel-proposition', 'Une proposition t’attend toujours.') : x('notifs.rappel-tour', 'C’est toujours à toi de jouer.');
-  if (m.k === 'kiff') return x('notifs.kiff', 'Un kiff kiff vous attend !');
-  if (m.k === 'arrivee') return x('notifs.arrivee', 'Ton invitation est acceptée : la partie commence.');
-  if (m.ph === 'review') return x('notifs.proposition', 'Une proposition t’attend.');
-  if (m.ph === 'reconfirm') return x('notifs.reponse', 'Du nouveau : c’est à toi de répondre.');
-  return x('notifs.tour', 'C’est à toi de jouer.');
+  // Avec le prénom : la version « -nom » du texte, {prénom} remplacé
+  const y = (k, d, kn, dn) => (nom ? x(kn, dn).split('{prénom}').join(nom) : x(k, d));
+  if (m.k === 'rappel') {
+    if (m.ph === 'review') return y('notifs.rappel-proposition', 'Une envie t’attend encore, toute chaude.', 'notifs.rappel-proposition-nom', 'L’envie de {prénom} t’attend encore, toute chaude.');
+    if (m.ph === 'celebrate') return y('notifs.rappel-kiff', 'Votre kiff kiff n’attend plus que vous.', 'notifs.rappel-kiff-nom', 'Votre kiff kiff avec {prénom} n’attend plus que vous.');
+    return y('notifs.rappel-tour', 'Les roues t’attendent : à toi de jouer.', 'notifs.rappel-tour-nom', '{prénom} attend ton envie… à toi de jouer.');
+  }
+  if (m.k === 'kiff') return y('notifs.kiff', 'Un kiff kiff vous attend !', 'notifs.kiff-nom', 'Kiff kiff avec {prénom} !');
+  if (m.k === 'arrivee') return y('notifs.arrivee', 'Ton invitation est acceptée : la partie commence.', 'notifs.arrivee-nom', '{prénom} a rejoint la partie : elle commence.');
+  if (m.ph === 'review') return y('notifs.proposition', 'Une proposition t’attend.', 'notifs.proposition-nom', '{prénom} t’a proposé une envie.');
+  if (m.ph === 'reconfirm') return y('notifs.reponse', 'Du nouveau : c’est à toi de répondre.', 'notifs.reponse-nom', '{prénom} a ajusté ton envie : à toi de répondre.');
+  return y('notifs.tour', 'C’est à toi de jouer.', 'notifs.tour-nom', 'À toi de jouer avec {prénom}.');
 }
 self.addEventListener('push', (e) => {
   let m = {};
@@ -69,8 +76,9 @@ self.addEventListener('push', (e) => {
     const ios = /iphone|ipad|ipod/i.test(self.navigator.userAgent);
     const wins = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
     if (!ios && wins.some((c) => c.visibilityState === 'visible' && c.focused)) return;
+    const nom = ios && typeof m.n === 'string' ? m.n.replace(/[\u0000-\u001f<>]/g, '').trim().slice(0, 30) : '';
     return self.registration.showNotification('Kiff Kiff', {
-    body: avis(m, await textes()),
+    body: avis(m, await textes(), nom),
     icon: 'icons/icon-192.png',
     badge: 'icons/badge-96.png',
     tag: 'kk-' + (room || 'partie'),

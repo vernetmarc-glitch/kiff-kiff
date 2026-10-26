@@ -191,7 +191,7 @@ async def main():
         await snap(B, 'attente', 'Pendant que l’autre joue', ['attente', 'avertir'], 600)
         await A.click('#act-main'); await B.wait_for_timeout(1500)
         await snap(A, 'attente-envoyee', 'Envie envoyée', ['attente'], 300)
-        await A.click('#wait-home'); await snap(A, 'accueil-distance', 'L’accueil, partie à distance', ['accueil', 'parties'], 900)
+        await A.click('#wait-go'); await snap(A, 'accueil-distance', 'L’accueil, partie à distance', ['accueil', 'parties'], 900)
         if await A.is_visible('#games-open'):
             await A.click('#games-open'); await snap(A, 'parties', 'Parties à distance', ['parties'], 700)
         await b.close()

@@ -30,7 +30,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,62..125,100..900;1,62..125,100..900&family=Bagel+Fat+One&family=Abril+Fatface&family=Merriweather:ital,opsz,wght@0,18..144,400..900;1,18..144,400..900&family=Baskervville:ital,wght@0,400..700;1,400..700&family=Jost:wght@300..700&family=Great+Vibes&family=Cinzel:wght@400..900&family=Syne:wght@600..800&family=Manrope:wght@400..800&family=Anton&family=Courier+Prime:wght@400;700&display=swap">
-<link rel="stylesheet" href="base.css?v=89">
+<link rel="stylesheet" href="base.css?v=90">
 <link rel="stylesheet" href="skins/arty.css?v=64" data-skin-sheet="arty">
 <link rel="stylesheet" href="skins/pomme.css?v=64" data-skin-sheet="pomme">
 <link rel="stylesheet" href="skins/redcorner.css?v=61" data-skin-sheet="redcorner">
@@ -399,12 +399,15 @@
     <svg class="emblem emblem--wait" id="wait-emblem" viewBox="0 0 168 124" aria-hidden="true"><use href="#emblem"/></svg>
     <p class="party-sentence wait-sentence" id="wait-sentence" hidden></p>
     <p class="wait-presence" id="wait-presence" role="status"><span class="presence-dot" aria-hidden="true"></span><span id="wait-presence-text"></span></p>
-    <button class="btn btn--line wait-pass" id="wait-pass" type="button" data-t="attente.passe">On passe</button>
+    <div class="stack wait-actions">
+      <button class="btn" id="wait-install" type="button" hidden><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-installer"/></svg><span data-t="attente.installer">Installer pour être averti·e</span></button>
+      <button class="btn" id="wait-go" type="button"></button>
+      <button class="link-btn wait-pass" id="wait-pass" type="button" data-t="attente.passe">On passe</button>
+    </div>
     <nav class="wait-icons" aria-label="Pendant l’attente">
       <button class="icon-btn" id="wait-nudge" type="button" hidden><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-partager"/></svg><span class="icon-label" id="wait-nudge-label" data-t="attente.prevenir">Prévenir</span></button>
       <button class="icon-btn" id="wait-notif" type="button" aria-pressed="false" hidden><svg class="ic ic--on" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-avertir"/></svg><svg class="ic ic--off" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-avertir-non"/></svg><span class="icon-label"><span class="notif-word" data-t="attente.avertir">M’avertir</span><span class="sr-only">&nbsp;: <span id="wait-notif-state">désactivé</span></span></span></button>
       <button class="icon-btn" id="wait-kiffs" type="button" hidden><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-kiffs"/></svg><span class="icon-label" id="wait-kiffs-label"></span></button>
-      <button class="icon-btn" id="wait-home" type="button"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-accueil"/></svg><span class="icon-label" data-t="attente.accueil">Accueil</span></button>
     </nav>
   </div>
 </div>
@@ -617,7 +620,7 @@
 </div>
 <!-- Brûlant sur un téléphone : on s’assure que les deux sont d’accord -->
 <div class="overlay overlay--edit overlay--skins" id="ov-brulant" hidden role="dialog" aria-modal="true" aria-labelledby="brulant-title">
-  <div class="sheet sheet--edit sheet--skins sheet--brulant">
+  <div class="sheet sheet--edit sheet--skins sheet--choice">
     <h2 class="edit-label" id="brulant-title" data-t="brulant.titre">Brûlant&nbsp;?</h2>
     <p class="duo-text" data-t="brulant.texte">Les propositions peuvent être bien bien cochonnes…</p>
     <div class="stack">
@@ -626,13 +629,24 @@
     </div>
   </div>
 </div>
+<!-- Installer l’appli : une invitation, au bon moment -->
+<div class="overlay overlay--edit overlay--skins" id="ov-install" hidden role="dialog" aria-modal="true" aria-labelledby="install-title">
+  <div class="sheet sheet--edit sheet--skins sheet--choice">
+    <h2 class="edit-label" id="install-title" data-t="installer.invite-titre">Kiff Kiff sous la main</h2>
+    <p class="duo-text" id="install-text" data-t="installer.invite">Installe l’appli sur ton écran d’accueil&nbsp;: tu auras toujours de quoi partager tes envies avec celles et ceux que tu aimes chauffer.</p>
+    <div class="stack">
+      <button class="btn" id="install-yes" type="button"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-installer"/></svg><span data-t="installer.oui">Installer l’appli</span></button>
+      <button class="link-btn" id="install-no" type="button" data-t="installer.non">Plus tard</button>
+    </div>
+  </div>
+</div>
 <!--/APP-->
 <script src="data.js?v=64"></script>
-<script src="textes.js?v=6"></script>
+<script src="textes.js?v=8"></script>
 <script src="semantique.js?v=1"></script>
 <script src="config.js?v=62"></script>
 <script src="duo.js?v=62"></script>
 <script src="push.js?v=65"></script>
-<script src="app.js?v=106"></script>
+<script src="app.js?v=108"></script>
 </body>
 </html>

@@ -856,7 +856,9 @@ body:has(#ov-deal:not([hidden])) .deco-candles { display: none; }
 .presence-dot { display: inline-block; vertical-align: 1px; margin-right: 8px; width: 9px; height: 9px; border-radius: 50%; background: currentColor; animation: presence 2s ease-in-out infinite; }
 .wait-presence.is-off .presence-dot { background: none; box-shadow: inset 0 0 0 1.5px currentColor; animation: none; opacity: .8; }
 @keyframes presence { 0%, 100% { opacity: 1; } 50% { opacity: .35; } }
-.wait-pass { align-self: center; min-width: 180px; }
+.wait-actions { align-self: stretch; margin-top: 4px; }
+.wait-actions .btn { width: 100%; white-space: normal; line-height: 1.2; }
+.wait-pass { align-self: center; }
 .wait-icons { align-self: stretch; display: flex; flex-wrap: wrap; justify-content: center; gap: 10px 12px; margin-top: 6px; }
 #wait-notif .ic--off { display: block; }
 #wait-notif .ic--on { display: none; }
@@ -958,8 +960,9 @@ body:has(#ov-deal:not([hidden])) .deco-candles { display: none; }
 .loupe-sub { margin: 12px 4px 4px; font-size: 14px; font-weight: 700; opacity: .8; }
 .loupe-none { margin: 16px 4px; font-size: 16px; opacity: .85; }
 /* Brûlant sur un téléphone : petite fenêtre, une phrase et deux choix */
-.sheet--brulant .stack { align-self: stretch; }
-.sheet--brulant .stack .btn { width: 100%; white-space: normal; line-height: 1.2; padding-left: 14px; padding-right: 14px; }
+.sheet--choice .stack { align-self: stretch; }
+.sheet--choice .stack .btn { width: 100%; white-space: normal; line-height: 1.2; padding-left: 14px; padding-right: 14px; }
+.sheet--choice .stack .btn .ic, .wait-actions .btn .ic { width: 20px; height: 20px; flex: none; }
 /* La petite note sous « Envoyer le lien » */
 .deal-note { margin: -2px 0 0 !important; font-size: 13px; line-height: 1.4; opacity: .78; text-align: center; }
 /* « Vos kiff kiff » : les mots découverts */
