@@ -106,6 +106,7 @@ window.KIFF_TEXTES = [
     ["roues.ton-m-desc", "", "Sous les boutons, quand Un peu de tout est choisi (vide : rien ne s’affiche)"],
     ["roues.ton-b-desc", "Des envies qu’on peut vivre aussi… ou pas.", "Sous les boutons, quand wtf !? est choisi"],
     ["roues.tirage", "Mots tirés au hasard selon ces réglages, à chaque tour.", "En bas de la feuille"],
+    ["roues.tirage-gratuit", "20 mots par roue, choisis parmi les plus kiffés.", "Même place, dans la version gratuite"],
     ["roues.ok", "C’est choisi", "Bouton pour fermer"],
     ["roues.apres", "Roues : {piment}, {ton}.", "Consigne, un instant, après un changement"],
     ["roues.refus", "Le piment et le ton se changent quand tu composes.", "Consigne, un instant, quand on touche le bouton piment hors de son tour"]
@@ -194,11 +195,47 @@ window.KIFF_TEXTES = [
     ["kiffs.vecues", "Vécues", "Titre de la liste des envies vécues"],
     ["kiffs.fermer", "Fermer", "Bouton"]
   ] },
+  { id: "discussion", nom: "Un kiff kiff rouvert, et sa discussion", textes: [
+    ["kiff.titre", "Kiff kiff avec {prénom}", "Titre de l’écran d’un kiff kiff rouvert, à deux téléphones"],
+    ["kiff.titre-seul", "Votre kiff kiff", "Même titre, sur un téléphone"],
+    ["kiff.ton-envie", "Ton envie", "Sous la carte, quand c’est toi qui l’as proposée"],
+    ["kiff.a-vivre", "à vivre", "Sous la carte : pas encore vécue"],
+    ["kiff.vecue", "vécue", "Sous la carte : déjà vécue"],
+    ["chat.reagir", "Réagir", "Bouton sous la carte : une réaction (émoji) au kiff kiff"],
+    ["chat.message", "Message", "Le champ pour écrire (lu par les lecteurs d’écran)"],
+    ["chat.placeholder", "Écrire à {prénom}…", "Dans le champ, tant qu’il est vide"],
+    ["chat.vide", "Un mot pour {prénom} ?", "Au début d’une discussion vide"],
+    ["chat.ecrit", "{prénom} écrit…", "Sous le titre, quand l’autre écrit dans cette discussion"],
+    ["chat.ecrit-ailleurs", "{prénom} écrit sur un autre kiff kiff…", "Quand l’autre écrit dans la discussion d’un autre kiff kiff"],
+    ["chat.la", "{prénom} est là", "Sous le titre, quand l’autre a l’appli ouverte"],
+    ["chat.aujourdhui", "Aujourd’hui", "Séparateur de jour"],
+    ["chat.hier", "Hier", "Séparateur de jour"],
+    ["chat.lu", "lu", "Sous ton dernier message, quand l’autre l’a lu"],
+    ["chat.modifie", "modifié", "Sous un message modifié"],
+    ["chat.supprime", "Message supprimé", "À la place d’un message supprimé"],
+    ["chat.cite-kiff", "Kiff kiff", "Au-dessus d’une réponse à la carte"],
+    ["chat.reponse-a", "Réponse à {prénom}", "Au-dessus du champ, quand on répond à un message de l’autre"],
+    ["chat.reponse-toi", "Réponse à ton message", "Même chose, à son propre message"],
+    ["chat.modification", "Modifier le message", "Au-dessus du champ, pendant une modification"],
+    ["chat.repondre", "Répondre", "Menu d’un message (appui long)"],
+    ["chat.copier", "Copier", "Menu d’un message"],
+    ["chat.modifier", "Modifier", "Menu d’un message (les tiens)"],
+    ["chat.supprimer", "Supprimer", "Menu d’un message (les tiens)"],
+    ["chat.copie", "Copié", "Un mot bref, après « Copier »"]
+  ] },
+  { id: "complet", nom: "Version gratuite et jeu complet", textes: [
+    ["complet.titre", "Tout Kiff Kiff", "Titre de la fenêtre qui s’ouvre en touchant une fonction du jeu complet"],
+    ["complet.texte", "Vous avez goûté à {gratuit} envies. Il y en a {total}.", "Sous le titre"],
+    ["complet.liste", "De nouveaux mots dans les roues à chaque tour\nBrûlant, quand vous en avez envie tous les deux\nChercher un mot, écrire les vôtres\nLe piment et le ton réglés à votre goût", "La liste, une ligne par point"],
+    ["complet.gratuit", "Pour l’instant, tout est gratuit.", "Au-dessus du bouton (plus tard : le prix)"],
+    ["complet.oui", "Tout débloquer", "Bouton principal"],
+    ["complet.non", "Plus tard", "Lien"],
+    ["complet.merci", "Tout Kiff Kiff est à vous.", "La consigne, 3 secondes, après avoir tout débloqué"],
+    ["complet.chercher", "Chercher parmi les {total} mots", "Dans le champ de la loupe, version gratuite"]
+  ] },
   { id: "image", nom: "L’image partagée", textes: [
     ["image.lead", "J’ai envie…", "En haut de la carte, au-dessus de l’envie"],
-    ["image.scanne", "Scanne et joue à deux", "À côté du code, en bas de l’image"],
-    ["image.accroche", "Quand vos envies se rejoignent, c’est kiff kiff.", "Sous « Scanne et joue à deux » (coupée à la virgule), et dans le message qui accompagne l’image"],
-    ["image.pied", "Kiff Kiff · jeu de séduction pour adultes", "Tout en bas de l’image"]
+    ["image.formules", "Et deux envies de plus qui se sont trouvées sur kiff-kiff.fr\nEncore deux envies qui se rejoignent sur kiff-kiff.fr\nDeux « j’ai envie », zéro malentendu. kiff-kiff.fr\nProposée, acceptée, à vivre. Sur kiff-kiff.fr\nIci, rien ne se passe sans deux « j’ai envie ». kiff-kiff.fr\nQuand vos envies se rejoignent, c’est kiff kiff. kiff-kiff.fr\nUne envie de plus, partagée à deux sur kiff-kiff.fr\nÇa s’est trouvé à deux, sur kiff-kiff.fr\nÀ vous de trouver les vôtres sur kiff-kiff.fr\nDeux envies, un seul kiff kiff. kiff-kiff.fr", "Sous la carte de l’image partagée : une formule par ligne, une autre à chaque envoi (elle accompagne aussi l’image dans le message)"]
   ] },
   { id: "tukiffes", nom: "Tu kiffes ?", textes: [
     ["tukiffes.titre", "Tu kiffes ?", "Titre de la feuille ouverte par « Vous kiffez ? » de la célébration (partage et café)"],
@@ -400,6 +437,8 @@ window.KIFF_TEXTES = [
     ["notifs.arrivee-nom", "{prénom} a rejoint la partie : elle commence.", "Sur iPhone : quand l’autre rejoint la partie"],
     ["notifs.rappel-tour-nom", "{prénom} attend ton envie… à toi de jouer.", "Sur iPhone : le rappel, deux jours après, quand c’est ton tour"],
     ["notifs.rappel-proposition-nom", "L’envie de {prénom} t’attend encore, toute chaude.", "Sur iPhone : le rappel, deux jours après, quand une proposition attend"],
+    ["notifs.message", "Un message t’attend.", "Notification, à chaque message de la discussion"],
+    ["notifs.message-nom", "{prénom} t’a écrit.", "Sur iPhone : à chaque message de la discussion"],
     ["notifs.rappel-kiff", "Votre kiff kiff n’attend plus que vous.", "Le rappel, deux jours après, quand un kiff kiff attend"],
     ["notifs.rappel-kiff-nom", "Votre kiff kiff avec {prénom} n’attend plus que vous.", "Sur iPhone : le rappel, deux jours après, quand un kiff kiff attend"]
   ] },

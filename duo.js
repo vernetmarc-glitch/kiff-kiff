@@ -7,6 +7,8 @@
  *
  *   kiffkiff/v1/<partie>/state   état de la partie (message conservé par le relais)
  *   kiffkiff/v1/<partie>/p/0|1   présence de chaque téléphone (« on » / « off »)
+ *   kiffkiff/v1/<partie>/m/0|1   la discussion : messages chiffrés pour ce téléphone (non conservés par le relais)
+ *   kiffkiff/v1/<partie>/t/0|1   « écrit… » : le kiff kiff où ce téléphone écrit, ou rien
  *
  * Lien : https://…/#duo=<relais><partie>.<clé>
  *
@@ -101,6 +103,39 @@
     return out;
   }
 
+  /* La boîte aux lettres de la discussion, dans la feuille : un message attend, chiffré, que l’autre
+     téléphone vienne le chercher ; il est effacé dès qu’il l’a reçu (30 jours au plus). */
+  async function boxPut(info, place, id, corps) {
+    if (!api()) return;
+    try {
+      await fetch(api(), { method: 'POST', mode: 'no-cors', keepalive: corps.length < 60000,
+        body: JSON.stringify({ action: 'boite', partie: info.room, place, id, corps }) });
+    } catch (e) { /* le relais l’a peut-être déjà remis */ }
+  }
+  async function boxLoad(info, place, timeoutMs = 8000) {
+    const out = [];
+    if (!api()) return out;
+    const ctl = window.AbortController ? new AbortController() : null;
+    const t = setTimeout(() => ctl && ctl.abort(), timeoutMs);
+    try {
+      const r = await fetch(api() + '?action=boite&p=' + info.room + '&s=' + place, ctl ? { signal: ctl.signal } : {});
+      const j = await r.json();
+      const key = await keyOf(info);
+      for (const it of (j && j.messages) || []) {
+        try { const obj = await unseal(key, b64u.dec(it.corps)); if (obj) out.push({ id: it.id, obj }); } catch (e) { out.push({ id: it.id, obj: null }); }
+      }
+    } catch (e) { /* hors ligne */ }
+    clearTimeout(t);
+    return out;
+  }
+  function boxAck(info, place, ids) {
+    if (!api() || !ids.length) return;
+    try {
+      fetch(api(), { method: 'POST', mode: 'no-cors', keepalive: true,
+        body: JSON.stringify({ action: 'boite-lu', partie: info.room, place, ids: ids.slice(0, 200) }) }).catch(() => {});
+    } catch (e) { /* rien */ }
+  }
+
   /* Une connexion au relais pour une partie et une place (0 : qui invite, 1 : qui rejoint). */
   class Conn {
     constructor(info, seat, id, on) {
@@ -131,7 +166,7 @@
         const t = setTimeout(() => { if (!settled) { settled = true; c.end(true); reject(new Error('timeout')); } }, timeoutMs);
         c.on('connect', () => {
           this.connected = true;
-          c.subscribe([this.base + 'state', this.base + 'p/+'], { qos: 1 });
+          c.subscribe([this.base + 'state', this.base + 'p/+', this.base + 'm/' + this.seat, this.base + 't/+'], { qos: 1 });
           c.publish(this.base + 'p/' + this.seat, document.visibilityState === 'hidden' ? 'off' : 'on', { qos: 1, retain: true });
           if (this.on.status) this.on.status(true);
           if (!settled) { settled = true; clearTimeout(t); resolve(this); }
@@ -145,6 +180,12 @@
           } else if (topic.startsWith(this.base + 'p/')) {
             const s = +topic.slice(-1);
             if (s !== this.seat && this.on.presence) this.on.presence(s, String(payload) === 'on');
+          } else if (topic === this.base + 'm/' + this.seat) {
+            if (!payload || !payload.length) return;
+            unseal(this.key, payload).then((obj) => { if (obj && this.on.chat) this.on.chat(obj); }).catch(() => {});
+          } else if (topic.startsWith(this.base + 't/')) {
+            const s = +topic.slice(-1);
+            if (s !== this.seat && this.on.typing) this.on.typing(String(payload || '').slice(0, 20));
           }
         });
       });
@@ -156,6 +197,17 @@
         if (this.client) this.client.publish(this.base + 'state', data, { qos: 1, retain: true });
       }).catch(() => {});
       return this.queue;
+    }
+    // La discussion : en direct par le relais, et dans la boîte aux lettres pour quand l’autre n’est pas là
+    async chat(obj) {
+      const dest = 1 - this.seat;
+      const data = await seal(this.key, obj);
+      // Hors connexion, le client garde le message et l’envoie en se reconnectant ; la boîte aux lettres le garde aussi
+      if (this.client) this.client.publish(this.base + 'm/' + dest, data, { qos: 1 });
+      await boxPut(this.info, dest, obj.ev, b64u.enc(data));
+    }
+    typing(kid) {
+      if (this.client && this.client.connected && !this.closed) this.client.publish(this.base + 't/' + this.seat, kid || '', { qos: 0 });
     }
     // Présence : « on » seulement quand l’appli est à l’écran (l’autre téléphone saura s’il faut l’avertir)
     here(on) {
@@ -197,5 +249,5 @@
     return qr.createSvgTag({ cellSize: 4, margin: 2, scalable: true });
   }
 
-  window.KiffDuo = { supported, parse, link, create, join, qrSvg, storeSave, storeLoad, newId: () => b64u.enc(rand(9)) };
+  window.KiffDuo = { supported, parse, link, create, join, qrSvg, storeSave, storeLoad, boxLoad, boxAck, newId: () => b64u.enc(rand(9)) };
 })();

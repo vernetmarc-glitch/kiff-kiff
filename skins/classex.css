@@ -389,3 +389,6 @@ body { background: var(--kraft); color: var(--ink); font-family: var(--f-ui); ca
 .overlay--handoff #wait-notif[aria-pressed="true"] > .ic, #ov-duo #duo-notif[aria-pressed="true"] > .ic { background: var(--red); color: var(--paper); box-shadow: none; }
 
 .welcome-intro { text-align: left; }
+/* La discussion */
+:root { --chat-mine-bg: var(--ink); --chat-mine-fg: var(--paper); --menu-bg: var(--paper); --menu-fg: var(--ink); }
+.chat-msg, .chat-msg.is-mine, #chat-input, .chat-menu { border-radius: 2px; }

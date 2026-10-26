@@ -8,6 +8,13 @@
 /* KIFF_DON : la page de soutien ouverte par « Payez-moi un café » (à changer en un seul endroit). */
 window.KIFF_DON = 'https://buymeacoffee.com/MarcVernet';
 
+/* KIFF_OFFRE : la version gratuite et le jeu complet.
+ *   'tout'   : tout est ouvert, rien n’est marqué.
+ *   'essai'  : la version gratuite (20 mots par roue, Tendre et Pimenté) ; toucher une fonction du jeu complet
+ *              ouvre « Tout Kiff Kiff », qui dit que pour l’instant tout est gratuit et débloque d’un geste.
+ *   'payant' : plus tard, le paiement de 3 €. */
+window.KIFF_OFFRE = 'essai';
+
 window.KIFF_API = 'https://script.google.com/macros/s/AKfycby4c2tJl4cb1fWk3C86lt15OY6lEjUJZ7_Z5W9p3FC4PHAwSZu8nFSnQ5gPyx9rboI8Ug/exec';
 
 /* Les derniers mots reçus de l’atelier sont gardés sur le téléphone et servent dès l’ouverture. */

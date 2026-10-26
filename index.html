@@ -30,12 +30,12 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,62..125,100..900;1,62..125,100..900&family=Bagel+Fat+One&family=Abril+Fatface&family=Merriweather:ital,opsz,wght@0,18..144,400..900;1,18..144,400..900&family=Baskervville:ital,wght@0,400..700;1,400..700&family=Jost:wght@300..700&family=Great+Vibes&family=Cinzel:wght@400..900&family=Syne:wght@600..800&family=Manrope:wght@400..800&family=Anton&family=Courier+Prime:wght@400;700&display=swap">
-<link rel="stylesheet" href="base.css?v=90">
-<link rel="stylesheet" href="skins/arty.css?v=64" data-skin-sheet="arty">
-<link rel="stylesheet" href="skins/pomme.css?v=64" data-skin-sheet="pomme">
-<link rel="stylesheet" href="skins/redcorner.css?v=61" data-skin-sheet="redcorner">
-<link rel="stylesheet" href="skins/minuit.css?v=62" data-skin-sheet="minuit">
-<link rel="stylesheet" href="skins/classex.css?v=66" data-skin-sheet="classex">
+<link rel="stylesheet" href="base.css?v=92">
+<link rel="stylesheet" href="skins/arty.css?v=65" data-skin-sheet="arty">
+<link rel="stylesheet" href="skins/pomme.css?v=66" data-skin-sheet="pomme">
+<link rel="stylesheet" href="skins/redcorner.css?v=63" data-skin-sheet="redcorner">
+<link rel="stylesheet" href="skins/minuit.css?v=63" data-skin-sheet="minuit">
+<link rel="stylesheet" href="skins/classex.css?v=67" data-skin-sheet="classex">
 <script>
 /* Déménagement vers kiff-kiff.fr : l’ancienne adresse apporte, dans le « # » du lien (jamais envoyé
    à un serveur), ce que le téléphone gardait là-bas : parties à deux, prénoms, ambiance, réglages.
@@ -128,6 +128,11 @@
   <symbol id="i-accueil" viewBox="0 0 24 24"><path d="M4 11l8-6.5 8 6.5"/><path d="M6.5 9.5v10h11v-10"/><path d="M10.2 19.5v-5h3.6v5"/></symbol>
   <symbol id="i-qui" viewBox="0 0 24 24"><path d="M4 11.5a7.5 6.5 0 0 1 15 0a7.5 6.5 0 0 1-10.6 5.9L4.5 19.5l1.2-3.6A6.3 6.3 0 0 1 4 11.5z"/><path d="M8.6 11.5h.01M11.5 11.5h.01M14.4 11.5h.01" stroke-width="2.4"/></symbol>
   <symbol id="i-mail" viewBox="0 0 24 24"><rect x="3.5" y="5.5" width="17" height="13" rx="2"/><path d="M4 7l8 6 8-6"/></symbol>
+  <symbol id="i-emoji" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M8.5 14.5c1.8 2 5.2 2 7 0"/><path d="M9 9.5h.01M15 9.5h.01" stroke-width="2.4"/></symbol>
+  <symbol id="i-envoyer" viewBox="0 0 24 24"><path d="M5 12h13M13 6l6 6-6 6"/></symbol>
+  <symbol id="i-repondre" viewBox="0 0 24 24"><path d="M10 7L5 12l5 5"/><path d="M5 12h9a5 5 0 0 1 5 5v1"/></symbol>
+  <symbol id="i-copier" viewBox="0 0 24 24"><rect x="8" y="8" width="11" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h1"/></symbol>
+  <symbol id="i-supprimer" viewBox="0 0 24 24"><path d="M5 7h14M10 7V5h4v2M7 7l1 13h8l1-13"/></symbol>
   <symbol id="i-fermer" viewBox="0 0 24 24"><path d="M6 6l12 12"/><path d="M18 6L6 18"/></symbol>
 </svg>
 <div class="grain" aria-hidden="true"></div>
@@ -640,13 +645,81 @@
     </div>
   </div>
 </div>
+<!-- Un kiff kiff rouvert : sa carte, et à distance sa discussion -->
+<div class="overlay overlay--edit overlay--skins overlay--loupe overlay--kiff" id="ov-kiff" hidden role="dialog" aria-modal="true" aria-labelledby="kiff-title">
+  <div class="sheet sheet--edit sheet--skins sheet--loupe sheet--kiff">
+    <div class="kiff-head">
+      <button class="icon-btn icon-btn--bare" id="kiff-back" type="button" aria-label="Retour à vos kiff kiff"><svg class="ic kiff-back-ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-retour"/></svg></button>
+      <div class="kiff-head-text">
+        <h2 class="edit-label kiff-title" id="kiff-title"></h2>
+        <p class="kiff-status" id="kiff-status" aria-live="polite"></p>
+      </div>
+      <span class="kiff-head-pad" aria-hidden="true"></span>
+    </div>
+    <div class="kiff-scroll" id="kiff-scroll">
+      <div class="kiff-card" id="kiff-card">
+        <p class="party-sentence kiff-sentence" id="kiff-sentence"></p>
+        <button class="icon-btn icon-btn--card" id="kiff-image" type="button" aria-label="Envoyer cette envie en image"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-image"/></svg></button>
+      </div>
+      <p class="kiff-meta" id="kiff-meta"></p>
+      <div class="chat-reacts-line" id="kiff-reacts"></div>
+      <div class="kiff-acts">
+        <button class="btn btn--line" id="kiff-done" type="button"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg><span data-t="kiffs.vecue">Vécue</span></button>
+        <button class="btn btn--line" id="kiff-react" type="button"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-emoji"/></svg><span data-t="chat.reagir">Réagir</span></button>
+      </div>
+      <p class="kiff-done-msg" id="kiff-msg" role="status" hidden></p>
+      <ol class="chat-list" id="chat-list" aria-label="Messages"></ol>
+    </div>
+    <div class="chat-bar" id="chat-bar" hidden>
+      <div class="chat-reply" id="chat-reply" hidden>
+        <div class="chat-reply-text"><span class="chat-reply-who" id="chat-reply-who"></span><span class="chat-reply-what" id="chat-reply-what"></span></div>
+        <button class="icon-btn icon-btn--bare" id="chat-reply-x" type="button" aria-label="Annuler"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-fermer"/></svg></button>
+      </div>
+      <form class="chat-form" id="chat-form" autocomplete="off">
+        <button class="icon-btn icon-btn--bare chat-emo-btn" id="chat-emo-btn" type="button" aria-label="Émojis" aria-expanded="false"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-emoji"/></svg></button>
+        <label class="sr-only" for="chat-input" data-t="chat.message">Message</label>
+        <textarea id="chat-input" rows="1" maxlength="1000" enterkeyhint="send"></textarea>
+        <button class="chat-send" id="chat-send" type="submit" aria-label="Envoyer"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-envoyer"/></svg></button>
+      </form>
+      <div class="chat-emojis" id="chat-emojis" role="group" aria-label="Émojis" hidden></div>
+    </div>
+  </div>
+</div>
+<!-- L’appui long sur un message : réagir, répondre, copier, modifier, supprimer -->
+<div class="overlay chat-menu-ov" id="ov-chat-menu" hidden>
+  <div class="chat-menu" role="menu" aria-label="Ce message">
+    <div class="chat-quick" id="chat-quick" role="group" aria-label="Réagir"></div>
+    <button class="chat-mi" id="cm-reply" type="button" role="menuitem"><span data-t="chat.repondre">Répondre</span><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-repondre"/></svg></button>
+    <button class="chat-mi" id="cm-copy" type="button" role="menuitem"><span data-t="chat.copier">Copier</span><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-copier"/></svg></button>
+    <button class="chat-mi" id="cm-edit" type="button" role="menuitem"><span data-t="chat.modifier">Modifier</span><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-ecrire"/></svg></button>
+    <button class="chat-mi chat-mi--del" id="cm-del" type="button" role="menuitem"><span data-t="chat.supprimer">Supprimer</span><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-supprimer"/></svg></button>
+  </div>
+</div>
+<!-- Tout Kiff Kiff : le jeu complet (pour l’instant, tout est gratuit) -->
+<div class="overlay overlay--edit overlay--skins" id="ov-complet" hidden role="dialog" aria-modal="true" aria-labelledby="complet-titre">
+  <div class="sheet sheet--edit sheet--skins sheet--choice sheet--complet">
+    <div class="complet-demo" aria-hidden="true">
+      <div class="complet-roue"><div class="complet-roue-strip" id="complet-roue"></div></div>
+      <div class="complet-cherche"><span class="complet-tape">suce</span><span class="complet-caret">|</span>
+        <span class="complet-hits"><span><mark>suç</mark>otes</span><span><mark>suce</mark>s</span><span>lèches</span></span></div>
+    </div>
+    <h2 class="edit-label" id="complet-titre" data-t="complet.titre">Tout Kiff Kiff</h2>
+    <p class="duo-text" id="complet-texte"></p>
+    <ul class="complet-liste" id="complet-liste"></ul>
+    <p class="complet-gratuit" data-t="complet.gratuit">Pour l’instant, tout est gratuit.</p>
+    <div class="stack">
+      <button class="btn" id="complet-oui" type="button" data-t="complet.oui">Tout débloquer</button>
+      <button class="link-btn" id="complet-non" type="button" data-t="complet.non">Plus tard</button>
+    </div>
+  </div>
+</div>
 <!--/APP-->
 <script src="data.js?v=64"></script>
-<script src="textes.js?v=8"></script>
+<script src="textes.js?v=9"></script>
 <script src="semantique.js?v=1"></script>
-<script src="config.js?v=62"></script>
-<script src="duo.js?v=62"></script>
+<script src="config.js?v=63"></script>
+<script src="duo.js?v=63"></script>
 <script src="push.js?v=65"></script>
-<script src="app.js?v=108"></script>
+<script src="app.js?v=110"></script>
 </body>
 </html>

@@ -141,7 +141,36 @@
         kpi(fmt((c['partage:fenetre-fete'] || 0) + (c['partage:fenetre-accueil'] || 0)), 'ouvertures de « Dealer du kiff »', fmt(c['partage:fenetre-fete'] || 0) + ' après un kiff kiff, ' + fmt(c['partage:fenetre-accueil'] || 0) + ' depuis l’accueil') +
         kpi(fmt(partages), 'liens du jeu envoyés') + kpi(fmt(c['partage:prevenir'] || 0), '« Prévenir » touchés') +
         kpi(p ? ((c.rejoint || 0) / p).toFixed(2).replace('.', ',') : '–', 'invités arrivés par partie', 'premier pas vers le coefficient K') +
-        kpi(fmt(c.cafe || 0), 'clics « Payez-moi un café »') + kpi(fmt(c.installe || 0), 'installations sur l’écran d’accueil') + '</div>';
+        kpi(fmt(c.cafe || 0), 'clics « Payez-moi un café »') + kpi(fmt(c.installe || 0), 'installations sur l’écran d’accueil') + '</div>' +
+      '<h2 class="sec">La discussion</h2><div class="kpis">' +
+        kpi(fmt((c['discussion:envoye'] || 0) + (c['discussion:reponse'] || 0)), 'messages envoyés', fmt(c['discussion:reponse'] || 0) + ' en réponse à un message ou à la carte') +
+        kpi(fmt(c['discussion:ouverte'] || 0), 'discussions ouvertes', fmt(c['discussion:carte'] || 0) + ' kiff kiff rouverts sur un seul téléphone') +
+        kpi(fmt((c['discussion:reaction'] || 0) + (c['discussion:reaction-kiff'] || 0)), 'réactions', fmt(c['discussion:reaction-kiff'] || 0) + ' sur la carte d’un kiff kiff') +
+        kpi(fmt(c['discussion:modifie'] || 0), 'messages modifiés', fmt(c['discussion:supprime'] || 0) + ' supprimés') +
+        kpi(fmt(c['notif:ouverte-message'] || 0), 'avertissements de message touchés') +
+        kpi(fmt(stats.boite || 0), 'messages en attente', 'chiffrés dans la boîte aux lettres, pas encore venus chercher') + '</div>' +
+      '<div class="charts">' + daily('discussion', 'Discussion par jour (tous les gestes)') + '</div>' +
+      '<h2 class="sec">Cartes, installation, attente</h2><div class="kpis">' +
+        kpi(fmt((c['carte:fete'] || 0) + (c['carte:kiff'] || 0)), 'cartes envoyées en image', fmt(c['carte:fete'] || 0) + ' depuis la fête, ' + fmt(c['carte:kiff'] || 0) + ' depuis un kiff kiff rouvert') +
+        kpi(fmt((c['installer:vue-accueil'] || 0) + (c['installer:vue-kiff'] || 0) + (c['installer:vue-invitation'] || 0)), 'invitations à installer montrées', fmt(c['installer:vue-accueil'] || 0) + ' à l’accueil, ' + fmt(c['installer:vue-kiff'] || 0) + ' après un kiff kiff, ' + fmt(c['installer:vue-invitation'] || 0) + ' après une invitation') +
+        kpi(fmt(c['installer:oui'] || 0), '« Installer l’appli » touchés', fmt(c['installer:plus-tard'] || 0) + ' « Plus tard »') +
+        kpi(fmt(c['attente:attendre'] || 0), '« J’attends sa réponse »', fmt(c['attente:installer'] || 0) + ' « Installer pour être averti·e »') +
+        kpi(pct(c['brulant:oui'] || 0, (c['brulant:oui'] || 0) + (c['brulant:non'] || 0)), 'd’accord pour Brûlant (un téléphone)', fmt(c['brulant:non'] || 0) + ' « Pas cette fois »') + '</div>' +
+      '<h2 class="sec">Version gratuite et jeu complet</h2>' +
+      '<div class="splits"><div><h3 class="sh">Ce qui ouvre « Tout Kiff Kiff »</h3>' + split(Object.fromEntries(Object.entries(c).filter(([k]) => k.startsWith('complet:vue-'))), 'complet', { 'vue-brulant': 'Brûlant', 'vue-ton': 'Le ton', 'vue-recherche': 'La recherche', 'vue-ecrire': 'Écrire son mot' }) + '</div></div>' +
+      '<div class="kpis">' + kpi(fmt(c['complet:debloque'] || 0), '« Tout débloquer »', fmt(c['complet:plus-tard'] || 0) + ' « Plus tard » ; pour l’instant, c’est gratuit') + '</div>' +
+      '<h2 class="sec">Journal</h2>' + journalHtml();
+  }
+  // Les derniers comptes, dans l’ordre (rien de personnel : un geste et sa variante)
+  const NOMS_J = { visite: 'Ouverture', partie: 'Partie', envie: 'Envie', kiff: 'Kiff kiff', passe: 'On passe', invitation: 'Invitation', rejoint: 'Invitation rejointe',
+    mais: 'Oui, mais…', premier: 'Premier kiff kiff', piment: 'Piment', monte: 'Montée de piment', partage: 'Partage', cafe: 'Café', installe: 'Installée',
+    historique: 'Vos kiff kiff', notif: 'Avertissement', discussion: 'Discussion', carte: 'Carte en image', installer: 'Inviter à installer', attente: 'Attente',
+    brulant: 'Brûlant', complet: 'Jeu complet', loupe: 'Loupe', recherche: 'Recherche' };
+  function journalHtml() {
+    const j = (stats && stats.journal) || [];
+    if (!j.length) return '<p class="note">Le journal se remplit avec le nouveau script (onglet « journal » de la feuille).</p>';
+    const h = (ms) => { const d = new Date(ms); return d.getDate() + ' ' + MOIS[d.getMonth()] + ', ' + d.getHours() + ' h ' + String(d.getMinutes()).padStart(2, '0'); };
+    return '<ol class="journal">' + j.slice(0, 60).map((e) => '<li><span class="jt">' + esc(h(e.quand)) + '</span><span class="jn">' + esc(NOMS_J[e.type] || e.type) + '</span><span class="jv">' + esc(e.variante) + '</span></li>').join('') + '</ol>';
   }
   // Valeur au survol des barres
   const tip = document.createElement('div');
@@ -211,15 +240,15 @@
   let uid = 0;
   function fromData(d) {
     const w = { action: [], endroit: [], maniere: [] };
-    (d.actions || []).forEach((x) => w.action.push({ id: ++uid, lvl: x.lvl || 1, s: x.s || '', i: x.i || '', a: x.p === 'à', dc: !!x.dc }));
+    (d.actions || []).forEach((x) => w.action.push({ id: ++uid, lvl: x.lvl || 1, s: x.s || '', i: x.i || '', a: x.p === 'à', dc: !!x.dc, g: !!x.g }));
     ['endroit', 'maniere'].forEach((r) => (d[KEY[r]] || []).forEach((x) => {
       if (typeof x === 'string') x = { t: x };
-      w[r].push(x.t != null ? { id: ++uid, lvl: x.lvl || 1, s: x.t, i: '', two: false, dc: !!x.dc } : { id: ++uid, lvl: x.lvl || 1, s: x.s || '', i: x.i || '', two: true, dc: !!x.dc });
+      w[r].push(x.t != null ? { id: ++uid, lvl: x.lvl || 1, s: x.t, i: '', two: false, dc: !!x.dc, g: !!x.g } : { id: ++uid, lvl: x.lvl || 1, s: x.s || '', i: x.i || '', two: true, dc: !!x.dc, g: !!x.g });
     }));
     return w;
   }
   function toData() {
-    const lv = (x, o) => { if (x.lvl > 1) o.lvl = x.lvl; if (x.dc) o.dc = 1; return o; };
+    const lv = (x, o) => { if (x.lvl > 1) o.lvl = x.lvl; if (x.dc) o.dc = 1; if (x.g && x.lvl < 3) o.g = 1; return o; };
     const clean = (t) => String(t || '').replace(/\s+/g, ' ').trim();
     const out = { actions: [], objets: [], manieres: [] };
     words.action.forEach((x) => {
@@ -264,8 +293,17 @@
     };
     box.innerHTML = '<table><caption>Mots par réglage : il en faut ' + NEED + ' pour remplir la roue' + (sg.length ? ' (dans la roue + à ajouter)' : '') + '</caption>' +
       '<thead><tr><th></th><th scope="col">Premier degré</th><th scope="col">Décalé</th></tr></thead><tbody>' +
-      NIV.map((n) => '<tr><th scope="row">' + esc(n.nom) + '</th>' + cell(n.n, false) + cell(n.n, true) + '</tr>').join('') + '</tbody></table>';
+      NIV.map((n) => '<tr><th scope="row">' + esc(n.nom) + '</th>' + cell(n.n, false) + cell(n.n, true) + '</tr>').join('') + '</tbody></table>' +
+      gratuitHtml();
   }
+  // La version gratuite : 20 mots par roue, Tendre et Pimenté, cochés « gratuit » (sinon le jeu complète dans l’ordre de la liste)
+  function gratuitHtml() {
+    const g = words[roue].filter((x) => x.s.trim() && x.g && x.lvl < 3);
+    const t = g.filter((x) => x.lvl === 1).length, p = g.length - t;
+    return '<p class="gratuit-n' + (g.length === 20 ? ' is-ok' : '') + '">Version gratuite : <b>' + g.length + ' / 20</b> mots cochés « gratuit » (' + t + ' tendres, ' + p + ' pimentés)' +
+      (g.length < 20 ? '. Le jeu complète avec les premiers de la liste.' : g.length > 20 ? '. Seuls les 20 premiers servent.' : '.') + '</p>';
+  }
+  const renderGratuit = () => renderCounts();
 
   const TRASH = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
   // Ce que les joueurs en font : une formule souvent proposée mais rarement kiffée est à réécrire
@@ -280,7 +318,8 @@
     return '<p class="perf">' + txt + '</p>';
   }
   // Décalé : un mot pour rire (le ton barjot), que les roues enlèvent quand on joue au premier degré
-  const dcHtml = (x) => '<label class="dc"><input type="checkbox" data-k="dc"' + (x.dc ? ' checked' : '') + '> décalé (pour rire)</label>';
+  const dcHtml = (x) => '<label class="dc"><input type="checkbox" data-k="dc"' + (x.dc ? ' checked' : '') + '> décalé (pour rire)</label>' +
+    (x.lvl < 3 ? '<label class="gr"><input type="checkbox" data-k="g"' + (x.g ? ' checked' : '') + '> gratuit</label>' : '');
   /* La longueur d’un mot : 35 caractères au plus (espaces compris), pour tenir sur une ligne dans toutes les ambiances,
      même sur un petit téléphone, avec les piments et la préposition d’un endroit (« de la »…). Au-delà de 22, le texte rapetisse. */
   const MAXLEN = 35;
@@ -456,6 +495,7 @@
     const k = e.target.dataset.k;
     if (k === 'a') { x.a = e.target.checked; markDirty(); }
     if (k === 'dc') { x.dc = e.target.checked; markDirty(); }
+    if (k === 'g') { x.g = e.target.checked; markDirty(); renderGratuit(); }
     if (k === 'two') { x.two = e.target.checked; if (x.two && !x.i) x.i = ''; renderWords(); }
   });
   $('#groups').addEventListener('click', (e) => {

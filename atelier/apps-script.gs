@@ -21,6 +21,9 @@
  * Il ne fait que transmettre un message déjà chiffré par le téléphone pour l’autre téléphone.
  * Les comptes ne contiennent rien de personnel. L’onglet « parties » garde la dernière étape
  * des parties à deux téléphones, chiffrée par les téléphones : illisible ici, même pour toi.
+ * L’onglet « boite » est la boîte aux lettres de la discussion : un message chiffré y attend que
+ * l’autre téléphone vienne le chercher, puis il est effacé (30 jours au plus). Illisible ici aussi.
+ * L’onglet « journal » garde les 500 derniers comptes (date, type, variante), sans rien de personnel.
  */
 /* Le mot de passe de l’atelier : dans les propriétés du script (« motdepasse »), jamais dans ce code.
    Dix essais ratés en dix minutes bloquent l’enregistrement pendant dix minutes. */
@@ -38,11 +41,17 @@ function motDePasseOk(mdp) {
 const ROUES = ['action', 'endroit', 'maniere'];
 // Les événements comptés (aucun identifiant, aucune phrase) ; « detail » précise une variante courte
 const TYPES = ['partie', 'envie', 'kiff', 'passe', 'visite', 'invitation', 'rejoint', 'mais', 'premier', 'piment', 'monte',
-  'partage', 'cafe', 'installe', 'historique', 'notif'];
-const PAR_JOUR = ['visite', 'partie', 'envie', 'kiff', 'rejoint']; // aussi comptés jour par jour
+  'partage', 'cafe', 'installe', 'historique', 'notif',
+  'discussion', 'carte', 'installer', 'attente', 'brulant', 'complet', 'loupe', 'recherche'];
+const PAR_JOUR = ['visite', 'partie', 'envie', 'kiff', 'rejoint', 'discussion']; // aussi comptés jour par jour
+const ENT_JOURNAL = ['quand', 'type', 'variante'];
+const JOURNAL_MAX = 500;
+const ENT_BOITE = ['partie', 'place', 'id', 'corps', 'quand'];
+const BOITE_JOURS = 30; // un message jamais venu chercher est effacé au bout de 30 jours
+const BOITE_MAX = 300; // par partie et par téléphone
 const ENT_JOURS = ['jour', 'type', 'valeur'];
 const DETAIL = /^[a-z0-9-]{1,16}$/;
-const ENT_MOTS = ['roue', 'niveau', 'que tu me', 'de te', 'avec à', 'ordre', 'décalé'];
+const ENT_MOTS = ['roue', 'niveau', 'que tu me', 'de te', 'avec à', 'ordre', 'décalé', 'gratuit'];
 const ENT_TEXTES = ['clé', 'texte']; // seulement les textes changés dans l’atelier ; les autres restent ceux du jeu
 const ENT_COMPTEURS = ['compteur', 'valeur'];
 const ENT_CHOIX = ['roue', 'mot', 'envies', 'kiffs'];
@@ -56,6 +65,7 @@ function doGet(e) {
   if (action === 'mots') return sortie(lireMots());
   if (action === 'stats') return sortie(lireStats());
   if (action === 'partie') return sortie(lireParties(e.parameter.p));
+  if (action === 'boite') return sortie(lireBoite(e.parameter.p, e.parameter.s));
   if (action === 'vapid') return sortie(clePublique());
   return sortie({ ok: true, appli: 'kiffkiff' });
 }
@@ -72,6 +82,8 @@ function doPost(e) {
   if (corps.action === 'partie') return sortie(ecrirePartie(corps));
   if (corps.action === 'push') return sortie(envoyerNotification(corps));
   if (corps.action === 'rappel') return sortie(enregistrerRappel(corps));
+  if (corps.action === 'boite') return sortie(poserBoite(corps));
+  if (corps.action === 'boite-lu') return sortie(viderBoite(corps));
   if (corps.action === 'check' || corps.action === 'save' || corps.action === 'textes') {
     const mdp = motDePasseOk(corps.motDePasse);
     if (mdp !== 'ok') return sortie({ ok: false, erreur: mdp === 'non' ? 'mot de passe' : mdp });
@@ -104,7 +116,7 @@ function classeurDonnees() {
    et créer la feuille. Son adresse s’affiche dans le journal d’exécution. */
 function preparer() {
   const c = classeurDonnees();
-  feuille('mots', ENT_MOTS); feuille('textes', ENT_TEXTES); feuille('compteurs', ENT_COMPTEURS); feuille('choix', ENT_CHOIX); feuille('parties', ENT_PARTIES); feuille('jours', ENT_JOURS);
+  feuille('mots', ENT_MOTS); feuille('textes', ENT_TEXTES); feuille('compteurs', ENT_COMPTEURS); feuille('choix', ENT_CHOIX); feuille('parties', ENT_PARTIES); feuille('jours', ENT_JOURS); feuille('boite', ENT_BOITE); feuille('journal', ENT_JOURNAL);
   Logger.log('Feuille de données : ' + c.getUrl());
 }
 
@@ -138,6 +150,8 @@ function lireMots() {
       if (lvl > 1) x.lvl = lvl;
       // Un mot décalé (pour rire) : le brocoli des roues le montre ou le cache
       if (l[6] === true || /^(oui|x|vrai|true|1)$/i.test(String(l[6] == null ? '' : l[6]).trim())) x.dc = 1;
+      // Un mot de la version gratuite (20 par roue, Tendre et Pimenté)
+      if (l[7] === true || /^(oui|x|vrai|true|1)$/i.test(String(l[7] == null ? '' : l[7]).trim())) x.g = 1;
       if (roue === 'action') res.actions.push(x);
       else if (roue === 'endroit') res.objets.push(x);
       else if (roue === 'maniere') res.manieres.push(x);
@@ -159,7 +173,7 @@ function ecrireMots(m) {
       const s = String(x.s || x.t || '').trim();
       if (!s) return;
       const i = x.t ? '' : String(x.i || '').trim();
-      lignes.push([roue, x.lvl || 1, s, i, x.p === 'à' ? 'oui' : '', lignes.length + 1, x.dc ? 'oui' : '']);
+      lignes.push([roue, x.lvl || 1, s, i, x.p === 'à' ? 'oui' : '', lignes.length + 1, x.dc ? 'oui' : '', x.g ? 'oui' : '']);
     };
     m.actions.forEach(function (x) { ajoute('action', x); });
     m.objets.forEach(function (x) { ajoute('endroit', x); });
@@ -235,6 +249,11 @@ function noterEvenement(corps) {
     plus(type);
     const detail = String(corps.detail || '');
     if (detail && DETAIL.test(detail)) plus(type + ':' + detail);
+    // Le journal : les derniers comptes, dans l’ordre (rien de personnel : un type et sa variante)
+    const fl = feuille('journal', ENT_JOURNAL);
+    fl.appendRow([new Date(), type, DETAIL.test(detail) ? detail : '']);
+    const nl = fl.getLastRow();
+    if (nl > JOURNAL_MAX + 50) fl.deleteRows(2, nl - 1 - JOURNAL_MAX);
     if (PAR_JOUR.indexOf(type) >= 0) {
       const fj = feuille('jours', ENT_JOURS);
       const jour = Utilities.formatDate(new Date(), 'Europe/Paris', 'yyyy-MM-dd');
@@ -289,7 +308,10 @@ function lireStats() {
   const jours = feuille('jours', ENT_JOURS).getDataRange().getValues().slice(1)
     .map(function (l) { return { jour: l[0] instanceof Date ? Utilities.formatDate(l[0], 'Europe/Paris', 'yyyy-MM-dd') : String(l[0]), type: String(l[1]), n: Number(l[2]) || 0 }; })
     .filter(function (l) { return l.jour >= depuis; });
-  return { ok: true, compteurs: compteurs, choix: choix, jours: jours, distance: lireDistance() };
+  const journal = feuille('journal', ENT_JOURNAL).getDataRange().getValues().slice(1).slice(-80).reverse()
+    .map(function (l) { return { quand: l[0] instanceof Date ? l[0].getTime() : 0, type: String(l[1]), variante: String(l[2] || '') }; });
+  const enAttente = Math.max(0, feuille('boite', ENT_BOITE).getLastRow() - 1);
+  return { ok: true, compteurs: compteurs, choix: choix, jours: jours, distance: lireDistance(), journal: journal, boite: enAttente };
 }
 
 /* Les formules qui marchent le mieux, par roue : le premier tirage d’une partie y puise */
@@ -425,6 +447,67 @@ function envoyerNotification_(c) {
   return { ok: code < 300, code: code };
 }
 
+/* ---------- La boîte aux lettres de la discussion ----------
+ * Le téléphone qui écrit dépose ici le message déjà chiffré (avec la clé du lien, que ce script n’a pas)
+ * pour l’autre téléphone ; celui-ci vient le chercher, puis demande de l’effacer. */
+const ID_MESSAGE = /^[A-Za-z0-9_-]{6,24}$/;
+function poserBoite(c) {
+  const id = String(c.partie || ''), place = Number(c.place), mid = String(c.id || ''), corps = String(c.corps || '');
+  if (!ID_PARTIE.test(id) || (place !== 0 && place !== 1)) return { ok: false, erreur: 'partie' };
+  if (!ID_MESSAGE.test(mid)) return { ok: false, erreur: 'id' };
+  if (!corps || corps.length > 12000 || !/^[A-Za-z0-9_-]+$/.test(corps)) return { ok: false, erreur: 'corps' };
+  const verrou = LockService.getScriptLock();
+  verrou.waitLock(15000);
+  try {
+    const f = feuille('boite', ENT_BOITE);
+    const v = f.getDataRange().getValues();
+    let n = 0;
+    for (let j = 1; j < v.length; j++) if (String(v[j][0]) === id && Number(v[j][1]) === place) { if (String(v[j][2]) === mid) return { ok: true }; n++; }
+    // Trop de messages en attente pour ce téléphone : le plus ancien laisse sa place
+    if (n >= BOITE_MAX) for (let j = 1; j < v.length; j++) if (String(v[j][0]) === id && Number(v[j][1]) === place) { f.deleteRow(j + 1); break; }
+    f.appendRow([id, place, mid, 'k' + corps, new Date()]);
+  } finally {
+    verrou.releaseLock();
+  }
+  return { ok: true };
+}
+function lireBoite(partie, place) {
+  const id = String(partie || ''), s = Number(place);
+  if (!ID_PARTIE.test(id) || (s !== 0 && s !== 1)) return { ok: false, erreur: 'partie' };
+  const v = feuille('boite', ENT_BOITE).getDataRange().getValues().slice(1);
+  const messages = v.filter(function (l) { return String(l[0]) === id && Number(l[1]) === s; })
+    .slice(0, 200).map(function (l) { return { id: String(l[2]), corps: String(l[3]).replace(/^k/, '') }; });
+  return { ok: true, messages: messages };
+}
+function viderBoite(c) {
+  const id = String(c.partie || ''), place = Number(c.place);
+  if (!ID_PARTIE.test(id) || (place !== 0 && place !== 1) || !Array.isArray(c.ids)) return { ok: false, erreur: 'partie' };
+  const ids = c.ids.slice(0, 200).map(String).filter(function (x) { return ID_MESSAGE.test(x); });
+  if (!ids.length) return { ok: true };
+  const verrou = LockService.getScriptLock();
+  verrou.waitLock(15000);
+  try {
+    const f = feuille('boite', ENT_BOITE);
+    const v = f.getDataRange().getValues();
+    for (let j = v.length - 1; j >= 1; j--) {
+      if (String(v[j][0]) === id && Number(v[j][1]) === place && ids.indexOf(String(v[j][2])) >= 0) f.deleteRow(j + 1);
+    }
+  } finally {
+    verrou.releaseLock();
+  }
+  return { ok: true };
+}
+// Avec les rappels, toutes les heures : les messages jamais venus chercher depuis 30 jours s’effacent
+function nettoyerBoite() {
+  const f = feuille('boite', ENT_BOITE);
+  const v = f.getDataRange().getValues();
+  const limite = Date.now() - BOITE_JOURS * 864e5;
+  for (let j = v.length - 1; j >= 1; j--) {
+    const q = v[j][4] instanceof Date ? v[j][4].getTime() : 0;
+    if (q && q < limite) f.deleteRow(j + 1);
+  }
+}
+
 /* ---------- Un seul rappel, deux jours plus tard ----------
  * Avec « À toi de jouer », le téléphone qui vient de jouer confie aussi un rappel, déjà chiffré
  * pour l’autre téléphone (« C’est toujours à toi de jouer. »). Il attend ici deux jours, dans l’onglet
@@ -461,6 +544,7 @@ function envoyerRappels() {
   const verrou = LockService.getScriptLock();
   if (!verrou.tryLock(20000)) return;
   try {
+    try { nettoyerBoite(); } catch (e) { /* la prochaine fois */ }
     const f = feuille('rappels', ENT_RAPPELS);
     const v = f.getDataRange().getValues();
     if (v.length < 2) return;

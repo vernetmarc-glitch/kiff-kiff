@@ -444,3 +444,6 @@ body {
 .deal-badge { color: var(--red); box-shadow: inset 0 0 0 2px var(--red); }
 /* Écran d’attente : emblème clair sur le fond marine */
 .overlay--handoff .emblem { --e-line: var(--cream-hi); --e-glow: var(--red); --e-glow-o: 1; }
+/* La discussion */
+:root { --chat-mine-bg: var(--red); --chat-mine-fg: #FFF6E5; --menu-bg: #FFF6E5; --menu-fg: #1E2347; }
+.kiff-acts .btn--line { background: transparent; color: var(--red); box-shadow: inset 0 0 0 3px currentColor; }

@@ -61,6 +61,7 @@ function avis(m, t, nom) {
     if (m.ph === 'celebrate') return y('notifs.rappel-kiff', 'Votre kiff kiff n’attend plus que vous.', 'notifs.rappel-kiff-nom', 'Votre kiff kiff avec {prénom} n’attend plus que vous.');
     return y('notifs.rappel-tour', 'Les roues t’attendent : à toi de jouer.', 'notifs.rappel-tour-nom', '{prénom} attend ton envie… à toi de jouer.');
   }
+  if (m.k === 'message') return y('notifs.message', 'Un message t’attend.', 'notifs.message-nom', '{prénom} t’a écrit.');
   if (m.k === 'kiff') return y('notifs.kiff', 'Un kiff kiff vous attend !', 'notifs.kiff-nom', 'Kiff kiff avec {prénom} !');
   if (m.k === 'arrivee') return y('notifs.arrivee', 'Ton invitation est acceptée : la partie commence.', 'notifs.arrivee-nom', '{prénom} a rejoint la partie : elle commence.');
   if (m.ph === 'review') return y('notifs.proposition', 'Une proposition t’attend.', 'notifs.proposition-nom', '{prénom} t’a proposé une envie.');
@@ -83,19 +84,20 @@ self.addEventListener('push', (e) => {
     badge: 'icons/badge-96.png',
     tag: 'kk-' + (room || 'partie'),
     renotify: true,
-    data: { r: room }
+    data: { r: room, kf: m.k === 'message' && /^\d{6,16}$/.test(String(m.kf || '')) ? String(m.kf) : '' }
     });
   })());
 });
 self.addEventListener('notificationclick', (e) => {
   e.notification.close();
   const room = (e.notification.data && e.notification.data.r) || '';
-  const url = new URL(room ? './?jouer=' + room : './', self.registration.scope).href;
+  const kf = (e.notification.data && e.notification.data.kf) || '';
+  const url = new URL(room ? './?jouer=' + room + (kf ? '&kiff=' + kf : '') : './', self.registration.scope).href;
   e.waitUntil((async () => {
     const wins = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
     const w = wins.find((c) => new URL(c.url).origin === self.location.origin);
     if (w) {
-      w.postMessage({ kk: 'jouer', r: room });
+      w.postMessage({ kk: 'jouer', r: room, kf });
       return w.focus ? w.focus() : null;
     }
     return self.clients.openWindow(url);

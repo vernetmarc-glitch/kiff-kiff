@@ -687,3 +687,5 @@ button { font: inherit; color: inherit; }
 .overlay--handoff .icon-label { color: var(--paper); }
 /* Cloche activée, sur le fond bleu de l’attente : rose plein */
 .overlay--handoff #wait-notif[aria-pressed="true"] > .ic { background: var(--pink); color: var(--paper); box-shadow: none; }
+/* La discussion */
+:root { --chat-mine-bg: var(--pink); --chat-mine-fg: #1B1B3A; --menu-bg: var(--paper); --menu-fg: var(--blue); }
