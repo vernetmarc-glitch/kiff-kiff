@@ -64,7 +64,7 @@ window.KIFF_TEXTES = [
     ["joueurs.ici", "Sur ce téléphone", "Premier choix"],
     ["joueurs.distance", "Sur son téléphone", "Deuxième choix"],
     ["joueurs.son-prenom", "Son prénom (c’est l’autre qui commence)", "Au-dessus du deuxième champ"],
-    ["joueurs.son-prenom-distance", "Son prénom, pour retrouver l’invitation (il ou elle pourra le changer)", "Au-dessus du deuxième champ, quand l’autre joue sur son téléphone"],
+    ["joueurs.son-prenom-distance", "Son prénom (il ou elle pourra le changer quand il recevra l’invitation)", "Au-dessus du deuxième champ, quand l’autre joue sur son téléphone"],
     ["joueurs.premiere", "Première partie pour {prénom} : on lui montre le jeu.", "Sous les prénoms, quand quelqu’un n’a jamais joué sur ce téléphone"],
     ["joueurs.premiere-toi", "Première partie pour toi : on te montre le jeu.", "Même ligne, quand c’est toi qui découvres le jeu"],
     ["joueurs.premiere-deux", "Première partie pour vous deux : on vous montre le jeu.", "Même ligne, quand aucun des deux n’a joué sur ce téléphone"],
