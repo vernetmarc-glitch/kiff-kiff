@@ -5120,6 +5120,21 @@
   // L’accueil reste à jour : en revenant dans l’appli, puis toutes les 30 secondes tant qu’il est à l’écran
   const homeFresh = () => { if (!el.ovStart.hidden && document.visibilityState === 'visible' && ($('#steps').dataset.step || '0') === '0') { gamesT = 0; refreshGames(); peekBoxes(); } };
   document.addEventListener('visibilitychange', homeFresh);
+  /* La pastille sur l’icône de l’appli (27 octobre 2026) : en ouvrant l’appli, les avertissements reçus partent
+     du centre de notifications et la pastille s’efface (sur iPhone, ils la laissaient alors que tout était lu).
+     L’accueil montre ensuite ce qui est vraiment nouveau. */
+  async function clearBadge() {
+    if (document.visibilityState !== 'visible') return;
+    try {
+      if (navigator.serviceWorker && navigator.serviceWorker.getRegistration) {
+        const reg = await navigator.serviceWorker.getRegistration();
+        if (reg && reg.getNotifications) (await reg.getNotifications()).forEach((n) => n.close());
+      }
+      if (navigator.clearAppBadge) await navigator.clearAppBadge();
+    } catch (e) { /* pas de pastille ici : tant pis */ }
+  }
+  document.addEventListener('visibilitychange', clearBadge);
+  setTimeout(clearBadge, 1500);
   setInterval(homeFresh, 30000);
   // Le menu
   const ovMenu2 = $('#ov-menu');

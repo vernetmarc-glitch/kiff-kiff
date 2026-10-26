@@ -90,6 +90,7 @@ self.addEventListener('push', (e) => {
 });
 self.addEventListener('notificationclick', (e) => {
   e.notification.close();
+  try { if (self.navigator.clearAppBadge) self.navigator.clearAppBadge(); } catch (err) { /* rien */ }
   const room = (e.notification.data && e.notification.data.r) || '';
   const kf = (e.notification.data && e.notification.data.kf) || '';
   const url = new URL(room ? './?jouer=' + room + (kf ? '&kiff=' + kf : '') : './', self.registration.scope).href;
