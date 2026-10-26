@@ -1463,3 +1463,5 @@ body:has(#ov-deal:not([hidden])) .deco-candles { display: none; }
 .overlay--start > .steps { flex: 1 1 auto; min-height: 0; }
 .overlay--start .steps-track { height: 100%; }
 .overlay--start .step { height: 100%; overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
+/* Le bouton principal du jeu : un texte long (« Glisser dans l’invitation », un prénom long) passe sur deux lignes au lieu de déborder */
+.actions .act-main { white-space: normal; line-height: 1.12; text-wrap: balance; overflow-wrap: anywhere; padding-left: 12px; padding-right: 12px; }
