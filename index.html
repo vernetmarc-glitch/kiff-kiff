@@ -30,10 +30,10 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,62..125,100..900;1,62..125,100..900&family=Bagel+Fat+One&family=Abril+Fatface&family=Merriweather:ital,opsz,wght@0,18..144,400..900;1,18..144,400..900&family=Baskervville:ital,wght@0,400..700;1,400..700&family=Jost:wght@300..700&family=Great+Vibes&family=Cinzel:wght@400..900&family=Syne:wght@600..800&family=Manrope:wght@400..800&family=Anton&family=Courier+Prime:wght@400;700&display=swap">
-<link rel="stylesheet" href="base.css?v=96">
+<link rel="stylesheet" href="base.css?v=97">
 <link rel="stylesheet" href="skins/arty.css?v=66" data-skin-sheet="arty">
 <link rel="stylesheet" href="skins/pomme.css?v=67" data-skin-sheet="pomme">
-<link rel="stylesheet" href="skins/redcorner.css?v=66" data-skin-sheet="redcorner">
+<link rel="stylesheet" href="skins/redcorner.css?v=67" data-skin-sheet="redcorner">
 <link rel="stylesheet" href="skins/minuit.css?v=63" data-skin-sheet="minuit">
 <link rel="stylesheet" href="skins/classex.css?v=68" data-skin-sheet="classex">
 <script>
@@ -200,32 +200,42 @@
   <div class="steps" id="steps" data-step="0">
     <div class="steps-track">
       <section class="step" data-step="0" aria-label="Kiff Kiff">
-        <div class="sheet welcome">
-          <svg class="emblem" viewBox="0 0 168 124" aria-hidden="true"><use href="#emblem"/></svg>
-          <h2 class="poster-title"><span class="ink" data-ink="Kiff">Kiff</span><span class="ink" data-ink="Kiff">Kiff</span></h2>
-          <p class="welcome-intro" id="welcome-intro" hidden data-t="accueil.intro">Trois roues pour se proposer des envies, et savourer celles que vous partagez.</p>
+        <div class="sheet welcome" id="welcome">
+          <!-- En haut : le nom du jeu (en petit quand des parties sont en cours) et le menu -->
+          <header class="home-top">
+            <span class="home-brand" id="home-brand" hidden><svg class="emblem emblem--mini" viewBox="0 0 168 124" aria-hidden="true"><use href="#emblem"/></svg><span class="home-brand-name"><span class="ink" data-ink="Kiff Kiff">Kiff Kiff</span></span></span>
+            <button class="sticker sticker--round home-menu-btn" id="home-menu" type="button" aria-haspopup="dialog" aria-label="Menu : ambiance et son, installer, faire découvrir, qui est là"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M5 7h14M5 12h14M5 17h14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg></button>
+          </header>
+          <div class="home-hero" id="home-hero">
+            <svg class="emblem" viewBox="0 0 168 124" aria-hidden="true"><use href="#emblem"/></svg>
+            <h2 class="poster-title"><span class="ink" data-ink="Kiff">Kiff</span><span class="ink" data-ink="Kiff">Kiff</span></h2>
+            <p class="welcome-intro" id="welcome-intro" hidden data-t="accueil.intro">Trois roues pour se proposer des envies, et savourer celles que vous partagez.</p>
+          </div>
+          <!-- La une : la partie qui a du nouveau (ou la dernière jouée) -->
+          <section class="home-une" id="home-une" hidden aria-live="polite"></section>
+          <h3 class="home-sec" id="home-sec" hidden><span data-t="accueil.vos-parties">Vos parties</span><span class="home-sec-n" id="home-sec-n"></span></h3>
+          <ul class="home-list" id="home-list" hidden></ul>
           <div class="duo-home" id="duo-home" hidden>
             <p class="duo-home-text" id="duo-home-text"></p>
             <button class="btn" id="duo-resume" type="button" data-t="accueil.reprendre-duo">Reprendre la partie</button>
             <button class="link-btn" id="duo-quit" type="button" data-t="accueil.arreter">Arrêter cette partie</button>
           </div>
-          <button class="btn" id="welcome-go" type="button" data-t="accueil.commencer">Commencer</button>
-          <p class="age-note" data-t="accueil.age">Réservé aux adultes&nbsp;: en jouant, tu confirmes avoir 18&nbsp;ans ou plus.</p>
-          <button class="link-btn resume-link" id="resume" type="button" hidden data-t="accueil.reprendre">Reprendre la partie en cours</button>
-          <div class="games" id="games" hidden>
+          <div class="home-go">
+            <button class="btn" id="welcome-go" type="button" data-t="accueil.commencer">Commencer</button>
+            <p class="age-note" data-t="accueil.age">Réservé aux adultes&nbsp;: en jouant, tu confirmes avoir 18&nbsp;ans ou plus.</p>
+            <button class="link-btn resume-link" id="resume" type="button" hidden data-t="accueil.reprendre">Reprendre la partie en cours</button>
+          </div>
+          <ol class="home-rules" id="home-rules">
+            <li><b>1</b><span data-t="accueil.regle-1">Sur un téléphone, ou chacun·e sur le sien.</span></li>
+            <li><b>2</b><span data-t="accueil.regle-2">« J’ai envie aussi », « Oui, mais… » ou « On passe ».</span></li>
+            <li><b>3</b><span data-t="accueil.regle-3">Deux « j’ai envie » : c’est un kiff kiff.</span></li>
+          </ol>
+          <div class="games games--old" id="games" hidden>
             <p class="games-title" id="games-title" data-t="accueil.parties">Vos parties à deux</p>
             <ul class="games-list" id="games-list"></ul>
             <!-- Plus d’une partie à distance : tout passe derrière un seul bouton, avec un badge d’activité -->
             <button class="games-open" id="games-open" type="button" aria-haspopup="dialog" hidden><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-telephones"/></svg><span class="games-open-text" data-t="accueil.parties-bouton">Parties à distance <span class="games-open-n" id="games-open-n" data-tk="nombre"></span></span><span class="badge" id="games-badge" hidden></span></button>
           </div>
-          <nav class="home-icons" aria-label="Réglages et partage">
-            <button class="icon-btn" id="skin-open" type="button" aria-haspopup="dialog"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-ambiance"/></svg><span class="icon-label"><span data-t="accueil.ambiance">Ambiance</span><span class="sr-only">&nbsp;: <span id="skin-current">Red Corner</span></span></span></button>
-            <button class="icon-btn" id="mute" type="button" aria-pressed="false"><svg class="ic ic--on" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-son"/></svg><svg class="ic ic--off" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-muet"/></svg><span class="icon-label"><span data-t="accueil.son">Son</span><span class="sr-only">&nbsp;: <span id="mute-state">activé</span></span></span></button>
-            <button class="icon-btn" id="home-cont" type="button" hidden><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-telephones"/></svg><span class="icon-label"><span data-t="accueil.distance">À distance</span><span class="sr-only"> : continuer la partie sur deux téléphones</span></span></button>
-            <button class="icon-btn" id="install" type="button" hidden><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-installer"/></svg><span class="icon-label"><span data-t="accueil.installer">Installer</span><span class="sr-only"> l’appli</span></span></button>
-            <button class="icon-btn" id="home-deal" type="button" aria-haspopup="dialog"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-tourner"/></svg><span class="icon-label"><span data-t="accueil.tourner">Fais tourner&nbsp;!</span><span class="sr-only"> : faire découvrir le jeu</span></span></button>
-            <button class="icon-btn" id="home-who" type="button" aria-haspopup="dialog"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-qui"/></svg><span class="icon-label"><span data-t="accueil.quiestla">Qui est là&nbsp;?</span><span class="sr-only"> L’histoire du jeu, un café, un retour</span></span></button>
-          </nav>
         </div>
       </section>
 
@@ -333,9 +343,31 @@
       <label class="skin-opt"><input type="radio" name="skin" value="minuit"><span class="skin-swatch skin-swatch--minuit"></span><span class="skin-name">Minuit</span></label>
       <label class="skin-opt"><input type="radio" name="skin" value="classex"><span class="skin-swatch skin-swatch--classex"></span><span class="skin-name">Classé X</span></label>
     </div>
+    <div class="skin-sound">
+      <span class="skin-sound-label" data-t="ambiance.sons">Sons du jeu</span>
+      <button class="icon-btn" id="mute" type="button" aria-pressed="false"><svg class="ic ic--on" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-son"/></svg><svg class="ic ic--off" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-muet"/></svg><span class="icon-label"><span data-t="accueil.son">Son</span><span class="sr-only">&nbsp;: <span id="mute-state">activé</span></span></span></button>
+    </div>
     <div class="row row--end">
       <button class="btn" id="skins-done" type="button" data-t="ambiance.ok">C’est choisi</button>
     </div>
+  </div>
+</div>
+
+<!-- Le menu de l’accueil : ambiance et son, installer, continuer à distance, faire découvrir, qui est là, le jeu complet -->
+<div class="overlay overlay--edit overlay--skins overlay--menu" id="ov-menu" hidden role="dialog" aria-modal="true" aria-labelledby="menu-title">
+  <div class="sheet sheet--edit sheet--skins sheet--menu">
+    <div class="deal-head">
+      <h2 class="edit-label" id="menu-title">Kiff Kiff</h2>
+      <button class="icon-btn icon-btn--bare" id="menu-close" type="button" aria-label="Fermer"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-fermer"/></svg></button>
+    </div>
+    <nav class="menu-list" aria-label="Menu">
+      <button class="icon-btn" id="skin-open" type="button" aria-haspopup="dialog"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-ambiance"/></svg><span class="icon-label"><span data-t="menu.ambiance">Ambiance et son</span><span class="sr-only">&nbsp;: <span id="skin-current">Red Corner</span></span></span><span class="menu-sub" data-t="menu.ambiance-sous">L’habillage du jeu, et ses sons</span></button>
+      <button class="icon-btn" id="install" type="button" hidden><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-installer"/></svg><span class="icon-label"><span data-t="menu.installer">Installer l’appli</span><span class="sr-only"> l’appli</span></span><span class="menu-sub" data-t="menu.installer-sous">Pour être averti·e quand l’autre répond</span></button>
+      <button class="icon-btn" id="home-cont" type="button" hidden><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-telephones"/></svg><span class="icon-label"><span data-t="menu.distance">Continuer à distance</span><span class="sr-only"> : continuer la partie sur deux téléphones</span></span><span class="menu-sub" data-t="menu.distance-sous">La partie de ce téléphone, sur deux téléphones</span></button>
+      <button class="icon-btn" id="home-deal" type="button" aria-haspopup="dialog"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-tourner"/></svg><span class="icon-label"><span data-t="accueil.tourner">Fais tourner&nbsp;!</span><span class="sr-only"> : faire découvrir le jeu</span></span><span class="menu-sub" data-t="menu.tourner-sous">Faire découvrir le jeu</span></button>
+      <button class="icon-btn" id="home-who" type="button" aria-haspopup="dialog"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-qui"/></svg><span class="icon-label"><span data-t="accueil.quiestla">Qui est là&nbsp;?</span><span class="sr-only"> L’histoire du jeu, un café, un retour</span></span><span class="menu-sub" data-t="menu.quiestla-sous">L’histoire du jeu, un café, un mot à Marc</span></button>
+      <button class="icon-btn" id="menu-complet" type="button"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-etoiles"/></svg><span class="icon-label"><span data-t="menu.complet">Tout Kiff Kiff</span></span><span class="menu-sub" data-t="complet.gratuit">Pour l’instant, tout est gratuit.</span></button>
+    </nav>
   </div>
 </div>
 
@@ -735,11 +767,11 @@
 </div>
 <!--/APP-->
 <script src="data.js?v=64"></script>
-<script src="textes.js?v=13"></script>
+<script src="textes.js?v=14"></script>
 <script src="semantique.js?v=1"></script>
 <script src="config.js?v=63"></script>
 <script src="duo.js?v=63"></script>
 <script src="push.js?v=65"></script>
-<script src="app.js?v=116"></script>
+<script src="app.js?v=117"></script>
 </body>
 </html>

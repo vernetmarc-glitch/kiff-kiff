@@ -25,7 +25,34 @@ window.KIFF_TEXTES = [
     ["accueil.quiestla", "Qui est là ?", "Icône en bas de l’accueil : l’histoire du jeu, le café, un retour"],
     ["accueil.en-cours", "En cours : partie à deux avec {prénom}, connecté·e.", "Au-dessus de « Reprendre la partie », à distance"],
     ["accueil.en-cours-msg", "En cours : partie à deux avec {prénom}. {etat}", "Même chose, quand la connexion pose problème ({etat} : le message de connexion)"],
-    ["accueil.en-cours-kiffs", "{nombre} kiff kiff ensemble.", "À la suite, quand il y a déjà des kiff kiff"]
+    ["accueil.en-cours-kiffs", "{nombre} kiff kiff ensemble.", "À la suite, quand il y a déjà des kiff kiff"],
+    ["accueil.regle-1", "Sur un téléphone, ou chacun·e sur le sien.", "Le principe, ligne 1, sous « Commencer » quand aucune partie n’est en cours"],
+    ["accueil.regle-2", "« J’ai envie aussi », « Oui, mais… » ou « On passe ».", "Le principe, ligne 2"],
+    ["accueil.regle-3", "Deux « j’ai envie » : c’est un kiff kiff.", "Le principe, ligne 3"],
+    ["accueil.vos-parties", "Vos parties", "Titre de la liste, sous la une"],
+    ["accueil.du-nouveau", "Du nouveau", "Au-dessus de la une, quand une partie a du nouveau (suivi du temps)"],
+    ["accueil.derniere", "Dernière partie", "Au-dessus de la une, sans nouveauté"],
+    ["accueil.a-l-instant", "à l’instant", "Le temps depuis la dernière nouveauté"],
+    ["accueil.il-y-a-min", "il y a {nombre} min", "Même chose, en minutes"],
+    ["accueil.il-y-a-h", "il y a {nombre} h", "Même chose, en heures"],
+    ["accueil.compose", "{prénom} compose une envie…", "Où en est la partie : l’autre compose"],
+    ["accueil.lit", "{prénom} lit ton envie…", "Où en est la partie : l’autre lit ton envie"],
+    ["accueil.ajuste", "{prénom} ajuste ton envie…", "Où en est la partie : « Oui, mais… » de l’autre"],
+    ["accueil.relit", "{prénom} relit son envie ajustée…", "Où en est la partie : l’autre relit"],
+    ["accueil.ici", "Sur ce téléphone · au tour de {prénom}", "La partie sur ce téléphone, dans la liste"],
+    ["accueil.ouvrir", "Ouvrir la partie", "Le bouton de la une, sans action à faire"],
+    ["accueil.lire-messages", "Lire ses messages", "Le bouton de la une, quand des messages attendent"]
+  ] },
+  { id: "menu", nom: "Le menu de l’accueil", textes: [
+    ["menu.ambiance", "Ambiance et son", "Menu"],
+    ["menu.ambiance-sous", "L’habillage du jeu, et ses sons", "Menu, sous « Ambiance et son »"],
+    ["menu.installer", "Installer l’appli", "Menu (quand c’est possible)"],
+    ["menu.installer-sous", "Pour être averti·e quand l’autre répond", "Menu, sous « Installer l’appli »"],
+    ["menu.distance", "Continuer à distance", "Menu, quand une partie sur ce téléphone est en cours"],
+    ["menu.distance-sous", "La partie de ce téléphone, sur deux téléphones", "Menu, sous « Continuer à distance »"],
+    ["menu.tourner-sous", "Faire découvrir le jeu", "Menu, sous « Fais tourner ! »"],
+    ["menu.quiestla-sous", "L’histoire du jeu, un café, un mot à Marc", "Menu, sous « Qui est là ? »"],
+    ["menu.complet", "Tout Kiff Kiff", "Menu : le jeu complet"]
   ] },
   { id: "joueurs", nom: "Qui joue ?", textes: [
     ["joueurs.titre", "Qui joue ?", "Titre"],
@@ -285,7 +312,8 @@ window.KIFF_TEXTES = [
   ] },
   { id: "ambiance", nom: "L’ambiance", textes: [
     ["ambiance.titre", "Choisis l’ambiance", "Titre de la feuille"],
-    ["ambiance.ok", "C’est choisi", "Bouton pour fermer"]
+    ["ambiance.ok", "C’est choisi", "Bouton pour fermer"],
+    ["ambiance.sons", "Sons du jeu", "Sous les ambiances : le son, activé ou coupé"]
   ] },
   { id: "duo", nom: "Deux téléphones", textes: [
     ["duo.titre", "Sur deux téléphones", "Titre de la feuille (créer une partie, erreurs)"],
@@ -426,7 +454,8 @@ window.KIFF_TEXTES = [
     ["parties.personne", "Personne n’a encore rejoint", "Deuxième ligne, invitation envoyée"],
     ["parties.a-rejoindre", "À rejoindre", "Deuxième ligne, invitation reçue"],
     ["parties.confirmer", "Touche encore × : {prénom} sera prévenu·e", "Deuxième ligne, après une première touche sur ×"],
-    ["parties.kiffs", "{nombre} kiff kiff", "À la suite du prénom, quand la partie a déjà des kiff kiff"]
+    ["parties.kiffs", "{nombre} kiff kiff", "À la suite du prénom, quand la partie a déjà des kiff kiff"],
+    ["parties.arreter-confirmer", "Touche encore pour arrêter : {prénom} sera prévenu·e", "Dans la liste de l’accueil, après un appui long sur une partie"]
   ] },
   { id: "avertir", nom: "Avertissements", textes: [
     ["avertir.iphone", "M’avertir sur iPhone", "Titre, en touchant la cloche sur un iPhone, avant d’avoir installé l’appli"],

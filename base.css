@@ -1253,3 +1253,66 @@ body:has(#ov-deal:not([hidden])) .deco-candles { display: none; }
 .partie-action { flex-wrap: wrap; }
 .partie-action-text { flex: 1 1 150px; }
 .partie-action .btn { font-size: 15px; letter-spacing: .02em; line-height: 1.15; padding: 0 16px; }
+
+/* ---------- L’accueil (26 octobre 2026) : la une, puis vos parties ; sinon le grand emblème ---------- */
+.welcome .home-top { align-self: stretch; display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 44px; }
+.welcome .home-top .home-menu-btn { margin-left: auto; width: 44px; height: 44px; padding: 0; flex: none; }
+.home-brand { display: inline-flex; align-items: center; gap: 8px; }
+.home-brand[hidden] { display: none; }
+.emblem--mini { width: 38px; height: auto; margin: 0; }
+.home-brand-name { font-size: 26px; line-height: 1; }
+.home-hero { display: flex; flex-direction: column; align-items: center; gap: 14px; }
+.home-hero[hidden] { display: none; }
+.welcome .games--old, .welcome .home-icons { display: none !important; }
+.home-go { align-self: stretch; display: flex; flex-direction: column; align-items: stretch; gap: 10px; }
+.home-rules { align-self: stretch; list-style: none; margin: 4px 0 0; padding: 14px 16px; border-radius: 14px; display: flex; flex-direction: column; gap: 8px; text-align: left; font-size: 14px;
+  background: color-mix(in srgb, currentColor 6%, transparent); box-shadow: inset 0 0 0 1px color-mix(in srgb, currentColor 25%, transparent); }
+.home-rules[hidden] { display: none; }
+.home-rules li { display: flex; gap: 10px; }
+.home-rules b { flex: none; width: 1.2em; }
+/* Avec des parties : en haut, puis la une et la liste ; « Nouvelle partie » en bas */
+.welcome.has-games { justify-content: flex-start; }
+.avatar { flex: none; width: 46px; height: 46px; border-radius: 50%; display: grid; place-items: center; font-weight: 700; font-size: 19px;
+  background: var(--avatar-bg, color-mix(in srgb, currentColor 14%, transparent)); color: var(--avatar-fg, inherit); box-shadow: inset 0 0 0 1.5px var(--avatar-line, color-mix(in srgb, currentColor 45%, transparent)); }
+.avatar.is-new { box-shadow: 0 0 0 2px var(--avatar-gap, transparent), 0 0 0 4px var(--badge-bg, #D81B50), 0 0 14px color-mix(in srgb, var(--badge-bg, #D81B50) 70%, transparent); }
+.home-une { align-self: stretch; display: flex; flex-direction: column; gap: 10px; padding: 18px; border-radius: 16px; text-align: left;
+  background: var(--une-bg, color-mix(in srgb, currentColor 8%, transparent)); box-shadow: var(--une-shadow, inset 0 0 0 1.5px color-mix(in srgb, currentColor 35%, transparent)); }
+.home-une[hidden] { display: none; }
+.une-head { display: flex; align-items: center; gap: 12px; }
+.une-head .avatar { width: 56px; height: 56px; font-size: 23px; }
+.une-head-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.une-kicker { font-size: 11.5px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; opacity: .8; }
+.une-name { font-size: 18px; font-weight: 700; }
+.une-line { margin: 0; font-size: 22px; line-height: 1.2; }
+.une-msg { margin: 0; align-self: flex-start; max-width: 92%; padding: 7px 12px; border-radius: 16px 16px 16px 6px; font-size: 14.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  background: color-mix(in srgb, currentColor 9%, transparent); box-shadow: inset 0 0 0 1px color-mix(in srgb, currentColor 22%, transparent); }
+.une-go { align-self: stretch; margin-top: 2px; }
+.home-sec { align-self: stretch; margin: 8px 2px -4px; display: flex; gap: 6px; font-size: 12.5px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; opacity: .8; text-align: left; }
+.home-sec[hidden], .home-list[hidden] { display: none; }
+.home-list { align-self: stretch; list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.home-game-btn { width: 100%; display: flex; align-items: center; gap: 12px; padding: 10px; border: 0; border-radius: 14px; color: inherit; font: inherit; text-align: left; cursor: pointer; -webkit-tap-highlight-color: transparent;
+  background: var(--row-bg, color-mix(in srgb, currentColor 6%, transparent)); -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+.home-game.is-new .home-game-btn { background: var(--row-new-bg, color-mix(in srgb, var(--badge-bg, #D81B50) 14%, transparent)); }
+.home-game.is-armed .home-game-btn { box-shadow: inset 0 0 0 1.5px var(--badge-bg, #D81B50); }
+.home-game-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.home-game-name { font-size: 16px; font-weight: 700; }
+.home-game-line { font-size: 14px; opacity: .85; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.home-game-line.is-me { opacity: 1; font-weight: 600; }
+.home-game.is-armed .home-game-line { opacity: 1; font-weight: 600; white-space: normal; }
+.home-game-side { flex: none; display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+.home-game-time { font-size: 12px; opacity: .8; white-space: nowrap; }
+/* Le menu */
+.menu-list { display: flex; flex-direction: column; gap: 2px; }
+.menu-list .icon-btn { display: grid; grid-template-columns: 46px minmax(0, 1fr); column-gap: 14px; align-items: center; justify-items: start; padding: 8px 6px; border-radius: 14px; text-align: left; min-width: 0; width: 100%; }
+.menu-list .icon-btn[hidden] { display: none; }
+.menu-list .icon-btn > .ic { grid-row: 1 / span 2; width: 22px; height: 22px; padding: 12px; }
+.menu-list .icon-label { font-size: 16px; font-weight: 600; text-align: left; }
+.menu-list .menu-sub { grid-column: 2; font-size: 13px; opacity: .78; text-align: left; }
+/* Le son, dans la page de l’ambiance */
+.skin-sound { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 4px 4px; border-top: 1px solid color-mix(in srgb, currentColor 18%, transparent); }
+.skin-sound-label { font-size: 16px; }
+.skin-sound #mute { flex-direction: row; min-width: 0; }
+.skin-sound #mute .icon-label { font-size: 14px; }
+.welcome .home-brand .emblem--mini { width: 40px; height: auto; margin: 0; flex: none; }
+.skin-sound #mute .icon-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.une-kicker { line-height: 1.3; }

@@ -607,3 +607,17 @@ header.top .kiffs-btn { height: 44px; padding: 0 13px 0 10px; border: 0; border-
 .partie-line { color: #FFF0C4; }
 .thread-kiff-card, .env-card { font-weight: 500 !important; }
 #wait-home { width: 44px; height: 44px; }
+
+/* L’accueil : la une cerclée d’or, les médaillons de velours */
+:root { --avatar-bg: radial-gradient(circle at 35% 30%, #6B0F22, #2B040C); --avatar-fg: var(--gold-hi); --avatar-line: var(--gold); --avatar-gap: var(--velvet-lo);
+  --une-bg: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(255, 79, 126, .3), transparent 70%), linear-gradient(180deg, rgba(35, 3, 10, .88), rgba(35, 3, 10, .62));
+  --une-shadow: inset 0 0 0 1px #F6DDA0, inset 0 0 0 5px #5A0C1D, inset 0 0 0 6px var(--gold), 0 16px 34px rgba(0, 0, 0, .5);
+  --row-bg: rgba(43, 4, 12, .45); }
+.avatar, .une-name, .home-game-name { font-family: var(--f-title); }
+.une-name, .home-game-name { color: var(--gold-hi); }
+.une-kicker, .home-sec { font-family: var(--f-title); color: var(--blush); }
+.une-line { font-family: var(--f-display); color: #FFF0C4; }
+.home-brand-name { font-family: var(--f-title); font-weight: 800; letter-spacing: .05em; }
+.home-brand-name .ink { background: var(--foil); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.home-game-line.is-me { color: var(--blush); }
+body:has(#ov-menu:not([hidden])) .deco-candles { display: none; }

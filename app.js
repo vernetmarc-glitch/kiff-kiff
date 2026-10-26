@@ -2305,6 +2305,7 @@
   // Un avertissement de message touché : la partie, à la bonne envie
   let pendingKiff = '';
   function openPendingKiff() {
+    if (pendingPartie && duo && duo.stage === 'game') { pendingPartie = false; if (!pendingKiff) { openPartie(); return; } }
     if (!pendingKiff || !duo || duo.stage !== 'game') return;
     const k = pendingKiff; pendingKiff = '';
     hide(el.ovStart);
@@ -4424,6 +4425,8 @@
       leaveDuo(true);
     });
     goStep(0, true);
+    renderHome();
+    setTimeout(() => { refreshGames(); peekBoxes(); }, 300);
     const inv = window.KiffDuo && window.KiffDuo.parse(location.hash);
     const installed = (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true;
     reportOnce('visite', inv ? (findGame(inv.room) ? 'reprise' : 'invitation') : (installed ? 'installee' : 'web'));
@@ -4498,6 +4501,7 @@
     report('partie', null, 'un');
     report('piment', null, S.levels.join(''));
     S.t0 = Date.now();
+    save('iciT', Date.now());
     hide(el.ovStart);
     S.kiff = null;
     S.kept = [[], [], []]; newDraw();
@@ -4568,11 +4572,15 @@
       const st = found[g.room];
       if (!st) return g;
       if (st.phase === 'ended') return null;
-      return Object.assign({}, g, { names: (st.names || g.names || ['', '']).slice(0, 2), turn: turnFor(st, g.seat), kiff: st.kiff ? st.kiff.n : 0,
+      // La photo de la partie suit la feuille : l’accueil et l’ouverture instantanée sont à jour
+      const old = snapOf(g.room);
+      const newer = !old || (st.seq || 0) > (old.seq || 0);
+      if (newer) saveSnap(g.room, st);
+      return Object.assign({}, g, newer && old ? { t: Date.now() } : {}, { names: (st.names || g.names || ['', '']).slice(0, 2), turn: turnFor(st, g.seat), kiff: st.kiff ? st.kiff.n : 0,
         nk: Math.max(Array.isArray(st.kiffs) ? st.kiffs.length : 0, st.kiff ? st.kiff.n : 0) });
     }).filter(Boolean);
     save('parties', next);
-    if (!el.ovStart.hidden) renderGames();
+    if (!el.ovStart.hidden) { renderGames(); renderHome(); }
   }
   // La partie ouverte passe dans la liste : on se déconnecte sans rien annoncer
   function parkDuo() {
@@ -4652,6 +4660,163 @@
   $('#games-list').addEventListener('click', onGames);
   $('#games-sheet-list').addEventListener('click', onGames);
   $('#games-open').addEventListener('click', () => { audio(); sClick(); haptic(8); refreshGames(); show(ovGames); $('#games-close').focus({ preventScroll: true }); });
+  /* ---------- L’accueil (26 octobre 2026) : la une, puis vos parties ----------
+     La une : la partie qui a du nouveau (envie à lire, messages, kiff kiff), sinon la dernière jouée.
+     Dessous, les autres parties : une ligne chacune, avec où elle en est ou son dernier message.
+     Sans partie : le grand emblème, « Commencer », le principe en trois lignes. Le reste est dans le menu. */
+  const peek = {}; // les messages qui attendent dans la boîte aux lettres, par partie (vus de l’accueil, pas encore lus)
+  const initial = (n) => ((n || '').trim()[0] || '·').toUpperCase();
+  function agoText(ms) {
+    if (!ms) return '';
+    const m = Math.round((Date.now() - ms) / 60000);
+    if (m < 1) return T('accueil.a-l-instant');
+    if (m < 60) return T('accueil.il-y-a-min', { nombre: m });
+    const d = new Date(ms), t = new Date();
+    if (d.toDateString() === t.toDateString()) return T('accueil.il-y-a-h', { nombre: Math.round(m / 60) });
+    return dayLabel(ms).toLowerCase();
+  }
+  // Où en est une partie, vu de ce téléphone (seat) : ce qu’il faut faire, ou ce que fait l’autre
+  function gameState(st, seat, B) {
+    if (!st) return { me: false, line: '', go: 'ouvrir' };
+    const ph = st.phase, mine = turnFor(st, seat) === 'me';
+    if (ph === 'lobby') return { me: false, line: seat === 0 ? T('parties.personne') : T('parties.a-rejoindre'), go: 'ouvrir' };
+    if (ph === 'celebrate') return { me: true, line: T('parties.kiff'), go: 'ouvrir' };
+    if (mine) {
+      if (ph === 'compose') return { me: true, line: T('partie.proposer'), go: 'tourner' };
+      if (ph === 'review') return { me: true, line: T('partie.envie-recue', { prénom: B }), go: 'lire' };
+      if (ph === 'reconfirm') return { me: true, line: T('partie.ajustee', { prénom: B }), go: 'relire' };
+      return { me: true, line: T('partie.ajuster', { prénom: B }), go: 'reprendre' };
+    }
+    if (ph === 'compose') return { me: false, line: T('accueil.compose', { prénom: B }), go: 'ouvrir' };
+    if (ph === 'review') return { me: false, line: T('accueil.lit', { prénom: B }), go: 'ouvrir' };
+    if (ph === 'adjust') return { me: false, line: T('accueil.ajuste', { prénom: B }), go: 'ouvrir' };
+    return { me: false, line: T('accueil.relit', { prénom: B }), go: 'ouvrir' };
+  }
+  function homeItems() {
+    const cur = duo && duo.stage === 'game' && duo.info ? duo.info.room : '';
+    const items = games().filter((g) => g.room !== cur).map((g) => {
+      const B = ((g.names || [])[1 - g.seat] || '').trim() || T('parties.l-autre');
+      const st = snapOf(g.room);
+      const cb = chatBox(g.room);
+      const msgs = cb.m.filter((m) => !m.x);
+      const last = msgs[msgs.length - 1];
+      const lu = (m) => Math.max(cb.lu['*'] || 0, cb.lu[m.k] || 0);
+      const pk = peek[g.room] || { n: 0, last: null };
+      const nu = msgs.filter((m) => m.s !== g.seat && m.d > lu(m)).length + pk.n;
+      const lastMsg = pk.last && (!last || pk.last.d > last.d) ? pk.last : last;
+      const state = st ? gameState(st, g.seat, B) : { me: g.turn === 'me', line: g.turn === 'me' ? T('parties.a-toi') : T('parties.tour', { prénom: B }), go: 'ouvrir' };
+      const freshKiff = (g.kiff || 0) > kiffSeen(g.room);
+      const news = state.me || nu > 0 || freshKiff;
+      const t = Math.max(g.t || 0, lastMsg ? lastMsg.d : 0);
+      const msgLine = lastMsg ? (lastMsg.s === g.seat ? T('chat.toi') : B) + ' : ' + lastMsg.t : '';
+      return { kind: 'duo', g, B, state, nu, news, t, freshKiff, msgLine, lastMsg, nk: g.nk || 0, title: g.turn === 'lobby' && g.seat === 0 ? T('parties.invitation') : B };
+    });
+    // La partie sur ce téléphone, si elle est en cours
+    if (!duo && S.started && !S.mustRestart) {
+      items.push({ kind: 'ici', title: T('partie.seul-titre', { prénom: nameOf(0), autre: nameOf(1) }), state: { me: false, line: T('accueil.ici', { prénom: nameOf(S.proposer) }) }, nu: 0, news: false, t: load('iciT', 0) || 1, msgLine: '' });
+    }
+    return items;
+  }
+  function renderHome() {
+    const items = homeItems();
+    const has = items.length > 0;
+    $('#welcome').classList.toggle('has-games', has);
+    $('#home-brand').hidden = !has;
+    $('#home-hero').hidden = has;
+    $('#home-rules').hidden = has;
+    $('#welcome-go').textContent = has ? T('accueil.nouvelle') : T('accueil.commencer');
+    $('#welcome-go').classList.remove('btn--line');
+    const une = $('#home-une'), list = $('#home-list');
+    if (!has) { une.hidden = true; list.hidden = true; $('#home-sec').hidden = true; return; }
+    // La une : du nouveau d’abord (le plus récent), sinon la dernière partie jouée
+    const sorted = items.slice().sort((a, b) => (b.news - a.news) || (b.t - a.t));
+    const top = sorted[0];
+    const rest = sorted.slice(1);
+    const isDuo = top.kind === 'duo';
+    const B = top.B || '';
+    const kick = (top.news ? T('accueil.du-nouveau') : T('accueil.derniere')) + (top.t > 1 ? ' · ' + agoText(top.t) : '');
+    const goLabel = !isDuo ? T('accueil.reprendre') : top.state.go === 'lire' ? T('partie.lire') : top.state.go === 'relire' ? T('partie.relire')
+      : top.state.go === 'tourner' ? T('partie.tourner') : top.state.go === 'reprendre' ? T('partie.reprendre')
+      : top.nu ? T('accueil.lire-messages') : T('accueil.ouvrir');
+    const line = top.freshKiff ? T('parties.kiff-neuf') : top.state.line || '';
+    une.innerHTML = '<div class="une-head"><span class="avatar' + (top.news ? ' is-new' : '') + '" aria-hidden="true">' + esc(initial(isDuo ? B : top.title)) + '</span>' +
+      '<span class="une-head-text"><span class="une-kicker">' + esc(kick) + '</span><span class="une-name">' + esc(isDuo ? T('jeu.avec', { prénom: B }) : top.title) + '</span></span>' +
+      (top.nu ? '<span class="badge badge--row" aria-label="' + top.nu + ' message' + (top.nu > 1 ? 's' : '') + ' non lu' + (top.nu > 1 ? 's' : '') + '">' + top.nu + '</span>' : '') + '</div>' +
+      (line ? '<p class="une-line">' + esc(line) + '</p>' : '') +
+      (top.msgLine ? '<p class="une-msg">' + esc(top.msgLine) + '</p>' : '') +
+      '<button class="btn une-go" type="button" data-home="' + esc(isDuo ? top.g.room : 'ici') + '"' + (isDuo && !top.state.me && top.nu ? ' data-partie="1"' : '') + '>' + esc(goLabel) + '</button>';
+    une.classList.toggle('is-new', !!top.news);
+    une.hidden = false;
+    $('#home-sec').hidden = !rest.length;
+    $('#home-sec-n').textContent = rest.length ? ' ' + rest.length : '';
+    list.hidden = !rest.length;
+    list.innerHTML = rest.map((it) => {
+      const isD = it.kind === 'duo';
+      const armed = isD && stopArmed === it.g.room;
+      const st = armed ? T('parties.arreter-confirmer', { prénom: it.B }) : (it.state.me ? it.state.line : (it.msgLine || it.state.line));
+      return '<li class="home-game' + (it.news ? ' is-new' : '') + (armed ? ' is-armed' : '') + '"><button class="home-game-btn" type="button" data-home="' + esc(isD ? it.g.room : 'ici') + '"' + (isD && !it.state.me && it.nu ? ' data-partie="1"' : '') + '>' +
+        '<span class="avatar' + (it.news ? ' is-new' : '') + '" aria-hidden="true">' + esc(initial(isD ? it.B : it.title)) + '</span>' +
+        '<span class="home-game-text"><span class="home-game-name">' + esc(it.title) + '</span><span class="home-game-line' + (it.state.me ? ' is-me' : '') + '">' + esc(st) + '</span></span>' +
+        '<span class="home-game-side"><span class="home-game-time">' + esc(it.t > 1 ? agoText(it.t) : '') + '</span>' +
+        (it.nu ? '<span class="badge badge--row">' + it.nu + '<span class="sr-only"> non lus</span></span>' : '') + '</span></button></li>';
+    }).join('');
+  }
+  // Toucher une partie : elle s’ouvre (tout de suite) ; avec des messages non lus, à la conversation
+  let pendingPartie = false;
+  function openFromHome(b) {
+    const room = b.dataset.home;
+    if (!room) return;
+    audio(); sClick(); haptic(8);
+    if (room === 'ici') { $('#resume').click(); return; }
+    if (stopArmed === room) { stopArmed = ''; haptic(20); stopGame(room); renderHome(); return; }
+    pendingPartie = !!b.dataset.partie;
+    report('accueil', null, b.classList.contains('une-go') ? 'une' : 'liste');
+    openGame(room);
+  }
+  $('#home-une').addEventListener('click', (e) => { const b = e.target.closest('[data-home]'); if (b) openFromHome(b); });
+  $('#home-list').addEventListener('click', (e) => { const b = e.target.closest('[data-home]'); if (b) openFromHome(b); });
+  // Appui long sur une partie de la liste : l’arrêter (une deuxième touche confirme, l’autre est prévenu·e)
+  let homePressT = 0;
+  $('#home-list').addEventListener('pointerdown', (e) => {
+    const b = e.target.closest('[data-home]'); if (!b || b.dataset.home === 'ici') return;
+    clearTimeout(homePressT);
+    homePressT = setTimeout(() => {
+      stopArmed = b.dataset.home; haptic(15); renderHome();
+      clearTimeout(stopT); stopT = setTimeout(() => { stopArmed = ''; renderHome(); }, 4000);
+      b.dataset.pressed = '1';
+    }, 550);
+  });
+  ['pointerup', 'pointerleave', 'pointercancel'].forEach((ev) => $('#home-list').addEventListener(ev, () => clearTimeout(homePressT)));
+  $('#home-list').addEventListener('contextmenu', (e) => { if (e.target.closest('[data-home]')) e.preventDefault(); });
+  // Les messages qui attendent dans la boîte aux lettres : comptés à l’accueil, sans les marquer lus
+  async function peekBoxes() {
+    if (!window.KiffDuo || !window.KiffDuo.boxLoad) return;
+    const list = games().slice(0, 6);
+    await Promise.all(list.map(async (g) => {
+      try {
+        const got = await window.KiffDuo.boxLoad({ room: g.room, key: g.key, broker: g.broker }, g.seat);
+        const known = new Set(chatBox(g.room).ev);
+        const ms = got.map((x) => x.obj).filter((o) => o && o.ty === 'm' && o.s !== g.seat && !known.has(o.ev) && typeof o.t === 'string');
+        ms.sort((a, b) => (a.d || 0) - (b.d || 0));
+        peek[g.room] = { n: ms.length, last: ms.length ? { s: ms[ms.length - 1].s, t: ms[ms.length - 1].t.slice(0, 120), d: +ms[ms.length - 1].d || Date.now() } : null };
+      } catch (e) { /* hors connexion : tant pis */ }
+    }));
+    if (!el.ovStart.hidden) renderHome();
+  }
+  // L’accueil reste à jour : en revenant dans l’appli, puis toutes les 30 secondes tant qu’il est à l’écran
+  const homeFresh = () => { if (!el.ovStart.hidden && document.visibilityState === 'visible' && ($('#steps').dataset.step || '0') === '0') { gamesT = 0; refreshGames(); peekBoxes(); } };
+  document.addEventListener('visibilitychange', homeFresh);
+  setInterval(homeFresh, 30000);
+  // Le menu
+  const ovMenu2 = $('#ov-menu');
+  $('#home-menu').addEventListener('click', () => { audio(); sClick(); haptic(8); show(ovMenu2); $('#menu-close').focus({ preventScroll: true }); });
+  $('#menu-close').addEventListener('click', () => { audio(); hide(ovMenu2); });
+  ovMenu2.addEventListener('click', (e) => { if (e.target === ovMenu2) hide(ovMenu2); });
+  // Un choix du menu le referme ; la fenêtre choisie s’ouvre à sa place
+  $('#ov-menu .menu-list').addEventListener('click', (e) => { if (e.target.closest('button')) hide(ovMenu2); }, true);
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !ovMenu2.hidden) hide(ovMenu2); });
+  $('#menu-complet').addEventListener('click', () => { audio(); openComplet('menu'); });
+
   const closeGames = () => { hide(ovGames); $('#games-open').focus({ preventScroll: true }); };
   $('#games-close').addEventListener('click', () => { audio(); closeGames(); });
   ovGames.addEventListener('click', (e) => { if (e.target === ovGames) closeGames(); });
@@ -4691,7 +4856,9 @@
     show(el.ovStart);
     el.ovStart.scrollTop = 0;
     renderGames();
+    renderHome();
     refreshGames();
+    peekBoxes();
     renderWait();
     renderDuoStatus();
     homeShown();
