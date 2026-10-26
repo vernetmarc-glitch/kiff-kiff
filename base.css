@@ -1316,3 +1316,51 @@ body:has(#ov-deal:not([hidden])) .deco-candles { display: none; }
 .welcome .home-brand .emblem--mini { width: 40px; height: auto; margin: 0; flex: none; }
 .skin-sound #mute .icon-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 .une-kicker { line-height: 1.3; }
+
+/* ---------- La conversation en pleine page (26 octobre 2026) : comme une appli de messagerie ---------- */
+.overlay--partie, .overlay--envie, .overlay--kiffs { padding: 0 !important; align-items: stretch; justify-items: center; }
+.overlay--partie > .sheet, .overlay--envie > .sheet, .overlay--kiffs > .sheet {
+  width: 100%; max-width: 640px; height: 100%; max-height: none !important; box-sizing: border-box; border-radius: 0 !important; transform: none !important;
+  box-shadow: none !important; padding: max(8px, env(safe-area-inset-top, 0px)) 12px max(8px, env(safe-area-inset-bottom, 0px)) !important; }
+.overlay--partie > .sheet::before, .overlay--envie > .sheet::before, .overlay--kiffs > .sheet::before { transform: none !important; }
+/* En haut : une ligne de présence, sans retour à la ligne */
+.sheet--partie > header.top { margin: 0 0 6px; padding-bottom: 6px; border-bottom: 1px solid color-mix(in srgb, currentColor 16%, transparent); }
+.sheet--partie .top-name { font-size: 18px; }
+.sheet--partie .top-pres { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+/* L’action du moment : une seule ligne, ses boutons à droite */
+.partie-action { flex-wrap: nowrap; gap: 6px; margin: 0 0 4px; padding: 6px 6px 6px 12px; min-height: 48px; box-sizing: border-box; }
+.partie-action-text { flex: 1 1 auto; flex-direction: row; align-items: center; flex-wrap: wrap; column-gap: 10px; row-gap: 0; }
+.partie-line { font-size: 14.5px; }
+.partie-action .wait-pass { min-height: 32px; font-size: 13px; }
+.partie-action .btn { min-height: 40px; padding: 0 14px; font-size: 14.5px; }
+.partie-ic { min-width: 40px; min-height: 40px; }
+.partie-ic > .ic { padding: 8px; }
+/* Le fil : plus de place pour lire */
+.sheet--partie .kiff-scroll { padding: 4px 2px 8px; }
+.thread-kiff { margin: 6px 22px 4px; }
+.thread-kiff-kicker { font-size: 10.5px; }
+.thread-kiff-card { font-size: 15.5px !important; padding: 10px 14px !important; line-height: 1.3; }
+.sheet--partie .chat-bar { padding-top: 6px; }
+/* Les suites de messages : serrées, l’heure sur le dernier */
+.chat-msg.is-cont { margin-top: -3px; }
+.chat-msg.is-more:not(.is-mine) { border-bottom-left-radius: 6px; }
+.chat-msg.is-cont:not(.is-mine) { border-top-left-radius: 6px; }
+.chat-msg.is-mine.is-more { border-bottom-right-radius: 6px; }
+.chat-msg.is-mine.is-cont { border-top-right-radius: 6px; }
+.chat-msg.is-more { padding-bottom: 8px; }
+/* Glisser pour répondre */
+.chat-msg { touch-action: pan-y; transition: transform .18s ease-out; }
+.chat-msg.is-swiping { transition: none; }
+.chat-msg.is-swiping::before { content: ""; position: absolute; left: -34px; top: 50%; width: 22px; height: 22px; margin-top: -11px; border-radius: 50%; opacity: .35;
+  background: currentColor; -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M10 8L5 12l5 4M5 12h9a5 5 0 0 1 5 5' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/></svg>") center / 18px no-repeat; mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M10 8L5 12l5 4M5 12h9a5 5 0 0 1 5 5' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/></svg>") center / 18px no-repeat; }
+.chat-msg.is-ready::before { opacity: .9; }
+/* Le bouton ↓ */
+.chat-bar { position: relative; }
+.chat-down { position: absolute; right: 6px; top: -54px; z-index: 3; min-width: 44px; height: 44px; padding: 0 12px; border: 0; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer;
+  font: inherit; font-size: 13.5px; font-weight: 700; background: var(--chat-mine-bg, #333); color: var(--chat-mine-fg, #fff); box-shadow: 0 4px 14px rgba(0, 0, 0, .35); }
+.chat-down[hidden] { display: none; }
+.chat-down .ic { width: 18px; height: 18px; }
+.chat-down #chat-down-n:empty { display: none; }
+/* Pleine page : la hauteur de l’écran (le fil défile, pas la page) */
+.overlay--partie > .sheet, .overlay--envie > .sheet, .overlay--kiffs > .sheet { height: 100vh; height: 100dvh; }
+.overlay--partie, .overlay--envie, .overlay--kiffs { overflow: hidden; }

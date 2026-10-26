@@ -621,3 +621,9 @@ header.top .kiffs-btn { height: 44px; padding: 0 13px 0 10px; border: 0; border-
 .home-brand-name .ink { background: var(--foil); -webkit-background-clip: text; background-clip: text; color: transparent; }
 .home-game-line.is-me { color: var(--blush); }
 body:has(#ov-menu:not([hidden])) .deco-candles { display: none; }
+
+/* La conversation en pleine page : le velours du jeu, sans cadre dans le cadre */
+.overlay--partie > .sheet, .overlay--envie > .sheet, .overlay--kiffs > .sheet { background: radial-gradient(ellipse 120% 60% at 50% 0%, rgba(255, 176, 96, .12), transparent 60%), linear-gradient(var(--wine), var(--velvet-lo)); }
+.sheet--partie > header.top { border-bottom-color: rgba(217, 174, 91, .35); }
+.overlay--partie > .sheet, .overlay--envie > .sheet, .overlay--kiffs > .sheet {
+  padding: calc(max(7px, env(safe-area-inset-top, 0px)) + 12px) 18px calc(max(7px, env(safe-area-inset-bottom, 0px)) + 10px) !important; }

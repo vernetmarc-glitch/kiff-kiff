@@ -1992,7 +1992,10 @@
     const lastMine = b ? b.m.filter((m) => m.s === duo.seat && !m.x).slice(-1)[0] : null;
     let day = '', html = '';
     if (!items.length) html = '<li class="chat-empty">' + esc(T('chat.vide', { prénom: B })) + '</li>';
-    items.forEach((it) => {
+    // Les messages qui se suivent (même personne, moins de 3 minutes, même jour) forment une suite : l’heure sur le dernier
+    const GAP = 3 * 60000;
+    const sameRun = (a, c) => !!a && !!c && a.m && c.m && !a.m.x && !c.m.x && a.m.s === c.m.s && Math.abs(c.d - a.d) < GAP && dayLabel(a.d) === dayLabel(c.d);
+    items.forEach((it, i) => {
       const dl = dayLabel(it.d || Date.now());
       if (dl !== day) { day = dl; html += '<li class="chat-day"><span>' + esc(dl) + '</span></li>'; }
       if (it.k) { html += threadKiffHtml(it.k, b); return; }
@@ -2004,20 +2007,39 @@
       else if (m.q) { const q = b.m.find((x) => x.id === m.q); if (q) quote = '<span class="chat-quote">' + esc(q.x ? T('chat.supprime') : (q.t || '').slice(0, 80)) + '</span>'; }
       const vu = Math.max(b.vu[THREAD] || 0, b.vu[m.k] || 0);
       const meta = hhmm(m.d) + (m.e ? ' · ' + T('chat.modifie') : '') + (mine && lastMine && lastMine.id === m.id && vu >= m.d ? ' · ' + T('chat.lu') : '');
-      html += '<li class="chat-msg' + (mine ? ' is-mine' : '') + '" data-mid="' + esc(m.id) + '" tabindex="0" aria-label="' + esc((mine ? T('chat.toi') : B) + ' : ' + m.t) + '">' +
-        quote + '<span class="chat-text">' + msgHtml(m.t) + '</span><span class="chat-meta">' + esc(meta) + '</span>' +
+      const cont = sameRun(items[i - 1], it), more = sameRun(it, items[i + 1]);
+      const showMeta = !more || m.e || (mine && lastMine && lastMine.id === m.id);
+      html += '<li class="chat-msg' + (mine ? ' is-mine' : '') + (cont ? ' is-cont' : '') + (more ? ' is-more' : '') + '" data-mid="' + esc(m.id) + '" tabindex="0" aria-label="' + esc((mine ? T('chat.toi') : B) + ' : ' + m.t + ', ' + hhmm(m.d)) + '">' +
+        quote + '<span class="chat-text">' + msgHtml(m.t) + '</span>' + (showMeta ? '<span class="chat-meta">' + esc(meta) + '</span>' : '') +
         (m.r && Object.keys(m.r).length ? '<span class="chat-reacts">' + reactsHtml(m.r) + '</span>' : '') + '</li>';
     });
     if (typingKid) html += '<li class="chat-typing" aria-label="' + esc(B + ' ' + T('chat.ecrit')) + '"><span></span><span></span><span></span></li>';
     const sc = $('#kiff-scroll');
     const atEnd = sc.scrollHeight - sc.scrollTop - sc.clientHeight < 80;
     $('#chat-list').innerHTML = html;
-    if (toEnd || atEnd) sc.scrollTop = sc.scrollHeight;
+    const othersN = b ? b.m.filter((m) => m.s !== duo.seat && !m.x).length : 0;
+    if (toEnd || atEnd) { sc.scrollTop = sc.scrollHeight; newBelow = 0; }
+    else if (othersN > lastOthersN && lastOthersN >= 0) newBelow += othersN - lastOthersN;
+    lastOthersN = othersN;
+    renderDown();
     markRead();
   }
+  // Le bouton « ↓ » : revenir au bas du fil, avec le nombre de nouveaux messages arrivés plus bas
+  let newBelow = 0, lastOthersN = -1;
+  function renderDown() {
+    const sc = $('#kiff-scroll'), dn = $('#chat-down');
+    const far = sc.scrollHeight - sc.scrollTop - sc.clientHeight > 240;
+    if (!far && newBelow) { newBelow = 0; markRead(); }
+    dn.hidden = !(far || newBelow);
+    $('#chat-down-n').textContent = newBelow ? T(newBelow > 1 ? 'chat.nouveaux' : 'chat.nouveau', { nombre: newBelow }) : '';
+    dn.classList.toggle('has-n', !!newBelow);
+    dn.setAttribute('aria-label', newBelow ? T(newBelow > 1 ? 'chat.nouveaux' : 'chat.nouveau', { nombre: newBelow }) : T('chat.bas'));
+  }
+  $('#kiff-scroll').addEventListener('scroll', () => { if (!ovPartie.hidden) renderDown(); }, { passive: true });
+  $('#chat-down').addEventListener('click', () => { audio(); const sc = $('#kiff-scroll'); sc.scrollTo({ top: sc.scrollHeight, behavior: 'smooth' }); newBelow = 0; renderDown(); });
   // Lu : je préviens l’autre jusqu’où j’ai lu (une fois, quand ça avance)
   function markRead() {
-    if (!partieOn() || document.visibilityState !== 'visible') return;
+    if (!partieOn() || document.visibilityState !== 'visible' || newBelow) return;
     const b = chatBox();
     const last = b.m.filter((m) => m.s !== duo.seat).reduce((x, m) => Math.max(x, m.d), 0);
     if (last > (b.lu[THREAD] || 0)) {
@@ -2170,6 +2192,36 @@
   };
   const pressEnd = () => clearTimeout(pressT);
   const cl = $('#chat-list');
+  // Glisser un message vers la droite (comme dans les messageries) : y répondre
+  let swipe = null;
+  cl.addEventListener('pointerdown', (e) => {
+    const li = e.target.closest('[data-mid]');
+    swipe = li && canChat() ? { li, x: e.clientX, y: e.clientY, dx: 0, on: false } : null;
+  });
+  cl.addEventListener('pointermove', (e) => {
+    if (!swipe) return;
+    const dx = e.clientX - swipe.x, dy = e.clientY - swipe.y;
+    if (!swipe.on) {
+      if (Math.abs(dy) > 12) { swipe = null; return; }
+      if (dx > 12) { swipe.on = true; pressEnd(); swipe.li.classList.add('is-swiping'); }
+      else return;
+    }
+    swipe.dx = Math.max(0, Math.min(80, dx));
+    swipe.li.style.transform = 'translateX(' + swipe.dx + 'px)';
+    swipe.li.classList.toggle('is-ready', swipe.dx > 56);
+  });
+  const swipeEnd = () => {
+    if (!swipe) return;
+    const sw = swipe; swipe = null;
+    if (!sw.on) return;
+    sw.li.style.transform = ''; sw.li.classList.remove('is-swiping', 'is-ready');
+    if (sw.dx > 56) {
+      replyTo = sw.li.dataset.mid; editing2 = null; citeKid = '';
+      haptic(10); renderReplyBar(); chatInput.focus({ preventScroll: true });
+      report('discussion', null, 'glisser');
+    }
+  };
+  ['pointerup', 'pointercancel', 'pointerleave'].forEach((ev) => cl.addEventListener(ev, swipeEnd));
   cl.addEventListener('pointerdown', pressStart);
   ['pointerup', 'pointerleave', 'pointercancel'].forEach((ev) => cl.addEventListener(ev, pressEnd));
   cl.addEventListener('contextmenu', (e) => { const x = e.target.closest('[data-mid]'); if (x) { e.preventDefault(); pressEnd(); openMenu(x.dataset.mid); } });
@@ -3342,12 +3394,12 @@
     let label = '', line = '', go = '';
     actionGo = '';
     if (waiting) {
-      if (S.phase === 'compose') { label = T('attente.tour', { prénom: A }); line = T('attente.compose', { prénom: A }); }
-      else if (S.phase === 'review') { label = T('attente.envoyee'); line = hotter() ? T('attente.piment', { prénom: B }) : T('attente.lit', { prénom: B }); }
-      else if (S.phase === 'adjust') { label = T('attente.ajuste', { prénom: B }); line = T('attente.ajuste-texte', { prénom: B }); }
-      else { const ch = changes(); label = T('attente.tour', { prénom: A }); line = T('attente.relit', { chose: CHANGE_NAMES[ch.length ? ch[0] : 0], prénom: A }); }
+      // Une seule ligne : ce qui se passe, sans titre au-dessus
+      if (S.phase === 'compose') line = T('attente.compose', { prénom: A });
+      else if (S.phase === 'review') line = T('attente.envoyee') + ' · ' + (hotter() ? T('attente.piment', { prénom: B }) : T('attente.lit', { prénom: B }));
+      else if (S.phase === 'adjust') line = T('attente.ajuste', { prénom: B }) + '.';
+      else { const ch = changes(); line = T('attente.relit', { chose: CHANGE_NAMES[ch.length ? ch[0] : 0], prénom: A }); }
     } else if (PHASES_TOUR.includes(S.phase)) {
-      label = T('partie.a-toi');
       if (S.phase === 'compose') { line = T('partie.proposer'); go = T('partie.tourner'); }
       else if (S.phase === 'review') { line = T('partie.envie-recue', { prénom: O }); go = T('partie.lire'); actionGo = 'offre'; }
       else if (S.phase === 'reconfirm') { line = T('partie.ajustee', { prénom: O }); go = T('partie.relire'); actionGo = 'offre'; }
@@ -3400,9 +3452,9 @@
     else if (presenceFlash) pres = presenceFlash;
     else if (duo.updating) pres = T('partie.maj');
     else if (typingKid) pres = T('chat.ecrit');
-    else if (away) pres = T('jeu.absent') + (on ? ' · ' + T('attente.haut-averti') : '');
+    else if (away) pres = T('jeu.absent');
     // … et le piment de la partie
-    if (duo.online !== false && !duo.updating && !presenceFlash && !(away && on) && S.levels && S.levels.length) pres += ' · ' + D.niveaux[Math.max(...S.levels) - 1].nom;
+    if (duo.online !== false && !duo.updating && !presenceFlash && S.levels && S.levels.length) pres += ' · ' + D.niveaux[Math.max(...S.levels) - 1].nom;
     $('#wait-presence').classList.toggle('is-typing', !!typingKid);
     $('#wait-name').textContent = T('jeu.avec', { prénom: B });
     $('#wait-presence-text').textContent = pres;
