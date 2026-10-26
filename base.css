@@ -1476,3 +1476,6 @@ body:has(#ov-deal:not([hidden])) .deco-candles { display: none; }
 .invite-share .btn { min-height: 48px; margin: 0; font-size: 15px; padding: 0 14px; }
 .invite-cancel { font-size: 14px; opacity: .85; }
 .overlay--partie.is-invite #chat-bar { display: none; }
+/* Le principe, court : une ligne par geste ; une ligne vide (changée dans l’Atelier) disparaît */
+.principe-intro:empty, .geste-sub:empty, .principe-piment:empty { display: none; }
+.gestes .geste-text { font-size: 17px; }
