@@ -103,16 +103,21 @@
     if (OFFRE === 'tout') return true;
     return !!load('complet', false) || !!S.cpOther;
   }
+  // La version gratuite : 20 mots par roue, pris parmi les mots cochés « gratuit » de chaque piment choisi,
+  // à parts égales (Tendre seul : 20 tendres ; Tendre et Pimenté : 10 + 10). S’il en manque, le reste des cochés
+  // comble, puis les premiers mots de la liste (un tendre, un pimenté…). Même calcul dans l’Atelier (gratuitServi).
   function freePick(r, levels) {
-    const lv = levels.filter((n) => n < 3);
-    const pool = SOURCE[r].filter((x) => lv.includes(x.lvl || 1));
-    const marked = pool.filter((x) => x.g);
-    let pick = marked.slice(0, DRAW_N);
-    // Pas encore assez de mots marqués : on complète dans l’ordre de la feuille, un tendre, un pimenté…
-    if (pick.length < DRAW_N) {
-      const rest = lv.map((n) => pool.filter((x) => (x.lvl || 1) === n && !x.g));
-      for (let i = 0; pick.length < DRAW_N && rest.some((l) => i < l.length); i++) rest.forEach((l) => { if (l[i] && pick.length < DRAW_N) pick.push(l[i]); });
-    }
+    const lv = [1, 2].filter((n) => levels.includes(n));
+    if (!lv.length) return [];
+    const of = (n, g) => SOURCE[r].filter((x) => (x.lvl || 1) === n && !!x.g === g);
+    const quota = Math.floor(DRAW_N / lv.length);
+    const pick = [];
+    lv.forEach((n) => pick.push(...of(n, true).slice(0, quota)));
+    const fill = (lists) => {
+      for (let i = 0; pick.length < DRAW_N && lists.some((l) => i < l.length); i++) lists.forEach((l) => { if (l[i] && pick.length < DRAW_N && !pick.includes(l[i])) pick.push(l[i]); });
+    };
+    fill(lv.map((n) => of(n, true)));
+    fill(lv.map((n) => of(n, false)));
     return [1, 2].flatMap((n) => interleave(pick.filter((x) => (x.lvl || 1) === n)));
   }
   function dkey(x) { return [x.s || '', x.i || '', x.t || ''].join('|'); }
