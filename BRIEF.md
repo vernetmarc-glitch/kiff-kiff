@@ -201,7 +201,7 @@ Page de travail : https://kiff-kiff.fr/atelier/ (remplace l’ancien « Atelier 
 - Les mots : chaque téléphone demande la liste à l’ouverture, la garde pour la fois suivante, et l’applique avant de commencer une partie (jamais au milieu). `data.js` reste la liste de secours, hors ligne ou si la feuille ne répond pas.
 - **Sécurité** (21 octobre 2026). Lire les mots, les textes et les statistiques est ouvert (le jeu en a besoin, et rien n’y est personnel). Enregistrer des mots ou des textes demande le mot de passe de l’atelier, gardé dans les propriétés du script (« motdepasse »), jamais dans le code, qui est public. Dix essais ratés en dix minutes bloquent l’enregistrement dix minutes. Avant chaque enregistrement, la version d’avant est copiée dans l’onglet « mots (avant) » ou « textes (avant) ». Les comptes envoyés par les téléphones restent ouverts à tous (sans mot de passe possible côté téléphone) : quelqu’un pourrait gonfler les statistiques, pas toucher aux mots ni aux parties chiffrées.
 
-- Version gratuite (26 octobre 2026) : sous le compte des mots de la roue, un tableau pour les trois roues : les tendres cochés « gratuit » (il en faut 20), les pimentés cochés (il en faut 10), puis les mots que le jeu sert en Tendre seul (20) et en Tendre et Pimenté (10 + 10), avec combien ne sont pas cochés.
+- Le récapitulatif en haut de chaque roue (26 octobre 2026) : un tableau Tendre, Pimenté, Brûlant × Premier degré, Décalé (WTF), avec les totaux ; chaque case dit combien de mots sont gratuits (il en faut 20 tendres et 10 pimentés cochés, le total le signale en rouge sinon). Dessous, ce que la version gratuite sert pour cette roue : en Tendre seul (20) et en Tendre et Pimenté (10 + 10), avec combien ne sont pas cochés.
 
 ## Fichiers
 

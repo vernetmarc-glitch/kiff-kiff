@@ -274,11 +274,22 @@ main { max-width: 980px; margin: 0 auto; padding: 18px 16px 120px; }
 .gratuit-n { margin: 8px 0 0; font-size: 14px; }
 .gratuit-n.is-ok b { color: #2E7D32; }
 .opts label.gr { font-weight: 600; }
-.counts table.gratuit-t { margin-top: 10px; }
-.gratuit-t tr.is-here th { color: var(--ink, inherit); font-weight: 700; }
 /* Journal : les derniers comptes */
 .journal { list-style: none; margin: 0; padding: 0; font-size: 14px; max-height: 420px; overflow-y: auto; border-radius: 12px; box-shadow: inset 0 0 0 1px var(--line, #ddd); }
 .journal li { display: grid; grid-template-columns: 9.5em 1fr auto; gap: 10px; padding: 7px 12px; border-top: 1px solid var(--line, #eee); }
 .journal li:first-child { border-top: 0; }
 .journal .jt { color: #777; font-variant-numeric: tabular-nums; }
 .journal .jv { color: #777; }
+
+/* Le récapitulatif d’une roue (26 octobre 2026) */
+.counts td span { display: block; }
+.counts td span.g { color: var(--muted); }
+.counts td span.g-ok { color: var(--ok); }
+.counts td span.g-low { color: var(--warn); }
+.counts td.is-sum { background: #F6F1EA; }
+.counts tfoot th, .counts tfoot td b { font-weight: 700; }
+.gratuit-n { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; margin: 8px 4px 0; font-size: 14px; }
+.gratuit-lead { color: var(--muted); }
+.chip-g { padding: 4px 10px; border-radius: 999px; box-shadow: inset 0 0 0 1px var(--line); background: var(--paper); }
+.chip-g.is-ok b { color: var(--ok); }
+.chip-g.is-low { background: #FDECEE; box-shadow: inset 0 0 0 1px #F0B3BD; }

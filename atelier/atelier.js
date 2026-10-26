@@ -280,25 +280,35 @@
   /* Combien de mots par piment et par ton : la roue en tire 20, il en faut au moins autant pour chaque réglage.
      Les mots à ajouter cochés comptent déjà, en plus. */
   const NEED = 20;
+  const GRATUIT_N = 20; // les mots d’une roue en version gratuite
+  // Le récapitulatif en haut de chaque roue : piment × ton, les totaux, et dans chaque case combien sont gratuits
   function renderCounts() {
     const box = $('#counts');
     if (!box) return;
     let sg = [];
     try { sg = pending().filter((x) => x.on); } catch (e) { /* pas encore prêt */ }
-    const cell = (n, dc) => {
-      const have = words[roue].filter((x) => x.s.trim() && x.lvl === n && !!x.dc === dc).length;
-      const plus = sg.filter((x) => x.lvl === n && !!x.dc === dc).length;
-      const tot = have + plus;
-      return '<td class="' + (tot >= NEED ? 'is-ok' : 'is-low') + '"><b>' + tot + '</b>' + (plus ? '<span>' + have + ' + ' + plus + '</span>' : '') + '</td>';
+    const mots = words[roue].filter((x) => x.s.trim());
+    const pick = (lvl, dc) => mots.filter((x) => (lvl == null || x.lvl === lvl) && (dc == null || !!x.dc === dc));
+    const plusOf = (lvl, dc) => sg.filter((x) => (lvl == null || x.lvl === lvl) && (dc == null || !!x.dc === dc)).length;
+    // gNeed : le nombre de gratuits à cocher pour ce piment (20 tendres, 10 pimentés)
+    const cell = (lvl, dc, opt) => {
+      const l = pick(lvl, dc), plus = plusOf(lvl, dc), tot = l.length + plus, g = l.filter((x) => x.g).length;
+      const cls = opt.need ? (tot >= NEED ? 'is-ok' : 'is-low') : 'is-sum';
+      const gTxt = lvl === 3 ? '' : '<span class="g' + (opt.gNeed ? (g >= opt.gNeed ? ' g-ok' : ' g-low') : '') + '">dont ' + g + ' gratuit' + (g > 1 ? 's' : '') + (opt.gNeed && g < opt.gNeed ? ' (il en faut ' + opt.gNeed + ')' : '') + '</span>';
+      return '<td class="' + cls + '"><b>' + tot + '</b>' + (plus ? '<span>' + l.length + ' + ' + plus + ' à ajouter</span>' : '') + gTxt + '</td>';
     };
-    box.innerHTML = '<table><caption>Mots par réglage : il en faut ' + NEED + ' pour remplir la roue' + (sg.length ? ' (dans la roue + à ajouter)' : '') + '</caption>' +
-      '<thead><tr><th></th><th scope="col">Premier degré</th><th scope="col">Décalé</th></tr></thead><tbody>' +
-      NIV.map((n) => '<tr><th scope="row">' + esc(n.nom) + '</th>' + cell(n.n, false) + cell(n.n, true) + '</tr>').join('') + '</tbody></table>' +
+    const gNeed = { 1: GRATUIT_N, 2: GRATUIT_N / 2 };
+    const rows = NIV.map((n) => '<tr><th scope="row">' + esc(n.nom) + '</th>' + cell(n.n, false, { need: true }) + cell(n.n, true, { need: true }) + cell(n.n, null, { gNeed: gNeed[n.n] }) + '</tr>').join('');
+    // La ligne du total : les gratuits ne comptent que Tendre et Pimenté
+    const tot = (dc) => { const l = pick(null, dc), plus = plusOf(null, dc), g = l.filter((x) => x.g && x.lvl < 3).length;
+      return '<td class="is-sum"><b>' + (l.length + plus) + '</b>' + (plus ? '<span>' + l.length + ' + ' + plus + ' à ajouter</span>' : '') + '<span class="g">dont ' + g + ' gratuit' + (g > 1 ? 's' : '') + '</span></td>'; };
+    box.innerHTML = '<table class="recap"><caption>Les mots de cette roue : il en faut ' + NEED + ' par réglage pour la remplir' + (sg.length ? ' (dans la roue + à ajouter)' : '') + '</caption>' +
+      '<thead><tr><th></th><th scope="col">Premier degré</th><th scope="col">Décalé (WTF)</th><th scope="col">Total</th></tr></thead><tbody>' + rows + '</tbody>' +
+      '<tfoot><tr><th scope="row">Total</th>' + tot(false) + tot(true) + tot(null) + '</tr></tfoot></table>' +
       gratuitHtml();
   }
   // La version gratuite : 20 mots par roue, pris parmi les cochés « gratuit » de chaque piment choisi, à parts égales
   // (Tendre seul : 20 tendres ; Tendre et Pimenté : 10 + 10), puis les premiers de la liste s’il en manque (comme freePick dans app.js)
-  const GRATUIT_N = 20;
   function gratuitServi(r, lv) {
     const of = (n, g) => words[r].filter((x) => x.s.trim() && x.lvl === n && !!x.g === g);
     const quota = Math.floor(GRATUIT_N / lv.length);
@@ -311,23 +321,15 @@
     fill(lv.map((n) => of(n, false)));
     return pick;
   }
+  // Sous le récapitulatif : ce que la version gratuite sert pour cette roue
   function gratuitHtml() {
-    const NOMS = { action: 'Action', endroit: 'Endroit', maniere: 'Manière' };
-    const coche = (r, n, need) => {
-      const c = words[r].filter((x) => x.s.trim() && x.lvl === n && x.g).length;
-      return '<td class="' + (c >= need ? 'is-ok' : 'is-low') + '"><b>' + c + '</b><span>' + (c >= need ? 'cochés' : 'il en faut ' + need) + '</span></td>';
-    };
-    const servi = (r, lv) => {
-      const pick = gratuitServi(r, lv);
+    const servi = (lv, nom) => {
+      const pick = gratuitServi(roue, lv);
       const t = pick.filter((x) => x.lvl === 1).length, p = pick.length - t, hors = pick.filter((x) => !x.g).length;
       const ok = pick.length === GRATUIT_N && !hors;
-      return '<td class="' + (ok ? 'is-ok' : 'is-low') + '"><b>' + (lv.length > 1 ? t + ' + ' + p : t) + '</b><span>' + (hors ? 'dont ' + hors + ' non coché' + (hors > 1 ? 's' : '') : 'tous cochés') + '</span></td>';
+      return '<span class="chip-g ' + (ok ? 'is-ok' : 'is-low') + '">' + nom + ' : <b>' + (lv.length > 1 ? t + ' + ' + p : t) + '</b>' + (hors ? ', dont ' + hors + ' non coché' + (hors > 1 ? 's' : '') : ', tous cochés') + '</span>';
     };
-    const rows = ROUES.map((r) => '<tr' + (r === roue ? ' class="is-here"' : '') + '><th scope="row">' + NOMS[r] + '</th>' +
-      coche(r, 1, GRATUIT_N) + coche(r, 2, GRATUIT_N / 2) + servi(r, [1]) + servi(r, [1, 2]) + '</tr>').join('');
-    return '<table class="gratuit-t"><caption>Version gratuite : les mots cochés « gratuit », et les 20 mots que le jeu sert</caption>' +
-      '<thead><tr><th></th><th scope="col">Tendres cochés</th><th scope="col">Pimentés cochés</th><th scope="col">En Tendre seul</th><th scope="col">En Tendre et Pimenté</th></tr></thead><tbody>' + rows + '</tbody></table>' +
-      '<p class="gratuit-n">En Tendre seul, le jeu sert les 20 premiers tendres cochés ; en Tendre et Pimenté, les 10 premiers tendres et les 10 premiers pimentés cochés. S’il en manque, il complète avec les autres cochés, puis avec les premiers mots de la liste.</p>';
+    return '<p class="gratuit-n"><span class="gratuit-lead">Version gratuite, les 20 mots servis</span> ' + servi([1], 'en Tendre seul') + ' ' + servi([1, 2], 'en Tendre et Pimenté') + '</p>';
   }
   const renderGratuit = () => renderCounts();
 
