@@ -582,7 +582,7 @@ header.top > .logo { align-items: center; }
 .top-pres::before { background: var(--blush); box-shadow: 0 0 6px rgba(233, 166, 176, .8); }
 .top-who.is-off .top-pres::before { background: transparent; box-shadow: inset 0 0 0 1.5px var(--blush); }
 header.top .kiffs-btn { height: 44px; padding: 0 13px 0 10px; border: 0; border-radius: 999px; background: radial-gradient(circle at 35% 30%, var(--wine), var(--velvet-lo)); box-shadow: 0 0 0 1.5px var(--gold), 0 0 0 4px var(--velvet-lo), 0 0 0 5px var(--gold-lo), 0 4px 10px rgba(0, 0, 0, .5); color: var(--gold-hi); }
-#home { width: 44px; height: 44px; border: 0; border-radius: 50%; background: radial-gradient(circle at 35% 30%, var(--wine), var(--velvet-lo)); box-shadow: 0 0 0 1.5px var(--gold), 0 0 0 4px var(--velvet-lo), 0 0 0 5px var(--gold-lo), 0 4px 10px rgba(0, 0, 0, .5); }
+#home, #wait-home { width: 44px; height: 44px; border: 0; border-radius: 50%; background: radial-gradient(circle at 35% 30%, var(--wine), var(--velvet-lo)); box-shadow: 0 0 0 1.5px var(--gold), 0 0 0 4px var(--velvet-lo), 0 0 0 5px var(--gold-lo), 0 4px 10px rgba(0, 0, 0, .5); }
 .hint { text-align: center; }
 #sw-top { margin: 0; }
 #sw-top .sw-owner { display: none; }
@@ -594,3 +594,7 @@ header.top .kiffs-btn { height: 44px; padding: 0 13px 0 10px; border: 0; border-
 .reel-loupe .ic { position: relative; width: 16px; height: 16px; stroke-width: 2.3; }
 .reel.is-locked .reel-loupe { opacity: .45; }
 .reel-item { padding: 0 30px; }
+
+/* Vos kiff kiff : de petites cartes crème cerclées d’or */
+:root { --thumb-bg: #F7E9D3; --thumb-fg: #6B0F22; --thumb-line: #C9963F; }
+.overlay--wait > .wait-top .kiffs-btn { color: var(--gold-hi); }

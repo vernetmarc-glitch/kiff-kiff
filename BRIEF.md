@@ -32,6 +32,11 @@ Chaque écran glisse vers le suivant dès la réponse ; quatre points en haut mo
 - **En bas, le tour** : « On passe » à gauche (« Sans envie » quand on compose l’envie de l’invitation), le bouton principal à droite, à toutes les étapes. Il n’y a plus de « On passe » en haut.
 - Dans Red Corner, le prénom sous « J’ai envie… » ne s’affiche plus : la consigne le dit déjà.
 
+- **L’attente** (à deux téléphones) garde la même barre en haut : la maison, « Avec Lou » et sa présence en quelques mots (« est là », « pas connecté·e · ton téléphone t’avertira »), le compteur de kiff kiff. Dessous : le titre, l’envie envoyée, « J’attends sa réponse » ; puis la ligne « Dernier kiff kiff · 13 h 27 » avec le dernier message (« Lou : … » ou « Toi : … », en gras s’il n’est pas lu) et « Écrire », qui ouvre sa discussion ; puis les icônes Prévenir et M’avertir, et « On passe » en lien.
+- **La fête** (à deux téléphones) : « Écrire à Lou » sous l’envie ouvre tout de suite sa discussion ; en revenant, la fête est toujours là.
+- **Vos kiff kiff**, comme une messagerie : une flèche de retour, le titre, une ligne « 3 trouvés · 2 à vivre · 174 mots découverts » ; trois filtres Tous, À vivre · 2, Vécues ; chaque kiff kiff sur une ligne (une petite carte « ou ✓ si vécue, l’envie sur deux lignes, le dernier message ou « Envie de Lou », l’heure, la pastille des messages non lus ou « à vivre »), le plus récent en haut. Toucher une ligne ouvre le kiff kiff.
+- **Un kiff kiff**, la discussion d’abord : en haut le prénom et « est là » ou « écrit… », trois icônes : envoyer en image, ✓ Vécue et ✕ On passe (ces deux-là pour une envie à vivre ; ✕ demande une deuxième touche : « Touche encore : l’envie quitte vos kiff kiff. »). La carte de l’envie, plus petite, avec sa ligne (Envie de Lou · date · à vivre) et les réactions ; les messages ; au-dessus du champ, cinq émojis pour réagir à l’envie.
+
 ## Déroulé d’un tour (A propose, B répond)
 
 1. **A compose** : règle « que tu me / de te » et les trois rouleaux (ou bouton Hasard), puis touche **« Proposer à B »**. L’écran ne s’adresse qu’à A.

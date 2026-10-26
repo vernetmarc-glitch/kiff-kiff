@@ -1632,7 +1632,7 @@
     btn.setAttribute('aria-label', n + ' kiff kiff trouvé' + (n > 1 ? 's' : '') + (B ? ' avec ' + B : ' ensemble') + '. Voir l’historique');
     const wk = $('#wait-kiffs');
     wk.hidden = !n;
-    $('#wait-kiffs-label').textContent = T('attente.kiffs', { nombre: n });
+    $('#wait-kiffs-label').textContent = n || '';
     wk.setAttribute('aria-label', 'Vos kiff kiff (' + n + ')');
     // Les envies gardées pour plus tard : un badge sur le compteur
     const a = toLive().length;
@@ -1654,6 +1654,10 @@
   }
   function partyCount() {
     partyFoot();
+    const lk = lastKiff();
+    const pw = $('#party-write');
+    pw.hidden = !(canChat() && lk);
+    if (!pw.hidden) $('#party-write-text').textContent = T('fete.ecrire', { prénom: nameOf(other(duo.seat)) });
     const n = kiffCount();
     $('#party-count').hidden = !n;
     $('#party-count-text').textContent = T('fete.compte', { rang: ordinal(n) });
@@ -1671,50 +1675,62 @@
     const n = kiffCount();
     const B = duo ? nameOf(other(duo.seat)) : '';
     $('#kiffs-title').textContent = B ? T('kiffs.titre-avec', { prénom: B }) : T('kiffs.titre');
+    kiffsFilter = 'tous';
     renderKiffList();
     show(ovKiffs);
+    $('#kiffs-list').scrollTop = 0;
     $('#kiffs-close').focus({ preventScroll: true });
   }
   const OK_SVG = '<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-  function renderKiffList() {
-    const all = (S.kiffs || []).map((k, i) => ({ k, i })).reverse();
-    const cb = duo ? chatBox() : null;
-    const item = ({ k, i }, live) => {
-      const kid = kidOf(k), nu = cb ? unread(kid, cb) : 0, nm = cb ? cb.m.filter((m) => m.k === kid && !m.x).length : 0;
-      return '<li class="kiffs-item' + (live ? ' is-live' : '') + '"><button class="kiffs-body" type="button" data-open="' + esc(kid) + '"><span class="kiffs-text">' + esc(k.t || '') + '</span>' +
-      '<span class="kiffs-meta">' + TH('kiffs.envie-de', { prénom: k.w || '…' }) + (k.d ? ' · ' + dayOf(k.d) : '') +
-      (nm ? ' <span class="kiffs-msgs' + (nu ? ' is-new' : '') + '"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-qui"/></svg>' + (nu || nm) + '<span class="sr-only"> ' + (nu ? 'nouveaux messages' : 'messages') + '</span></span>' : '') + '</span></button>' +
-      (live ? '<div class="kiffs-acts"><button class="icon-btn kiffs-done" type="button" data-i="' + i + '" aria-label="' + esc(T('kiffs.vecue')) + ' : ' + esc(k.t || '') + '">' + OK_SVG + '<span class="icon-label">' + TH('kiffs.vecue') + '</span></button>' +
-        '<button class="icon-btn icon-btn--bare kiffs-drop" type="button" data-i="' + i + '" aria-label="On passe : ' + esc(k.t || '') + '"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-fermer"/></svg></button></div>' : '') + '</li>';
-    };
-    const live = all.filter(({ k }) => k.v === 0), done = all.filter(({ k }) => k.v !== 0);
-    $('#kiffs-list').innerHTML =
-      (live.length ? '<li class="kiffs-head">' + TH('kiffs.a-vivre') + '</li>' + live.map((x) => item(x, true)).join('') : '') +
-      (done.length ? (live.length ? '<li class="kiffs-head">' + TH('kiffs.vecues') + '</li>' : '') + done.map((x) => item(x, false)).join('') : '');
-    const n = kiffCount();
-    $('#kiffs-count').textContent = T(n > 1 ? (live.length ? 'kiffs.compte-dont' : 'kiffs.compte') : (live.length ? 'kiffs.compte-1-dont' : 'kiffs.compte-1'), { nombre: n, vivre: live.length });
-    const f = foundCount();
-    $('#kiffs-found').hidden = !f.n;
-    $('#kiffs-found').textContent = T('kiffs.decouverts', { nombre: f.n, total: f.total });
+  // Vos kiff kiff, comme une messagerie : le plus récent en haut (dernier message, ou date du kiff kiff)
+  let kiffsFilter = 'tous';
+  const shortWhen = (ms) => { const l = dayLabel(ms); return l === T('chat.aujourdhui') ? hhmm(ms) : l.toLowerCase(); };
+  function kiffLast(k, cb) {
+    const kid = kidOf(k);
+    const msgs = cb ? cb.m.filter((m) => m.k === kid && !m.x) : [];
+    const m = msgs[msgs.length - 1];
+    return { d: Math.max(m ? m.d : 0, k.d || 0), m, nu: cb ? unread(kid, cb) : 0 };
   }
-  // Marquer une envie vécue, ou passer : à deux téléphones, ça vaut pour les deux
-  $('#kiffs-list').addEventListener('click', (e) => {
-    const b = e.target.closest('button[data-i]');
-    if (!b) return;
-    const k = (S.kiffs || [])[+b.dataset.i];
-    if (!k) return;
-    audio();
-    if (b.classList.contains('kiffs-done')) { k.v = 1; sSwitchOn(); haptic(15); }
-    else { S.kiffs.splice(+b.dataset.i, 1); sClick(); haptic(8); }
-    renderKiffList(); renderKiffs(); savePair();
-    if (duo && duo.stage === 'game') sync();
-    const next = $('#kiffs-list button[data-i]');
-    (next || $('#kiffs-close')).focus({ preventScroll: true });
+  const lastLineHtml = (l) => {
+    if (!l.m) return '';
+    const who = l.m.s === duo.seat ? T('chat.toi') : nameOf(other(duo.seat));
+    return '<b>' + esc(who) + '&nbsp;:</b> ' + esc(l.m.t);
+  };
+  function renderKiffList() {
+    const cb = duo ? chatBox() : null;
+    const all = (S.kiffs || []).map((k) => ({ k, l: kiffLast(k, cb) })).sort((a, b) => b.l.d - a.l.d);
+    const live = all.filter(({ k }) => k.v === 0);
+    const shown = kiffsFilter === 'vivre' ? live : kiffsFilter === 'vecues' ? all.filter(({ k }) => k.v !== 0) : all;
+    $('#kiffs-list').innerHTML = shown.map(({ k, l }) => {
+      const kid = kidOf(k), done = k.v !== 0;
+      const line = lastLineHtml(l) || TH('kiffs.envie-de', { prénom: k.w || '…' });
+      const side = '<span class="kiffs-time">' + esc(shortWhen(l.d)) + '</span>' +
+        (l.nu ? '<span class="badge badge--row">' + l.nu + '<span class="sr-only"> ' + (l.nu > 1 ? 'nouveaux messages' : 'nouveau message') + '</span></span>' : (done ? '' : '<span class="kiffs-state">' + TH('kiff.a-vivre') + '</span>'));
+      return '<li class="kiffs-item' + (done ? ' is-done' : ' is-live') + (l.nu ? ' is-new' : '') + '"><button class="kiffs-row" type="button" data-open="' + esc(kid) + '">' +
+        '<span class="kiffs-thumb" aria-hidden="true">' + (done ? OK_SVG : '“') + '</span>' +
+        '<span class="kiffs-body"><span class="kiffs-text">' + esc((k.t || '').replace(/^J’ai envie\s+/, '…')) + '</span><span class="kiffs-last">' + line + '</span></span>' +
+        '<span class="kiffs-side">' + side + '</span></button></li>';
+    }).join('') || '<li class="kiffs-empty">' + TH('kiffs.vide') + '</li>';
+    // Sous le titre, une ligne : trouvés · à vivre · mots découverts
+    const n = kiffCount(), f = foundCount();
+    $('#kiffs-count').textContent = [T(n > 1 ? 'kiffs.trouves' : 'kiffs.trouve-1', { nombre: n })]
+      .concat(live.length ? [T('kiffs.vivre-n', { nombre: live.length })] : [])
+      .concat(f.n ? [T('kiffs.mots', { nombre: f.n })] : []).join(' · ');
+    const tv = $('#kiffs-tabs [data-f="vivre"]');
+    tv.textContent = T('kiffs.a-vivre') + (live.length ? ' · ' + live.length : '');
+    $('#kiffs-tabs').querySelectorAll('[role="tab"]').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.f === kiffsFilter)));
+  }
+  $('#kiffs-tabs').addEventListener('click', (e) => {
+    const b = e.target.closest('[data-f]'); if (!b || b.dataset.f === kiffsFilter) return;
+    audio(); sClick(); haptic(6);
+    kiffsFilter = b.dataset.f;
+    renderKiffList();
   });
   const closeKiffs = () => { hide(ovKiffs); if (kiffsFrom) kiffsFrom.focus({ preventScroll: true }); };
   $('#kiffs-open').addEventListener('click', openKiffs);
   $('#wait-kiffs').addEventListener('click', openKiffs);
   $('#party-history').addEventListener('click', openKiffs);
+  $('#party-write').addEventListener('click', () => { const k = lastKiff(); if (!k) return; audio(); sClick(); haptic(8); report('discussion', null, 'fete'); openKiff(kidOf(k)); });
   $('#kiffs-close').addEventListener('click', () => { audio(); closeKiffs(); });
   ovKiffs.addEventListener('click', (e) => { if (e.target === ovKiffs) closeKiffs(); });
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !ovKiffs.hidden && ovKiff.hidden) closeKiffs(); });
@@ -1843,11 +1859,11 @@
     $('#kiff-msg').hidden = true;
     const B = duo ? nameOf(other(duo.seat)) : '';
     $('#kiff-title').textContent = B ? T('kiff.titre', { prénom: B }) : T('kiff.titre-seul');
+    dropArmed = false;
     $('#kiff-sentence').textContent = k.t || '';
     chatInput.placeholder = B ? T('chat.placeholder', { prénom: B }) : '';
     $('#chat-bar').hidden = !canChat();
     $('#chat-list').hidden = !canChat();
-    $('#kiff-react').hidden = !canChat();
     renderKiffCard();
     renderChat();
     show(ovKiff);
@@ -1874,8 +1890,16 @@
     const who = duo && mine ? T('kiff.ton-envie') : TH('kiffs.envie-de', { prénom: k.w || '…' });
     $('#kiff-meta').innerHTML = who + (k.d ? ' · ' + esc(dayOf(k.d)) : '') + ' · ' + esc(k.v === 0 ? T('kiff.a-vivre') : T('kiff.vecue'));
     $('#kiff-done').hidden = k.v !== 0;
+    $('#kiff-drop').hidden = k.v !== 0;
+    $('#kiff-drop').classList.toggle('is-armed', dropArmed);
     const b = chatBox();
-    $('#kiff-reacts').innerHTML = reactsHtml(b.kr[kiffOpen] || {});
+    const kr = b.kr[kiffOpen] || {};
+    $('#kiff-reacts').innerHTML = reactsHtml(kr);
+    // Réagir au kiff kiff : les émojis rapides, au-dessus du champ
+    const qb = $('#chat-quickbar');
+    if (!qb.firstChild) qb.innerHTML = QUICK.map((x) => '<button type="button" class="chat-emo" data-react="' + x + '" aria-label="Réagir : ' + x + '">' + x + '</button>').join('');
+    const myReact = duo ? kr[duo.seat] : '';
+    qb.querySelectorAll('[data-react]').forEach((x) => { const on = x.dataset.react === myReact; x.classList.toggle('is-on', on); x.setAttribute('aria-pressed', String(on)); });
     renderKiffStatus();
   }
   function renderKiffStatus() {
@@ -1883,7 +1907,7 @@
     const st = $('#kiff-status');
     if (!duo) { st.textContent = ''; return; }
     const B = nameOf(other(duo.seat));
-    st.textContent = typingKid && typingKid === kiffOpen ? T('chat.ecrit', { prénom: B }) : (typingKid ? T('chat.ecrit-ailleurs', { prénom: B }) : (duo.partnerOn ? T('chat.la', { prénom: B }) : ''));
+    st.textContent = typingKid && typingKid === kiffOpen ? T('chat.ecrit', { prénom: B }) : (typingKid ? T('chat.ecrit-ailleurs', { prénom: B }) : (duo.partnerOn ? T('jeu.present') : ''));
     st.classList.toggle('is-typing', !!typingKid);
   }
   const reactsHtml = (r) => {
@@ -1953,6 +1977,7 @@
       if (!b) { b = document.createElement('span'); b.className = 'badge badge--chat'; b.id = sel.slice(1); b.setAttribute('aria-hidden', 'true'); host.appendChild(b); }
       b.hidden = !n; b.textContent = n || '';
     });
+    if (!$('#ov-wait').hidden) renderWaitLast();
   }
   function renderReplyBar() {
     const bar = $('#chat-reply');
@@ -2095,7 +2120,16 @@
   });
   $('#chat-list').addEventListener('keydown', (e) => { const x = e.target.closest('[data-mid]'); if (x && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); openMenu(x.dataset.mid); } });
   $('#kiff-scroll').addEventListener('scroll', pressEnd, { passive: true });
-  $('#kiff-react').addEventListener('click', () => { audio(); openMenu('_'); });
+  $('#chat-quickbar').addEventListener('click', (e) => {
+    const x = e.target.closest('[data-react]'); if (!x || !canChat()) return;
+    audio();
+    const r = chatBox().kr[kiffOpen] || {};
+    const emo = r[duo.seat] === x.dataset.react ? '' : x.dataset.react;
+    sendChat({ ty: 'r', id: '_', k: kiffOpen, emo });
+    report('discussion', null, 'reaction-kiff');
+    sSwitchOn(); haptic(10);
+    renderChat();
+  });
   function flashKiffMsg(t) {
     const m = $('#kiff-msg');
     m.textContent = t; m.hidden = false;
@@ -2109,7 +2143,27 @@
     renderKiffs(); savePair();
     if (duo && duo.stage === 'game') sync();
     renderKiffCard();
+    flashKiffMsg(T('kiff.vecue-ok'));
     $('#kiff-back').focus({ preventScroll: true });
+  });
+  let dropArmed = false, dropT = 0;
+  $('#kiff-drop').addEventListener('click', () => {
+    const k = kiffById(kiffOpen); if (!k) return;
+    audio();
+    if (!dropArmed) {
+      dropArmed = true; sClick(); haptic(8);
+      renderKiffCard();
+      flashKiffMsg(T('kiff.passer-confirmer'));
+      clearTimeout(dropT); dropT = setTimeout(() => { dropArmed = false; if (kiffOpen) renderKiffCard(); }, 3000);
+      return;
+    }
+    dropArmed = false;
+    const i = S.kiffs.indexOf(k);
+    if (i >= 0) S.kiffs.splice(i, 1);
+    sClick(); haptic(8);
+    renderKiffs(); savePair();
+    if (duo && duo.stage === 'game') sync();
+    closeKiff();
   });
   $('#kiff-image').addEventListener('click', async () => {
     audio(); sClick(); haptic(8);
@@ -3126,6 +3180,19 @@
   }
 
   /* Écran d’attente : pendant que l’autre téléphone a la main */
+  // En attendant : le dernier kiff kiff (le plus récent message, sinon le plus récent kiff kiff), et « Écrire »
+  function renderWaitLast() {
+    const box = $('#wait-last');
+    const list = S.kiffs || [];
+    if (!canChat() || !list.length) { box.hidden = true; return; }
+    const cb = chatBox();
+    const best = list.map((k) => ({ k, l: kiffLast(k, cb) })).sort((a, b) => b.l.d - a.l.d)[0];
+    $('#wait-last-when').textContent = T('attente.dernier') + ' · ' + shortWhen(best.l.d);
+    $('#wait-last-msg').innerHTML = lastLineHtml(best.l) || esc(best.k.t || '');
+    $('#wait-last-go').dataset.kid = kidOf(best.k);
+    box.classList.toggle('is-new', best.l.nu > 0);
+    box.hidden = false;
+  }
   function renderWait() {
     const ov = $('#ov-wait');
     const waiting = !!duo && duo.stage === 'game' && el.ovStart.hidden &&
@@ -3162,6 +3229,7 @@
     const go = $('#wait-go');
     go.textContent = T(S.phase === 'compose' ? 'attente.attendre-envie' : 'attente.attendre');
     go.classList.toggle('btn--line', inst);
+    renderWaitLast();
     show(ov);
     renderDuoStatus();
   }
@@ -3196,12 +3264,14 @@
     // Une ligne de présence ; les actions sont des icônes (Prévenir, M’avertir, kiff kiff, Accueil)
     const away = duo.partnerOn !== true;
     const on = pushStatus === 'on';
-    let pres = T('attente.la', { prénom: B });
+    // En haut de l’attente, comme en haut du jeu : « Avec Lou », puis sa présence en quelques mots
+    let pres = T('jeu.present');
     if (duo.online === false) pres = msg;
     else if (presenceFlash) pres = presenceFlash;
-    else if (away) pres = T(on ? 'attente.absent-averti' : 'attente.absent', { prénom: B });
+    else if (away) pres = T('jeu.absent') + (on ? ' · ' + T('attente.haut-averti') : '');
+    $('#wait-name').textContent = T('jeu.avec', { prénom: B });
     $('#wait-presence-text').textContent = pres;
-    $('#wait-presence').classList.toggle('is-off', away || duo.online === false);
+    $('#wait-who').classList.toggle('is-off', away || duo.online === false);
     const nudge = $('#wait-nudge');
     nudge.hidden = !away;
     nudge.setAttribute('aria-label', 'Prévenir ' + B + ' que c’est son tour');
@@ -3683,6 +3753,8 @@
   });
   // L’attente : revenir à l’accueil en attendant, ou d’abord installer l’appli pour être averti·e
   $('#wait-go').addEventListener('click', () => { audio(); sClick(); haptic(8); report('attente', null, 'attendre'); el.home.click(); });
+  $('#wait-home').addEventListener('click', () => { audio(); sClick(); haptic(8); report('attente', null, 'accueil'); el.home.click(); });
+  $('#wait-last-go').addEventListener('click', (e) => { audio(); sClick(); haptic(8); report('attente', null, 'ecrire'); openKiff(e.currentTarget.dataset.kid); });
   $('#wait-install').addEventListener('click', () => { audio(); sClick(); haptic(8); save('installAsked', true); report('attente', null, 'installer'); installer.run(); renderWait(); });
   // Un mot bref à la place de la ligne de présence (copie, avertissements), puis elle revient
   function flashPresence(t) {

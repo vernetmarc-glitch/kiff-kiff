@@ -30,10 +30,10 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,62..125,100..900;1,62..125,100..900&family=Bagel+Fat+One&family=Abril+Fatface&family=Merriweather:ital,opsz,wght@0,18..144,400..900;1,18..144,400..900&family=Baskervville:ital,wght@0,400..700;1,400..700&family=Jost:wght@300..700&family=Great+Vibes&family=Cinzel:wght@400..900&family=Syne:wght@600..800&family=Manrope:wght@400..800&family=Anton&family=Courier+Prime:wght@400;700&display=swap">
-<link rel="stylesheet" href="base.css?v=94">
+<link rel="stylesheet" href="base.css?v=95">
 <link rel="stylesheet" href="skins/arty.css?v=66" data-skin-sheet="arty">
 <link rel="stylesheet" href="skins/pomme.css?v=67" data-skin-sheet="pomme">
-<link rel="stylesheet" href="skins/redcorner.css?v=64" data-skin-sheet="redcorner">
+<link rel="stylesheet" href="skins/redcorner.css?v=65" data-skin-sheet="redcorner">
 <link rel="stylesheet" href="skins/minuit.css?v=63" data-skin-sheet="minuit">
 <link rel="stylesheet" href="skins/classex.css?v=68" data-skin-sheet="classex">
 <script>
@@ -401,22 +401,34 @@
 
 <!-- Deux téléphones : pendant que l’autre joue -->
 <div class="overlay overlay--handoff overlay--wait" id="ov-wait" hidden>
+  <!-- La même navigation que le jeu : l’accueil, avec qui l’on joue, les kiff kiff -->
+  <header class="top wait-top">
+    <button class="sticker sticker--round" id="wait-home" type="button" aria-label="Accueil"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M3.5 11.2 12 4l8.5 7.2" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/><path d="M6 10v9.5h4.5v-5h3v5H18V10" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linejoin="round"/></svg></button>
+    <div class="top-who" id="wait-who"><span class="top-name" id="wait-name"></span><span class="top-pres" id="wait-presence" role="status"><span id="wait-presence-text"></span></span></div>
+    <div class="top-actions">
+      <button class="sticker kiffs-btn" id="wait-kiffs" type="button" hidden><svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><use href="#i-kiff"/></svg><span class="kiffs-n" id="wait-kiffs-label"></span></button>
+    </div>
+  </header>
   <div class="sheet">
     <h2 class="handoff-title" id="wait-title"></h2>
     <p class="handoff-kicker" id="wait-kicker"></p>
     <svg class="emblem emblem--wait" id="wait-emblem" viewBox="0 0 168 124" aria-hidden="true"><use href="#emblem"/></svg>
     <p class="party-sentence wait-sentence" id="wait-sentence" hidden></p>
-    <p class="wait-presence" id="wait-presence" role="status"><span class="presence-dot" aria-hidden="true"></span><span id="wait-presence-text"></span></p>
     <div class="stack wait-actions">
       <button class="btn" id="wait-install" type="button" hidden><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-installer"/></svg><span data-t="attente.installer">Installer pour être averti·e</span></button>
       <button class="btn" id="wait-go" type="button"></button>
-      <button class="link-btn wait-pass" id="wait-pass" type="button" data-t="attente.passe">On passe</button>
     </div>
+    <!-- En attendant : le dernier kiff kiff et sa discussion -->
+    <section class="wait-last" id="wait-last" hidden>
+      <svg class="ic wait-last-ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-qui"/></svg>
+      <span class="wait-last-text"><span class="wait-last-when" id="wait-last-when"></span><span class="wait-last-msg" id="wait-last-msg"></span></span>
+      <button class="btn btn--line wait-last-go" id="wait-last-go" type="button" data-t="attente.ecrire">Écrire</button>
+    </section>
     <nav class="wait-icons" aria-label="Pendant l’attente">
       <button class="icon-btn" id="wait-nudge" type="button" hidden><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-partager"/></svg><span class="icon-label" id="wait-nudge-label" data-t="attente.prevenir">Prévenir</span></button>
       <button class="icon-btn" id="wait-notif" type="button" aria-pressed="false" hidden><svg class="ic ic--on" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-avertir"/></svg><svg class="ic ic--off" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-avertir-non"/></svg><span class="icon-label"><span class="notif-word" data-t="attente.avertir">M’avertir</span><span class="sr-only">&nbsp;: <span id="wait-notif-state">désactivé</span></span></span></button>
-      <button class="icon-btn" id="wait-kiffs" type="button" hidden><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-kiffs"/></svg><span class="icon-label" id="wait-kiffs-label"></span></button>
     </nav>
+    <button class="link-btn wait-pass" id="wait-pass" type="button" data-t="attente.passe">On passe</button>
   </div>
 </div>
 
@@ -538,6 +550,7 @@
       <p class="party-sentence" id="party-sentence"></p>
       <button class="icon-btn icon-btn--card" id="party-image" type="button" aria-label="Envoyer cette envie en image"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-image"/></svg></button>
     </div>
+    <button class="btn btn--line party-write" id="party-write" type="button" hidden><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-qui"/></svg><span id="party-write-text"></span></button>
     <p class="party-done" id="party-done" role="status" hidden></p>
     <p class="party-count" id="party-count" hidden><button class="pill" id="party-history" type="button" aria-haspopup="dialog"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-kiffs"/></svg><span id="party-count-text"></span></button></p>
     <p class="party-count party-unlock" id="party-unlock" hidden><span class="pill" role="status"><span id="party-unlock-chili"></span><span id="party-unlock-text"></span></span></p>
@@ -552,13 +565,22 @@
 </div>
 
 <!-- L’historique des kiff kiff trouvés ensemble -->
-<div class="overlay overlay--edit overlay--skins" id="ov-kiffs" hidden role="dialog" aria-modal="true" aria-labelledby="kiffs-title">
-  <div class="sheet sheet--edit sheet--skins sheet--kiffs">
-    <h2 class="edit-label" id="kiffs-title">Vos kiff kiff</h2>
-    <p class="duo-text kiffs-count" id="kiffs-count"></p>
-    <p class="kiffs-found" id="kiffs-found" hidden></p>
+<div class="overlay overlay--edit overlay--skins overlay--loupe overlay--kiffs" id="ov-kiffs" hidden role="dialog" aria-modal="true" aria-labelledby="kiffs-title">
+  <div class="sheet sheet--edit sheet--skins sheet--loupe sheet--kiffs">
+    <div class="kiff-head">
+      <button class="icon-btn icon-btn--bare" id="kiffs-close" type="button" aria-label="Retour"><svg class="ic kiff-back-ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-retour"/></svg></button>
+      <div class="kiff-head-text">
+        <h2 class="edit-label kiff-title" id="kiffs-title">Vos kiff kiff</h2>
+        <p class="kiff-status" id="kiffs-count"></p>
+      </div>
+      <span class="kiff-head-pad" aria-hidden="true"></span>
+    </div>
+    <div class="kiffs-tabs" id="kiffs-tabs" role="tablist" aria-label="Filtrer">
+      <button type="button" role="tab" data-f="tous" aria-selected="true" data-t="kiffs.tous">Tous</button>
+      <button type="button" role="tab" data-f="vivre" aria-selected="false"></button>
+      <button type="button" role="tab" data-f="vecues" aria-selected="false" data-t="kiffs.vecues">Vécues</button>
+    </div>
     <ol class="kiffs-list" id="kiffs-list"></ol>
-    <div class="row row--end"><button class="btn" id="kiffs-close" type="button" data-t="kiffs.fermer">Fermer</button></div>
   </div>
 </div>
 
@@ -657,23 +679,24 @@
         <h2 class="edit-label kiff-title" id="kiff-title"></h2>
         <p class="kiff-status" id="kiff-status" aria-live="polite"></p>
       </div>
-      <span class="kiff-head-pad" aria-hidden="true"></span>
+      <div class="kiff-head-acts">
+        <button class="icon-btn kiff-head-btn" id="kiff-image" type="button" aria-label="Envoyer cette envie en image"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-image"/></svg></button>
+        <button class="icon-btn kiff-head-btn" id="kiff-done" type="button" aria-label="Vécue"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+        <button class="icon-btn kiff-head-btn" id="kiff-drop" type="button" aria-label="On passe"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-fermer"/></svg></button>
+      </div>
     </div>
     <div class="kiff-scroll" id="kiff-scroll">
-      <div class="kiff-card" id="kiff-card">
-        <p class="party-sentence kiff-sentence" id="kiff-sentence"></p>
-        <button class="icon-btn icon-btn--card" id="kiff-image" type="button" aria-label="Envoyer cette envie en image"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-image"/></svg></button>
-      </div>
-      <p class="kiff-meta" id="kiff-meta"></p>
-      <div class="chat-reacts-line" id="kiff-reacts"></div>
-      <div class="kiff-acts">
-        <button class="btn btn--line" id="kiff-done" type="button"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg><span data-t="kiffs.vecue">Vécue</span></button>
-        <button class="btn btn--line" id="kiff-react" type="button"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-emoji"/></svg><span data-t="chat.reagir">Réagir</span></button>
-      </div>
+      <figure class="kiff-fig">
+        <div class="kiff-card" id="kiff-card">
+          <p class="party-sentence kiff-sentence" id="kiff-sentence"></p>
+        </div>
+        <figcaption class="kiff-meta"><span id="kiff-meta"></span><span class="chat-reacts-line" id="kiff-reacts"></span></figcaption>
+      </figure>
       <p class="kiff-done-msg" id="kiff-msg" role="status" hidden></p>
       <ol class="chat-list" id="chat-list" aria-label="Messages"></ol>
     </div>
     <div class="chat-bar" id="chat-bar" hidden>
+      <div class="chat-quickbar" id="chat-quickbar" role="group" aria-label="Réagir à ce kiff kiff"></div>
       <div class="chat-reply" id="chat-reply" hidden>
         <div class="chat-reply-text"><span class="chat-reply-who" id="chat-reply-who"></span><span class="chat-reply-what" id="chat-reply-what"></span></div>
         <button class="icon-btn icon-btn--bare" id="chat-reply-x" type="button" aria-label="Annuler"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-fermer"/></svg></button>
@@ -718,11 +741,11 @@
 </div>
 <!--/APP-->
 <script src="data.js?v=64"></script>
-<script src="textes.js?v=10"></script>
+<script src="textes.js?v=11"></script>
 <script src="semantique.js?v=1"></script>
 <script src="config.js?v=63"></script>
 <script src="duo.js?v=63"></script>
 <script src="push.js?v=65"></script>
-<script src="app.js?v=112"></script>
+<script src="app.js?v=113"></script>
 </body>
 </html>
