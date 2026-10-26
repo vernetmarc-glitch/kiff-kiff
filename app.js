@@ -4651,13 +4651,15 @@
         sec.setAttribute('aria-hidden', on ? 'false' : 'true');
       });
       dots.querySelectorAll('i').forEach((d, k) => d.classList.toggle('is-on', k === n));
+      dots.dataset.step = n; // l’accueil (écran 0) n’a pas de points : ils commencent avec la nouvelle partie
       ov.scrollTop = 0;
       if (instant) { void box.offsetWidth; box.classList.remove('is-instant'); }
     }
     // Glisser le doigt vers la droite ramène à l’écran précédent (le doigt entraîne l’écran)
     let sx = 0, sy = 0, dx = 0, on = false, decided = false, horiz = false;
     box.addEventListener('touchstart', (e) => {
-      if (e.touches.length !== 1) { on = false; return; }
+      // Le premier écran ne glisse pas (l’accueil : glisser une partie vers la gauche la supprime)
+      if (e.touches.length !== 1 || st.cur === 0) { on = false; return; }
       sx = e.touches[0].clientX; sy = e.touches[0].clientY;
       dx = 0; on = true; decided = false; horiz = false;
     }, { passive: true });

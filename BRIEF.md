@@ -25,7 +25,7 @@ Jeu à deux sur un seul téléphone ou sur deux téléphones, en portrait. Une p
    3. « Et toi ? » : son prénom (« *A* le verra sur son téléphone »), puis « Rejoindre la partie », qui lance la partie. Lien « Jouer sur ce téléphone seulement ».
    Pendant ce temps, le téléphone de *A* affiche « L’autre téléphone est là : il découvre le jeu… ».
 
-Chaque écran glisse vers le suivant dès la réponse ; quatre points en haut montrent où on en est. Pour revenir en arrière : glisser le doigt vers la droite (l’écran suit le doigt), ou « ‹ Retour ». Le bouton maison du jeu ramène au premier écran.
+Chaque écran glisse vers le suivant dès la réponse ; trois points en haut montrent où on en est dans la nouvelle partie (Qui joue ?, le principe, les piments). L’accueil n’a pas de points et ne glisse pas (depuis le 27 octobre 2026 : glisser vers la gauche y supprime une partie). Pour revenir en arrière : glisser le doigt vers la droite (l’écran suit le doigt), ou « ‹ Retour ». Le bouton maison du jeu ramène à l’accueil.
 
 ## La phrase
 
