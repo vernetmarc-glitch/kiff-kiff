@@ -30,12 +30,12 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,62..125,100..900;1,62..125,100..900&family=Bagel+Fat+One&family=Abril+Fatface&family=Merriweather:ital,opsz,wght@0,18..144,400..900;1,18..144,400..900&family=Baskervville:ital,wght@0,400..700;1,400..700&family=Jost:wght@300..700&family=Great+Vibes&family=Cinzel:wght@400..900&family=Syne:wght@600..800&family=Manrope:wght@400..800&family=Anton&family=Courier+Prime:wght@400;700&display=swap">
-<link rel="stylesheet" href="base.css?v=93">
-<link rel="stylesheet" href="skins/arty.css?v=65" data-skin-sheet="arty">
-<link rel="stylesheet" href="skins/pomme.css?v=66" data-skin-sheet="pomme">
-<link rel="stylesheet" href="skins/redcorner.css?v=63" data-skin-sheet="redcorner">
+<link rel="stylesheet" href="base.css?v=94">
+<link rel="stylesheet" href="skins/arty.css?v=66" data-skin-sheet="arty">
+<link rel="stylesheet" href="skins/pomme.css?v=67" data-skin-sheet="pomme">
+<link rel="stylesheet" href="skins/redcorner.css?v=64" data-skin-sheet="redcorner">
 <link rel="stylesheet" href="skins/minuit.css?v=63" data-skin-sheet="minuit">
-<link rel="stylesheet" href="skins/classex.css?v=67" data-skin-sheet="classex">
+<link rel="stylesheet" href="skins/classex.css?v=68" data-skin-sheet="classex">
 <script>
 /* Déménagement vers kiff-kiff.fr : l’ancienne adresse apporte, dans le « # » du lien (jamais envoyé
    à un serveur), ce que le téléphone gardait là-bas : parties à deux, prénoms, ambiance, réglages.
@@ -118,6 +118,7 @@
   <symbol id="i-lien" viewBox="0 0 24 24"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></symbol>
   <symbol id="i-kiff" viewBox="0 0 24 24"><path d="M12 6.2A6.5 6.5 0 0 1 12 17.8A6.5 6.5 0 0 1 12 6.2Z" fill="currentColor" fill-opacity=".5" stroke="none"/><circle cx="9" cy="12" r="6.5"/><circle cx="15" cy="12" r="6.5"/></symbol>
   <symbol id="i-loupe" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.2"/><path d="M15.2 15.2l5 5"/></symbol>
+  <symbol id="i-loupe-crayon" viewBox="0 0 24 24"><circle cx="9.4" cy="9.4" r="5.9"/><path d="M12.9 14.9l2-2 5.2 5.2.9 3-3-.9z"/><path d="M14.6 16.6l2-2"/></symbol>
   <symbol id="i-barjot" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="8.6" cy="9.5" r="1.9"/><path d="M14.4 8.3l2.7 1.5-2.7 1.4"/><path d="M7.4 14.1c1.4 2.1 7.8 2.1 9.2 0"/><path d="M11.4 15.7v1.5a1.6 1.6 0 0 0 3.2 0v-1.8"/></symbol>
   <symbol id="i-etoiles" viewBox="0 0 24 24"><path d="M10 6.5q.6 5.4 6 6-5.4.6-6 6-.6-5.4-6-6 5.4-.6 6-6z"/><path d="M17.6 3q.3 2.3 2.6 2.6-2.3.3-2.6 2.6-.3-2.3-2.6-2.6 2.3-.3 2.6-2.6z"/></symbol>
   <symbol id="i-roues" viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="17" height="4.6" rx="1.6"/><rect x="3.5" y="9.7" width="17" height="4.6" rx="1.6"/><rect x="3.5" y="15.9" width="17" height="4.6" rx="1.6"/></symbol>
@@ -145,14 +146,16 @@
 </div>
 
 <div class="app" id="app">
+  <!-- En haut, la navigation : l’accueil, avec qui l’on joue, les kiff kiff et leurs discussions -->
   <header class="top">
-    <h1 class="logo"><span class="ink" data-ink="Kiff Kiff">Kiff Kiff</span></h1>
-    <div class="top-actions">
-      <button class="sticker piment-btn" id="piment-open" type="button" aria-haspopup="dialog"></button>
-      <button class="sticker sticker--round" id="home" type="button" aria-label="Accueil : prénoms et réglages">
+    <button class="sticker sticker--round" id="home" type="button" aria-label="Accueil : prénoms et réglages">
         <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M3.5 11.2 12 4l8.5 7.2" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/><path d="M6 10v9.5h4.5v-5h3v5H18V10" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linejoin="round"/></svg>
       </button>
-      <button class="sticker sticker--pass" id="pass" type="button">On passe</button>
+    <h1 class="logo"><span class="ink" data-ink="Kiff Kiff">Kiff Kiff</span></h1>
+    <div class="top-who" id="top-who" hidden><span class="top-name" id="top-name"></span><span class="top-pres" id="top-pres"></span></div>
+    <div class="top-actions">
+      <button class="sticker kiffs-btn" id="kiffs-open" type="button" aria-haspopup="dialog" hidden><svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><use href="#i-kiff"/></svg><span class="kiffs-n" id="kiffs-n"></span></button>
+      <button class="sticker sticker--pass" hidden id="pass" type="button">On passe</button>
     </div>
   </header>
 
@@ -161,7 +164,6 @@
 
   <p class="switch switch--top is-static" id="sw-top" aria-checked="true">
     <span class="sw-text"><span class="sw-label ink" data-ink="J’ai envie…" data-t="jeu.titre">J’ai envie…</span><span class="sw-owner" id="owner-top"></span></span>
-    <button class="sticker kiffs-btn" id="kiffs-open" type="button" aria-haspopup="dialog" hidden><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><use href="#i-kiff"/></svg><span class="kiffs-n" id="kiffs-n"></span><span class="kiffs-word">kiff kiff</span></button>
   </p>
 
   <section class="press" id="cabinet" aria-label="La phrase">
@@ -172,21 +174,22 @@
         <button type="button" data-dir="te" aria-pressed="false">de te</button>
       </div>
       <button class="stamp stamp--dir" type="button" tabindex="-1" aria-label="Annuler ce changement"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 12a7.5 7.5 0 1 0 2.4-5.5" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/><path d="M4 3.8v4.6h4.6" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="stamp-txt" data-t="jeu.annuler">annuler</span></button>
+      <button class="sticker piment-btn" id="piment-open" type="button" aria-haspopup="dialog"></button>
       <button class="sticker sticker--dice" id="dice" type="button" aria-label="Au hasard">
-        <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="4.5" fill="none" stroke="currentColor" stroke-width="2.2"/><g fill="currentColor"><circle cx="8.2" cy="8.2" r="1.6"/><circle cx="15.8" cy="15.8" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="15.8" cy="8.2" r="1.6"/><circle cx="8.2" cy="15.8" r="1.6"/></g></svg>
+        <svg class="die" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path d="M2.5 6.5l4-4h12.2a2.8 2.8 0 0 1 2.8 2.8V17.5l-4 4V9.3a2.8 2.8 0 0 0-2.8-2.8z" fill="currentColor" fill-opacity=".35"/><path d="M5.3 6.5h9.4a2.8 2.8 0 0 1 2.8 2.8v9.4a2.8 2.8 0 0 1-2.8 2.8H5.3a2.8 2.8 0 0 1-2.8-2.8V9.3a2.8 2.8 0 0 1 2.8-2.8zM3.4 7.6l3.5-3.5c.5-.5 1.2-.8 2-.8h9.8a2.8 2.8 0 0 1 2.8 2.8V15.9c0 .8-.3 1.5-.8 2l-3.4 3.4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><g fill="currentColor"><circle cx="6.4" cy="10.4" r="1.45"/><circle cx="13.6" cy="10.4" r="1.45"/><circle cx="10" cy="14" r="1.45"/><circle cx="6.4" cy="17.6" r="1.45"/><circle cx="13.6" cy="17.6" r="1.45"/></g></svg>
         <span data-t="jeu.hasard">Hasard</span>
       </button>
     </div>
     <div class="strips">
-      <div class="reel strip strip--pink" data-reel="0" tabindex="0" role="spinbutton" aria-label="Action"><div class="reel-strip"></div><span class="reel-shade" aria-hidden="true"></span><button class="reel-loupe" type="button" tabindex="-1" aria-label="Chercher dans l’action"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-loupe"/></svg></button><button class="stamp" type="button" tabindex="-1" aria-label="Annuler ce changement"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 12a7.5 7.5 0 1 0 2.4-5.5" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/><path d="M4 3.8v4.6h4.6" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="stamp-txt" data-t="jeu.annuler">annuler</span></button></div>
-      <div class="reel strip strip--blue" data-reel="1" tabindex="0" role="spinbutton" aria-label="Endroit"><div class="reel-strip"></div><span class="reel-shade" aria-hidden="true"></span><button class="reel-loupe" type="button" tabindex="-1" aria-label="Chercher dans l’endroit"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-loupe"/></svg></button><button class="stamp" type="button" tabindex="-1" aria-label="Annuler ce changement"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 12a7.5 7.5 0 1 0 2.4-5.5" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/><path d="M4 3.8v4.6h4.6" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="stamp-txt" data-t="jeu.annuler">annuler</span></button></div>
-      <div class="reel strip strip--pink2" data-reel="2" tabindex="0" role="spinbutton" aria-label="Manière"><div class="reel-strip"></div><span class="reel-shade" aria-hidden="true"></span><button class="reel-loupe" type="button" tabindex="-1" aria-label="Chercher dans la manière"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-loupe"/></svg></button><button class="stamp" type="button" tabindex="-1" aria-label="Annuler ce changement"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 12a7.5 7.5 0 1 0 2.4-5.5" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/><path d="M4 3.8v4.6h4.6" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="stamp-txt" data-t="jeu.annuler">annuler</span></button></div>
+      <div class="reel strip strip--pink" data-reel="0" tabindex="0" role="spinbutton" aria-label="Action"><div class="reel-strip"></div><span class="reel-shade" aria-hidden="true"></span><button class="reel-loupe" type="button" tabindex="-1" aria-label="Chercher ou écrire une action"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-loupe-crayon"/></svg></button><button class="stamp" type="button" tabindex="-1" aria-label="Annuler ce changement"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 12a7.5 7.5 0 1 0 2.4-5.5" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/><path d="M4 3.8v4.6h4.6" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="stamp-txt" data-t="jeu.annuler">annuler</span></button></div>
+      <div class="reel strip strip--blue" data-reel="1" tabindex="0" role="spinbutton" aria-label="Endroit"><div class="reel-strip"></div><span class="reel-shade" aria-hidden="true"></span><button class="reel-loupe" type="button" tabindex="-1" aria-label="Chercher ou écrire un endroit"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-loupe-crayon"/></svg></button><button class="stamp" type="button" tabindex="-1" aria-label="Annuler ce changement"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 12a7.5 7.5 0 1 0 2.4-5.5" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/><path d="M4 3.8v4.6h4.6" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="stamp-txt" data-t="jeu.annuler">annuler</span></button></div>
+      <div class="reel strip strip--pink2" data-reel="2" tabindex="0" role="spinbutton" aria-label="Manière"><div class="reel-strip"></div><span class="reel-shade" aria-hidden="true"></span><button class="reel-loupe" type="button" tabindex="-1" aria-label="Chercher ou écrire une manière"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-loupe-crayon"/></svg></button><button class="stamp" type="button" tabindex="-1" aria-label="Annuler ce changement"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 12a7.5 7.5 0 1 0 2.4-5.5" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/><path d="M4 3.8v4.6h4.6" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="stamp-txt" data-t="jeu.annuler">annuler</span></button></div>
     </div>
   </section>
 
   <div class="actions" id="actions">
+    <button class="btn btn--line act-alt" id="act-alt" type="button">On passe</button>
     <button class="btn act-main" id="act-main" type="button">Proposer</button>
-    <button class="btn btn--line act-alt" id="act-alt" type="button" hidden>On passe</button>
   </div>
 </div>
 
@@ -715,11 +718,11 @@
 </div>
 <!--/APP-->
 <script src="data.js?v=64"></script>
-<script src="textes.js?v=9"></script>
+<script src="textes.js?v=10"></script>
 <script src="semantique.js?v=1"></script>
 <script src="config.js?v=63"></script>
 <script src="duo.js?v=63"></script>
 <script src="push.js?v=65"></script>
-<script src="app.js?v=111"></script>
+<script src="app.js?v=112"></script>
 </body>
 </html>

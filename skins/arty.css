@@ -292,6 +292,11 @@ button { font: inherit; color: inherit; }
   transform: rotate(-4deg);
 }
 .sticker--dice:active { transform: rotate(-4deg) translate(1px, 2px); }
+.sticker--dice { width: 50px; padding: 0; justify-content: center; }
+.sticker--dice svg { width: 28px; height: 28px; }
+.sticker--dice span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.press-row > .piment-btn { width: 46px; height: 46px; padding: 0; gap: 0; justify-content: center; border-radius: 50%; }
+.press-row > .piment-btn .roues-chili, .press-row > .piment-btn .roues-barjot { width: 16px; height: 16px; margin: 0; }
 
 .strips {
   flex: 1;
@@ -358,7 +363,7 @@ button { font: inherit; color: inherit; }
   height: var(--item-h);
   margin-top: calc(var(--item-h) / -2);
   display: flex; align-items: center; justify-content: center;
-  padding: 0 14px;
+  padding: 0 34px;
   font-weight: 700;
   font-size: 21px;
   font-stretch: 100%;

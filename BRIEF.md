@@ -25,6 +25,13 @@ Chaque écran glisse vers le suivant dès la réponse ; quatre points en haut mo
 - Trois rouleaux : l’action, l’endroit, la manière.
 - En bas, un seul bouton pour la personne qui a la main.
 
+## La page de jeu (depuis le 26 octobre 2026)
+
+- **En haut, la navigation** : la maison (accueil) à gauche ; au milieu le nom du jeu, ou à deux téléphones « Avec Lou » et sa présence (« est là » ou « pas connecté·e ») ; à droite le compteur de kiff kiff (les deux cercles et leur nombre), avec ses pastilles : messages non lus, envies à vivre. La ligne sous la consigne ne dit plus que la connexion perdue.
+- **Au milieu, le jeu** : la consigne (centrée dans Red Corner), « J’ai envie… », puis dans le cadre : « que tu me / de te », le médaillon piment et ton, le dé (une face à cinq points, en volume ; Pomme d’Amour garde sa manette). Les roues sont plus hautes : cinq mots visibles sur chaque roue. Au bout du mot choisi, sur chaque roue, une loupe dont le manche est un crayon ouvre la liste pour chercher un mot ou écrire le sien (dans Red Corner, une molette dorée posée sur le cadre, à la place du ♦ de droite). Un mot pimenté et son piment restent centrés ensemble.
+- **En bas, le tour** : « On passe » à gauche (« Sans envie » quand on compose l’envie de l’invitation), le bouton principal à droite, à toutes les étapes. Il n’y a plus de « On passe » en haut.
+- Dans Red Corner, le prénom sous « J’ai envie… » ne s’affiche plus : la consigne le dit déjà.
+
 ## Déroulé d’un tour (A propose, B répond)
 
 1. **A compose** : règle « que tu me / de te » et les trois rouleaux (ou bouton Hasard), puis touche **« Proposer à B »**. L’écran ne s’adresse qu’à A.

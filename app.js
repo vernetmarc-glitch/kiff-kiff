@@ -721,16 +721,16 @@
     const ch = changes();
     document.body.dataset.phase = ph;
     el.ownerTop.textContent = nameOf(S.proposer);
+    if (!duo || duo.stage !== 'game') { $('#top-who').hidden = true; document.querySelector('.top > .logo').hidden = false; }
 
-    // En bas : un seul bouton pour la personne qui a la main (et « On passe » pendant l’ajustement)
-    el.actAlt.hidden = ph !== 'adjust';
+    // En bas : « On passe » et le bouton principal de la personne qui a la main
+    el.actAlt.hidden = false;
     if (ph === 'compose') { el.actMain.textContent = S.gifting ? T('jeu.glisser') : T('jeu.proposer', { prénom: B }); el.actMain.disabled = false; }
     else if (ph === 'adjust') { el.actMain.textContent = ch.length ? T('jeu.fait') : T('jeu.aussi'); el.actMain.disabled = false; }
     else { el.actMain.disabled = true; }
     el.actMain.classList.toggle('is-done', ph === 'adjust' && ch.length > 0);
-    el.pass.hidden = ph === 'adjust';
-    el.pass.textContent = S.gifting ? T('jeu.sans-envie') : T('jeu.passe');
-    el.actAlt.textContent = T('jeu.passe');
+    // « On passe » vit en bas, à gauche du bouton principal ; #pass garde seulement son action
+    el.actAlt.textContent = S.gifting && ph === 'compose' ? T('jeu.sans-envie') : T('jeu.passe');
 
     // « que tu me / de te » : à la composition, ou comme unique changement de l’ajustement
     const dirFree = ph === 'compose' || (ph === 'adjust' && (!ch.length || ch.includes('dir')));
@@ -3178,13 +3178,21 @@
     document.querySelectorAll('.notif-word').forEach((w) => { w.textContent = pushStatus === 'on' ? T('attente.averti') : T('attente.avertir'); });
     if (inv) $('#duo-wait-text').textContent = presenceFlash || (duo.partnerOn ? T('duo.attente-la') : (pushStatus === 'on' ? T('duo.attente-averti') : T('duo.attente')));
     const line = $('#duo-status');
-    if (!duo || duo.stage !== 'game') { line.hidden = true; return; }
+    // En haut : « Avec Lou » et sa présence, à la place du nom du jeu
+    const inGame = !!duo && duo.stage === 'game';
+    $('#top-who').hidden = !inGame;
+    document.querySelector('.top > .logo').hidden = inGame;
+    if (!inGame) { line.hidden = true; return; }
     const B = nameOf(other(duo.seat));
+    $('#top-name').textContent = T('jeu.avec', { prénom: B });
+    $('#top-pres').textContent = duo.online === false ? '' : T(duo.partnerOn ? 'jeu.present' : 'jeu.absent');
+    $('#top-who').classList.toggle('is-off', duo.partnerOn !== true);
     let msg = '';
     if (duo.online === false) msg = T('attente.perdue');
     else if (duo.partnerOn === false) msg = T('attente.pas-connecte', { prénom: B });
+    // L’absence de l’autre se lit en haut ; cette ligne ne dit plus que la connexion perdue
     line.textContent = msg;
-    line.hidden = !msg;
+    line.hidden = duo.online !== false;
     // Une ligne de présence ; les actions sont des icônes (Prévenir, M’avertir, kiff kiff, Accueil)
     const away = duo.partnerOn !== true;
     const on = pushStatus === 'on';

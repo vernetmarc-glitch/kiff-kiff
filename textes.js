@@ -59,6 +59,9 @@ window.KIFF_TEXTES = [
   ] },
   { id: "jeu", nom: "L’écran de jeu", textes: [
     ["jeu.titre", "J’ai envie…", "Au-dessus des roues"],
+    ["jeu.avec", "Avec {prénom}", "En haut, à la place du nom du jeu, dans une partie à deux téléphones"],
+    ["jeu.present", "est là", "Sous « Avec … », quand l’autre a l’appli ouverte"],
+    ["jeu.absent", "pas connecté·e", "Sous « Avec … », quand l’autre n’a pas l’appli ouverte"],
     ["jeu.annuler", "annuler", "Sur la roue changée, pendant « Oui, mais… »"],
     ["jeu.hasard", "Hasard", "Le dé, à côté de « que tu me / de te »"],
     ["jeu.vide-0", "écris ton action", "Dans la roue des actions, sur la case à écrire soi-même"],
@@ -78,8 +81,8 @@ window.KIFF_TEXTES = [
     ["jeu.glisser", "Glisser dans l’invitation", "Le bouton en bas, quand on compose l’envie de l’invitation"],
     ["jeu.aussi", "J’ai envie aussi", "Le bouton en bas pendant « Oui, mais… », avant de changer quoi que ce soit"],
     ["jeu.fait", "Modification faite", "Le bouton en bas pendant « Oui, mais… », après le changement"],
-    ["jeu.passe", "On passe", "Le bouton en haut à droite (et en bas pendant « Oui, mais… »)"],
-    ["jeu.sans-envie", "Sans envie", "Le bouton en haut à droite, quand on compose l’envie de l’invitation"],
+    ["jeu.passe", "On passe", "En bas, à gauche du bouton principal"],
+    ["jeu.sans-envie", "Sans envie", "En bas, à gauche, quand on compose l’envie de l’invitation"],
     ["jeu.ecris", "Écris {roue} ou choisis une autre case.", "Consigne, un instant, quand on propose avec une case à écrire restée vide"],
     ["jeu.une-seule-sens", "Une seule modification par tour. Reviens à l’envie de {prénom} pour changer le sens.", "Consigne, un instant, quand on touche « que tu me / de te » après avoir changé une roue"],
     ["jeu.sens-libre", "Avec une action écrite à la main, le sens ne peut pas changer.", "Consigne, un instant, quand on change le sens d’une action écrite à la main"]

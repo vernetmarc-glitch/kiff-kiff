@@ -120,6 +120,8 @@ body { background: var(--kraft); color: var(--ink); font-family: var(--f-ui); ca
 .dir button { z-index: 1; min-height: 0; padding: 0 4px; font-family: var(--f-ui); font-weight: 700; font-size: 18px; color: var(--ink); transition: color .3s; }
 .dir button[aria-pressed="true"] { color: var(--paper); }
 .dir.is-locked button[aria-pressed="false"] { opacity: .35; }
+.press-row { gap: 8px; }
+.press-row .dir button { font-size: 15.5px; letter-spacing: -.02em; }
 
 .sticker--dice { flex: none; width: 50px; height: 50px; padding: 0; border: 2px solid var(--ink); border-radius: 2px; background: var(--paper); color: var(--ink); }
 .sticker--dice svg { width: 24px; height: 24px; }
@@ -392,3 +394,4 @@ body { background: var(--kraft); color: var(--ink); font-family: var(--f-ui); ca
 /* La discussion */
 :root { --chat-mine-bg: var(--ink); --chat-mine-fg: var(--paper); --menu-bg: var(--paper); --menu-fg: var(--ink); }
 .chat-msg, .chat-msg.is-mine, #chat-input, .chat-menu { border-radius: 2px; }
+.reel-loupe { color: var(--paper); opacity: .9; }

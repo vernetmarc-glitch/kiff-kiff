@@ -263,14 +263,25 @@ body:has(#ov-install:not([hidden])) .deco-candles { display: none; }
   color: var(--velvet-lo);
   box-shadow: 0 0 0 1.5px var(--gold-hi), 0 0 0 4px var(--velvet-lo), 0 0 0 5px var(--gold-lo), 0 4px 10px rgba(0, 0, 0, .5);
 }
-.sticker--dice svg { width: 26px; height: 26px; }
+.sticker--dice svg { width: 30px; height: 30px; }
+/* Piment et ton, à côté du dé : un médaillon de velours cerclé d’or */
+.press-row { gap: 8px; }
+.press-row > .piment-btn {
+  width: 50px; height: 50px; padding: 0; justify-content: center; gap: 0;
+  border: 0; border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, var(--wine), var(--velvet-lo));
+  box-shadow: 0 0 0 1.5px var(--gold), 0 0 0 4px var(--velvet-lo), 0 0 0 5px var(--gold-lo), 0 4px 10px rgba(0, 0, 0, .5);
+}
+.press-row > .piment-btn .roues-chili { width: 17px; height: 17px; }
+.press-row > .piment-btn .roues-barjot { width: 17px; height: 17px; margin-left: 0; }
+.press-row .dir button { font-size: 18.5px; }
 .sticker--dice span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 .sticker--dice:active { transform: translateY(1px) rotate(-12deg); }
 
 /* Rouleaux : cadres dorés, tambours de velours satiné */
 .strips { gap: 10px; }
 .reel {
-  --item-h: 37px;
+  --item-h: 34px;
   border-radius: 10px;
   background: linear-gradient(#8C6424, #F6DDA0 18%, #B8873A 36%, #FFF0C4 50%, #A97C30 66%, #E9C77E 84%, #8C6424);
   box-shadow: 0 4px 10px rgba(0, 0, 0, .5);
@@ -284,14 +295,13 @@ body:has(#ov-install:not([hidden])) .deco-candles { display: none; }
 .reel-shade {
   background:
     url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='12'><path d='M0 6 L5 0 L10 6 L5 12Z' fill='%23F6DDA0'/></svg>") 5px 50% / 8px 10px no-repeat,
-    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='12'><path d='M0 6 L5 0 L10 6 L5 12Z' fill='%23F6DDA0'/></svg>") calc(100% - 5px) 50% / 8px 10px no-repeat,
     linear-gradient(transparent calc(50% - var(--item-h) / 2 - .5px), rgba(217, 174, 91, .55) calc(50% - var(--item-h) / 2 - .5px), rgba(217, 174, 91, .55) calc(50% - var(--item-h) / 2 + .5px), transparent calc(50% - var(--item-h) / 2 + .5px), transparent calc(50% + var(--item-h) / 2 - .5px), rgba(217, 174, 91, .55) calc(50% + var(--item-h) / 2 - .5px), rgba(217, 174, 91, .55) calc(50% + var(--item-h) / 2 + .5px), transparent calc(50% + var(--item-h) / 2 + .5px)),
-    linear-gradient(rgba(10, 0, 3, .85), rgba(10, 0, 3, .3) 24%, rgba(10, 0, 3, 0) 40%, rgba(255, 210, 190, .07) 50%, rgba(10, 0, 3, 0) 60%, rgba(10, 0, 3, .3) 76%, rgba(10, 0, 3, .85));
+    linear-gradient(rgba(10, 0, 3, .7), rgba(10, 0, 3, .18) 16%, rgba(10, 0, 3, 0) 32%, rgba(255, 210, 190, .07) 50%, rgba(10, 0, 3, 0) 68%, rgba(10, 0, 3, .18) 84%, rgba(10, 0, 3, .7));
 }
 .reel-item {
   font-family: var(--f-display);
   font-weight: 500;
-  font-size: 20px;
+  font-size: 19.5px;
   color: var(--cream);
 }
 .reel-item.is-center { font-weight: 700; color: var(--gold-hi); text-shadow: 0 0 12px rgba(255, 190, 110, .35); }
@@ -434,8 +444,9 @@ body:has(#ov-install:not([hidden])) .deco-candles { display: none; }
   .reel-item.is-xlong { font-size: 14px; }
   .reel-item.is-xxlong { font-size: 12.5px; }
   .dir { height: 48px; }
-  .dir button { font-size: 20px; }
+  .dir button, .press-row .dir button { font-size: 17.5px; }
   .sticker--dice { width: 48px; height: 48px; }
+  .press-row > .piment-btn { width: 46px; height: 46px; }
 }
 
 /* Piment */
@@ -563,3 +574,23 @@ body:has(#ov-piment:not([hidden])) .deco-candles { display: none; }
 .kiffs-btn .ic { color: #FF7AA2; }
 /* La discussion */
 :root { --chat-mine-bg: linear-gradient(100deg, #E8C27A, #F6DDA0 50%, #E2B969); --chat-mine-fg: #2B040C; --menu-bg: #43071A; --menu-fg: #F7E9D3; --chat-react-bg: #F7E9D3; }
+
+/* ---------- La page de jeu : en-tête, titre et rouleaux plus hauts ---------- */
+header.top > .logo { align-items: center; }
+.top-name { font-family: var(--f-title); font-weight: 700; font-size: 21px; letter-spacing: .06em; font-variant: small-caps; background: var(--foil); -webkit-background-clip: text; background-clip: text; color: transparent; filter: drop-shadow(0 2px 0 rgba(43, 4, 12, .8)); }
+.top-pres { color: var(--blush); font-size: 13px; opacity: 1; }
+.top-pres::before { background: var(--blush); box-shadow: 0 0 6px rgba(233, 166, 176, .8); }
+.top-who.is-off .top-pres::before { background: transparent; box-shadow: inset 0 0 0 1.5px var(--blush); }
+header.top .kiffs-btn { height: 44px; padding: 0 13px 0 10px; border: 0; border-radius: 999px; background: radial-gradient(circle at 35% 30%, var(--wine), var(--velvet-lo)); box-shadow: 0 0 0 1.5px var(--gold), 0 0 0 4px var(--velvet-lo), 0 0 0 5px var(--gold-lo), 0 4px 10px rgba(0, 0, 0, .5); color: var(--gold-hi); }
+#home { width: 44px; height: 44px; border: 0; border-radius: 50%; background: radial-gradient(circle at 35% 30%, var(--wine), var(--velvet-lo)); box-shadow: 0 0 0 1.5px var(--gold), 0 0 0 4px var(--velvet-lo), 0 0 0 5px var(--gold-lo), 0 4px 10px rgba(0, 0, 0, .5); }
+.hint { text-align: center; }
+#sw-top { margin: 0; }
+#sw-top .sw-owner { display: none; }
+.press { padding: 12px 11px; }
+.strips { gap: 8px; }
+/* Chercher ou écrire : une molette dorée sur le cadre, au bout du mot choisi */
+.reel-loupe { right: -20px; width: 40px; height: 40px; margin-top: -20px; opacity: 1; color: var(--velvet-lo); }
+.reel-loupe::before { content: ""; position: absolute; inset: 6px; border-radius: 50%; background: radial-gradient(circle at 34% 28%, #FFF8E0 0 6%, var(--gold-hi) 24%, var(--gold) 58%, var(--gold-lo) 100%); box-shadow: 0 0 0 1.5px var(--velvet-lo), 0 2px 6px rgba(0, 0, 0, .6); }
+.reel-loupe .ic { position: relative; width: 16px; height: 16px; stroke-width: 2.3; }
+.reel.is-locked .reel-loupe { opacity: .45; }
+.reel-item { padding: 0 30px; }
