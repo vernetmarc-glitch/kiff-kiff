@@ -1465,3 +1465,14 @@ body:has(#ov-deal:not([hidden])) .deco-candles { display: none; }
 .overlay--start .step { height: 100%; overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
 /* Le bouton principal du jeu : un texte long (« Glisser dans l’invitation », un prénom long) passe sur deux lignes au lieu de déborder */
 .actions .act-main { white-space: normal; line-height: 1.12; text-wrap: balance; overflow-wrap: anywhere; padding-left: 12px; padding-right: 12px; }
+/* L’invitation, dans le fil de la partie : le code à scanner et le lien à envoyer */
+.thread-invite { list-style: none; align-self: stretch; margin: 8px 14px 6px; }
+.invite-card { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 16px; border-radius: 16px; text-align: center;
+  background: var(--invite-bg, color-mix(in srgb, currentColor 6%, transparent)); box-shadow: var(--invite-line, inset 0 0 0 1px color-mix(in srgb, currentColor 25%, transparent)); }
+.invite-text { margin: 0; font-size: 15px; line-height: 1.4; text-wrap: pretty; }
+.invite-qr { width: min(220px, 70%); }
+.invite-qr svg { display: block; width: 100%; height: auto; }
+.invite-share { display: flex; flex-direction: column; align-items: stretch; gap: 10px; width: 100%; }
+.invite-share .btn { min-height: 48px; margin: 0; font-size: 15px; padding: 0 14px; }
+.invite-cancel { font-size: 14px; opacity: .85; }
+.overlay--partie.is-invite #chat-bar { display: none; }

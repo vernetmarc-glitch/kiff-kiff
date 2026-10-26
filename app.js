@@ -2066,6 +2066,7 @@
   }
   function renderChat(toEnd) {
     if (ovPartie.hidden) return;
+    if (duo && duo.stage === 'invite' && duo.info) { $('#chat-list').innerHTML = inviteThreadHtml(); $('#chat-down').hidden = true; return; }
     const b = duo && duo.info ? chatBox() : null;
     const B = duo ? nameOf(other(duo.seat)) : '';
     const items = (S.kiffs || []).map((k) => ({ d: k.d || 0, k }));
@@ -2317,6 +2318,19 @@
     if (c) { audio(); sClick(); haptic(8); openEnvie(c.dataset.envie); return; }
     // L’envie en cours, quand c’est à moi : la lire (ou la relire)
     if (e.target.closest('[data-envie-go]')) { $('#wait-go').click(); return; }
+    // L’invitation : envoyer le lien, le copier, annuler la partie
+    const iv = e.target.closest('[data-inv]');
+    if (iv && duo && duo.info) {
+      audio(); sClick(); haptic(8);
+      if (iv.dataset.inv === 'send') {
+        navigator.share({ title: 'Kiff Kiff', text: inviteText(), url: window.KiffDuo.link(duo.info) }).then(() => { report('partage', null, 'invitation'); afterInvite(); }).catch(() => {});
+      } else if (iv.dataset.inv === 'copy') {
+        navigator.clipboard.writeText(inviteText() + ' ' + window.KiffDuo.link(duo.info))
+          .then(() => { report('partage', null, 'invitation-copie'); afterInvite(); flashPresence(T('duo.copiee')); })
+          .catch(() => flashPresence(T('duo.copie-impossible')));
+      } else if (iv.dataset.inv === 'cancel') leaveDuo(true);
+      return;
+    }
     const g = e.target.closest('[data-goto]');
     if (g) { audio(); scrollToKiff(g.dataset.goto); }
   });
@@ -3468,6 +3482,8 @@
   const PHASES_TOUR = ['compose', 'review', 'adjust', 'reconfirm'];
   function renderWait() {
     const ov = ovPartie;
+    if (duo && duo.stage === 'invite') { renderInvitePage(); return; }
+    ov.classList.remove('is-invite');
     const inGame = !!duo && duo.stage === 'game' && el.ovStart.hidden;
     const waiting = inGame && PHASES_TOUR.includes(S.phase) && !myTurn();
     // La partie s’ouvre toute seule quand l’autre a la main ; à mon tour, elle reste ouverte si je l’ai ouverte
@@ -3519,6 +3535,13 @@
     // La cloche dit clairement son état : allumée et « Averti·e » quand c’est activé
     document.querySelectorAll('.notif-word').forEach((w) => { w.textContent = pushStatus === 'on' ? T('attente.averti') : T('attente.avertir'); });
     if (inv) $('#duo-wait-text').textContent = presenceFlash || (duo.partnerOn ? T('duo.attente-la') : (pushStatus === 'on' ? T('duo.attente-averti') : T('duo.attente')));
+    // L’invitation, en page de partie : la présence de l’autre téléphone (ou le mot bref d’une copie)
+    if (inv && !ovPartie.hidden) {
+      $('#wait-presence-text').textContent = presenceFlash || (duo.partnerOn ? T('partie.invite-la') : T('partie.invite-absent'));
+      $('#wait-who').classList.toggle('is-off', duo.partnerOn !== true);
+      const nb = $('#wait-notif'); nb.setAttribute('aria-pressed', pushStatus === 'on' ? 'true' : 'false');
+      nb.hidden = !(pushStatus === 'on' || pushStatus === 'off' || pushStatus === 'install' || pushStatus === 'blocked');
+    }
     const line = $('#duo-status');
     // En haut : « Avec Lou » et sa présence, à la place du nom du jeu
     const inGame = !!duo && duo.stage === 'game';
@@ -3726,18 +3749,54 @@
     pushState();
     showInvite();
   }
+  /* L’invitation envoyée : la page de la partie, comme pour une partie commencée (27 octobre 2026).
+     En haut « Invitation à Jade » ; dans le fil, l’envie glissée, puis le code à scanner et le lien à envoyer. */
   function showInvite() {
     duo.stage = 'invite';
-    const url = window.KiffDuo.link(duo.info);
-    $('#duo-qr').innerHTML = window.KiffDuo.qrSvg(url);
-    $('#duo-send').hidden = typeof navigator.share !== 'function';
-    duoSheet({
-      stage: 'invite',
-      title: T('duo.invite'),
-      text: T(S.gift ? 'duo.invite-texte-envie' : 'duo.invite-texte'),
-      qr: true, wait: duo.partnerOn ? T('duo.attente-la') : T('duo.attente'), go: T('duo.plus-tard'), cancel: T('duo.annuler-partie')
-    });
+    hide(ovDuo); hide(el.ovStart); hide($('#ov-invited'));
+    renderWait();
     renderDuoStatus();
+  }
+  function renderInvitePage() {
+    const ov = ovPartie;
+    ov.classList.add('is-invite');
+    const B = (S.names[1] || '').trim();
+    $('#wait-name').textContent = B ? T('parties.invitation-a', { prénom: B }) : T('parties.invitation');
+    $('#wait-presence-text').textContent = presenceFlash || (duo.partnerOn ? T('partie.invite-la') : T('partie.invite-absent'));
+    $('#wait-presence').classList.remove('is-typing');
+    $('#wait-who').classList.toggle('is-off', duo.partnerOn !== true);
+    $('#wait-kiffs').hidden = true;
+    $('#partie-action').hidden = false;
+    $('#partie-action').classList.remove('is-turn');
+    $('#wait-title').textContent = '';
+    $('#wait-kicker').textContent = T('parties.personne') + '.';
+    ['#wait-pass', '#wait-go', '#wait-install', '#wait-nudge'].forEach((q) => { $(q).hidden = true; });
+    const nb = $('#wait-notif');
+    nb.hidden = !(pushStatus === 'on' || pushStatus === 'off' || pushStatus === 'install' || pushStatus === 'blocked');
+    nb.setAttribute('aria-pressed', pushStatus === 'on' ? 'true' : 'false');
+    const was = ov.hidden;
+    show(ov);
+    if (was) partieShown(); else renderChat();
+  }
+  // Le fil d’une invitation : l’envie glissée (s’il y en a une), puis l’invitation elle-même
+  function inviteThreadHtml() {
+    let html = '<li class="chat-day"><span>' + esc(dayLabel(S.t0 || Date.now())) + '</span></li>';
+    if (S.gift && Array.isArray(S.gift.keys)) {
+      let text = '';
+      try { text = sentenceFrom({ idx: S.gift.keys.map((k, r) => idxOf(r, k)), custom: (S.gift.custom || ['', '', '']).slice(), dir: S.gift.dir || 'me' }); } catch (e) { text = ''; }
+      if (text) html += '<li class="thread-kiff thread-envie"><button class="thread-kiff-btn" type="button" disabled><span class="thread-kiff-kicker">' + esc(T('partie.envie-glissee')) + '</span>' +
+        '<span class="party-sentence thread-kiff-card"><span class="thread-kiff-text">' + esc(text) + '</span></span></button></li>';
+    }
+    const url = window.KiffDuo.link(duo.info);
+    html += '<li class="thread-invite"><div class="invite-card">' +
+      '<span class="thread-kiff-kicker">' + esc(T('partie.invite-kicker')) + '</span>' +
+      '<p class="invite-text">' + esc(T('partie.invite-texte')) + '</p>' +
+      '<div class="duo-qr invite-qr">' + window.KiffDuo.qrSvg(url) + '</div>' +
+      '<div class="duo-share invite-share">' + (typeof navigator.share === 'function' ? '<button class="btn" type="button" data-inv="send">' + esc(T('duo.envoyer')) + '</button>' : '') +
+      '<button class="btn btn--line" type="button" data-inv="copy">' + esc(T('duo.copier')) + '</button></div>' +
+      '<button class="link-btn invite-cancel" type="button" data-inv="cancel">' + esc(T('duo.annuler-partie')) + '</button>' +
+      '</div></li>';
+    return html;
   }
   /* La personne invitée ne connaît peut-être pas le jeu : trois écrans avant de rejoindre */
   const ovInv = $('#ov-invited');
@@ -4087,6 +4146,7 @@
   $('#wait-home').addEventListener('click', () => {
     audio(); sClick(); haptic(8);
     if (partieFront) { closePartie(); return; }
+    if (duo && duo.stage === 'invite') { report('attente', null, 'accueil'); leaveDuo(false, true); return; }
     report('attente', null, 'accueil'); closePartie(); el.home.click();
   });
   $('#wait-install').addEventListener('click', () => { audio(); sClick(); haptic(8); save('installAsked', true); report('attente', null, 'installer'); installer.run(); renderWait(); });
