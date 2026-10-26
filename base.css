@@ -1449,3 +1449,15 @@ body:has(#ov-deal:not([hidden])) .deco-candles { display: none; }
 /* L’accueil n’a pas de points : ils montrent seulement les écrans d’une nouvelle partie (Qui joue ?, le principe, les piments) */
 #step-dots[data-step="0"] { display: none; }
 #step-dots i:first-child { display: none; }
+/* « Nouvelle partie » et la mention 18 ans calées tout en bas de l’écran : rien de la liste ne passe dessous.
+   La page de l’accueil n’a plus de marge en bas ; la barre porte elle-même la marge (et la zone du geste de l’iPhone). */
+#ov-start:has(#steps[data-step="0"] .welcome.has-games) { padding-bottom: 0 !important; }
+.welcome.has-games .home-go { padding-bottom: max(18px, calc(env(safe-area-inset-bottom, 0px) + 8px)); box-shadow: none; }
+/* Les écrans qui glissent (accueil, nouvelle partie, invitation) : chacun défile pour lui-même.
+   Avant, tous prenaient la hauteur du plus grand (l’accueil et sa longue liste) : Qui joue ? et les piments
+   se centraient alors bien plus bas que l’écran, leurs boutons hors de vue. */
+/* (deux classes : certaines ambiances redéfinissent .overlay en grille qui défile) */
+.overlay.overlay--start { display: flex; flex-direction: column; align-items: stretch; overflow: hidden; }
+.overlay--start > .steps { flex: 1 1 auto; min-height: 0; }
+.overlay--start .steps-track { height: 100%; }
+.overlay--start .step { height: 100%; overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }

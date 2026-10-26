@@ -4653,6 +4653,7 @@
       dots.querySelectorAll('i').forEach((d, k) => d.classList.toggle('is-on', k === n));
       dots.dataset.step = n; // l’accueil (écran 0) n’a pas de points : ils commencent avec la nouvelle partie
       ov.scrollTop = 0;
+      box.querySelectorAll('.step').forEach((x) => { if (+x.dataset.step === n) x.scrollTop = 0; });
       if (instant) { void box.offsetWidth; box.classList.remove('is-instant'); }
     }
     // Glisser le doigt vers la droite ramène à l’écran précédent (le doigt entraîne l’écran)
@@ -5168,6 +5169,7 @@
     goStep(0, true);
     show(el.ovStart);
     el.ovStart.scrollTop = 0;
+    const s0 = document.querySelector('#steps .step[data-step="0"]'); if (s0) s0.scrollTop = 0;
     renderGames();
     renderHome();
     refreshGames();
