@@ -2519,9 +2519,10 @@
     c.beginPath(); c.moveTo(W / 2 - 160, 1060); c.lineTo(W / 2 + 160, 1060); c.stroke();
     const f = nextFormule();
     c.textAlign = 'center';
-    let ts = T.t2[2] + 10, fl;
-    do { ts -= 2; c.font = T.t2[0].replace('{s}', ts); fl = wrapLines(c, f, W - 280); } while (ts > 22 && fl.length > 2);
-    c.fillStyle = T.t2[1];
+    // La police de l’interface, bien lisible même en petit dans une messagerie
+    let ts = 40, fl;
+    do { ts -= 2; c.font = T.t3[0].replace('{s}', ts); fl = wrapLines(c, f, W - 260); } while (ts > 24 && fl.length > 2);
+    c.fillStyle = T.t3[1];
     const lh2 = Math.round(ts * 1.25), y0 = 1170 - ((fl.length - 1) * lh2) / 2;
     fl.forEach((l, i) => c.fillText(l, W / 2, y0 + i * lh2));
     return new Promise((res) => cv.toBlob(res, 'image/png'));
@@ -2534,7 +2535,9 @@
     report('partage', null, 'image');
     report('carte', null, from || 'fete');
     if (navigator.canShare && navigator.canShare({ files: [file] })) {
-      try { await navigator.share({ files: [file], title: 'Kiff Kiff', text: tagline() + ' ' + APP_URL }); return 'shared'; } catch (e) { return ''; }
+      // Un seul lien : la formule dit déjà kiff-kiff.fr (sinon on ajoute l’adresse)
+      const msg = /kiff-kiff\.fr/i.test(tagline()) ? tagline() : tagline() + ' ' + APP_URL;
+      try { await navigator.share({ files: [file], title: 'Kiff Kiff', text: msg }); return 'shared'; } catch (e) { return ''; }
     }
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob); a.download = 'kiff-kiff.png';
