@@ -1176,3 +1176,80 @@ body:has(#ov-deal:not([hidden])) .deco-candles { display: none; }
 .chat-quickbar .chat-emo { width: 46px; height: 40px; border: 0; border-radius: 999px; font-size: 20px; line-height: 1; cursor: pointer; background: color-mix(in srgb, currentColor 8%, transparent); }
 .chat-quickbar .chat-emo.is-on { background: color-mix(in srgb, currentColor 22%, transparent); box-shadow: inset 0 0 0 1.5px currentColor; }
 .sheet--kiffs .kiff-title { font-size: 22px; line-height: 1.15; margin: 0; }
+
+/* ---------- La partie, c’est la conversation (26 octobre 2026) ---------- */
+/* Sous les fenêtres du jeu (l’envie reçue, la fête…), au-dessus quand on vient de la fête */
+.overlay--partie { z-index: 9; }
+.overlay--partie.is-front { z-index: 10; }
+.overlay--partie .ic-back { display: none; }
+.overlay--partie.is-back .ic-home { display: none; }
+.overlay--partie.is-back .ic-back { display: block; }
+.sheet--partie { gap: 0; }
+.sheet--partie > header.top { margin: -4px -4px 8px; }
+.sheet--partie .top-pres.is-typing { font-style: italic; }
+/* L’action du moment */
+.partie-action { flex: none; display: flex; align-items: center; gap: 8px; margin: 0 -2px 6px; padding: 10px 10px 10px 14px; border-radius: 14px;
+  background: var(--partie-bg, color-mix(in srgb, currentColor 8%, transparent)); box-shadow: inset 0 0 0 1px var(--partie-line, color-mix(in srgb, currentColor 25%, transparent)); }
+.partie-action[hidden] { display: none; }
+.partie-action-text { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 1px; }
+.partie-label { font-size: 11.5px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; opacity: .8; }
+.partie-label:empty { display: none; }
+.partie-line { font-size: 15px; line-height: 1.3; }
+.partie-action .wait-pass { min-height: 30px; padding: 0; font-size: 13.5px; }
+.partie-action .wait-pass[hidden] { display: none; }
+.partie-go { flex: none; width: auto; min-height: 44px; margin: 0; padding: 0 16px; font-size: 15px; white-space: nowrap; display: inline-flex; align-items: center; gap: 6px; }
+.partie-go .ic { width: 18px; height: 18px; }
+.partie-go[hidden], .partie-ic[hidden] { display: none; }
+.partie-ic { min-width: 44px; }
+.partie-ic > .ic { width: 20px; height: 20px; padding: 10px; }
+.sheet--partie .kiff-scroll { padding-top: 6px; }
+/* Un kiff kiff dans le fil */
+.thread-kiff { list-style: none; align-self: stretch; margin: 8px 14px 6px; }
+.thread-kiff-btn { width: 100%; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 0; border: 0; background: none; color: inherit; font: inherit; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.thread-kiff-kicker { font-size: 11.5px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; opacity: .8; }
+.thread-kiff-card { position: relative; display: block; width: 100%; box-sizing: border-box; text-align: center; font-size: 17px !important; padding: 14px 16px !important; animation: none !important; transform: none !important; }
+.thread-kiff.is-done .thread-kiff-card { opacity: .78; }
+.thread-kiff-reacts { position: absolute; right: 10px; bottom: -12px; display: inline-flex; gap: 2px; }
+.thread-kiff:has(.thread-kiff-reacts) { margin-bottom: 16px; }
+.thread-kiff.is-flash .thread-kiff-card { animation: flash-card 1.2s ease-out 1 !important; }
+@keyframes flash-card { 0% { box-shadow: 0 0 0 4px var(--badge-bg, #D81B50); } 100% { box-shadow: 0 0 0 0 transparent; } }
+.chat-quote[data-goto] { cursor: pointer; }
+.chat-reply.is-cite .chat-reply-what { font-style: italic; }
+
+/* Une envie en plein écran */
+.sheet--envie { gap: 0; }
+.envie-kicker { font-size: 13px !important; letter-spacing: .16em; text-transform: uppercase; }
+.envie-main { flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; justify-content: center; align-items: stretch; gap: 14px; padding: 8px 8px 12px; }
+.envie-card { margin: 0; }
+.envie-card .party-sentence { margin: 0; text-align: center; font-size: clamp(22px, 6.6vw, 27px); padding: 30px 22px; animation: none; }
+.envie-meta { display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap; margin: 0; font-size: 13.5px; }
+.envie-msgs { align-self: center; min-height: 40px; font-size: 14.5px; }
+.envie-msgs[hidden] { display: none; }
+.sheet--envie .chat-quickbar[hidden] { display: none; }
+.envie-acts { flex: none; display: grid; grid-template-columns: repeat(auto-fit, minmax(64px, 1fr)); gap: 4px; padding-top: 10px; border-top: 1px solid color-mix(in srgb, currentColor 18%, transparent); }
+.envie-acts .icon-btn { min-width: 0; }
+.envie-acts .icon-btn > .ic { width: 20px; height: 20px; padding: 13px; }
+.envie-acts .icon-label { font-size: 13px; }
+#kiff-drop.is-armed > .ic { background: var(--badge-bg, #D81B50); color: var(--badge-fg, #fff); box-shadow: none; }
+
+/* Vos kiff kiff : le catalogue des envies */
+.kiffs-action { margin: 0 0 4px; }
+.kiffs-sub { margin: 10px 2px 0; font-size: 17px; font-weight: 600; }
+.kiffs-sub[hidden] { display: none; }
+.kiffs-list .env-item { list-style: none; margin: 4px 4px 10px; }
+.env-card { position: relative; display: flex; flex-direction: column; gap: 4px; padding: 0 !important; text-align: left; animation: none !important; transform: none !important; }
+.env-open { display: flex; flex-direction: column; gap: 6px; padding: 16px 18px 4px; border: 0; background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+.env-text { font-size: 17.5px; line-height: 1.3; }
+.env-meta { font-family: var(--f-ui, inherit); font-size: 12.5px; font-weight: 400; letter-spacing: 0; text-transform: none; opacity: .75; }
+.env-reacts { display: inline-flex; gap: 2px; vertical-align: middle; }
+.env-acts { display: flex; gap: 6px; flex-wrap: wrap; padding: 6px 12px 12px; }
+.env-act { min-height: 40px; padding: 0 14px; display: inline-flex; align-items: center; gap: 7px; border: 0; border-radius: 999px; background: none; color: inherit; cursor: pointer;
+  font-family: var(--f-ui, inherit); font-size: 14px; font-weight: 600; letter-spacing: 0; text-transform: none; box-shadow: inset 0 0 0 1.5px color-mix(in srgb, currentColor 45%, transparent); }
+.env-act .ic { width: 17px; height: 17px; }
+.env-item.is-done .env-card { opacity: .82; }
+.env-badge { position: absolute; top: -8px; right: -6px; }
+.sheet--partie, .sheet--envie { align-items: stretch; }
+.sheet--partie > *, .sheet--envie > * { align-self: stretch; min-width: 0; }
+.partie-action { flex-wrap: wrap; }
+.partie-action-text { flex: 1 1 150px; }
+.partie-action .btn { font-size: 15px; letter-spacing: .02em; line-height: 1.15; padding: 0 16px; }

@@ -104,6 +104,8 @@ body:has(#ov-invited:not([hidden])) .deco-candles,
 body:has(#ov-edit:not([hidden])) .deco-candles,
 body:has(#ov-skins:not([hidden])) .deco-candles,
 body:has(#ov-kiff:not([hidden])) .deco-candles,
+body:has(#ov-wait:not([hidden])) .deco-candles,
+body:has(#ov-kiffs:not([hidden])) .deco-candles,
 body:has(#ov-complet:not([hidden])) .deco-candles,
 body:has(#ov-install:not([hidden])) .deco-candles { display: none; }
 .candle {
@@ -598,3 +600,10 @@ header.top .kiffs-btn { height: 44px; padding: 0 13px 0 10px; border: 0; border-
 /* Vos kiff kiff : de petites cartes crème cerclées d’or */
 :root { --thumb-bg: #F7E9D3; --thumb-fg: #6B0F22; --thumb-line: #C9963F; }
 .overlay--wait > .wait-top .kiffs-btn { color: var(--gold-hi); }
+
+/* La partie : la bande d’action en velours, cerclée d’or */
+:root { --partie-bg: linear-gradient(180deg, #43071A, #2B040C); --partie-line: var(--gold-lo); }
+.partie-label, .thread-kiff-kicker, .envie-kicker { font-family: var(--f-title); color: var(--blush); }
+.partie-line { color: #FFF0C4; }
+.thread-kiff-card, .env-card { font-weight: 500 !important; }
+#wait-home { width: 44px; height: 44px; }
