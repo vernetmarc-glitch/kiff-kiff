@@ -30,12 +30,12 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,62..125,100..900;1,62..125,100..900&family=Bagel+Fat+One&family=Abril+Fatface&family=Merriweather:ital,opsz,wght@0,18..144,400..900;1,18..144,400..900&family=Baskervville:ital,wght@0,400..700;1,400..700&family=Jost:wght@300..700&family=Great+Vibes&family=Cinzel:wght@400..900&family=Syne:wght@600..800&family=Manrope:wght@400..800&family=Anton&family=Courier+Prime:wght@400;700&display=swap">
-<link rel="stylesheet" href="base.css?v=98">
-<link rel="stylesheet" href="skins/arty.css?v=66" data-skin-sheet="arty">
-<link rel="stylesheet" href="skins/pomme.css?v=67" data-skin-sheet="pomme">
-<link rel="stylesheet" href="skins/redcorner.css?v=68" data-skin-sheet="redcorner">
-<link rel="stylesheet" href="skins/minuit.css?v=63" data-skin-sheet="minuit">
-<link rel="stylesheet" href="skins/classex.css?v=68" data-skin-sheet="classex">
+<link rel="stylesheet" href="base.css?v=99">
+<link rel="stylesheet" href="skins/arty.css?v=67" data-skin-sheet="arty">
+<link rel="stylesheet" href="skins/pomme.css?v=68" data-skin-sheet="pomme">
+<link rel="stylesheet" href="skins/redcorner.css?v=69" data-skin-sheet="redcorner">
+<link rel="stylesheet" href="skins/minuit.css?v=64" data-skin-sheet="minuit">
+<link rel="stylesheet" href="skins/classex.css?v=69" data-skin-sheet="classex">
 <script>
 /* Déménagement vers kiff-kiff.fr : l’ancienne adresse apporte, dans le « # » du lien (jamais envoyé
    à un serveur), ce que le téléphone gardait là-bas : parties à deux, prénoms, ambiance, réglages.
@@ -122,6 +122,9 @@
   <symbol id="i-loupe-crayon" viewBox="0 0 24 24"><circle cx="9.4" cy="9.4" r="5.9"/><path d="M12.9 14.9l2-2 5.2 5.2.9 3-3-.9z"/><path d="M14.6 16.6l2-2"/></symbol>
   <symbol id="i-barjot" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="8.6" cy="9.5" r="1.9"/><path d="M14.4 8.3l2.7 1.5-2.7 1.4"/><path d="M7.4 14.1c1.4 2.1 7.8 2.1 9.2 0"/><path d="M11.4 15.7v1.5a1.6 1.6 0 0 0 3.2 0v-1.8"/></symbol>
   <symbol id="i-etoiles" viewBox="0 0 24 24"><path d="M10 6.5q.6 5.4 6 6-5.4.6-6 6-.6-5.4-6-6 5.4-.6 6-6z"/><path d="M17.6 3q.3 2.3 2.6 2.6-2.3.3-2.6 2.6-.3-2.3-2.6-2.6 2.3-.3 2.6-2.6z"/></symbol>
+  <symbol id="ill-roues" viewBox="0 0 54 54"><g fill="var(--ill-bg, none)" stroke="currentColor" stroke-width="1.6"><rect x="4" y="6" width="46" height="12" rx="3"/><rect x="4" y="21" width="46" height="12" rx="3"/><rect x="4" y="36" width="46" height="12" rx="3"/></g><g fill="currentColor"><rect x="14" y="10.5" width="26" height="3" rx="1.5"/><rect x="10" y="25.5" width="34" height="3" rx="1.5"/><rect x="16" y="40.5" width="22" height="3" rx="1.5"/></g></symbol>
+  <symbol id="ill-reponses" viewBox="0 0 54 54"><rect x="2" y="7" width="50" height="11" rx="5.5" fill="currentColor"/><rect x="2.8" y="22" width="48.4" height="11" rx="5.5" fill="none" stroke="currentColor" stroke-width="1.6"/><rect x="12" y="37" width="30" height="11" rx="5.5" fill="none" stroke="currentColor" stroke-width="1.3" stroke-dasharray="3 2" opacity=".75"/></symbol>
+  <symbol id="ill-kiff" viewBox="0 0 54 54"><path d="M27 15.5A13.5 13.5 0 0 1 27 38.5A13.5 13.5 0 0 1 27 15.5Z" fill="var(--ill-accent, currentColor)"/><circle cx="20" cy="27" r="13.5" fill="none" stroke="currentColor" stroke-width="2.2"/><circle cx="34" cy="27" r="13.5" fill="none" stroke="currentColor" stroke-width="2.2"/></symbol>
   <symbol id="i-roues" viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="17" height="4.6" rx="1.6"/><rect x="3.5" y="9.7" width="17" height="4.6" rx="1.6"/><rect x="3.5" y="15.9" width="17" height="4.6" rx="1.6"/></symbol>
   <symbol id="i-ajuster" viewBox="0 0 24 24"><path d="M4 8h13"/><path d="M14 4.5L17.5 8 14 11.5"/><path d="M20 16H7"/><path d="M10 12.5L6.5 16l3.5 3.5"/></symbol>
   <symbol id="i-telephones" viewBox="0 0 24 24"><rect x="2.5" y="5" width="8" height="14" rx="2"/><rect x="13.5" y="5" width="8" height="14" rx="2"/><path d="M6 16.5h1"/><path d="M17 16.5h1"/></symbol>
@@ -203,7 +206,11 @@
         <div class="sheet welcome" id="welcome">
           <!-- En haut : le nom du jeu (en petit quand des parties sont en cours) et le menu -->
           <header class="home-top">
-            <span class="home-brand" id="home-brand" hidden><svg class="emblem emblem--mini" viewBox="0 0 168 124" aria-hidden="true"><use href="#emblem"/></svg><span class="home-brand-name"><span class="ink" data-ink="Kiff Kiff">Kiff Kiff</span></span></span>
+            <span class="home-brand-col" id="home-brand" hidden>
+              <span class="home-brand"><svg class="emblem emblem--mini" viewBox="0 0 168 124" aria-hidden="true"><use href="#emblem"/></svg><span class="home-brand-name"><span class="ink" data-ink="Kiff Kiff">Kiff Kiff</span></span></span>
+              <!-- Ce qu’est le jeu, en une phrase : toujours là, pour qui le découvre sur ce téléphone -->
+              <span class="home-tag" id="home-tag" data-t="accueil.intro">Trois roues pour se proposer des envies, et savourer celles que vous partagez.</span>
+            </span>
             <button class="sticker sticker--round home-menu-btn" id="home-menu" type="button" aria-haspopup="dialog" aria-label="Menu : ambiance et son, installer, faire découvrir, qui est là"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M5 7h14M5 12h14M5 17h14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg></button>
           </header>
           <div class="home-hero" id="home-hero">
@@ -213,13 +220,15 @@
           </div>
           <!-- La une : la partie qui a du nouveau (ou la dernière jouée) -->
           <section class="home-une" id="home-une" hidden aria-live="polite"></section>
-          <h3 class="home-sec" id="home-sec" hidden><span data-t="accueil.vos-parties">Vos parties</span><span class="home-sec-n" id="home-sec-n"></span></h3>
+          <h3 class="home-sec" id="home-sec" hidden><span data-t="accueil.vos-parties">Vos parties</span><span class="home-sec-n" id="home-sec-n"></span>
+            <button class="home-edit" id="home-edit" type="button" aria-pressed="false" aria-label="Supprimer des parties"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-supprimer"/></svg></button></h3>
           <ul class="home-list" id="home-list" hidden></ul>
           <div class="duo-home" id="duo-home" hidden>
             <p class="duo-home-text" id="duo-home-text"></p>
             <button class="btn" id="duo-resume" type="button" data-t="accueil.reprendre-duo">Reprendre la partie</button>
             <button class="link-btn" id="duo-quit" type="button" data-t="accueil.arreter">Arrêter cette partie</button>
           </div>
+          <p class="home-toast" id="home-toast" role="status" hidden></p>
           <div class="home-go">
             <button class="btn" id="welcome-go" type="button" data-t="accueil.commencer">Commencer</button>
             <p class="age-note" data-t="accueil.age">Réservé aux adultes&nbsp;: en jouant, tu confirmes avoir 18&nbsp;ans ou plus.</p>
@@ -250,22 +259,27 @@
             <button class="where-btn" type="button" data-where="duo" aria-pressed="false" data-t="joueurs.distance">Sur son téléphone</button>
           </div>
           <div class="name1-box" id="name1-box">
-            <label for="name1" data-t="joueurs.son-prenom">Son prénom (c’est l’autre qui commence)</label>
+            <label for="name1" id="name1-label">Son prénom (c’est l’autre qui commence)</label>
             <input id="name1" maxlength="20" autocomplete="off" placeholder="Pistache" enterkeyhint="go" data-t-ph="joueurs.exemple-2">
           </div>
+          <!-- Une personne qui n’a jamais joué sur ce téléphone : le principe lui sera montré -->
+          <p class="first-note" id="first-note" hidden><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-etoiles"/></svg><span id="first-note-text"></span></p>
           <button class="btn" type="submit" id="start-go" data-t="joueurs.suivant">Suivant</button>
           <button class="link-btn step-back" type="button"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-retour"/></svg><span data-t="joueurs.retour">Retour</span></button>
         </form>
       </section>
 
       <section class="step" data-step="2" aria-labelledby="rules-title">
-        <div class="sheet step-sheet">
-          <h2 class="step-title" id="rules-title" data-t="principe.titre">Le principe</h2>
-          <ol class="rules rules--ic">
-            <li><svg class="ic rule-ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-roues"/></svg><span data-t="principe.1"><b id="rule-a" data-tk="prénom">Cerise</b> compose une envie avec trois roues.</span></li>
-            <li><svg class="ic rule-ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-ajuster"/></svg><span data-t="principe.2"><b id="rule-b" data-tk="prénom">Pistache</b> dit «&nbsp;J’ai envie aussi&nbsp;», ou «&nbsp;Oui, mais…&nbsp;» et change une seule chose.</span></li>
-            <li><svg class="ic rule-ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-kiff"/></svg><span data-t="principe.3">Un kiff kiff, c’est quand vos deux envies se rejoignent. On peut passer à tout moment, sans se justifier.</span></li>
+        <div class="sheet step-sheet principe">
+          <p class="principe-kicker" id="principe-kicker" hidden></p>
+          <h2 class="step-title" id="rules-title" data-t="principe.titre">Le jeu en trois gestes</h2>
+          <p class="step-text principe-intro" data-t="principe.intro">Kiff Kiff, c’est se dire ses envies sans gêne&nbsp;: une phrase à la fois, et rien ne se passe sans deux «&nbsp;j’ai envie&nbsp;».</p>
+          <ol class="gestes">
+            <li><span class="geste-ill" aria-hidden="true"><svg viewBox="0 0 54 54"><use href="#ill-roues"/></svg><b>1</b></span><span class="geste-text"><span data-t="principe.1"><b id="rule-a" data-tk="prénom">Cerise</b> compose une envie avec trois roues.</span><span class="geste-sub" data-t="principe.1-sous">Glisse les roues, ou le dé pour le hasard.</span></span></li>
+            <li><span class="geste-ill" aria-hidden="true"><svg viewBox="0 0 54 54"><use href="#ill-reponses"/></svg><b>2</b></span><span class="geste-text"><span data-t="principe.2"><b id="rule-b" data-tk="prénom">Pistache</b> dit «&nbsp;J’ai envie aussi&nbsp;», ou «&nbsp;Oui, mais…&nbsp;» et change une seule chose.</span><span class="geste-sub" data-t="principe.2-sous">Ou «&nbsp;On passe&nbsp;», sans se justifier.</span></span></li>
+            <li><span class="geste-ill" aria-hidden="true"><svg viewBox="0 0 54 54"><use href="#ill-kiff"/></svg><b>3</b></span><span class="geste-text"><span data-t="principe.3">Un kiff kiff, c’est quand vos deux envies se rejoignent. On peut passer à tout moment, sans se justifier.</span><span class="geste-sub" data-t="principe.3-sous">À vivre maintenant, ou à garder pour plus tard.</span></span></li>
           </ol>
+          <p class="step-text principe-piment" data-t="principe.piment">Le piment (Tendre, Pimenté, Brûlant) monte seulement si vous êtes d’accord tous les deux.</p>
           <button class="btn" id="rules-ok" type="button" data-t="principe.ok">Compris</button>
           <button class="link-btn step-back" type="button"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-retour"/></svg><span data-t="joueurs.retour">Retour</span></button>
         </div>
@@ -306,10 +320,10 @@
       <section class="step" data-step="1" aria-labelledby="inv-rules-title">
         <div class="sheet step-sheet">
           <h2 class="step-title" id="inv-rules-title" data-t="invite.principe">Le principe</h2>
-          <ol class="rules rules--ic">
-            <li><svg class="ic rule-ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-roues"/></svg><span id="inv-rule-1"><b>Tu commences</b>&nbsp;: trois roues, «&nbsp;J’ai envie que tu me…&nbsp;».</span></li>
-            <li><svg class="ic rule-ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-ajuster"/></svg><span id="inv-rule-2"><b class="inv-a">Cerise</b> répond «&nbsp;J’ai envie aussi&nbsp;», ou «&nbsp;Oui, mais…&nbsp;» en changeant une chose.</span></li>
-            <li><svg class="ic rule-ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-kiff"/></svg><span data-t="invite.regle-3">Vos envies se rejoignent&nbsp;: kiff kiff. On passe quand on veut, sans se justifier.</span></li>
+          <ol class="gestes">
+            <li><span class="geste-ill" aria-hidden="true"><svg viewBox="0 0 54 54"><use href="#ill-roues"/></svg><b>1</b></span><span class="geste-text" id="inv-rule-1"><b>Tu commences</b>&nbsp;: trois roues, «&nbsp;J’ai envie que tu me…&nbsp;».</span></li>
+            <li><span class="geste-ill" aria-hidden="true"><svg viewBox="0 0 54 54"><use href="#ill-reponses"/></svg><b>2</b></span><span class="geste-text" id="inv-rule-2"><b class="inv-a">Cerise</b> répond «&nbsp;J’ai envie aussi&nbsp;», ou «&nbsp;Oui, mais…&nbsp;» en changeant une chose.</span></li>
+            <li><span class="geste-ill" aria-hidden="true"><svg viewBox="0 0 54 54"><use href="#ill-kiff"/></svg><b>3</b></span><span class="geste-text" data-t="invite.regle-3">Vos envies se rejoignent&nbsp;: kiff kiff. On passe quand on veut, sans se justifier.</span></li>
           </ol>
           <p class="step-text inv-piments" id="inv-piments"></p>
           <button class="btn" id="inv-ok" type="button" data-t="invite.ok">Compris</button>
@@ -767,12 +781,23 @@
   </div>
 </div>
 <!--/APP-->
+<!-- Les premiers gestes : trois bulles sur l’écran de jeu, à la première envie de quelqu’un -->
+<div class="coach" id="coach" hidden role="dialog" aria-modal="true" aria-labelledby="coach-text">
+  <div class="coach-ring" id="coach-ring" aria-hidden="true"></div>
+  <section class="coach-bubble" id="coach-bubble">
+    <span class="coach-arrow" aria-hidden="true"></span>
+    <span class="coach-count" id="coach-count"></span>
+    <p class="coach-text" id="coach-text"></p>
+    <div class="coach-foot"><button class="link-btn" id="coach-skip" type="button" data-t="gestes.passer">Je connais</button><button class="btn" id="coach-next" type="button" data-t="gestes.suivant">Suivant</button></div>
+  </section>
+</div>
+
 <script src="data.js?v=64"></script>
-<script src="textes.js?v=15"></script>
+<script src="textes.js?v=16"></script>
 <script src="semantique.js?v=1"></script>
 <script src="config.js?v=63"></script>
 <script src="duo.js?v=63"></script>
 <script src="push.js?v=65"></script>
-<script src="app.js?v=118"></script>
+<script src="app.js?v=119"></script>
 </body>
 </html>

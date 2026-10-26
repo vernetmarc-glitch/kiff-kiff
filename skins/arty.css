@@ -694,3 +694,6 @@ button { font: inherit; color: inherit; }
 .overlay--handoff #wait-notif[aria-pressed="true"] > .ic { background: var(--pink); color: var(--paper); box-shadow: none; }
 /* La discussion */
 :root { --chat-mine-bg: var(--pink); --chat-mine-fg: #1B1B3A; --menu-bg: var(--paper); --menu-fg: var(--blue); }
+
+/* L’accueil : le fond derrière « Nouvelle partie », collée en bas */
+:root { --home-go-bg: var(--paper); }

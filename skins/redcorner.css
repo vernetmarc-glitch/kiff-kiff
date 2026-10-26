@@ -627,3 +627,16 @@ body:has(#ov-menu:not([hidden])) .deco-candles { display: none; }
 .sheet--partie > header.top { border-bottom-color: rgba(217, 174, 91, .35); }
 .overlay--partie > .sheet, .overlay--envie > .sheet, .overlay--kiffs > .sheet {
   padding: calc(max(7px, env(safe-area-inset-top, 0px)) + 12px) 18px calc(max(7px, env(safe-area-inset-bottom, 0px)) + 10px) !important; }
+
+/* L’accueil : le fond derrière « Nouvelle partie », collée en bas */
+:root { --home-go-bg: #5E0B1F; }
+/* Les premiers gestes et le principe illustré */
+:root { --coach-bg: linear-gradient(180deg, #4F0A1B, #2B040C); --coach-fg: #FFF0C4; --coach-ring: #FF8FB0;
+  --coach-shadow: inset 0 0 0 1px #F6DDA0, 0 14px 30px rgba(0, 0, 0, .6);
+  --geste-bg: rgba(43, 4, 12, .6); --geste-line: inset 0 0 0 1px #C9963F; --geste-fg: #F6DDA0; --ill-accent: #FF3B6B; }
+.coach-bubble .coach-arrow { background: #4F0A1B; box-shadow: -1px -1px 0 #F6DDA0; }
+.coach-bubble.is-above .coach-arrow { background: #2B040C; box-shadow: 1px 1px 0 #F6DDA0; }
+.coach-count { color: #E9A6B0; opacity: 1; font-family: var(--f-title); }
+.principe-kicker { color: #E9A6B0; opacity: 1; font-family: var(--f-title); }
+.first-note { background: rgba(255, 79, 126, .12); box-shadow: inset 0 0 0 1px rgba(255, 143, 176, .45); }
+.first-note .ic { color: #FF8FB0; }

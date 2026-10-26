@@ -746,6 +746,7 @@
   }
 
   function render() {
+    if (S.phase === 'compose') coachSoon();
     const ph = S.phase;
     const B = nameOf(other(S.proposer));
     const ch = changes();
@@ -925,12 +926,14 @@
 
   /* ---------- Actions ---------- */
   function startComposition(proposer) {
+    const turned = S.proposer !== proposer;
     S.proposer = proposer;
     S.phase = 'compose';
     S.original = null;
     S.bottom = false;
     hideOffer();
     render();
+    if (!duo && S.started && !S.gifting) savePair(!turned); // à qui le tour : retrouvé à l’accueil
   }
 
   // Une case au hasard, ou parmi les formules les plus kiffées (premier tirage d’une partie)
@@ -1040,10 +1043,14 @@
     S.seen = [0, 1, 2].map((r) => cleanSeen(mem && mem.seen && mem.seen[r]));
     relist();
   }
-  function savePair() {
+  // still : enregistrer sans faire remonter la partie dans la liste (on l’a seulement rouverte)
+  function savePair(still) {
     if (duo) return;
     const all = load('paires', {}) || {};
-    all[pairKey()] = { mine: S.mine, seen: S.seen, kiffs: (S.kiffs || []).slice(-60), ton: S.ton, t: Date.now() };
+    const was = all[pairKey()] || {};
+    // names, p (à qui le tour), lv (piment) : la partie se retrouve à l’accueil, même après avoir fermé l’appli
+    all[pairKey()] = { mine: S.mine, seen: S.seen, kiffs: (S.kiffs || []).slice(-60), ton: S.ton, t: still && was.t ? was.t : Date.now(),
+      names: [nameOf(0), nameOf(1)], p: S.proposer, lv: S.levels.slice(), live: S.started ? 1 : (was.live || 0) };
     const keep = Object.keys(all).sort((a, b) => (all[b].t || 0) - (all[a].t || 0)).slice(0, 20);
     save('paires', Object.fromEntries(keep.map((k) => [k, all[k]])));
   }
@@ -1079,9 +1086,61 @@
     return true;
   }
 
+  /* ---------- Les premiers gestes : trois bulles, la première fois que quelqu’un compose une envie ---------- */
+  const COACH = [['.strips', 'gestes.roues'], ['.press-row', 'gestes.reglages'], ['#act-main', 'gestes.proposer']];
+  let coachI = -1, coachWho = '', coachT = 0;
+  const composer = () => (duo ? nameOf(duo.seat) : nameOf(S.proposer)).trim().toLowerCase();
+  function gestesVus() {
+    let v = load('gestesVus', null);
+    // Avant le 27 octobre 2026 : qui a déjà proposé une envie sur ce téléphone connaît les gestes
+    if (!Array.isArray(v)) { v = load('envieFaite', false) ? knownList() : []; save('gestesVus', v); }
+    return v;
+  }
+  function gesteVu(who) { const v = gestesVus(); if (who && !v.includes(who)) save('gestesVus', v.concat(who).slice(-60)); }
+  function coachSoon() {
+    if (coachT || !$('#coach').hidden || gestesVus().includes(composer())) return;
+    coachT = setTimeout(() => { coachT = 0; maybeCoach(); }, 1400);
+  }
+  function maybeCoach() {
+    if (!$('#coach').hidden || S.phase !== 'compose' || !S.started || !myTurn()) return;
+    const who = composer();
+    if (!who || gestesVus().includes(who)) return;
+    // Rien par-dessus le jeu, et les roues à l’arrêt
+    if (document.querySelector('.overlay:not([hidden])') || reels.some((r) => r.busy)) { coachSoon(); return; }
+    coachWho = who; coachI = 0;
+    show($('#coach'));
+    placeCoach();
+  }
+  function placeCoach() {
+    const [sel, key] = COACH[coachI];
+    const t = document.querySelector(sel);
+    if (!t) { endCoach(); return; }
+    t.scrollIntoView({ block: 'nearest' });
+    const r = t.getBoundingClientRect(), pad = 6;
+    const ring = $('#coach-ring'), bub = $('#coach-bubble');
+    Object.assign(ring.style, { left: (r.left - pad) + 'px', top: (r.top - pad) + 'px', width: (r.width + pad * 2) + 'px', height: (r.height + pad * 2) + 'px' });
+    const otherName = (duo ? (S.names[other(duo.seat)] || '') : nameOf(other(S.proposer))).trim() || T('principe.autre');
+    $('#coach-text').textContent = T(key, { prénom: otherName });
+    $('#coach-count').textContent = T('gestes.compte', { nombre: coachI + 1 });
+    $('#coach-next').textContent = T(coachI === COACH.length - 1 ? 'gestes.fin' : 'gestes.suivant');
+    // La bulle sous l’élément s’il y a la place, sinon au-dessus ; la flèche vise son milieu
+    const below = r.bottom + 16 + 190 < innerHeight;
+    bub.classList.toggle('is-above', !below);
+    bub.style.top = below ? (r.bottom + pad + 14) + 'px' : '';
+    bub.style.bottom = below ? '' : (innerHeight - r.top + pad + 14) + 'px';
+    const bx = bub.getBoundingClientRect();
+    bub.style.setProperty('--arrow-x', Math.max(24, Math.min(bx.width - 24, r.left + r.width / 2 - bx.left)) + 'px');
+    $('#coach-next').focus({ preventScroll: true });
+  }
+  function endCoach() { hide($('#coach')); gesteVu(coachWho); coachI = -1; }
+  $('#coach-next').addEventListener('click', () => { audio(); sClick(); haptic(8); if (coachI >= COACH.length - 1) { endCoach(); return; } coachI++; placeCoach(); });
+  $('#coach-skip').addEventListener('click', () => { audio(); endCoach(); });
+  window.addEventListener('resize', () => { if (!$('#coach').hidden) placeCoach(); });
+
   /* A propose son envie */
   function propose() {
     if (S.phase !== 'compose' || !myTurn() || reels.some((r) => r.busy) || blockedByFree()) return;
+    gesteVu(composer());
     if (S.gifting) { endGift(true); return; }
     adoptFree();
     markSeen();
@@ -1982,23 +2041,49 @@
       '<span class="party-sentence thread-kiff-card"><span class="thread-kiff-text">' + esc(k.t || '') + '</span>' +
       (r ? '<span class="thread-kiff-reacts">' + r + '</span>' : '') + '</span></button></li>';
   }
+  /* L’envie en cours (proposée, pas encore un kiff kiff) : une carte dans le fil, à l’heure où elle est arrivée sur ce téléphone */
+  function pendingEnvie() {
+    if (!duo || !duo.info || !S.original || !['review', 'adjust', 'reconfirm'].includes(S.phase)) return null;
+    const adj = S.phase === 'reconfirm';
+    const text = adj ? sentence() : sentenceFrom(S.original);
+    const all = load('envieVue', {}) || {};
+    const room = duo.info.room;
+    if (!all[room] || all[room].sig !== text) {
+      all[room] = { sig: text, d: Date.now() };
+      const keep = Object.keys(all).sort((a, c) => (all[c].d || 0) - (all[a].d || 0)).slice(0, 20);
+      save('envieVue', Object.fromEntries(keep.map((k) => [k, all[k]])));
+    }
+    const mine = S.proposer === duo.seat;
+    return { d: all[room].d, text, adj, mine };
+  }
+  function threadEnvieHtml(e, B) {
+    const kick = e.adj ? (e.mine ? T('partie.envie-ajustee-par', { prénom: B }) : T('partie.envie-ajustee-toi'))
+      : e.mine ? T('partie.envie-toi') : T('partie.envie-de', { prénom: B });
+    const go = myTurn() && !$('#wait-go').hidden;
+    return '<li class="thread-kiff thread-envie"><button class="thread-kiff-btn" type="button"' + (go ? ' data-envie-go="1"' : ' disabled') + '>' +
+      '<span class="thread-kiff-kicker">' + esc(kick) + '</span>' +
+      '<span class="party-sentence thread-kiff-card"><span class="thread-kiff-text">' + esc(e.text) + '</span></span></button></li>';
+  }
   function renderChat(toEnd) {
     if (ovPartie.hidden) return;
     const b = duo && duo.info ? chatBox() : null;
     const B = duo ? nameOf(other(duo.seat)) : '';
     const items = (S.kiffs || []).map((k) => ({ d: k.d || 0, k }));
     if (b) b.m.forEach((m) => items.push({ d: m.d, m }));
+    const pe = pendingEnvie();
+    if (pe) items.push({ d: pe.d, e: pe });
     items.sort((x, y) => x.d - y.d);
     const lastMine = b ? b.m.filter((m) => m.s === duo.seat && !m.x).slice(-1)[0] : null;
     let day = '', html = '';
     if (!items.length) html = '<li class="chat-empty">' + esc(T('chat.vide', { prénom: B })) + '</li>';
     // Les messages qui se suivent (même personne, moins de 3 minutes, même jour) forment une suite : l’heure sur le dernier
     const GAP = 3 * 60000;
-    const sameRun = (a, c) => !!a && !!c && a.m && c.m && !a.m.x && !c.m.x && a.m.s === c.m.s && Math.abs(c.d - a.d) < GAP && dayLabel(a.d) === dayLabel(c.d);
+    const sameRun = (a, c) => !!a && !!c && !!a.m && !!c.m && !a.m.x && !c.m.x && a.m.s === c.m.s && Math.abs(c.d - a.d) < GAP && dayLabel(a.d) === dayLabel(c.d);
     items.forEach((it, i) => {
       const dl = dayLabel(it.d || Date.now());
       if (dl !== day) { day = dl; html += '<li class="chat-day"><span>' + esc(dl) + '</span></li>'; }
       if (it.k) { html += threadKiffHtml(it.k, b); return; }
+      if (it.e) { html += threadEnvieHtml(it.e, B); return; }
       const m = it.m, mine = m.s === duo.seat;
       if (m.x) { html += '<li class="chat-msg chat-msg--gone' + (mine ? ' is-mine' : '') + '">' + esc(T('chat.supprime')) + '</li>'; return; }
       // Une citation : une envie (« Kiff kiff · …le bas du dos… ») ou un message
@@ -2230,6 +2315,8 @@
   cl.addEventListener('click', (e) => {
     const c = e.target.closest('[data-envie]');
     if (c) { audio(); sClick(); haptic(8); openEnvie(c.dataset.envie); return; }
+    // L’envie en cours, quand c’est à moi : la lire (ou la relire)
+    if (e.target.closest('[data-envie-go]')) { $('#wait-go').click(); return; }
     const g = e.target.closest('[data-goto]');
     if (g) { audio(); scrollToKiff(g.dataset.goto); }
   });
@@ -3138,12 +3225,17 @@
   }
   function rememberGame(st) {
     if (!duo || !duo.info || !st) return;
-    const list = games().filter((g) => g.room !== duo.info.room);
-    list.unshift({
+    // Une partie ne remonte dans la liste que si elle a bougé (nouvelle étape) : l’ouvrir ne la déplace pas
+    const all = games();
+    const was = all.find((g) => g.room === duo.info.room);
+    const snap = snapOf(duo.info.room);
+    const moved = !was || (!!snap && (st.seq || 0) > (snap.seq || 0)); // sans photo, on ne sait pas : elle reste à sa place
+    const entry = {
       room: duo.info.room, key: duo.info.key, broker: duo.info.broker, seat: duo.seat, id: duo.id,
       names: (st.names || ['', '']).slice(0, 2), turn: turnFor(st, duo.seat), kiff: st.kiff ? st.kiff.n : 0,
-      nk: Math.max(Array.isArray(st.kiffs) ? st.kiffs.length : 0, st.kiff ? st.kiff.n : 0), t: Date.now()
-    });
+      nk: Math.max(Array.isArray(st.kiffs) ? st.kiffs.length : 0, st.kiff ? st.kiff.n : 0), t: moved ? Date.now() : (was.t || Date.now())
+    };
+    const list = was ? all.map((g) => (g.room === entry.room ? entry : g)) : [entry].concat(all);
     save('parties', list.slice(0, 40));
     saveSnap(duo.info.room, st);
   }
@@ -3569,9 +3661,10 @@
     report('invitation', null, 'continuer');
     showInvite();
   }
-  async function createDuo(given) {
+  async function createDuo(given, other) {
     applyPendingMots();
     const name = (given != null ? given : duoName.value).replace(/\s+/g, ' ').trim().slice(0, 20);
+    const prov = String(other || '').replace(/\s+/g, ' ').trim().slice(0, 20); // l’autre pourra le changer
     duoSheet({ stage: 'creating', title: T('duo.titre'), wait: T('duo.ouvre'), cancel: T('duo.annuler') });
     try { await loadDuoLibs(); } catch (e) { duoError('net'); return; }
     const id = window.KiffDuo.newId();
@@ -3583,8 +3676,9 @@
     duo.info = conn.info;
     save('duo', { room: conn.info.room, key: conn.info.key, broker: conn.info.broker, seat: 0, id });
     try { history.replaceState(null, '', window.KiffDuo.link(conn.info)); } catch (e) { /* rien */ }
-    S.names = [name, ''];
-    save('names', [name, S.names[1] || load('names', ['', ''])[1] || '']);
+    S.names = [name, prov];
+    save('names', [name, load('names', ['', ''])[1] || '']);
+    addKnown(name);
     S.proposer = 0;
     S.phase = 'lobby';
     S.original = null; S.bottom = false; S.pass = null;
@@ -3597,7 +3691,7 @@
     S.lvOk = [1];
     S.t0 = Date.now();
     pushState();
-    rememberGame({ phase: 'lobby', names: [name, ''] });
+    rememberGame({ phase: 'lobby', names: [name, prov] });
     report('invitation', null, 'progressif');
     askGift();
   }
@@ -3670,7 +3764,9 @@
     if (!ovInv.hidden) return; // déjà là : on garde l’écran en cours de lecture
     if (!invSteps) invSteps = makeSteps($('#inv-steps'), $('#inv-dots'), ovInv);
     hide(ovDuo);
-    $('#inv-name').value = load('duoName', '') || '';
+    const prov = (st.names && st.names[1] || '').trim();
+    $('#inv-name').value = prov || load('duoName', '') || '';
+    $('#inv-name-help').textContent = prov ? T('invite.prenom-propose', { prénom: A }) : T('invite.prenom-aide', { prénom: A });
     invSteps.go(0, true);
     show(ovInv);
   }
@@ -3718,6 +3814,7 @@
     const st = duo.remote;
     const name = (given != null ? given : duoName.value).replace(/\s+/g, ' ').trim().slice(0, 20);
     save('duoName', name);
+    addKnown(name);
     const next = Object.assign({}, st);
     next.names = [(st.names && st.names[0]) || '', name];
     if (st.phase === 'lobby' && st.cont) {
@@ -4330,7 +4427,7 @@
     pimentList($('#piment-home-list'), $('#piment-home-error'));
     $('#piment-go').addEventListener('click', () => {
       audio(); sSwitchOn(); haptic(12);
-      if (where === 'duo') createDuo(S.names[0] || '');
+      if (where === 'duo') createDuo(S.names[0] || '', invName);
       // Brûlant gardé de la dernière fois : on le confirme à deux avant de commencer
       else if (S.levels.includes(3) && !brulantOk) askBrulant(launchGame, () => setLevels(S.levels.filter((n) => n !== 3).length ? S.levels.filter((n) => n !== 3) : [2], { silent: true }));
       else launchGame();
@@ -4404,13 +4501,34 @@
     const setWhere = (w) => {
       where = w;
       document.querySelectorAll('.where-btn').forEach((b) => b.setAttribute('aria-pressed', b.dataset.where === w ? 'true' : 'false'));
-      $('#name1-box').hidden = w !== 'here';
+      // À distance aussi, un prénom pour l’autre : on retrouve l’invitation, et l’autre pourra le changer
+      $('#name1-label').textContent = T(w === 'here' ? 'joueurs.son-prenom' : 'joueurs.son-prenom-distance');
+      renderFirst();
     };
+    // Qui découvre le jeu sur ce téléphone : une ligne le dit, et le principe lui sera montré
+    function newcomers() {
+      const n0 = $('#name0').value.trim(), n1 = $('#name1').value.trim();
+      const out = [];
+      if (n0 && !(isKnown(n0) || (load('rulesSeen', false) && !knownList().length))) out.push(n0);
+      if (where === 'here' && n1 && !isKnown(n1)) out.push(n1);
+      return out;
+    }
+    function renderFirst() {
+      const nw = newcomers();
+      const show = nw.length > 0 && (where === 'here' || !load('rulesSeen', false));
+      $('#first-note').hidden = !show;
+      const me = nw[0] === $('#name0').value.trim();
+      if (show) $('#first-note-text').textContent = nw.length > 1 ? T('joueurs.premiere-deux') : me ? T('joueurs.premiere-toi') : T('joueurs.premiere', { prénom: nw[0] });
+    }
+    $('#name0').addEventListener('input', renderFirst);
+    $('#name1').addEventListener('input', renderFirst);
     setWhere(load('where', 'here') === 'duo' ? 'duo' : 'here');
     const toRules = () => {
       if (needName($('#name0'))) return;
       if (where === 'here' && needName($('#name1'))) return;
+      const nw = newcomers();
       readNames();
+      invName = where === 'duo' ? S.names[1] : '';
       if (where === 'duo') S.names[1] = '';
       // La deuxième personne propose en premier
       $('#rule-a').textContent = where === 'duo' ? T('principe.autre') : nameOf(1);
@@ -4431,18 +4549,22 @@
       $('#rencontre-box').hidden = true;
       save('where', where);
       sClick(); haptic(8);
-      // Qui a déjà joué connaît le principe : on va droit aux piments (« Retour » le remontre)
-      goStep(load('rulesSeen', false) ? 3 : 2);
+      // Qui a déjà joué connaît le principe : on va droit aux piments (« Retour » le remontre).
+      // Quelqu’un découvre le jeu sur ce téléphone : le principe d’abord.
+      const first = nw.length > 0 && (where === 'here' || !load('rulesSeen', false));
+      $('#principe-kicker').hidden = !(first && where === 'here');
+      $('#principe-kicker').textContent = T('principe.kicker', { prénom: nameOf(0), autre: nameOf(1) });
+      goStep(!load('rulesSeen', false) || first ? 2 : 3);
     };
     document.querySelectorAll('.where-btn').forEach((b) => b.addEventListener('click', () => {
       audio();
       setWhere(b.dataset.where);
-      if (where === 'duo') { if ($('#name0').value.trim()) toRules(); else needName($('#name0')); return; }  // réponse donnée : on glisse tout de suite
+      // Dans les deux cas, on écrit ensuite le prénom de l’autre (à distance : pour retrouver l’invitation)
       sClick(); haptic(8);
       setTimeout(() => $('#name1').focus(), 60);
     }));
     $('#name0').addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') { e.preventDefault(); if (where === 'here') $('#name1').focus(); else toRules(); }
+      if (e.key === 'Enter') { e.preventDefault(); $('#name1').focus(); }
     });
     $('#start-form').addEventListener('submit', (e) => { e.preventDefault(); audio(); toRules(); });
     $('#rules-ok').addEventListener('click', () => { audio(); sClick(); haptic(8); save('rulesSeen', true); goStep(3); });
@@ -4494,6 +4616,26 @@
 
   /* ---------- Accueil : écrans successifs ---------- */
   let where = 'here';
+  let invName = ''; // le prénom donné à la personne invitée (l’autre pourra le changer)
+  /* Les prénoms qui ont déjà joué sur ce téléphone (en minuscules) : les autres découvrent le jeu */
+  function knownList() {
+    let k = load('connus', null);
+    if (!Array.isArray(k)) {
+      // Avant le 27 octobre 2026 : les paires de prénoms déjà jouées, et soi-même
+      k = [];
+      Object.keys(load('paires', {}) || {}).forEach((key) => key.split('|').forEach((n) => { if (n) k.push(n); }));
+      if (load('rulesSeen', false)) { const n = (load('names', ['', ''])[0] || '').trim().toLowerCase(); if (n) k.push(n); }
+      const d = (load('duoName', '') || '').trim().toLowerCase(); if (d) k.push(d);
+      k = [...new Set(k)];
+    }
+    return k;
+  }
+  const isKnown = (n) => knownList().includes(String(n || '').trim().toLowerCase());
+  function addKnown(...names) {
+    const k = knownList();
+    names.forEach((n) => { n = String(n || '').trim().toLowerCase(); if (n && !k.includes(n)) k.push(n); });
+    save('connus', k.slice(-60));
+  }
   /* Écrans qui glissent : un « paquet » d’écrans (#steps, #inv-steps), ses points et son fond */
   function makeSteps(box, dots, ov) {
     const track = box.querySelector('.steps-track');
@@ -4571,7 +4713,58 @@
     S.phase = 'compose';
     render();
     save('rulesSeen', true);
+    addKnown(S.names[0], S.names[1]);
+    savePair(); // la partie rejoint la liste de l’accueil
     handoffNewTurn(1, T('passage.premier'), () => setTimeout(() => shuffle(false, true), 250));
+  }
+  /* Les parties sur ce téléphone : chaque paire de prénoms garde sa partie (paires), on la retrouve à l’accueil */
+  const capName = (n) => n.replace(/(^|[\s-])(\S)/g, (m, a, b) => a + b.toUpperCase());
+  function icis() {
+    const all = load('paires', {}) || {};
+    const month = Date.now() - 30 * 864e5;
+    return Object.keys(all).map((key) => {
+      const m = all[key];
+      if (!m || typeof m !== 'object') return null;
+      // Avant le 26 octobre 2026, les prénoms n’étaient pas gardés : on les reprend de la clé
+      const legacy = !Array.isArray(m.names);
+      if (legacy && !((m.kiffs || []).length && (m.t || 0) > month)) return null;
+      if (!legacy && !m.live) return null;
+      const names = legacy ? key.split('|').map(capName) : m.names.slice(0, 2).map((n) => String(n || '').slice(0, 20));
+      return { key, names, p: m.p === 0 ? 0 : 1, t: m.t || 1, nk: (m.kiffs || []).length, mem: m };
+    }).filter(Boolean);
+  }
+  // Rouvrir une partie sur ce téléphone : mêmes prénoms, même piment, au tour de qui devait proposer
+  function openIci(key) {
+    const it = icis().find((x) => x.key === key);
+    if (!it) return;
+    if (duo) parkDuo();
+    if (!duo && S.started && !S.mustRestart && pairKey() === key) { $('#resume').click(); return; }
+    S.started = false;
+    S.names = it.names.slice();
+    save('names', S.names);
+    $('#name0').value = S.names[0]; $('#name1').value = S.names[1];
+    if (Array.isArray(it.mem.lv) && it.mem.lv.length) setLevels(parseLevels(it.mem.lv), { silent: true });
+    applyPendingMots();
+    S.t0 = Date.now();
+    hide(el.ovStart);
+    S.kiff = null;
+    S.kept = [[], [], []]; newDraw();
+    S.ton = tonOf(it.mem); renderTon();
+    setMemory(it.mem);
+    S.kiffs = Array.isArray(it.mem.kiffs) ? it.mem.kiffs.filter((k) => k && typeof k.t === 'string').slice(-60) : [];
+    renderKiffs();
+    S.started = true;
+    S.mustRestart = false;
+    S.proposer = it.p;
+    S.phase = 'compose';
+    render();
+    handoffNewTurn(it.p, T('passage.texte'), () => setTimeout(() => shuffle(false, true), 250));
+  }
+  function forgetIci(key) {
+    const all = load('paires', {}) || {};
+    delete all[key];
+    save('paires', all);
+    if (!duo && S.started && pairKey() === key) { S.started = false; S.phase = 'start'; $('#resume').hidden = true; }
   }
 
   /* Accueil : les parties à deux en cours, avec à qui c’est le tour */
@@ -4747,7 +4940,8 @@
   function homeItems() {
     const cur = duo && duo.stage === 'game' && duo.info ? duo.info.room : '';
     const items = games().filter((g) => g.room !== cur).map((g) => {
-      const B = ((g.names || [])[1 - g.seat] || '').trim() || T('parties.l-autre');
+      const Bn = ((g.names || [])[1 - g.seat] || '').trim();
+      const B = Bn || T('parties.l-autre');
       const st = snapOf(g.room);
       const cb = chatBox(g.room);
       const msgs = cb.m.filter((m) => !m.x);
@@ -4761,12 +4955,16 @@
       const news = state.me || nu > 0 || freshKiff;
       const t = Math.max(g.t || 0, lastMsg ? lastMsg.d : 0);
       const msgLine = lastMsg ? (lastMsg.s === g.seat ? T('chat.toi') : B) + ' : ' + lastMsg.t : '';
-      return { kind: 'duo', g, B, state, nu, news, t, freshKiff, msgLine, lastMsg, nk: g.nk || 0, title: g.turn === 'lobby' && g.seat === 0 ? T('parties.invitation') : B };
+      return { kind: 'duo', g, B, state, nu, news, t, freshKiff, msgLine, lastMsg, nk: g.nk || 0, lobby: g.turn === 'lobby' && g.seat === 0,
+        title: g.turn === 'lobby' && g.seat === 0 ? (Bn ? T('parties.invitation-a', { prénom: Bn }) : T('parties.invitation')) : B };
     });
-    // La partie sur ce téléphone, si elle est en cours
-    if (!duo && S.started && !S.mustRestart) {
-      items.push({ kind: 'ici', title: T('partie.seul-titre', { prénom: nameOf(0), autre: nameOf(1) }), state: { me: false, line: T('accueil.ici', { prénom: nameOf(S.proposer) }) }, nu: 0, news: false, t: load('iciT', 0) || 1, msgLine: '' });
-    }
+    // Les parties sur ce téléphone (celle en cours comprise), retrouvées même après avoir fermé l’appli
+    const here = !duo && S.started && !S.mustRestart ? pairKey() : '';
+    icis().forEach((x) => {
+      const p = x.key === here ? S.proposer : x.p;
+      items.push({ kind: 'ici', key: x.key, title: T('partie.seul-titre', { prénom: x.names[0], autre: x.names[1] }), B: x.names[1],
+        state: { me: false, line: T('accueil.ici', { prénom: x.names[p] }) }, nu: 0, news: false, t: x.t, msgLine: '', nk: x.nk });
+    });
     return items;
   }
   function renderHome() {
@@ -4774,6 +4972,8 @@
     const has = items.length > 0;
     $('#welcome').classList.toggle('has-games', has);
     $('#home-brand').hidden = !has;
+    $('#home-tag').hidden = !T('accueil.intro').trim();
+    if (!has) $('#welcome').classList.remove('is-editing');
     $('#home-hero').hidden = has;
     $('#home-rules').hidden = has;
     $('#welcome-go').textContent = has ? T('accueil.nouvelle') : T('accueil.commencer');
@@ -4786,28 +4986,35 @@
     const rest = sorted.slice(1);
     const isDuo = top.kind === 'duo';
     const B = top.B || '';
+    const homeId = (it) => (it.kind === 'duo' ? it.g.room : 'ici:' + it.key);
     const kick = (top.news ? T('accueil.du-nouveau') : T('accueil.derniere')) + (top.t > 1 ? ' · ' + agoText(top.t) : '');
-    const goLabel = !isDuo ? T('accueil.reprendre') : top.state.go === 'lire' ? T('partie.lire') : top.state.go === 'relire' ? T('partie.relire')
+    const goLabel = !isDuo ? T('accueil.ouvrir') : top.state.go === 'lire' ? T('partie.lire') : top.state.go === 'relire' ? T('partie.relire')
       : top.state.go === 'tourner' ? T('partie.tourner') : top.state.go === 'reprendre' ? T('partie.reprendre')
       : top.nu ? T('accueil.lire-messages') : T('accueil.ouvrir');
     const line = top.freshKiff ? T('parties.kiff-neuf') : top.state.line || '';
-    une.innerHTML = '<div class="une-head"><span class="avatar' + (top.news ? ' is-new' : '') + '" aria-hidden="true">' + esc(initial(isDuo ? B : top.title)) + '</span>' +
-      '<span class="une-head-text"><span class="une-kicker">' + esc(kick) + '</span><span class="une-name">' + esc(isDuo ? T('jeu.avec', { prénom: B }) : top.title) + '</span></span>' +
+    une.innerHTML = '<div class="une-head"><span class="avatar' + (top.news ? ' is-new' : '') + '" aria-hidden="true">' + esc(initial(B || top.title)) + '</span>' +
+      '<span class="une-head-text"><span class="une-kicker">' + esc(kick) + '</span><span class="une-name">' + esc(isDuo && !top.lobby ? T('jeu.avec', { prénom: B }) : top.title) + '</span></span>' +
+      '<button class="home-del une-del" type="button" data-del="' + esc(homeId(top)) + '" aria-label="' + esc(T('accueil.supprimer') + ' : ' + top.title) + '"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-supprimer"/></svg><span>' + esc(T('accueil.supprimer')) + '</span></button>' +
       (top.nu ? '<span class="badge badge--row" aria-label="' + top.nu + ' message' + (top.nu > 1 ? 's' : '') + ' non lu' + (top.nu > 1 ? 's' : '') + '">' + top.nu + '</span>' : '') + '</div>' +
       (line ? '<p class="une-line">' + esc(line) + '</p>' : '') +
       (top.msgLine ? '<p class="une-msg">' + esc(top.msgLine) + '</p>' : '') +
-      '<button class="btn une-go" type="button" data-home="' + esc(isDuo ? top.g.room : 'ici') + '"' + (isDuo && !top.state.me && top.nu ? ' data-partie="1"' : '') + '>' + esc(goLabel) + '</button>';
+      '<button class="btn une-go" type="button" data-home="' + esc(homeId(top)) + '"' + (isDuo && !top.state.me && top.nu ? ' data-partie="1"' : '') + '>' + esc(goLabel) + '</button>';
     une.classList.toggle('is-new', !!top.news);
     une.hidden = false;
-    $('#home-sec').hidden = !rest.length;
-    $('#home-sec-n').textContent = rest.length ? ' ' + rest.length : '';
+    // Le titre de la liste porte la corbeille : il reste là, même avec une seule partie
+    $('#home-sec').hidden = false;
+    $('#home-sec-n').textContent = ' ' + items.length;
+    $('#home-edit').setAttribute('aria-pressed', $('#welcome').classList.contains('is-editing') ? 'true' : 'false');
     list.hidden = !rest.length;
     list.innerHTML = rest.map((it) => {
       const isD = it.kind === 'duo';
-      const armed = isD && stopArmed === it.g.room;
-      const st = armed ? T('parties.arreter-confirmer', { prénom: it.B }) : (it.state.me ? it.state.line : (it.msgLine || it.state.line));
-      return '<li class="home-game' + (it.news ? ' is-new' : '') + (armed ? ' is-armed' : '') + '"><button class="home-game-btn" type="button" data-home="' + esc(isD ? it.g.room : 'ici') + '"' + (isD && !it.state.me && it.nu ? ' data-partie="1"' : '') + '>' +
-        '<span class="avatar' + (it.news ? ' is-new' : '') + '" aria-hidden="true">' + esc(initial(isD ? it.B : it.title)) + '</span>' +
+      const id = homeId(it);
+      const st = it.state.me ? it.state.line : (it.msgLine || it.state.line);
+      // Glisser la ligne vers la gauche (ou toucher la corbeille au-dessus de la liste) montre « Supprimer »
+      return '<li class="home-game' + (it.news ? ' is-new' : '') + (homeOpen === id ? ' is-open' : '') + '" data-id="' + esc(id) + '">' +
+        '<button class="home-del" type="button" data-del="' + esc(id) + '" tabindex="-1"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-supprimer"/></svg><span>' + esc(T('accueil.supprimer')) + '</span></button>' +
+        '<button class="home-game-btn" type="button" data-home="' + esc(id) + '"' + (isD && !it.state.me && it.nu ? ' data-partie="1"' : '') + '>' +
+        '<span class="avatar' + (it.news ? ' is-new' : '') + '" aria-hidden="true">' + esc(initial(it.B || it.title)) + '</span>' +
         '<span class="home-game-text"><span class="home-game-name">' + esc(it.title) + '</span><span class="home-game-line' + (it.state.me ? ' is-me' : '') + '">' + esc(st) + '</span></span>' +
         '<span class="home-game-side"><span class="home-game-time">' + esc(it.t > 1 ? agoText(it.t) : '') + '</span>' +
         (it.nu ? '<span class="badge badge--row">' + it.nu + '<span class="sr-only"> non lus</span></span>' : '') + '</span></button></li>';
@@ -4819,27 +5026,79 @@
     const room = b.dataset.home;
     if (!room) return;
     audio(); sClick(); haptic(8);
-    if (room === 'ici') { $('#resume').click(); return; }
-    if (stopArmed === room) { stopArmed = ''; haptic(20); stopGame(room); renderHome(); return; }
+    if (homeOpen || $('#welcome').classList.contains('is-editing')) { homeOpen = ''; $('#welcome').classList.remove('is-editing'); renderHome(); return; } // un toucher referme « Supprimer »
+    if (room.startsWith('ici:')) { report('accueil', null, 'ici'); openIci(room.slice(4)); return; }
     pendingPartie = !!b.dataset.partie;
     report('accueil', null, b.classList.contains('une-go') ? 'une' : 'liste');
     openGame(room);
   }
   $('#home-une').addEventListener('click', (e) => { const b = e.target.closest('[data-home]'); if (b) openFromHome(b); });
   $('#home-list').addEventListener('click', (e) => { const b = e.target.closest('[data-home]'); if (b) openFromHome(b); });
-  // Appui long sur une partie de la liste : l’arrêter (une deuxième touche confirme, l’autre est prévenu·e)
-  let homePressT = 0;
-  $('#home-list').addEventListener('pointerdown', (e) => {
-    const b = e.target.closest('[data-home]'); if (!b || b.dataset.home === 'ici') return;
-    clearTimeout(homePressT);
-    homePressT = setTimeout(() => {
-      stopArmed = b.dataset.home; haptic(15); renderHome();
-      clearTimeout(stopT); stopT = setTimeout(() => { stopArmed = ''; renderHome(); }, 4000);
-      b.dataset.pressed = '1';
-    }, 550);
+  /* Supprimer une partie : glisser sa ligne vers la gauche, ou la corbeille au-dessus de la liste (toutes les lignes, la une comprise).
+     Une partie à distance est arrêtée pour les deux : l’autre est prévenu·e. Un mot bref confirme. */
+  let homeOpen = '';
+  function deleteGame(id) {
+    homeOpen = '';
+    if (id.startsWith('ici:')) forgetIci(id.slice(4));
+    else stopGame(id);
+    haptic(20); sClick();
+    const left = homeItems().length;
+    if (!left) $('#welcome').classList.remove('is-editing');
+    renderHome();
+    homeToast(T('accueil.supprimee'));
+  }
+  let toastT = 0;
+  function homeToast(text) {
+    const t = $('#home-toast');
+    t.textContent = text; t.hidden = false;
+    clearTimeout(toastT); toastT = setTimeout(() => { t.hidden = true; }, 3000);
+  }
+  $('#welcome').addEventListener('click', (e) => {
+    const d = e.target.closest('[data-del]');
+    if (d) { e.stopPropagation(); audio(); deleteGame(d.dataset.del); }
+  }, true);
+  $('#home-edit').addEventListener('click', () => {
+    audio(); sClick(); haptic(8);
+    homeOpen = '';
+    const on = $('#welcome').classList.toggle('is-editing');
+    $('#home-edit').setAttribute('aria-pressed', on ? 'true' : 'false');
+    renderHome();
   });
-  ['pointerup', 'pointerleave', 'pointercancel'].forEach((ev) => $('#home-list').addEventListener(ev, () => clearTimeout(homePressT)));
-  $('#home-list').addEventListener('contextmenu', (e) => { if (e.target.closest('[data-home]')) e.preventDefault(); });
+  // Glisser vers la gauche
+  (() => {
+    const list = $('#home-list');
+    let row = null, sx = 0, sy = 0, dx = 0, horiz = null;
+    list.addEventListener('pointerdown', (e) => {
+      const li = e.target.closest('.home-game'); if (!li || e.target.closest('[data-del]')) return;
+      row = li; sx = e.clientX; sy = e.clientY; dx = 0; horiz = null;
+    });
+    list.addEventListener('pointermove', (e) => {
+      if (!row) return;
+      const ddx = e.clientX - sx, ddy = e.clientY - sy;
+      if (horiz === null) { if (Math.abs(ddx) < 8 && Math.abs(ddy) < 8) return; horiz = Math.abs(ddx) > Math.abs(ddy) * 1.3; }
+      if (!horiz) { row = null; return; }
+      const base = row.classList.contains('is-open') ? -104 : 0;
+      dx = Math.max(-140, Math.min(0, base + ddx));
+      row.classList.add('is-dragging');
+      row.querySelector('.home-game-btn').style.transform = 'translateX(' + dx + 'px)';
+    });
+    const end = () => {
+      if (!row) return;
+      const r = row; row = null;
+      r.classList.remove('is-dragging');
+      r.querySelector('.home-game-btn').style.transform = '';
+      if (!horiz) return;
+      const open = dx < -52;
+      homeOpen = open ? r.dataset.id : '';
+      list.querySelectorAll('.home-game').forEach((x) => x.classList.toggle('is-open', x.dataset.id === homeOpen));
+      if (open) haptic(8);
+      // le toucher qui suit le glisser n’ouvre pas la partie
+      r.dataset.swiped = '1'; setTimeout(() => { delete r.dataset.swiped; }, 350);
+    };
+    list.addEventListener('pointerup', end);
+    list.addEventListener('pointercancel', end);
+    list.addEventListener('click', (e) => { const li = e.target.closest('.home-game'); if (li && li.dataset.swiped) { e.stopPropagation(); e.preventDefault(); } }, true);
+  })();
   // Les messages qui attendent dans la boîte aux lettres : comptés à l’accueil, sans les marquer lus
   async function peekBoxes() {
     if (!window.KiffDuo || !window.KiffDuo.boxLoad) return;

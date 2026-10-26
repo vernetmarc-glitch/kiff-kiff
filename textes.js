@@ -41,6 +41,8 @@ window.KIFF_TEXTES = [
     ["accueil.relit", "{prénom} relit son envie ajustée…", "Où en est la partie : l’autre relit"],
     ["accueil.ici", "Sur ce téléphone · au tour de {prénom}", "La partie sur ce téléphone, dans la liste"],
     ["accueil.ouvrir", "Ouvrir la partie", "Le bouton de la une, sans action à faire"],
+    ["accueil.supprimer", "Supprimer", "Le bouton qui apparaît en glissant une partie vers la gauche (ou avec la corbeille)"],
+    ["accueil.supprimee", "Partie supprimée", "Le mot bref après avoir supprimé une partie"],
     ["accueil.lire-messages", "Lire ses messages", "Le bouton de la une, quand des messages attendent"]
   ] },
   { id: "menu", nom: "Le menu de l’accueil", textes: [
@@ -62,15 +64,25 @@ window.KIFF_TEXTES = [
     ["joueurs.ici", "Sur ce téléphone", "Premier choix"],
     ["joueurs.distance", "Sur son téléphone", "Deuxième choix"],
     ["joueurs.son-prenom", "Son prénom (c’est l’autre qui commence)", "Au-dessus du deuxième champ"],
+    ["joueurs.son-prenom-distance", "Son prénom, pour retrouver l’invitation (il ou elle pourra le changer)", "Au-dessus du deuxième champ, quand l’autre joue sur son téléphone"],
+    ["joueurs.premiere", "Première partie pour {prénom} : on lui montre le jeu.", "Sous les prénoms, quand quelqu’un n’a jamais joué sur ce téléphone"],
+    ["joueurs.premiere-toi", "Première partie pour toi : on te montre le jeu.", "Même ligne, quand c’est toi qui découvres le jeu"],
+    ["joueurs.premiere-deux", "Première partie pour vous deux : on vous montre le jeu.", "Même ligne, quand aucun des deux n’a joué sur ce téléphone"],
     ["joueurs.exemple-2", "Pistache", "Prénom d’exemple, en gris dans le deuxième champ"],
     ["joueurs.suivant", "Suivant", "Bouton"],
     ["joueurs.retour", "Retour", "Sous le bouton, sur chaque écran du départ et de l’invitation"]
   ] },
   { id: "principe", nom: "Le principe", textes: [
-    ["principe.titre", "Le principe", "Titre"],
-    ["principe.1", "{prénom} compose une envie avec trois roues.", "Première règle ; {prénom} : qui commence"],
-    ["principe.2", "{prénom} dit « J’ai envie aussi », ou « Oui, mais… » et change une seule chose.", "Deuxième règle ; {prénom} : qui répond"],
-    ["principe.3", "Un kiff kiff, c’est quand vos deux envies se rejoignent. On peut passer à tout moment, sans se justifier.", "Troisième règle"],
+    ["principe.titre", "Le jeu en trois gestes", "Titre"],
+    ["principe.kicker", "{prénom} et {autre} · première partie", "Au-dessus du titre, quand quelqu’un découvre le jeu sur ce téléphone"],
+    ["principe.intro", "Kiff Kiff, c’est se dire ses envies sans gêne : une phrase à la fois, et rien ne se passe sans deux « j’ai envie ».", "Sous le titre"],
+    ["principe.1", "{prénom} compose une envie avec trois roues.", "Premier geste ; {prénom} : qui commence"],
+    ["principe.1-sous", "Glisse les roues, ou le dé pour le hasard.", "Sous le premier geste, en petit"],
+    ["principe.2", "{prénom} dit « J’ai envie aussi », ou « Oui, mais… » et change une seule chose.", "Deuxième geste ; {prénom} : qui répond"],
+    ["principe.2-sous", "Ou « On passe », sans se justifier.", "Sous le deuxième geste, en petit"],
+    ["principe.3", "Un kiff kiff, c’est quand vos deux envies se rejoignent. On peut passer à tout moment, sans se justifier.", "Troisième geste"],
+    ["principe.3-sous", "À vivre maintenant, ou à garder pour plus tard.", "Sous le troisième geste, en petit"],
+    ["principe.piment", "Le piment (Tendre, Pimenté, Brûlant) monte seulement si vous êtes d’accord tous les deux.", "Sous les trois gestes"],
     ["principe.ok", "Compris", "Bouton"],
     ["principe.autre", "L’autre", "À la place du prénom dans la première règle, quand l’autre joue sur son téléphone"]
   ] },
@@ -96,6 +108,10 @@ window.KIFF_TEXTES = [
     ["partie.relire", "Relire l’envie", "Le bouton qui ouvre l’envie ajustée"],
     ["partie.ajuster", "Tu ajustes l’envie de {prénom}.", "En tête de la partie, pendant ton « Oui, mais… »"],
     ["partie.reprendre", "Reprendre", "Le bouton qui ramène aux roues pendant « Oui, mais… »"],
+    ["partie.envie-toi", "Ton envie · en attente", "Dans la conversation, au-dessus de l’envie que tu as proposée"],
+    ["partie.envie-de", "L’envie de {prénom} · à toi de répondre", "Dans la conversation, au-dessus de l’envie que l’autre t’a proposée"],
+    ["partie.envie-ajustee-par", "Ajustée par {prénom} · à toi de répondre", "Dans la conversation, ton envie après le « Oui, mais… » de l’autre"],
+    ["partie.envie-ajustee-toi", "Ajustée par toi · en attente", "Dans la conversation, l’envie de l’autre après ton « Oui, mais… »"],
     ["partie.kiff-kicker", "Kiff kiff · {etat}", "Au-dessus d’une carte dans la conversation ({etat} : à vivre, vécue)"],
     ["partie.seul-titre", "{prénom} et {autre}", "En haut de la partie, sur un seul téléphone"],
     ["partie.seul", "sur ce téléphone", "Sous les prénoms, sur un seul téléphone (suivi du piment)"],
@@ -383,6 +399,7 @@ window.KIFF_TEXTES = [
     ["invite.ton-prenom", "Ton prénom", "Au-dessus du champ"],
     ["invite.exemple", "Pistache", "Prénom d’exemple, en gris dans le champ vide"],
     ["invite.prenom-aide", "{prénom} verra ton prénom sur son téléphone.", "Sous le champ"],
+    ["invite.prenom-propose", "{prénom} t’a inscrit·e ainsi : change-le si tu veux.", "Sous le champ, quand qui invite a déjà écrit ton prénom"],
     ["invite.rejoindre", "Rejoindre la partie", "Bouton"],
     ["invite.solo", "Jouer sur ce téléphone seulement", "Lien sous le bouton"]
   ] },
@@ -448,6 +465,7 @@ window.KIFF_TEXTES = [
     ["parties.titre", "Parties à distance", "Titre de la feuille"],
     ["parties.avec", "Avec {prénom}", "Première ligne d’une partie"],
     ["parties.invitation", "Invitation envoyée", "Première ligne, personne n’a encore rejoint"],
+    ["parties.invitation-a", "Invitation à {prénom}", "Première ligne, personne n’a encore rejoint, avec le prénom donné à l’invitation"],
     ["parties.a-deux", "Partie à deux", "Première ligne, sans prénom"],
     ["parties.l-autre", "l’autre", "À la place du prénom, quand on ne le connaît pas encore"],
     ["parties.a-toi", "À toi de jouer", "Deuxième ligne"],
@@ -494,6 +512,15 @@ window.KIFF_TEXTES = [
     ["notifs.message-nom", "{prénom} t’a écrit.", "Sur iPhone : à chaque message de la discussion"],
     ["notifs.rappel-kiff", "Votre kiff kiff n’attend plus que vous.", "Le rappel, deux jours après, quand un kiff kiff attend"],
     ["notifs.rappel-kiff-nom", "Votre kiff kiff avec {prénom} n’attend plus que vous.", "Sur iPhone : le rappel, deux jours après, quand un kiff kiff attend"]
+  ] },
+  { id: "gestes", nom: "Les premiers gestes", textes: [
+    ["gestes.roues", "Glisse chaque roue vers le haut ou le bas : le mot du milieu fait la phrase. La loupe cherche un mot, ou l’écrit.", "Première bulle, sur les roues, à la première envie de quelqu’un"],
+    ["gestes.reglages", "« que tu me » ou « de te » : qui fait l’action. Le dé tire une phrase au hasard.", "Deuxième bulle, sur la ligne du dé"],
+    ["gestes.proposer", "La phrase te plaît ? Propose-la. {prénom} répondra « J’ai envie aussi », « Oui, mais… » ou « On passe ».", "Troisième bulle, sur « Proposer »"],
+    ["gestes.compte", "{nombre} sur 3", "En haut de chaque bulle"],
+    ["gestes.passer", "Je connais", "Lien : ne plus montrer les bulles"],
+    ["gestes.suivant", "Suivant", "Bouton"],
+    ["gestes.fin", "À moi", "Bouton de la dernière bulle"]
   ] },
   { id: "installer", nom: "Installer l’appli", textes: [
     ["installer.titre", "Installer Kiff Kiff", "Titre, en touchant « Installer » sur un iPhone"],

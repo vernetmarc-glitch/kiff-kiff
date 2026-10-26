@@ -31,11 +31,13 @@ async def newpage(b, skin='redcorner', ls=None):
     pg.on('pageerror', lambda e: pg.errs.append(str(e)))
     pg.skin = skin
     return pg
-async def create(pg, name='Marc'):
+async def create(pg, name='Marc', other=''):
     await pg.goto(BASE + REL + '&design=' + pg.skin); await pg.wait_for_timeout(900)
     await pg.click('#welcome-go'); await pg.wait_for_timeout(500)
     await pg.fill('#name0', name)
-    await pg.click('.where-btn[data-where=duo]'); await pg.wait_for_timeout(700)
+    await pg.click('.where-btn[data-where=duo]'); await pg.wait_for_timeout(300)
+    if other: await pg.fill('#name1', other)
+    await pg.click('#start-go'); await pg.wait_for_timeout(700)
     await maybe(pg, 'Compris')
     await click(pg, 'Inviter l’autre téléphone')
     await click(pg, 'Sans envie')

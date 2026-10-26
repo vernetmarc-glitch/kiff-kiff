@@ -395,3 +395,8 @@ body { background: var(--kraft); color: var(--ink); font-family: var(--f-ui); ca
 :root { --chat-mine-bg: var(--ink); --chat-mine-fg: var(--paper); --menu-bg: var(--paper); --menu-fg: var(--ink); }
 .chat-msg, .chat-msg.is-mine, #chat-input, .chat-menu { border-radius: 2px; }
 .reel-loupe { color: var(--paper); opacity: .9; }
+
+/* L’accueil : le fond derrière « Nouvelle partie », collée en bas */
+:root { --home-go-bg: var(--paper); }
+/* Avec des parties : le tampon passe en haut, à côté du menu, pour laisser lire la phrase sous le titre */
+.welcome.has-games::before { top: -2px; right: 62px; font-size: 16px; padding: 1px 8px; }

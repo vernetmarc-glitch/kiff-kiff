@@ -454,3 +454,8 @@ body {
 /* La discussion */
 :root { --chat-mine-bg: var(--red); --chat-mine-fg: #FFF6E5; --menu-bg: #FFF6E5; --menu-fg: #1E2347; }
 .kiff-acts .btn--line { background: transparent; color: var(--red); box-shadow: inset 0 0 0 3px currentColor; }
+
+/* L’accueil : le fond derrière « Nouvelle partie », collée en bas */
+:root { --home-go-bg: var(--cream); }
+/* La phrase sous le titre : lisible sur les rayons */
+.home-tag { background: var(--cream); color: var(--navy); padding: 4px 9px; border-radius: 8px; opacity: 1; }

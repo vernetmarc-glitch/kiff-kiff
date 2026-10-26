@@ -1364,3 +1364,85 @@ body:has(#ov-deal:not([hidden])) .deco-candles { display: none; }
 /* Pleine page : la hauteur de l’écran (le fil défile, pas la page) */
 .overlay--partie > .sheet, .overlay--envie > .sheet, .overlay--kiffs > .sheet { height: 100vh; height: 100dvh; }
 .overlay--partie, .overlay--envie, .overlay--kiffs { overflow: hidden; }
+
+/* ---------- L’accueil (27 octobre 2026) : la phrase sous le titre, supprimer une partie, « Nouvelle partie » toujours visible ---------- */
+/* overflow: clip (et pas hidden) : la page de l’accueil défile, et « Nouvelle partie » peut rester collée en bas */
+.steps { overflow: clip; }
+.welcome .home-top { align-items: flex-start; }
+.home-brand-col { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; min-width: 0; text-align: left; }
+.home-brand-col[hidden] { display: none; }
+.home-tag { max-width: 270px; font-size: 13.5px; line-height: 1.35; opacity: .85; text-wrap: pretty; }
+.home-tag[hidden] { display: none; }
+.welcome.has-games .home-go { position: sticky; bottom: 0; z-index: 3; margin-top: auto; padding: 22px 0 max(4px, env(safe-area-inset-bottom, 0px));
+  background: linear-gradient(to bottom, transparent, var(--home-go-bg, transparent) 34%); box-shadow: 0 140px 0 var(--home-go-bg, transparent); }
+.welcome.has-games .resume-link { display: none; }
+.welcome.has-games .home-go .age-note { margin: 0; }
+/* La corbeille, au bout du titre de la liste */
+.home-sec { align-items: center; }
+.home-edit { margin-left: auto; width: 40px; height: 40px; margin-top: -10px; margin-bottom: -10px; display: grid; place-items: center; border: 0; border-radius: 50%; background: none; color: inherit; cursor: pointer; opacity: .85; }
+.home-edit .ic { width: 20px; height: 20px; }
+.home-edit[aria-pressed="true"] { opacity: 1; background: color-mix(in srgb, var(--badge-bg, #D81B50) 30%, transparent); }
+/* Une ligne : glissée vers la gauche, elle découvre « Supprimer » */
+.home-game { position: relative; border-radius: 14px; overflow: hidden; touch-action: pan-y; }
+.home-game-btn { position: relative; z-index: 1; transition: transform .25s cubic-bezier(.3, .9, .25, 1); }
+.home-game.is-dragging .home-game-btn { transition: none; }
+.home-game.is-open .home-game-btn { transform: translateX(-104px); }
+.home-del { visibility: hidden; }
+.home-game.is-open .home-del, .home-game.is-dragging .home-del { visibility: visible; }
+/* Avec la corbeille : un rond rouge au bout de chaque ligne (et de la une) */
+.welcome.is-editing .home-game .home-del { visibility: visible; z-index: 2; top: 50%; right: 10px; bottom: auto; width: 44px; height: 44px; margin-top: -22px; border-radius: 50%; }
+.welcome.is-editing .home-del span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.welcome.is-editing .home-game-side { visibility: hidden; }
+.home-del { position: absolute; z-index: 0; top: 0; right: 0; bottom: 0; width: 104px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
+  border: 0; border-radius: 0 14px 14px 0; background: var(--badge-bg, #D81B50); color: #fff; font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; }
+.home-del .ic { width: 20px; height: 20px; }
+/* La une : en mode corbeille, son bouton « Supprimer » apparaît à droite du nom */
+.home-une { position: relative; }
+.une-del { display: none; }
+.welcome.is-editing .une-del { display: flex; visibility: visible; position: static; width: 44px; height: 44px; margin: 0; border-radius: 50%; flex: none; }
+.home-toast { position: sticky; bottom: 190px; z-index: 4; align-self: center; margin: 0; padding: 8px 16px; border-radius: 999px; font-size: 14px; font-weight: 600;
+  background: var(--toast-bg, rgba(20, 2, 8, .88)); color: var(--toast-fg, #fff); box-shadow: 0 6px 18px rgba(0, 0, 0, .35); }
+.home-toast[hidden] { display: none; }
+/* Qui joue ? : quelqu’un découvre le jeu sur ce téléphone */
+.first-note { align-self: stretch; margin: 0; display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 12px; font-size: 14.5px; line-height: 1.35; text-align: left;
+  background: color-mix(in srgb, var(--badge-bg, #D81B50) 13%, transparent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--badge-bg, #D81B50) 45%, transparent); }
+.first-note[hidden] { display: none; }
+.first-note .ic { flex: none; width: 18px; height: 18px; }
+/* Le principe, illustré : trois gestes */
+.principe { gap: 14px; }
+.principe-kicker { align-self: stretch; margin: 0 0 -8px; font-size: 12.5px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; opacity: .8; text-align: center; }
+.principe-kicker[hidden] { display: none; }
+.principe-intro { margin: 0; align-self: stretch; text-align: center; text-wrap: pretty; }
+.gestes { align-self: stretch; list-style: none; margin: 2px 0 0; padding: 0; display: flex; flex-direction: column; gap: 14px; text-align: left; }
+.gestes li { display: grid; grid-template-columns: 70px minmax(0, 1fr); gap: 14px; align-items: center; }
+.geste-ill { position: relative; width: 70px; height: 70px; border-radius: 16px; display: grid; place-items: center;
+  background: var(--geste-bg, color-mix(in srgb, currentColor 8%, transparent)); box-shadow: var(--geste-line, inset 0 0 0 1px color-mix(in srgb, currentColor 35%, transparent)); color: var(--geste-fg, currentColor); }
+.geste-ill svg { width: 50px; height: 50px; }
+.geste-ill b { position: absolute; top: -7px; left: -7px; width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; font-size: 13px; font-weight: 800;
+  background: var(--pill-on-bg, currentColor); color: var(--pill-on-fg, #fff); }
+.geste-text { display: flex; flex-direction: column; gap: 3px; font-size: 16px; line-height: 1.38; }
+.geste-sub { font-size: 13.5px; opacity: .8; }
+.principe-piment { margin: 0; align-self: stretch; font-size: 14px; opacity: .85; text-align: center; text-wrap: pretty; }
+/* Les premiers gestes : un anneau autour de l’élément, le reste assombri, une bulle qui l’explique */
+.coach { position: fixed; inset: 0; z-index: 60; }
+.coach[hidden] { display: none; }
+.coach-ring { position: fixed; border-radius: 16px; pointer-events: none; transition: all .35s cubic-bezier(.3, .9, .25, 1);
+  box-shadow: 0 0 0 3px var(--coach-ring, #FF8FB0), 0 0 0 9999px rgba(10, 0, 4, .62); }
+.coach-bubble { position: fixed; left: 20px; right: 20px; max-width: 420px; margin: 0 auto; padding: 16px 18px 12px; border-radius: 16px; display: flex; flex-direction: column; gap: 8px; text-align: left;
+  background: var(--coach-bg, #fff); color: var(--coach-fg, #1A1A1A); box-shadow: var(--coach-shadow, 0 14px 30px rgba(0, 0, 0, .45)); }
+.coach-arrow { position: absolute; top: -8px; left: calc(var(--arrow-x, 50%) - 8px); width: 16px; height: 16px; transform: rotate(45deg); background: inherit; }
+.coach-bubble.is-above .coach-arrow { top: auto; bottom: -8px; }
+.coach-count { font-size: 12px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; opacity: .7; }
+.coach-text { margin: 0; font-size: 16px; line-height: 1.42; }
+.coach-foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.coach-foot .btn { min-height: 44px; padding: 0 22px; margin: 0; flex: none; }
+.coach-foot .link-btn { padding: 10px 0; }
+/* Avec des parties, l’accueil prend toute la hauteur : la liste en haut, « Nouvelle partie » en bas */
+.step:has(> .welcome.has-games) { align-items: stretch; }
+.step > .welcome.has-games { margin: 0; }
+/* L’envie en cours, dans la conversation : la même carte qu’un kiff kiff, en pointillés */
+.thread-envie .thread-kiff-card { background: transparent !important; box-shadow: none !important; outline: 1.5px dashed color-mix(in srgb, currentColor 55%, transparent); outline-offset: -1.5px; border-radius: 14px; }
+.thread-envie .thread-kiff-btn[disabled] { cursor: default; opacity: 1; }
+.geste-text { display: block; }
+.geste-sub { display: block; margin-top: 3px; }
+.thread-envie .thread-kiff-card, .thread-envie .thread-kiff-text { color: inherit !important; -webkit-text-fill-color: currentColor; text-shadow: none !important; }
