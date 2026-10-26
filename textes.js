@@ -59,6 +59,7 @@ window.KIFF_TEXTES = [
   ] },
   { id: "jeu", nom: "L’écran de jeu", textes: [
     ["jeu.titre", "J’ai envie…", "Au-dessus des roues"],
+    ["partie.maj", "mise à jour…", "Sous « Avec … », le temps que la partie, ouverte depuis le téléphone, se mette à jour"],
     ["partie.a-toi", "À toi", "En tête de la partie, quand c’est ton tour"],
     ["partie.proposer", "À toi de proposer une envie.", "En tête de la partie, ton tour de proposer"],
     ["partie.tourner", "Tourner les roues", "Le bouton qui mène aux roues"],

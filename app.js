@@ -165,18 +165,43 @@
     return out;
   }
   // Les mots écrits à la main (« vos mots à vous deux ») et ceux choisis à la loupe restent dans la roue
+  /* Les roues du tour, partagées (26 octobre 2026) : le téléphone qui compose envoie ses roues avec l’envie ;
+     l’autre les reprend telles quelles. Ainsi « Oui, mais… » change un mot dans les mêmes roues, même si les mots
+     de l’atelier ont changé entre-temps ou si les deux téléphones n’ont pas le même tirage. */
+  const wheelKey = (x) => { const o = {}; FIELDS.concat('lvl').forEach((f) => { if (x[f] != null && x[f] !== '') o[f] = x[f]; }); return o; };
+  const wheelsOf = () => LISTS.map((l) => (l || []).filter((x) => x && !x.free && !x.m).map(wheelKey));
+  // (S.shared d’abord : au démarrage, la partie à deux n’existe pas encore)
+  function useShared() { return Array.isArray(S.shared) && S.shared.length === 3 && !!duo && duo.stage === 'game' && !(S.phase === 'compose' && myTurn()); }
+  function sharedPick(r) {
+    const out = [];
+    (S.shared[r] || []).forEach((k) => {
+      if (!k || typeof k !== 'object' || !FIELDS.some((f) => typeof k[f] === 'string' && k[f])) return;
+      let x = SOURCE[r].find((y) => sameItem(y, k));
+      if (!x) {
+        // Un mot que ce téléphone n’a pas (atelier pas encore à jour) : il le prend pour cette partie
+        x = {}; FIELDS.concat('lvl').forEach((f) => { if (k[f] != null) x[f] = String(k[f]).slice(0, 80); });
+        x.lvl = +x.lvl || 1;
+        SOURCE[r].push(x);
+      }
+      if (!out.includes(x)) out.push(x);
+    });
+    return out;
+  }
   function buildLists(levels) {
     S.draw = S.draw || [null, null, null];
     S.kept = S.kept || [[], [], []];
     const sig = levels.join('') + (S.ton || 'm') + '|' + SOURCE.map((l) => l.length).join(',');
+    const shared = useShared();
     for (let r = 0; r < 3; r++) {
       const pool = poolOf(r, levels);
-      let pick = null;
-      if (S.draw[r] && S.draw[r].sig === sig) {
+      let pick = shared ? sharedPick(r) : null;
+      if (shared && pick.length) { /* les roues de l’autre téléphone, telles quelles */ }
+      else if (S.draw[r] && S.draw[r].sig === sig) {
         const byKey = new Map(pool.map((x) => [dkey(x), x]));
         pick = S.draw[r].keys.map((k) => byKey.get(k)).filter(Boolean);
       }
-      if (!isComplet()) {
+      if (shared && pick && pick.length) { /* rien à tirer */ }
+      else if (!isComplet()) {
         // Version gratuite : le même tirage, gardé pour toute la partie
         if (!pick || pick.length < Math.min(6, pool.length)) { pick = freePick(r, levels); S.draw[r] = { sig, keys: pick.map(dkey) }; }
       } else if (!pick || pick.length < Math.min(6, pool.length)) {
@@ -1959,7 +1984,7 @@
   }
   function renderChat(toEnd) {
     if (ovPartie.hidden) return;
-    const b = canChat() ? chatBox() : null;
+    const b = duo && duo.info ? chatBox() : null;
     const B = duo ? nameOf(other(duo.seat)) : '';
     const items = (S.kiffs || []).map((k) => ({ d: k.d || 0, k }));
     if (b) b.m.forEach((m) => items.push({ d: m.d, m }));
@@ -3067,7 +3092,18 @@
       nk: Math.max(Array.isArray(st.kiffs) ? st.kiffs.length : 0, st.kiff ? st.kiff.n : 0), t: Date.now()
     });
     save('parties', list.slice(0, 40));
+    saveSnap(duo.info.room, st);
   }
+  /* La dernière photo de chaque partie, sur ce téléphone seulement : la partie s’ouvre tout de suite avec,
+     puis se met à jour quand le relais et la feuille répondent. */
+  function saveSnap(room, st) {
+    if (!room || !st || st.v !== 1 || typeof st.seq !== 'number') return;
+    const all = load('etats', {}) || {};
+    all[room] = { st, t: Date.now() };
+    const keep = Object.keys(all).sort((a, b) => (all[b].t || 0) - (all[a].t || 0)).slice(0, 12);
+    try { save('etats', Object.fromEntries(keep.map((k) => [k, all[k]]))); } catch (e) { /* place pleine : tant pis */ }
+  }
+  const snapOf = (room) => { const x = (load('etats', {}) || {})[room]; return x && x.st && x.st.v === 1 ? x.st : null; };
   const forgetGame = (room) => save('parties', games().filter((g) => g.room !== room));
   function myTurn() {
     if (!duo) return true;
@@ -3115,13 +3151,17 @@
       cont: !!S.cont, // une partie commencée sur un téléphone, qui continue à distance
       ton: S.ton,
       decale: S.ton !== 'e', // pour un téléphone pas encore à jour
+      wheels: inGame ? wheelsOf() : null, // les roues de ce tour, pour que l’autre téléphone ait exactement les mêmes
       mine: inGame || S.cont ? S.mine.map((l) => l.slice(-MINE_MAX)) : [[], [], []],
       seen: inGame || S.cont ? S.seen.map((l) => l.slice(-SEEN_MAX)) : [[], [], []]
     };
   }
   function pushState(extra) {
-    if (!duo || !duo.conn) return;
+    if (!duo) return;
+    // Pas encore reconnecté (la partie vient de s’ouvrir depuis le téléphone) : l’envoi partira à la connexion
+    if (!duo.conn) { if (duo.stage === 'game') duo.pending = Object.assign(duo.pending || {}, extra || {}); return; }
     const st = Object.assign(snapshot(), extra || {});
+    if (st.wheels) S.shared = st.wheels;
     duo.seq += 1;
     st.seq = duo.seq;
     st.by = duo.id;
@@ -3215,9 +3255,10 @@
     S.ton = tonOf(st);
     renderTon();
     if (lv.join() !== S.levels.join()) { S.levels = lv; renderLevel(); }
-    buildLists(lv);
     S.proposer = st.proposer;
     S.phase = st.phase;
+    S.shared = Array.isArray(st.wheels) && st.wheels.length === 3 && st.wheels.every(Array.isArray) ? st.wheels : null;
+    buildLists(lv);
     S.dir = st.dir === 'te' ? 'te' : 'me';
     S.custom = (st.custom || ['', '', '']).slice();
     S.bottom = !!st.bottom;
@@ -3341,7 +3382,7 @@
     if (!inGame) { line.hidden = true; return; }
     const B = nameOf(other(duo.seat));
     $('#top-name').textContent = T('jeu.avec', { prénom: B });
-    $('#top-pres').textContent = duo.online === false ? '' : T(duo.partnerOn ? 'jeu.present' : 'jeu.absent');
+    $('#top-pres').textContent = duo.online === false ? '' : (duo.updating ? T('partie.maj') : T(duo.partnerOn ? 'jeu.present' : 'jeu.absent'));
     $('#top-who').classList.toggle('is-off', duo.partnerOn !== true);
     let msg = '';
     if (duo.online === false) msg = T('attente.perdue');
@@ -3356,10 +3397,11 @@
     let pres = T('jeu.present');
     if (duo.online === false) pres = msg;
     else if (presenceFlash) pres = presenceFlash;
+    else if (duo.updating) pres = T('partie.maj');
     else if (typingKid) pres = T('chat.ecrit');
     else if (away) pres = T('jeu.absent') + (on ? ' · ' + T('attente.haut-averti') : '');
     // … et le piment de la partie
-    if (duo.online !== false && !presenceFlash && !(away && on) && S.levels && S.levels.length) pres += ' · ' + D.niveaux[Math.max(...S.levels) - 1].nom;
+    if (duo.online !== false && !duo.updating && !presenceFlash && !(away && on) && S.levels && S.levels.length) pres += ' · ' + D.niveaux[Math.max(...S.levels) - 1].nom;
     $('#wait-presence').classList.toggle('is-typing', !!typingKid);
     $('#wait-name').textContent = T('jeu.avec', { prénom: B });
     $('#wait-presence-text').textContent = pres;
@@ -3708,22 +3750,64 @@
     const id = same && stored.id ? stored.id : (KiffDuoOk() ? window.KiffDuo.newId() : 'x');
     hide(el.ovStart);
     try { history.replaceState(null, '', window.KiffDuo.link(info)); } catch (e) { /* rien */ }
-    duoSheet({ stage: 'connecting', title: T('duo.connexion-titre'), wait: same ? T('duo.retrouve') : T('duo.connexion'), cancel: same ? T('duo.accueil') : T('invite.solo') });
-    if (!KiffDuoOk()) { duoError('support'); return; }
-    // Les deux téléphones doivent avoir les mêmes mots : on attend un instant ceux de l’atelier
-    await Promise.race([motsReady, new Promise((r) => setTimeout(r, 4000))]);
-    applyPendingMots();
-    duo = { info, seat, id, seq: 0, lastBy: '', stage: 'connecting', resume: !!same, partnerOn: null, online: true, passN: null };
+    if (!KiffDuoOk()) { duoSheet({ stage: 'connecting', title: T('duo.connexion-titre'), wait: '', cancel: T('duo.accueil') }); duoError('support'); return; }
+    const snap = same ? snapOf(info.room) : null;
+    if (snap && snap.phase !== 'ended' && snap.phase !== 'lobby') {
+      // La partie s’ouvre tout de suite, telle que ce téléphone l’a laissée ; la mise à jour suit
+      applyPendingMots();
+      duo = { info, seat, id, seq: 0, lastBy: '', stage: 'connecting', resume: true, partnerOn: null, online: true, passN: null, updating: true };
+      onRemoteState(snap);
+      report('partie', null, 'photo');
+    } else {
+      duoSheet({ stage: 'connecting', title: T('duo.connexion-titre'), wait: same ? T('duo.retrouve') : T('duo.connexion'), cancel: same ? T('duo.accueil') : T('invite.solo') });
+      // Les deux téléphones doivent avoir les mêmes mots : on attend un instant ceux de l’atelier
+      await Promise.race([motsReady, new Promise((r) => setTimeout(r, 4000))]);
+      applyPendingMots();
+      duo = { info, seat, id, seq: 0, lastBy: '', stage: 'connecting', resume: !!same, partnerOn: null, online: true, passN: null };
+    }
     const d = duo;
     // La dernière étape gardée dans la feuille : pour quand l’autre a joué pendant notre absence
     const fromStore = window.KiffDuo.storeLoad([info]);
-    try { await loadDuoLibs(); } catch (e) { duoError('net'); return; }
-    try {
-      const conn = await window.KiffDuo.join(info, seat, id, duoHandlers);
-      if (duo !== d) { conn.close(false); return; }
-      duo.conn = conn;
-    } catch (e) { duoError('relay'); return; }
-    fromStore.then((m) => { if (duo === d && m[info.room]) onRemoteState(m[info.room]); });
+    try { await loadDuoLibs(); } catch (e) {
+      if (duo === d && duo.updating) { duo.online = false; renderDuoStatus(); return; }
+      duoError('net'); return;
+    }
+    const connect = async () => {
+      try {
+        const conn = await window.KiffDuo.join(info, seat, id, duoHandlers);
+        if (duo !== d) { conn.close(false); return false; }
+        duo.conn = conn; duo.online = true;
+        return true;
+      } catch (e) { return false; }
+    };
+    // Reconnecté : la feuille dit si l’autre a joué entre-temps, puis ce qui attendait part
+    let settled = false;
+    const settle = () => {
+      if (duo !== d || settled || !duo.conn) return;
+      settled = true;
+      duo.updating = false;
+      if (duo.pending) { const x = duo.pending; duo.pending = null; pushState(x); }
+      renderDuoStatus();
+      if (duo.stage !== 'game') return;
+      render(); renderWait();
+      if (!ovPartie.hidden) { $('#chat-bar').hidden = !canChat(); renderChat(); pullBox(true); }
+    };
+    const afterConnect = (store) => {
+      store.then((m) => { if (duo === d && m[info.room]) onRemoteState(m[info.room]); }).catch(() => {}).then(settle);
+      setTimeout(settle, 6000);
+    };
+    if (!(await connect())) {
+      if (duo === d && duo.updating) {
+        // Hors connexion : la partie reste ouverte telle quelle ; on réessaie sans bruit
+        duo.online = false; renderDuoStatus();
+        const retry = async () => { if (duo !== d || duo.conn) return; if (await connect()) afterConnect(window.KiffDuo.storeLoad([info])); else setTimeout(retry, 8000); };
+        setTimeout(retry, 8000);
+        return;
+      }
+      if (duo === d) duoError('relay');
+      return;
+    }
+    afterConnect(fromStore);
     duo.findT = setTimeout(() => { if (duo === d && duo.stage === 'connecting') duoError('notfound'); }, 12000);
   }
 
