@@ -206,13 +206,14 @@ Page de travail : https://kiff-kiff.fr/atelier/ (remplace l’ancien « Atelier 
 
 Aucune dépendance, aucun build : GitHub Pages sert les fichiers tels quels. À chaque mise à jour, augmenter le numéro `?v=` des fichiers dans `index.html` pour que les téléphones rechargent la nouvelle version.
 
-## Plus tard : le pack (prévu le 22 octobre 2026, pas encore en place)
+## Plus tard : le jeu complet pour 3 € (plan du 26 octobre 2026, pas encore en place)
 
-Le gratuit garde le tirage de 20 mots par roue ; le pack ouvre toute la réserve.
-- **Réservé au pack** : chercher dans toute la réserve et y prendre un mot (la loupe d’aujourd’hui), écrire son propre mot, et peut-être Brûlant. Sans le pack, la loupe garde la roue en grand pour lire et choisir parmi les 20 (le zoom reste libre).
-- **Une sélection gratuite** : dans l’Atelier, un badge marque les mots les plus efficaces ; le tirage gratuit se fait dans cette sous-liste. Il en faut au moins 20 par roue pour chaque réglage de piment et de ton.
-- **Toucher une fonction fermée** (la recherche, la case à écrire, Brûlant) ouvre une fenêtre qui la montre en petite animation, au lieu d’un refus : la roue qui tourne sur des mots brûlants, quelques lettres qui se tapent dans la recherche, la liste qui se filtre, un mot choisi qui entre dans la roue, puis son propre mot écrit. Un bouton pour prendre le pack, et « Plus tard ».
-- **Garder un mot toute la partie** : un mot pris par la recherche reste déjà dans la roue toute la partie, ce qui couvre l’essentiel d’une « étoile ». Une étoile sur les mots du tirage (les garder malgré les nouveaux tirages, voire d’une partie à l’autre) pourra s’ajouter au pack si les joueurs la demandent.
+Maquettes : canevas « Kiff Kiff : la partie et le chat », rangée « La version gratuite, et le jeu complet pour 3 € ».
+- **Gratuit** : une seule roue par place, 20 mots chacune (60 en tout), choisis dans l’Atelier par un badge « gratuit » parmi les plus efficaces ; Tendre et Pimenté mêlés, premier degré et wtf mêlés. Les réglages sont figés (Tendre + Pimenté, « Un peu de tout ») ; le dé et le zoom de la loupe restent libres, sur ces 20 mots.
+- **Montré mais fermé** : Brûlant (grisé, pastille « Jeu complet »), Prem’deug et wtf !?, la recherche (« Chercher parmi les 500 mots »), « Écrire ton endroit ». Les mots Brûlant n’apparaissent jamais dans les roues gratuites.
+- **Jeu complet, 3 €, une fois** : les 500 mots et un nouveau tirage à chaque tour, Brûlant (toujours à deux), la recherche, ses propres mots, le piment et le ton réglables. À deux téléphones, un seul achat suffit pour la partie.
+- **Toucher une fonction fermée** ouvre « Tout Kiff Kiff, pour 3 € » : une petite animation (une roue qui tourne sur des mots brûlants, « suce » qui se tape et la liste qui se filtre), « Vous avez goûté à 60 envies. Il y en a 500. », quatre lignes, « Tout débloquer · 3 € », « Un seul paiement, pour toujours. À deux téléphones, un seul achat suffit. », « Plus tard ».
+- À trancher : la discussion, gratuite ou dans le jeu complet ; le moyen de paiement (un prestataire qui accepte le contenu adulte).
 
 ## Pistes ouvertes
 
