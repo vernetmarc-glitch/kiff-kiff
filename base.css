@@ -907,7 +907,8 @@ body:has(#ov-deal:not([hidden])) .deco-candles { display: none; }
 .game-x.is-armed { opacity: 1; color: var(--badge-bg, #D81B50); font-weight: 700; }
 
 /* La loupe : la roue en grand, un vrai tambour */
-.overlay--loupe .sheet--loupe { height: calc(100dvh - 32px); max-height: 820px; display: flex; flex-direction: column; gap: 10px; }
+/* Toute la hauteur, moins l’encoche et la barre du bas de l’iPhone (l’appli installée s’étend dessous) */
+.overlay--loupe .sheet--loupe { height: calc(100dvh - max(24px, env(safe-area-inset-top, 0px)) - max(24px, env(safe-area-inset-bottom, 0px)) - 8px); max-height: 820px; display: flex; flex-direction: column; gap: 10px; }
 .reel.loupe-drum { --item-h: 44px; flex: 1 1 auto; min-height: 220px; align-self: stretch; }
 .reel.loupe-drum .reel-item { font-size: 23px; }
 .reel.loupe-drum .reel-item.is-long { font-size: 21px; }
@@ -977,7 +978,7 @@ body:has(#ov-deal:not([hidden])) .deco-candles { display: none; }
 .badge--chat { min-width: 20px; height: 20px; padding: 0 6px; font-size: 12px; position: absolute; top: -6px; left: -6px; }
 #kiffs-open, #wait-kiffs { position: relative; }
 
-.overlay--kiff .sheet--kiff { gap: 0; padding-bottom: 10px; }
+.overlay--kiff .sheet--kiff { gap: 0; padding-bottom: 14px; }
 .kiff-head { display: flex; align-items: center; gap: 8px; margin: -6px -8px 6px; }
 .kiff-back-ic { transform: rotate(0deg); }
 .kiff-head-text { flex: 1; min-width: 0; text-align: center; }
