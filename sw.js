@@ -45,8 +45,8 @@ self.addEventListener('fetch', (e) => {
 
 /* Avertissements (« À toi de jouer »), même l’appli fermée.
  * Le message arrive chiffré pour ce téléphone seul ; il ne contient jamais l’envie elle-même.
- * Il porte le prénom de l’autre (chiffré, le serveur ne le lit pas) : comme les applis de rencontre,
- * on l’affiche seulement sur iPhone, qui cache le contenu des avertissements tant que l’écran est verrouillé.
+ * Il porte le prénom de l’autre (chiffré, le serveur ne le lit pas). Depuis le 27 octobre 2026, il s’affiche partout
+ * (avant : seulement sur iPhone, qui cache le contenu des avertissements tant que l’écran est verrouillé).
  * Ailleurs, l’avertissement reste discret : du nouveau, jamais qui ni quoi. */
 const PARTIE = /^[a-z2-9]{12}$/;
 async function textes() {
@@ -77,7 +77,7 @@ self.addEventListener('push', (e) => {
     const ios = /iphone|ipad|ipod/i.test(self.navigator.userAgent);
     const wins = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
     if (!ios && wins.some((c) => c.visibilityState === 'visible' && c.focused)) return;
-    const nom = ios && typeof m.n === 'string' ? m.n.replace(/[\u0000-\u001f<>]/g, '').trim().slice(0, 30) : '';
+    const nom = typeof m.n === 'string' ? m.n.replace(/[\u0000-\u001f<>]/g, '').trim().slice(0, 30) : '';
     return self.registration.showNotification('Kiff Kiff', {
     body: avis(m, await textes(), nom),
     icon: 'icons/icon-192.png',
