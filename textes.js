@@ -360,7 +360,7 @@ window.KIFF_TEXTES = [
     ["retour.titre", "Un mot à me glisser ?", "« Qui est là ? » : titre de la carte du mail"],
     ["retour.texte", "Une idée de mots, un fou rire, une envie qui a fait mouche, ou quelque chose qui vous chiffonne (le genre, le type d’humour, le consentement, que sais-je encore) : écrivez-moi, je lis tout.", "Texte de la carte du mail"],
     ["retour.bouton", "M’écrire", "Bouton qui ouvre un mail"],
-    ["retour.adresse", "jasg@gmail.com", "L’adresse mail qui reçoit les retours (visible par les joueurs ; vide : la carte ne s’affiche pas)"],
+    ["retour.adresse", "contact.jasg@gmail.com", "L’adresse mail qui reçoit les retours (visible par les joueurs ; vide : la carte ne s’affiche pas)"],
     ["retour.sujet", "Kiff Kiff : un retour", "L’objet du mail"],
   ] },
   { id: "ambiance", nom: "L’ambiance", textes: [
