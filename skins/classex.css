@@ -294,6 +294,8 @@ body { background: var(--kraft); color: var(--ink); font-family: var(--f-ui); ca
   box-shadow: inset 0 0 0 2px var(--ink);
 }
 .overlay--party .btn { margin-top: 10px; background: var(--red); color: var(--paper); }
+.overlay--party .btn--line { background: transparent; color: var(--paper); box-shadow: inset 0 0 0 2px var(--paper); }
+.overlay--party .party-acts .btn { font-size: 18px; letter-spacing: .03em; }
 .overlay--party .pill { color: var(--paper); background: transparent; box-shadow: inset 0 0 0 2px var(--paper); letter-spacing: -.02em; }
 .overlay--party .foot-link { color: var(--paper); }
 .overlay--party .emblem { --e-line: var(--paper); --e-glow: var(--red); --e-glow-o: 1; }
@@ -400,3 +402,4 @@ body { background: var(--kraft); color: var(--ink); font-family: var(--f-ui); ca
 :root { --home-go-bg: var(--paper); }
 /* Avec des parties : le tampon passe en haut, à côté du menu, pour laisser lire la phrase sous le titre */
 .welcome.has-games::before { top: -2px; right: 62px; font-size: 16px; padding: 1px 8px; }
+.overlay--party .party-unlock { margin-top: 16px; } /* sous le tampon DÉCLASSIFIÉ */

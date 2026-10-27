@@ -30,12 +30,12 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,62..125,100..900;1,62..125,100..900&family=Bagel+Fat+One&family=Abril+Fatface&family=Merriweather:ital,opsz,wght@0,18..144,400..900;1,18..144,400..900&family=Baskervville:ital,wght@0,400..700;1,400..700&family=Jost:wght@300..700&family=Great+Vibes&family=Cinzel:wght@400..900&family=Syne:wght@600..800&family=Manrope:wght@400..800&family=Anton&family=Courier+Prime:wght@400;700&display=swap">
-<link rel="stylesheet" href="base.css?v=117">
-<link rel="stylesheet" href="skins/arty.css?v=67" data-skin-sheet="arty">
+<link rel="stylesheet" href="base.css?v=118">
+<link rel="stylesheet" href="skins/arty.css?v=68" data-skin-sheet="arty">
 <link rel="stylesheet" href="skins/pomme.css?v=69" data-skin-sheet="pomme">
 <link rel="stylesheet" href="skins/redcorner.css?v=71" data-skin-sheet="redcorner">
 <link rel="stylesheet" href="skins/minuit.css?v=65" data-skin-sheet="minuit">
-<link rel="stylesheet" href="skins/classex.css?v=69" data-skin-sheet="classex">
+<link rel="stylesheet" href="skins/classex.css?v=70" data-skin-sheet="classex">
 <script>
 /* Déménagement vers kiff-kiff.fr : l’ancienne adresse apporte, dans le « # » du lien (jamais envoyé
    à un serveur), ce que le téléphone gardait là-bas : parties à deux, prénoms, ambiance, réglages.
@@ -564,21 +564,29 @@
 <!-- Célébration -->
 <div class="overlay overlay--party" id="ov-party" hidden>
   <canvas id="confetti" aria-hidden="true"></canvas>
+  <!-- La fête, allégée (27 octobre 2026) : le rang du kiff kiff en haut à gauche, écrire et l’image en haut à droite -->
+  <header class="top party-top">
+    <button class="party-rang" id="party-history" type="button" aria-haspopup="dialog" hidden><span id="party-count-text"></span></button>
+    <div class="top-actions">
+      <button class="sticker sticker--round" id="party-write" type="button" hidden><svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><use href="#i-qui"/></svg></button>
+      <button class="sticker sticker--round" id="party-image" type="button" aria-label="Envoyer cette envie en image"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><use href="#i-image"/></svg></button>
+    </div>
+  </header>
   <div class="sheet">
     <svg class="emblem emblem--party" viewBox="0 0 168 124" aria-hidden="true"><path class="e-lens" d="M84 21.6A46 46 0 0 1 84 102.4A46 46 0 0 1 84 21.6Z"/><circle class="e-ring e-ring--1" cx="62" cy="62" r="46"/><circle class="e-ring e-ring--2" cx="106" cy="62" r="46"/></svg>
     <h2 class="party-title" id="party-title"><span class="ink ink--flat" data-ink="Kiff Kiff !">Kiff Kiff !</span></h2>
     <p class="party-text" data-t="fete.texte">Vous en avez envie tous les deux.</p>
     <div class="party-card">
+      <span class="party-who" id="party-who"></span>
       <p class="party-sentence" id="party-sentence"></p>
-      <button class="icon-btn icon-btn--card" id="party-image" type="button" aria-label="Envoyer cette envie en image"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-image"/></svg></button>
     </div>
-    <button class="btn btn--line party-write" id="party-write" type="button" hidden><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-qui"/></svg><span id="party-write-text"></span></button>
     <p class="party-done" id="party-done" role="status" hidden></p>
-    <p class="party-count" id="party-count" hidden><button class="pill" id="party-history" type="button" aria-haspopup="dialog"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-kiffs"/></svg><span id="party-count-text"></span></button></p>
-    <p class="party-count party-unlock" id="party-unlock" hidden><span class="pill" role="status"><span id="party-unlock-chili"></span><span id="party-unlock-text"></span></span></p>
-    <button class="btn" id="party-next" type="button"></button>
-    <button class="btn btn--line" id="party-later" type="button"></button>
-    <button class="link-btn" id="party-pass" type="button" data-t="fete.passe">Finalement, on passe</button>
+    <p class="party-unlock" id="party-unlock" hidden><span class="party-unlock-line" role="status"><span id="party-unlock-chili"></span><span id="party-unlock-text"></span></span></p>
+    <div class="party-acts">
+      <button class="btn" id="party-next" type="button"></button>
+      <button class="btn btn--line" id="party-later" type="button"></button>
+      <button class="link-btn" id="party-pass" type="button" data-t="fete.passe">Finalement, on passe</button>
+    </div>
   </div>
   <div class="party-foot">
     <button class="link-btn foot-link party-deal" id="party-deal" type="button" aria-haspopup="dialog"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-tourner"/></svg><span data-t="fete.kiffez">Vous kiffez&nbsp;?</span></button>
@@ -861,11 +869,11 @@
 </div>
 
 <script src="data.js?v=64"></script>
-<script src="textes.js?v=28"></script>
+<script src="textes.js?v=29"></script>
 <script src="semantique.js?v=1"></script>
 <script src="config.js?v=63"></script>
 <script src="duo.js?v=63"></script>
 <script src="push.js?v=65"></script>
-<script src="app.js?v=135"></script>
+<script src="app.js?v=136"></script>
 </body>
 </html>

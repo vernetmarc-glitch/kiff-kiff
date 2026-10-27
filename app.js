@@ -1769,10 +1769,13 @@
     const lk = lastKiff();
     const pw = $('#party-write');
     pw.hidden = !(canChat() && lk);
-    if (!pw.hidden) $('#party-write-text').textContent = T('fete.ecrire', { prénom: nameOf(other(duo.seat)) });
+    if (!pw.hidden) pw.setAttribute('aria-label', T('fete.ecrire', { prénom: nameOf(other(duo.seat)) }));
+    // Sur la carte, le nom de qui a proposé l’envie, comme dans la conversation
+    $('#party-who').innerHTML = lk ? whoBadge(lk) : '';
     const n = kiffCount();
-    $('#party-count').hidden = !n;
-    $('#party-count-text').textContent = T('fete.compte', { rang: ordinal(n) });
+    $('#party-history').hidden = !n;
+    const rang = T('fete.rang', { rang: ordinal(n) });
+    $('#party-count-text').textContent = rang.charAt(0).toUpperCase() + rang.slice(1);
     $('#party-history').setAttribute('aria-label', 'Votre ' + ordinal(n) + ' kiff kiff ensemble. Revoir vos kiff kiff');
   }
   const ovKiffs = $('#ov-kiffs');
@@ -2625,7 +2628,7 @@
       next.textContent = T('fete.fait', { prénom: B });
       setInk(T('fete.a-vous'));
       $('.party-text').textContent = T('fete.posez');
-      $('#party-count').hidden = true; $('#party-unlock').hidden = true;
+      $('#party-unlock').hidden = true;
       document.querySelector('#ov-party .party-foot').hidden = true;
       stopConfetti();
     } else {
@@ -2654,7 +2657,7 @@
     box.classList.toggle('is-offre', offre);
     $('#party-unlock-text').textContent = offre ? T('fete.brulant-complet') : T('fete.debloque', { niveau: D.niveaux[now - 1].nom });
     if (offre) report('complet', null, 'propose-brulant');
-    box.querySelector('.pill').setAttribute('aria-label', D.niveaux[now - 1].nom + ' débloqué : le piment peut monter, si vous en avez envie tous les deux.');
+    box.querySelector('.party-unlock-line').setAttribute('aria-label', D.niveaux[now - 1].nom + ' débloqué : le piment peut monter, si vous en avez envie tous les deux.');
   }
   $('#party-unlock').addEventListener('click', () => { if ($('#party-unlock').dataset.complet) openComplet('fete'); });
   function celebrateLate() {

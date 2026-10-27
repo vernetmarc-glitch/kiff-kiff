@@ -905,7 +905,6 @@ body:has(#ov-deal:not([hidden])) .deco-candles { display: none; }
 .piment-toggle.is-locked .piment-check { visibility: hidden; }
 /* Célébration : le piment peut monter */
 .party-unlock { margin: 0; }
-.party-unlock .pill { cursor: default; }
 @media (prefers-reduced-motion: reduce) { .gift-seal { animation: none; } }
 #ov-gift .gift-seal { --e-line: currentColor; } /* plus fort que l’emblème clair des ambiances sur fond sombre */
 
@@ -1135,9 +1134,6 @@ body:has(#ov-deal:not([hidden])) .deco-candles { display: none; }
 .wait-icons { margin-top: 2px; }
 
 /* La fête : écrire tout de suite */
-.party-write { align-self: stretch; display: inline-flex; align-items: center; justify-content: center; gap: 10px; }
-.party-write .ic { width: 20px; height: 20px; }
-.party-write[hidden] { display: none; }
 
 /* Vos kiff kiff, comme une messagerie */
 .sheet--loupe.sheet--kiffs { max-height: none; }
@@ -1489,7 +1485,6 @@ body:has(#ov-deal:not([hidden])) .deco-candles { display: none; }
   background: var(--cache-bg, linear-gradient(100deg, #8C6424, #F6DDA0 30%, #B8873A 55%, #FFF0C4 75%, #A97C30)); background-size: 200% 100%; animation: cache-brille 2.4s linear infinite; }
 @keyframes cache-brille { to { background-position: -200% 0; } }
 @media (prefers-reduced-motion: reduce) { .complet-envie { transition: none; } .cache { animation: none; } }
-.party-unlock.is-offre .pill { cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
 .thread-offert { display: flex; flex-direction: column; align-items: center; gap: 6px; }
 .thread-offert-text { margin: 0; padding: 12px 16px; border-radius: 14px; text-align: center; font-size: 15px; line-height: 1.4;
   background: var(--offert-bg, color-mix(in srgb, var(--badge-bg, #D81B50) 14%, transparent)); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--badge-bg, #D81B50) 45%, transparent); }
@@ -1594,3 +1589,31 @@ body:has(#ov-deal:not([hidden])) .deco-candles { display: none; }
 .gratos-retour { align-self: center; text-align: center; }
 /* Le clavier ouvert, là où le navigateur ne rétrécit pas la page : les pages pleines se calent sur la partie visible de l’écran */
 html.kb-open .overlay.overlay--partie:not([hidden]), html.kb-open .overlay.overlay--envie:not([hidden]), html.kb-open .overlay.overlay--kiffs:not([hidden]) { top: var(--vv-top, 0px); bottom: auto; height: var(--vv-h, 100%); }
+/* La fête, allégée (27 octobre 2026) : en haut, le rang du kiff kiff, écrire et l’image ;
+   au centre, le titre et l’envie avec le nom de qui l’a proposée ; en bas, le choix et « on passe » */
+.overlay--party { grid-template-rows: auto 1fr auto; }
+.party-top { position: relative; z-index: 2; width: 100%; max-width: 400px; align-self: start; min-height: 44px; }
+.party-top .top-actions { margin-left: auto; display: flex; gap: 10px; }
+.party-top .sticker[hidden], .party-rang[hidden] { display: none; }
+.party-rang { padding: 10px 2px; border: 0; background: none; color: inherit; font: inherit; font-size: 14px; font-weight: 600; letter-spacing: .02em; cursor: pointer;
+  text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 4px; text-decoration-color: color-mix(in srgb, currentColor 45%, transparent); }
+#ov-party[data-mode="vivre"] .party-top { visibility: hidden; }
+#ov-party[data-mode="fete"] .party-text { display: none; }
+.overlay--party .sheet { align-items: center; text-align: center; }
+
+.party-card { margin-top: 12px; }
+.party-who { position: absolute; z-index: 3; top: 0; left: 50%; transform: translate(-50%, -55%); white-space: nowrap; }
+.party-who:empty { display: none; }
+.party-who .who-badge { box-shadow: 0 2px 8px rgba(0, 0, 0, .3); background: var(--who-bg, var(--badge-bg, #5A0C1D)); color: var(--who-fg, #fff); }
+.party-who .who-badge.is-mine { background: var(--who-mine-bg, var(--badge-bg, #5A0C1D)); color: var(--who-mine-fg, #fff); }
+.party-card .party-sentence { padding-top: 26px; }
+.party-unlock { align-self: center; margin: 0; }
+.party-unlock-line { display: inline-flex; align-items: center; gap: 6px; font-size: 14.5px; font-weight: 600; }
+.party-unlock.is-offre .party-unlock-line { cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+.party-acts { align-self: stretch; display: flex; flex-direction: column; gap: 10px; margin-top: 8px; }
+.overlay--party .party-acts .btn { margin-top: 0; width: 100%; }
+.party-acts .link-btn { align-self: center; }
+/* Le titre et l’envie au milieu ; le choix en bas, sous le pouce */
+.overlay--party .sheet { align-self: stretch; padding-bottom: 6px; }
+.overlay--party .emblem--party { margin-top: auto; width: 112px; }
+.overlay--party .party-acts { margin-top: auto; padding-top: 18px; }
