@@ -4633,6 +4633,13 @@
     const ovComplet = $('#ov-complet');
     let completAt = 0;
     let completFrom = null;
+    // Quelqu’un t’a offert Tout Kiff Kiff dans une autre partie : son prénom (la plus récente), sinon ''
+    function offertAilleurs() {
+      if (!duo || !duo.info || duo.stage !== 'game') return '';
+      const vu = load('offertVu', {}) || {};
+      const g = games().filter((x) => vu[x.room] && x.room !== duo.info.room && Array.isArray(x.names)).sort((a, b) => vu[b.room] - vu[a.room])[0];
+      return g ? String(g.names[1 - g.seat] || '').trim() : '';
+    }
     openComplet = (why) => {
       if (isComplet() || !ovComplet.hidden) return;
       // Avant le premier kiff kiff (sur ce téléphone), Brûlant ne se vend pas : on commence plus tranquille
@@ -4646,6 +4653,10 @@
       const envies = 2 * SOURCE.reduce((n, l) => n * Math.max(1, l.length), 1);
       const enviesTxt = envies >= 2e6 ? T('complet.millions', { nombre: Math.floor(envies / 1e6) }) : envies.toLocaleString('fr-FR');
       $('#complet-texte').textContent = T('complet.texte', { gratuit: free, total, envies: enviesTxt });
+      // Offert ailleurs : la personne qui l’offrait, puis celle de cette partie (27 octobre 2026)
+      const ail = offertAilleurs();
+      $('#complet-offert').hidden = !ail;
+      if (ail) { $('#complet-offert').textContent = T('complet.offert-ailleurs', { prénom: ail, autre: nameOf(other(duo.seat)) }); report('complet', null, 'offert-ailleurs'); }
       $('#complet-liste').innerHTML = TL('complet.liste').map((x) => '<li><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>' + esc(x) + '</span></li>').join('');
       showHotEnvies();
       completAt = Date.now();

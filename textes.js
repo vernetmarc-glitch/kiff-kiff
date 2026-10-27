@@ -118,7 +118,7 @@ window.KIFF_TEXTES = [
     ["partie.ajuster", "Tu ajustes l’envie de {prénom}.", "En tête de la partie, pendant ton « Oui, mais… »"],
     ["partie.reprendre", "Reprendre", "Le bouton qui ramène aux roues pendant « Oui, mais… »"],
     ["partie.offert-kicker", "Tout Kiff Kiff", "Dans la conversation, au-dessus de la carte quand l’autre a le jeu complet"],
-    ["partie.offert", "{prénom} vous offre Tout Kiff Kiff pour vos parties : tous les mots, Brûlant, la loupe.", "La carte, quand l’autre a le jeu complet (un seul téléphone suffit)"],
+    ["partie.offert", "{prénom} vous offre Tout Kiff Kiff dans cette partie : tous les mots, Brûlant, la loupe.", "La carte, quand l’autre a le jeu complet (il vaut seulement dans la partie avec cette personne)"],
     ["partie.envie-glissee", "Ton envie · glissée dans l’invitation", "Dans la conversation d’une invitation, au-dessus de l’envie glissée"],
     ["partie.invite-kicker", "L’invitation", "Dans la conversation d’une invitation, au-dessus du code à scanner"],
     ["partie.invite-texte", "Fais scanner ce code par l’autre téléphone, ou envoie-lui le lien.", "Sous « L’invitation »"],
@@ -320,6 +320,7 @@ window.KIFF_TEXTES = [
     ["chat.copie", "Copié", "Un mot bref, après « Copier »"]
   ] },
   { id: "complet", nom: "Version gratuite et jeu complet", textes: [
+    ["complet.offert-ailleurs", "Avec {prénom}, c’était offert. Avec {autre}, c’est à toi de jouer.", "En tête de la fenêtre, à deux téléphones, quand quelqu’un t’a offert Tout Kiff Kiff dans une autre partie ({prénom} : qui l’offrait ; {autre} : la personne de cette partie)"],
     ["complet.titre", "Tout Kiff Kiff vous attend", "Titre de la fenêtre, ouverte depuis le menu"],
     ["complet.titre-brulant", "Brûlant vous attend dans Tout Kiff Kiff", "Titre, en touchant Brûlant (ou la pastille de la fête)"],
     ["complet.titre-recherche", "La loupe vous attend dans Tout Kiff Kiff", "Titre, en touchant la recherche de la loupe"],
@@ -330,7 +331,7 @@ window.KIFF_TEXTES = [
     ["complet.tot-ok", "Bon d’accord", "Son bouton"],
     ["complet.texte", "Vous jouez avec {gratuit} mots. Tout Kiff Kiff en a {total} : {envies} d’envies.", "Sous le titre ({envies} : le nombre d’envies possibles)"],
     ["complet.millions", "plus de {nombre} millions", "Le nombre d’envies, quand il dépasse deux millions"],
-    ["complet.liste", "De nouveaux mots dans les roues à chaque tour\nBrûlant, quand vous en avez envie tous les deux\nChercher un mot, écrire les vôtres\nLe piment et le ton réglés à votre goût\nPour vous deux : un seul téléphone suffit", "La liste, une ligne par point"],
+    ["complet.liste", "De nouveaux mots dans les roues à chaque tour\nBrûlant, quand vous en avez envie tous les deux\nChercher un mot, écrire les vôtres\nLe piment et le ton réglés à votre goût\nOffert à chaque personne avec qui tu joues, dans votre partie", "La liste, une ligne par point"],
     ["complet.gratuit", "Pour l’instant, tout est gratuit.", "Dans le menu, sous « Tout Kiff Kiff »"],
     ["complet.oui", "Tout débloquer, c’est gratos", "Bouton principal"],
     ["complet.non", "Plus tard", "Lien"],

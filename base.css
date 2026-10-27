@@ -1617,3 +1617,5 @@ html.kb-open .overlay.overlay--partie:not([hidden]), html.kb-open .overlay.overl
 .overlay--party .sheet { align-self: stretch; padding-bottom: 6px; }
 .overlay--party .emblem--party { margin-top: auto; width: 112px; }
 .overlay--party .party-acts { margin-top: auto; padding-top: 18px; }
+.complet-offert { align-self: stretch; margin: 0; text-align: center; font-size: 15.5px; font-weight: 700; line-height: 1.35; text-wrap: balance; }
+.complet-offert[hidden] { display: none; }
