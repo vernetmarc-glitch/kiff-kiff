@@ -4522,7 +4522,7 @@
     sheetT = Date.now();
     fetchSheet(10000);
   });
-  /* Les textes changés dans l’atelier : gardés pour la prochaine ouverture du jeu (config.js les pose avant tout) */
+  /* Les textes changés dans l’atelier : gardés pour les prochaines ouvertures du jeu (config.js les pose avant tout) */
   function receiveTexts(tx, version) {
     if (version && version === window.KIFF_TEXTES_VERSION) return;
     const base = window.KIFF_TX_BASE || {};
@@ -4532,6 +4532,9 @@
     const notif = {};
     Object.keys(base).filter((k) => k.startsWith('notifs.')).forEach((k) => { notif[k] = typo(k in clean ? clean[k] : base[k]); });
     shareNotifTexts(notif);
+    // Tout de suite pour ce qui s’écrit au moment de s’afficher (la vitrine Tout Kiff Kiff, les titres des fenêtres, les lignes d’état…) ;
+    // les textes posés dans la page suivent à la prochaine ouverture (27 octobre 2026)
+    Object.keys(base).forEach((k) => { TX[k] = k in clean ? clean[k] : base[k]; });
     // Personne ne joue encore (l’accueil, rien d’écrit) : on recharge pour montrer les nouveaux textes tout de suite.
     // Sinon, ils arrivent à la prochaine ouverture du jeu.
     const ae = document.activeElement;
