@@ -640,3 +640,6 @@ body:has(#ov-menu:not([hidden])) .deco-candles { display: none; }
 .principe-kicker { color: #E9A6B0; opacity: 1; font-family: var(--f-title); }
 .first-note { background: rgba(255, 79, 126, .12); box-shadow: inset 0 0 0 1px rgba(255, 143, 176, .45); }
 .first-note .ic { color: #FF8FB0; }
+/* Vos kiff kiff : le nom de qui a proposé ; une envie en grand */
+:root { --who-bg: #5A0C1D; --who-fg: #F6DDA0; --who-mine-bg: linear-gradient(100deg, #8C6424, #F6DDA0 40%, #C9963F); --who-mine-fg: #2B040C; --envie-act-line: #C9963F; --envie-act-on: rgba(201, 150, 63, .35); --envie-drop: #FF8FB0; }
+.env-card .env-more { color: #4A0A18; }

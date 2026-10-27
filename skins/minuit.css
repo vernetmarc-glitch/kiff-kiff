@@ -290,3 +290,4 @@ body { background: var(--ink); color: var(--fg); font-family: var(--f-ui); caret
 
 /* L’accueil : le fond derrière « Nouvelle partie », collée en bas */
 :root { --home-go-bg: var(--ink); }
+:root { --envie-drop: #FF8FB0; }

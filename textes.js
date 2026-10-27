@@ -277,6 +277,13 @@ window.KIFF_TEXTES = [
   ] },
   { id: "discussion", nom: "Un kiff kiff rouvert, et sa discussion", textes: [
     ["envie.titre", "Kiff kiff · {rang} sur {nombre}", "En haut d’une envie en plein écran"],
+    ["envie.ouvrir", "Ouvrir cette envie en grand", "Le bouton « ⋯ » de chaque envie, dans la liste (lu par le lecteur d’écran)"],
+    ["envie.a-reagi", "{prénom} a réagi {emoji}", "Sous la grande carte, quand l’autre a réagi"],
+    ["envie.a-vivre-ok", "De nouveau à vivre", "Le mot bref, quand on retouche « Vécue »"],
+    ["envie.suppr-titre", "Supprimer cette envie ?", "La fenêtre de confirmation"],
+    ["envie.suppr-texte", "Tu ne pourras pas revenir en arrière : elle quitte vos kiff kiff, pour vous deux.", "Le texte, à deux téléphones"],
+    ["envie.suppr-texte-ici", "Tu ne pourras pas revenir en arrière : elle quitte vos kiff kiff.", "Le texte, sur un seul téléphone"],
+    ["envie.supprimee", "Envie supprimée", "Le mot bref après la suppression"],
     ["envie.citer", "Citer", "Action d’une envie : la commenter dans la conversation"],
     ["envie.partager", "Partager", "Action d’une envie : l’envoyer en image"],
     ["envie.supprimer", "Supprimer", "Action d’une envie : la retirer de vos kiff kiff (deux touches)"],

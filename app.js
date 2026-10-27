@@ -1809,24 +1809,29 @@
     const who = l.m.s === duo.seat ? T('chat.toi') : nameOf(other(duo.seat));
     return '<b>' + esc(who) + '&nbsp;:</b> ' + esc(l.m.t);
   };
+  // Le nom de qui a proposé l’envie, en badge : « Toi » en or, l’autre en bordeaux (sur un téléphone : le prénom)
+  function whoBadge(k) {
+    const a = authorOf(k);
+    const mine = a ? a.mine : false;
+    const name = a ? (a.mine ? T('chat.toi') : a.name) : (k.w || '');
+    if (!name) return '<span></span>';
+    return '<span class="who-badge' + (mine ? ' is-mine' : '') + '"><span class="who-initial" aria-hidden="true">' + esc(initial(name)) + '</span>' + esc(name) + '</span>';
+  }
   const ACT_SVG = { citer: '<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-citer"/></svg>', partager: '<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-partager"/></svg>', vecue: OK_SVG };
   function renderKiffList() {
     const cb = canChat() ? chatBox() : null;
     const all = (S.kiffs || []).map((k) => ({ k, l: kiffLast(k, cb) })).sort((a, b) => b.l.d - a.l.d);
     const live = all.filter(({ k }) => k.v === 0);
     const shown = kiffsFilter === 'vivre' ? live : kiffsFilter === 'vecues' ? all.filter(({ k }) => k.v !== 0) : all;
-    const btn = (act, kid, label) => '<button class="env-act" type="button" data-act="' + act + '" data-kid="' + esc(kid) + '">' + ACT_SVG[act] + '<span>' + esc(label) + '</span></button>';
+    // Option D (27 octobre 2026) : chaque envie porte le nom de qui l’a proposée, et « ⋯ » l’ouvre en grand,
+    // où sont toutes ses actions (réagir, citer, partager, vécue, supprimer). Toucher la carte l’ouvre aussi.
     $('#kiffs-list').innerHTML = shown.map(({ k, l }) => {
       const kid = kidOf(k), done = k.v !== 0;
-      const mine = duo ? k.s === duo.seat : false;
-      const who = duo && mine ? T('kiff.ton-envie') : T('kiffs.envie-de', { prénom: k.w || '…' });
       const kr = cb ? reactsHtml(cb.kr[kid] || {}) : '';
-      const acts = cb ? btn('citer', kid, T('envie.citer')) + btn('partager', kid, T('envie.partager'))
-        : (done ? '' : btn('vecue', kid, T('kiffs.vecue'))) + btn('partager', kid, T('envie.partager'));
       return '<li class="env-item' + (done ? ' is-done' : '') + (l.nu ? ' is-new' : '') + '"><div class="party-sentence env-card">' +
+        '<div class="env-head">' + whoBadge(k) + '<button class="env-more" type="button" data-open="' + esc(kid) + '" aria-label="' + esc(T('envie.ouvrir')) + '"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="5.5" cy="12" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="18.5" cy="12" r="1.7"/></svg></button></div>' +
         '<button class="env-open" type="button" data-open="' + esc(kid) + '"><span class="env-text">' + esc(k.t || '') + '</span>' +
-        '<span class="env-meta">' + esc(who + (k.d ? ' · ' + dayLabel(k.d).toLowerCase() : '') + ' · ' + (done ? T('kiff.vecue') : T('kiff.a-vivre'))) + (kr ? ' <span class="env-reacts">' + kr + '</span>' : '') + '</span></button>' +
-        '<div class="env-acts">' + acts + '</div>' +
+        '<span class="env-meta"><span>' + esc((k.d ? dayLabel(k.d).toLowerCase() + ' · ' : '') + (done ? T('kiff.vecue') : T('kiff.a-vivre'))) + '</span>' + (kr ? '<span class="env-reacts">' + kr + '</span>' : '') + '</span></button>' +
         (l.nu ? '<span class="badge badge--row env-badge">' + l.nu + '<span class="sr-only"> ' + (l.nu > 1 ? 'nouveaux messages' : 'nouveau message') + '</span></span>' : '') +
         '</div></li>';
     }).join('') || '<li class="kiffs-empty">' + TH('kiffs.vide') + '</li>';
@@ -2058,7 +2063,7 @@
   // Un kiff kiff dans le fil : sa carte, touchée elle s’ouvre en plein écran
   // Qui a proposé l’envie : sa place (k.s), sinon son prénom (k.w) pour les plus anciennes
   function authorOf(k) {
-    if (!duo) return null;
+    if (!duo) return k && k.w ? { mine: false, name: k.w, ici: true } : null;
     const seat = k.s === 0 || k.s === 1 ? k.s : (k.w && k.w === nameOf(duo.seat) ? duo.seat : k.w && k.w === nameOf(other(duo.seat)) ? other(duo.seat) : -1);
     if (seat < 0) return null;
     return { mine: seat === duo.seat, name: nameOf(seat) };
@@ -2415,10 +2420,14 @@
 
   /* Une envie en plein écran : la carte, réagir, et ses actions (citer, partager, vécue, supprimer) */
   let dropArmed = false, dropT = 0;
-  function openEnvie(kid) {
+  function openEnvie(kid, from) {
     const k = kiffById(kid);
     if (!k) return;
     kiffOpen = kid; dropArmed = false;
+    // L’entrée en scène : la carte arrive en grand (ou glisse, d’une envie à l’autre)
+    const card = $('#kiff-card');
+    card.classList.remove('is-in', 'is-next', 'is-prev'); void card.offsetWidth;
+    card.classList.add(from === 'next' ? 'is-next' : from === 'prev' ? 'is-prev' : 'is-in');
     $('#kiff-msg').hidden = true;
     const all = S.kiffs || [];
     $('#kiff-title').textContent = T('envie.titre', { rang: all.indexOf(k) + 1, nombre: all.length });
@@ -2437,15 +2446,17 @@
   function renderKiffCard() {
     const k = kiffById(kiffOpen);
     if (!k) return;
-    const mine = duo ? k.s === duo.seat : false;
-    const who = duo && mine ? T('kiff.ton-envie') : TH('kiffs.envie-de', { prénom: k.w || '…' });
-    $('#kiff-meta').innerHTML = who + (k.d ? ' · ' + esc(dayOf(k.d)) : '') + ' · ' + esc(k.v === 0 ? T('kiff.a-vivre') : T('kiff.vecue'));
-    $('#kiff-done').hidden = k.v !== 0;
-    $('#kiff-drop').classList.toggle('is-armed', dropArmed);
+    $('#kiff-who').innerHTML = whoBadge(k);
+    $('#kiff-meta').textContent = (k.d ? dayOf(k.d) + ' · ' : '') + (k.v === 0 ? T('kiff.a-vivre') : T('kiff.vecue'));
+    // Vécue : un interrupteur (une envie vécue peut redevenir à vivre)
+    $('#kiff-done').setAttribute('aria-pressed', String(k.v !== 0));
+    $('#kiff-done').classList.toggle('is-on', k.v !== 0);
     $('#kiff-cite').hidden = !canChat();
     const b = chatBox();
     const kr = b.kr[kiffOpen] || {};
-    $('#kiff-reacts').innerHTML = reactsHtml(kr);
+    // La réaction de l’autre, dite en clair ; la mienne s’allume dans la rangée d’émojis
+    const theirs = duo ? kr[other(duo.seat)] : '';
+    $('#kiff-reacts').textContent = theirs ? T('envie.a-reagi', { prénom: nameOf(other(duo.seat)), emoji: theirs }) : '';
     // Réagir à l’envie : les émojis rapides, sous la carte (à deux téléphones)
     const qb = $('#chat-quickbar');
     qb.hidden = !canChat();
@@ -2484,30 +2495,43 @@
   $('#kiff-done').addEventListener('click', () => {
     const k = kiffById(kiffOpen); if (!k) return;
     audio(); sSwitchOn(); haptic(15);
-    k.v = 1;
+    k.v = k.v === 0 ? 1 : 0;
     renderKiffs(); savePair();
     if (duo && duo.stage === 'game') sync();
     renderKiffCard();
-    flashKiffMsg(T('kiff.vecue-ok'));
+    flashKiffMsg(T(k.v ? 'kiff.vecue-ok' : 'envie.a-vivre-ok'));
   });
+  // Supprimer une envie : la même fenêtre de confirmation que pour une partie
   $('#kiff-drop').addEventListener('click', () => {
     const k = kiffById(kiffOpen); if (!k) return;
     audio();
-    if (!dropArmed) {
-      dropArmed = true; sClick(); haptic(8);
-      renderKiffCard();
-      flashKiffMsg(T('kiff.passer-confirmer'));
-      clearTimeout(dropT); dropT = setTimeout(() => { dropArmed = false; if (kiffOpen) renderKiffCard(); }, 3000);
-      return;
-    }
-    dropArmed = false;
+    askConfirm(T('envie.suppr-titre'), T(duo ? 'envie.suppr-texte' : 'envie.suppr-texte-ici'), () => dropKiff(k));
+  });
+  function dropKiff(k) {
     const i = S.kiffs.indexOf(k);
     if (i >= 0) S.kiffs.splice(i, 1);
     sClick(); haptic(8);
     renderKiffs(); savePair();
     if (duo && duo.stage === 'game') sync();
     closeEnvie();
-  });
+    flashHint(T('envie.supprimee'), 3000);
+  }
+  // Glisser la carte de côté : l’envie d’avant ou d’après
+  (() => {
+    const main = $('#envie-main');
+    let sx = 0, sy = 0, on = false;
+    main.addEventListener('touchstart', (e) => { if (e.touches.length !== 1) return; sx = e.touches[0].clientX; sy = e.touches[0].clientY; on = true; }, { passive: true });
+    main.addEventListener('touchend', (e) => {
+      if (!on) return; on = false;
+      const t = e.changedTouches[0], dx = t.clientX - sx, dy = t.clientY - sy;
+      if (Math.abs(dx) < 60 || Math.abs(dx) < Math.abs(dy) * 1.4) return;
+      const all = S.kiffs || [], i = all.indexOf(kiffById(kiffOpen));
+      const j = i + (dx < 0 ? 1 : -1);
+      if (i < 0 || j < 0 || j >= all.length) return;
+      audio(); sClick(); haptic(6);
+      openEnvie(kidOf(all[j]), dx < 0 ? 'next' : 'prev');
+    });
+  })();
   $('#kiff-image').addEventListener('click', async () => {
     audio(); sClick(); haptic(8);
     const k = kiffById(kiffOpen); if (!k) return;
@@ -5252,10 +5276,18 @@
     t.textContent = text; t.hidden = false;
     clearTimeout(toastT); toastT = setTimeout(() => { t.hidden = true; }, 3000);
   }
-  // On confirme avant de supprimer : on ne peut pas revenir en arrière
-  let supprId = '';
+  // On confirme avant de supprimer : on ne peut pas revenir en arrière (partie, ou envie)
+  let supprId = '', supprThen = null;
+  function askConfirm(title, text, then) {
+    supprId = ''; supprThen = then;
+    $('#suppr-title').textContent = title;
+    $('#suppr-text').textContent = text;
+    sClick(); haptic(10);
+    show($('#ov-suppr'));
+    $('#suppr-non').focus({ preventScroll: true });
+  }
   function askDelete(id) {
-    supprId = id;
+    supprId = id; supprThen = null;
     const it = homeItems().find((x) => (x.kind === 'duo' ? x.g.room : 'ici:' + x.key) === id);
     const B = it ? (it.kind === 'duo' ? ((it.g.names || [])[1 - it.g.seat] || '').trim() : it.title) : '';
     const lobby = it && it.kind === 'duo' && it.lobby;
@@ -5265,8 +5297,8 @@
     show($('#ov-suppr'));
     $('#suppr-non').focus({ preventScroll: true });
   }
-  const closeSuppr = () => { hide($('#ov-suppr')); supprId = ''; };
-  $('#suppr-oui').addEventListener('click', () => { audio(); const id = supprId; closeSuppr(); if (id) deleteGame(id); });
+  const closeSuppr = () => { hide($('#ov-suppr')); supprId = ''; supprThen = null; };
+  $('#suppr-oui').addEventListener('click', () => { audio(); const id = supprId, then = supprThen; closeSuppr(); if (id) deleteGame(id); else if (then) then(); });
   $('#suppr-non').addEventListener('click', () => { audio(); closeSuppr(); });
   $('#ov-suppr').addEventListener('click', (e) => { if (e.target === $('#ov-suppr')) closeSuppr(); });
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !$('#ov-suppr').hidden) closeSuppr(); });

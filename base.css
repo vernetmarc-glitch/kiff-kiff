@@ -1538,3 +1538,42 @@ body:has(#ov-deal:not([hidden])) .deco-candles { display: none; }
 .chat-msg.is-emoji .chat-text { font-size: 40px; line-height: 1.15; }
 .chat-msg.is-emoji .chat-meta { color: inherit; opacity: .7; }
 .thread-kiff.is-mine .thread-kiff-btn, .thread-kiff.is-theirs .thread-kiff-btn { gap: 12px; }
+/* La confirmation passe devant tout (une envie en grand, la liste) */
+#ov-suppr { z-index: 40; }
+
+/* ---------- Vos kiff kiff, option D (27 octobre 2026) : le nom de qui a proposé, « ⋯ » pour ouvrir en grand ---------- */
+.env-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 12px 12px 0 14px; }
+.who-badge { display: inline-flex; align-items: center; gap: 6px; height: 26px; padding: 0 11px 0 3px; border-radius: 999px; font-family: var(--f-ui, inherit); font-size: 12.5px; font-weight: 700; letter-spacing: 0; text-transform: none;
+  background: var(--who-bg, color-mix(in srgb, currentColor 14%, transparent)); color: var(--who-fg, inherit); }
+.who-badge.is-mine { background: var(--who-mine-bg, color-mix(in srgb, currentColor 28%, transparent)); color: var(--who-mine-fg, inherit); }
+.who-initial { width: 20px; height: 20px; border-radius: 50%; display: grid; place-items: center; font-size: 11px; background: rgba(0, 0, 0, .18); }
+.env-more { width: 40px; height: 32px; flex: none; display: grid; place-items: center; border: 0; border-radius: 999px; color: inherit; cursor: pointer;
+  background: color-mix(in srgb, currentColor 8%, transparent); box-shadow: inset 0 0 0 1px color-mix(in srgb, currentColor 22%, transparent); }
+.env-more .ic { width: 20px; height: 20px; fill: currentColor; stroke: none; }
+.env-open { padding-top: 8px; padding-bottom: 14px; }
+.env-meta { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.env-acts { display: none; }
+
+/* Une envie en grand : la carte entre en scène, un halo derrière, son nom au-dessus */
+.sheet--envie .kiff-who { align-self: center; }
+.sheet--envie .kiff-who:empty { display: none; }
+.sheet--envie .kiff-who .who-badge { height: 30px; font-size: 14px; padding-right: 14px; }
+.sheet--envie .kiff-who .who-initial { width: 24px; height: 24px; font-size: 12px; }
+.envie-card { position: relative; isolation: isolate; }
+.envie-card::before { content: ""; position: absolute; inset: -40px -20px; z-index: -1; border-radius: 50%; pointer-events: none;
+  background: radial-gradient(closest-side, var(--envie-halo, rgba(255, 79, 126, .35)), transparent); opacity: .9; }
+.envie-card.is-in { animation: envie-entre .55s cubic-bezier(.2, .9, .25, 1.05) both; }
+.envie-card.is-next { animation: envie-suivante .4s cubic-bezier(.2, .9, .25, 1) both; }
+.envie-card.is-prev { animation: envie-precedente .4s cubic-bezier(.2, .9, .25, 1) both; }
+@keyframes envie-entre { from { opacity: 0; transform: scale(.86) translateY(14px); } to { opacity: 1; transform: none; } }
+@keyframes envie-suivante { from { opacity: 0; transform: translateX(40px); } to { opacity: 1; transform: none; } }
+@keyframes envie-precedente { from { opacity: 0; transform: translateX(-40px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .envie-card.is-in, .envie-card.is-next, .envie-card.is-prev { animation: none; } }
+.envie-meta #kiff-reacts:empty { display: none; }
+.sheet--envie .chat-quickbar { gap: 8px; }
+.sheet--envie .chat-quickbar .chat-emo { width: 50px; height: 44px; font-size: 22px; }
+/* Ses actions : quatre ronds, sous le pouce */
+.envie-acts .icon-btn > .ic { border-radius: 50%; box-shadow: inset 0 0 0 1.5px var(--envie-act-line, color-mix(in srgb, currentColor 55%, transparent)); }
+.envie-acts #kiff-done.is-on > .ic { background: var(--envie-act-on, color-mix(in srgb, currentColor 25%, transparent)); }
+.envie-acts #kiff-drop { color: var(--envie-drop, var(--badge-bg, #D81B50)); }
+.sheet--envie .envie-card .kiff-sentence { font-size: clamp(22px, 6.6vw, 27px) !important; line-height: 1.3; padding: 30px 22px !important; }
