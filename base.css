@@ -1577,3 +1577,9 @@ body:has(#ov-deal:not([hidden])) .deco-candles { display: none; }
 .envie-acts #kiff-done.is-on > .ic { background: var(--envie-act-on, color-mix(in srgb, currentColor 25%, transparent)); }
 .envie-acts #kiff-drop { color: var(--envie-drop, var(--badge-bg, #D81B50)); }
 .sheet--envie .envie-card .kiff-sentence { font-size: clamp(22px, 6.6vw, 27px) !important; line-height: 1.3; padding: 30px 22px !important; }
+/* Les pages pleines (la partie, une envie en grand, vos kiff kiff) prennent la hauteur de la fenêtre elle-même, sans 100dvh :
+   dans l’appli installée, certains téléphones comptent dans 100dvh les barres du système, et le champ pour écrire
+   passait sous le bas de l’écran (27 octobre 2026). */
+.overlay.overlay--partie:not([hidden]), .overlay.overlay--envie:not([hidden]), .overlay.overlay--kiffs:not([hidden]) { display: flex !important; flex-direction: column; align-items: center; overflow: hidden; }
+.overlay--partie > .sheet, .overlay--envie > .sheet, .overlay--kiffs > .sheet,
+.overlay--loupe.overlay--partie .sheet--loupe, .overlay--loupe.overlay--envie .sheet--loupe, .overlay--loupe.overlay--kiffs .sheet--loupe { height: auto !important; max-height: none !important; flex: 1 1 auto; min-height: 0; }
