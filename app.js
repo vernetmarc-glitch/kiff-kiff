@@ -1115,7 +1115,9 @@
     return v;
   }
   function gesteVu(who) { const v = gestesVus(); if (who && !v.includes(who)) save('gestesVus', v.concat(who).slice(-60)); }
+  const COACH_ON = false; // retirées le 27 octobre 2026 : la page du principe suffit
   function coachSoon() {
+    if (!COACH_ON) return;
     if (coachT || !$('#coach').hidden || gestesVus().includes(composer())) return;
     coachT = setTimeout(() => { coachT = 0; maybeCoach(); }, 1400);
   }
