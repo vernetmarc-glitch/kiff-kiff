@@ -103,20 +103,38 @@
     if (OFFRE === 'tout') return true;
     return !!load('complet', false) || !!S.cpOther;
   }
-  // La version gratuite : 20 mots par roue, pris parmi les mots cochés « gratuit » de chaque piment choisi,
-  // à parts égales (Tendre seul : 20 tendres ; Tendre et Pimenté : 10 + 10). S’il en manque, le reste des cochés
-  // comble, puis les premiers mots de la liste (un tendre, un pimenté…). Même calcul dans l’Atelier (gratuitServi).
-  function freePick(r, levels) {
+  // La version gratuite (27 octobre 2026) : 20 mots par roue, tirés à chaque partie parmi les mots cochés « gratuit »
+  // de chaque piment choisi, à parts égales (Tendre seul : 20 tendres ; Tendre et Pimenté : 10 + 10), dont un tiers de
+  // décalés quand il y en a. Le tirage dépend de la partie (sa graine) : le même tout au long d’une partie, un autre à la
+  // suivante. S’il manque des cochés, les autres cochés comblent, puis les premiers mots de la liste.
+  // L’Atelier fait le même calcul (gratuitServi) pour dire combien de mots tournent.
+  function seeded(seed) {
+    let h = 2166136261;
+    for (let i = 0; i < seed.length; i++) { h ^= seed.charCodeAt(i); h = Math.imul(h, 16777619); }
+    return () => { h = (h + 0x6D2B79F5) | 0; let t = Math.imul(h ^ (h >>> 15), 1 | h); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+  }
+  // (au tout premier tirage, avant que le reste du jeu soit prêt : une graine du moment)
+  const gameSeed = () => { try { return duo && duo.info ? duo.info.room : pairKey() + '|' + (S.t0 || 0); } catch (e) { return 'debut|' + Date.now(); } };
+  function freePick(r, levels, seed) {
     const lv = [1, 2].filter((n) => levels.includes(n));
     if (!lv.length) return [];
+    const rnd = seeded((seed || gameSeed()) + '|' + r);
+    const mix = (l) => { const a = l.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
     const of = (n, g) => SOURCE[r].filter((x) => (x.lvl || 1) === n && !!x.g === g);
     const quota = Math.floor(DRAW_N / lv.length);
     const pick = [];
-    lv.forEach((n) => pick.push(...of(n, true).slice(0, quota)));
+    lv.forEach((n) => {
+      // Un tiers de décalés (pour rire), le reste au premier degré
+      const dc = mix(of(n, true).filter((x) => x.dc)), pd = mix(of(n, true).filter((x) => !x.dc));
+      const nDc = Math.min(dc.length, Math.round(quota / 3));
+      const take = dc.slice(0, nDc).concat(pd.slice(0, quota - nDc));
+      if (take.length < quota) take.push(...dc.slice(nDc, nDc + quota - take.length));
+      pick.push(...take);
+    });
     const fill = (lists) => {
       for (let i = 0; pick.length < DRAW_N && lists.some((l) => i < l.length); i++) lists.forEach((l) => { if (l[i] && pick.length < DRAW_N && !pick.includes(l[i])) pick.push(l[i]); });
     };
-    fill(lv.map((n) => of(n, true)));
+    fill(lv.map((n) => mix(of(n, true))));
     fill(lv.map((n) => of(n, false)));
     return [1, 2].flatMap((n) => interleave(pick.filter((x) => (x.lvl || 1) === n)));
   }
@@ -1738,7 +1756,8 @@
   // Le pied de la célébration : une seule demande à la fois
   function partyFoot() {
     const n = kiffCount();
-    const askInstall = false; // l’installation se propose après la célébration, dans sa petite fenêtre
+    // Au premier kiff kiff à deux téléphones, une ligne pour garder l’appli (sur un téléphone, sa petite fenêtre vient après)
+    const askInstall = !!duo && n === 1 && installer.can() && !load('installAsked', false);
     $('#party-install').hidden = !askInstall;
     $('#party-deal').hidden = askInstall || n < 2;
     document.querySelector('#ov-party .party-foot').hidden = $('#party-install').hidden && $('#party-deal').hidden;
@@ -2064,6 +2083,17 @@
       '<span class="thread-kiff-kicker">' + esc(kick) + '</span>' +
       '<span class="party-sentence thread-kiff-card"><span class="thread-kiff-text">' + esc(e.text) + '</span></span></button></li>';
   }
+  /* Installer, au bon moment (27 octobre 2026) : après avoir envoyé une envie, on attend la réponse de l’autre.
+     Une carte au bout de la conversation dit à quoi ça sert (être prévenu·e de sa réponse), tant qu’on ne l’a ni faite ni écartée. */
+  const installWanted = () => !!duo && duo.stage === 'game' && ['review', 'adjust', 'reconfirm'].includes(S.phase) && !myTurn()
+    && installer.can() && !load('installAsked', false) && !load('installCarteNon', false);
+  function installCardHtml(B) {
+    return '<li class="thread-install"><div class="invite-card install-card">' +
+      '<span class="thread-kiff-kicker">' + esc(T('installer.carte-kicker')) + '</span>' +
+      '<p class="invite-text">' + esc(T('installer.carte', { prénom: B })) + '</p>' +
+      '<div class="invite-share"><button class="btn" type="button" data-installer="oui"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-installer"/></svg> ' + esc(T('installer.oui')) + '</button></div>' +
+      '<button class="link-btn invite-cancel" type="button" data-installer="non">' + esc(T('installer.non')) + '</button></div></li>';
+  }
   function renderChat(toEnd) {
     if (ovPartie.hidden) return;
     if (duo && duo.stage === 'invite' && duo.info) { $('#chat-list').innerHTML = inviteThreadHtml(); $('#chat-down').hidden = true; return; }
@@ -2073,6 +2103,12 @@
     if (b) b.m.forEach((m) => items.push({ d: m.d, m }));
     const pe = pendingEnvie();
     if (pe) items.push({ d: pe.d, e: pe });
+    // L’autre a Tout Kiff Kiff : il ou elle vous l’offre (un seul téléphone suffit) ; une carte, à l’heure où on l’a vu
+    if (duo && duo.info && S.cpOther && !load('complet', false) && OFFRE !== 'tout') {
+      const vu = load('offertVu', {}) || {};
+      if (!vu[duo.info.room]) { vu[duo.info.room] = Date.now(); save('offertVu', vu); }
+      items.push({ d: vu[duo.info.room], o: true });
+    }
     items.sort((x, y) => x.d - y.d);
     const lastMine = b ? b.m.filter((m) => m.s === duo.seat && !m.x).slice(-1)[0] : null;
     let day = '', html = '';
@@ -2085,6 +2121,7 @@
       if (dl !== day) { day = dl; html += '<li class="chat-day"><span>' + esc(dl) + '</span></li>'; }
       if (it.k) { html += threadKiffHtml(it.k, b); return; }
       if (it.e) { html += threadEnvieHtml(it.e, B); return; }
+      if (it.o) { html += '<li class="thread-kiff thread-offert"><span class="thread-kiff-kicker">' + esc(T('partie.offert-kicker')) + '</span><p class="thread-offert-text">' + esc(T('partie.offert', { prénom: B })) + '</p></li>'; return; }
       const m = it.m, mine = m.s === duo.seat;
       if (m.x) { html += '<li class="chat-msg chat-msg--gone' + (mine ? ' is-mine' : '') + '">' + esc(T('chat.supprime')) + '</li>'; return; }
       // Une citation : une envie (« Kiff kiff · …le bas du dos… ») ou un message
@@ -2099,6 +2136,7 @@
         quote + '<span class="chat-text">' + msgHtml(m.t) + '</span>' + (showMeta ? '<span class="chat-meta">' + esc(meta) + '</span>' : '') +
         (m.r && Object.keys(m.r).length ? '<span class="chat-reacts">' + reactsHtml(m.r) + '</span>' : '') + '</li>';
     });
+    if (installWanted()) html += installCardHtml(B);
     if (typingKid) html += '<li class="chat-typing" aria-label="' + esc(B + ' ' + T('chat.ecrit')) + '"><span></span><span></span><span></span></li>';
     const sc = $('#kiff-scroll');
     const atEnd = sc.scrollHeight - sc.scrollTop - sc.clientHeight < 80;
@@ -2318,6 +2356,15 @@
     if (c) { audio(); sClick(); haptic(8); openEnvie(c.dataset.envie); return; }
     // L’envie en cours, quand c’est à moi : la lire (ou la relire)
     if (e.target.closest('[data-envie-go]')) { $('#wait-go').click(); return; }
+    // Installer, depuis la carte de la conversation
+    const ins = e.target.closest('[data-installer]');
+    if (ins) {
+      audio(); sClick(); haptic(8);
+      if (ins.dataset.installer === 'oui') { save('installAsked', true); report('installer', null, 'oui-carte'); installer.run(); }
+      else { save('installCarteNon', true); report('installer', null, 'plus-tard-carte'); }
+      renderChat();
+      return;
+    }
     // L’invitation : envoyer le lien, le copier, annuler la partie
     const iv = e.target.closest('[data-inv]');
     if (iv && duo && duo.info) {
@@ -2525,9 +2572,15 @@
     box.hidden = !up;
     if (!up) return;
     $('#party-unlock-chili').innerHTML = '<span class="pgroup pgroup--' + now + ' is-on">' + CHILI.repeat(now) + '</span>';
-    $('#party-unlock-text').textContent = T('fete.debloque', { niveau: D.niveaux[now - 1].nom });
+    // Brûlant atteint en version gratuite : c’est le moment de montrer Tout Kiff Kiff (la pastille l’ouvre)
+    const offre = now === 3 && !isComplet();
+    box.dataset.complet = offre ? '1' : '';
+    box.classList.toggle('is-offre', offre);
+    $('#party-unlock-text').textContent = offre ? T('fete.brulant-complet') : T('fete.debloque', { niveau: D.niveaux[now - 1].nom });
+    if (offre) report('complet', null, 'propose-brulant');
     box.querySelector('.pill').setAttribute('aria-label', D.niveaux[now - 1].nom + ' débloqué : le piment peut monter, si vous en avez envie tous les deux.');
   }
+  $('#party-unlock').addEventListener('click', () => { if ($('#party-unlock').dataset.complet) openComplet('fete'); });
   function celebrateLate() {
     lateKiff = true;
     cheer();
@@ -3338,6 +3391,20 @@
     syncT = setTimeout(() => pushState(), 80);
   }
 
+  /* Une envie écrite avec un mot caché sous une barre dorée (Tout Kiff Kiff, l’aperçu de l’invitation) */
+  function hotSentence(a, o, m, dir, hide) {
+    if (!a || !o || !m) return '';
+    const raw = (dir === 'me' ? a.s : a.i) || '';
+    const act = raw.replace(PREP_TAIL, '');
+    const tail = PREP_TAIL.exec(raw);
+    const prep = a.p || (tail ? (tail[1].toLowerCase() === 'à' ? 'à' : 'de') : '');
+    const base = o.t || (dir === 'me' ? o.s : o.i) || '';
+    const obj = prep === 'de' ? withDe(base) : prep === 'à' && !/^(à|au|aux)\s/i.test(base) ? withA(base) : base;
+    const man = m.t || (dir === 'me' ? m.s : m.i) || '';
+    const bar = (w) => '<span class="cache" style="--n:' + Math.max(4, Math.min(14, w.length)) + '"></span>';
+    const html = 'J’ai envie ' + esc(dirForm(dir, act)) + (dirForm(dir, act).endsWith('’') ? '' : ' ') + (hide === 'act' ? bar(act) : esc(act)) + ' ' + (hide === 'obj' ? bar(obj) : esc(obj)) + ' ' + esc(man);
+    return /[.!?…»]$/.test(man) ? html : html + '.';
+  }
   function sentenceFrom(o) {
     const keep = S.custom;
     S.custom = o.custom;
@@ -3521,7 +3588,7 @@
     const g = $('#wait-go');
     g.hidden = !go; g.textContent = go;
     // Après une envie envoyée, tant que l’appli n’est pas installée : l’installer, pour être averti·e de la réponse
-    $('#wait-install').hidden = !(waiting && S.phase !== 'compose' && installer.can() && !load('installAsked', false));
+    $('#wait-install').hidden = true; // depuis le 27 octobre 2026 : une carte dans la conversation (installCardHtml)
   }
 
   /* Connexion : la mienne et celle de l’autre */
@@ -3734,7 +3801,7 @@
     $('#steps').classList.remove('is-duo');
     S.started = true;
     startComposition(0);
-    shuffle(true);
+    shuffle(true, true); // l’envie de l’invitation part des formules les plus kiffées : la première impression
   }
   function endGift(keep) {
     if (keep) {
@@ -3811,6 +3878,11 @@
     $('#inv-piments').innerHTML = st.prog
       ? TH('invite.piment-monte', { piment: { html: chip(1) } })
       : TH('invite.piments', { prénom: A, piments: { html: lv.map(chip).join(' ') } });
+    // Un avant-goût du Pimenté (qui se débloque en jouant) : une envie tirée de la réserve, l’action cachée
+    const pk = (r, dc) => { const l = SOURCE[r].filter((x) => (x.lvl || 1) === 2 && !!x.dc === dc && (r !== 1 || x.t)); return l.length ? l[Math.floor(Math.random() * l.length)] : null; };
+    const ap = st.prog ? hotSentence(pk(0, false), pk(1, false), pk(2, false), 'me', 'act') : '';
+    $('#inv-apercu').hidden = !ap;
+    $('#inv-apercu-envie').innerHTML = ap;
     const r1 = $('#inv-rule-1'), r2 = $('#inv-rule-2');
     if (!r1.dataset.html) { r1.dataset.html = r1.innerHTML; r2.dataset.html = r2.innerHTML; }
     if (st.gift) {
@@ -4164,7 +4236,7 @@
     if (!KP) return;
     audio(); sClick(); haptic(8);
     if (pushStatus === 'install') {
-      note(T('avertir.iphone'), T('avertir.iphone-texte'));
+      showGuide('cloche');
       return;
     }
     // L’autorisation a pu changer dans les réglages entre-temps : on relit avant de conclure
@@ -4457,16 +4529,38 @@
       completFrom = document.activeElement;
       const total = SOURCE.reduce((n, l) => n + l.length, 0);
       const free = [0, 1, 2].reduce((n, r) => n + freePick(r, [1, 2]).length, 0);
-      $('#complet-texte').textContent = T('complet.texte', { gratuit: free, total });
+      // Des envies, pas des mots : chaque combinaison des trois roues, dans les deux sens
+      const envies = 2 * SOURCE.reduce((n, l) => n * Math.max(1, l.length), 1);
+      const enviesTxt = envies >= 2e6 ? T('complet.millions', { nombre: Math.floor(envies / 1e6) }) : envies.toLocaleString('fr-FR');
+      $('#complet-texte').textContent = T('complet.texte', { gratuit: free, total, envies: enviesTxt });
       $('#complet-liste').innerHTML = TL('complet.liste').map((x) => '<li><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>' + esc(x) + '</span></li>').join('');
-      // La petite démonstration : une roue qui tourne sur des mots brûlants, une recherche qui se tape
-      const hot = SOURCE[1].filter((x) => (x.lvl || 1) === 3).slice(0, 6).map((x) => x.t || x.s || '');
-      $('#complet-roue').innerHTML = hot.concat(hot.slice(0, 2)).map((t) => '<span>' + esc(t) + '</span>').join('');
+      showHotEnvies();
       show(ovComplet);
       report('complet', null, 'vue-' + why);
       $('#complet-oui').focus({ preventScroll: true });
     };
-    const closeComplet = () => { hide(ovComplet); if (completFrom && completFrom.focus) completFrom.focus({ preventScroll: true }); };
+    /* La démonstration (27 octobre 2026) : trois envies brûlantes tirées de la réserve, qui se succèdent.
+       Le mot le plus cru est caché sous une barre dorée (l’imagination le complète ; discret si l’écran est vu par-dessus l’épaule).
+       Une envie au premier degré qui cache l’action, une qui cache l’endroit, une décalée pour rire. */
+    let hotT = 0;
+    function showHotEnvies() {
+      const pick = (r, lv, dc) => { const l = SOURCE[r].filter((x) => (x.lvl || 1) === lv && !!x.dc === dc && (r !== 1 || x.t)); return l.length ? l[Math.floor(Math.random() * l.length)] : null; };
+      const list = [
+        hotSentence(pick(0, 3, false), pick(1, 2, false), pick(2, 3, false), 'me', 'act'),
+        hotSentence(pick(0, 2, false), pick(1, 3, false), pick(2, 3, false), 'te', 'obj'),
+        hotSentence(pick(0, 3, true), pick(1, 3, true), pick(2, 3, true), 'te', 'act')
+      ].filter(Boolean);
+      const box = $('#complet-envies');
+      box.innerHTML = list.map((h, i) => '<p class="complet-envie' + (i ? '' : ' is-on') + '">' + h + '</p>').join('');
+      clearInterval(hotT);
+      let i = 0;
+      if (list.length > 1) hotT = setInterval(() => {
+        if (ovComplet.hidden) { clearInterval(hotT); return; }
+        const ps = box.querySelectorAll('.complet-envie');
+        ps[i].classList.remove('is-on'); i = (i + 1) % ps.length; ps[i].classList.add('is-on');
+      }, 3200);
+    }
+    const closeComplet = () => { hide(ovComplet); clearInterval(hotT); if (completFrom && completFrom.focus) completFrom.focus({ preventScroll: true }); };
     $('#complet-oui').addEventListener('click', () => {
       audio(); sSwitchOn(); haptic(20);
       save('complet', true);
@@ -5031,6 +5125,7 @@
     return items;
   }
   function renderHome() {
+    renderReprise();
     const items = homeItems();
     const has = items.length > 0;
     $('#welcome').classList.toggle('has-games', has);
@@ -5116,9 +5211,27 @@
     t.textContent = text; t.hidden = false;
     clearTimeout(toastT); toastT = setTimeout(() => { t.hidden = true; }, 3000);
   }
+  // On confirme avant de supprimer : on ne peut pas revenir en arrière
+  let supprId = '';
+  function askDelete(id) {
+    supprId = id;
+    const it = homeItems().find((x) => (x.kind === 'duo' ? x.g.room : 'ici:' + x.key) === id);
+    const B = it ? (it.kind === 'duo' ? ((it.g.names || [])[1 - it.g.seat] || '').trim() : it.title) : '';
+    const lobby = it && it.kind === 'duo' && it.lobby;
+    $('#suppr-title').textContent = it && it.kind === 'duo' && !lobby && B ? T('suppr.titre-avec', { prénom: B }) : T('suppr.titre');
+    $('#suppr-text').textContent = !it || it.kind !== 'duo' ? T('suppr.texte-ici') : lobby ? T('suppr.texte-invitation') : T('suppr.texte-distance', { prénom: B || T('parties.l-autre') });
+    sClick(); haptic(10);
+    show($('#ov-suppr'));
+    $('#suppr-non').focus({ preventScroll: true });
+  }
+  const closeSuppr = () => { hide($('#ov-suppr')); supprId = ''; };
+  $('#suppr-oui').addEventListener('click', () => { audio(); const id = supprId; closeSuppr(); if (id) deleteGame(id); });
+  $('#suppr-non').addEventListener('click', () => { audio(); closeSuppr(); });
+  $('#ov-suppr').addEventListener('click', (e) => { if (e.target === $('#ov-suppr')) closeSuppr(); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !$('#ov-suppr').hidden) closeSuppr(); });
   $('#welcome').addEventListener('click', (e) => {
     const d = e.target.closest('[data-del]');
-    if (d) { e.stopPropagation(); audio(); deleteGame(d.dataset.del); }
+    if (d) { e.stopPropagation(); audio(); askDelete(d.dataset.del); }
   }, true);
   $('#home-edit').addEventListener('click', () => {
     audio(); sClick(); haptic(8);
@@ -5287,14 +5400,108 @@
   $('#install-no').addEventListener('click', () => { audio(); report('installer', null, 'plus-tard'); hide(ovInstall); });
   ovInstall.addEventListener('click', (e) => { if (e.target === ovInstall) hide(ovInstall); });
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !ovInstall.hidden) hide(ovInstall); });
+  /* ---------- Installer (27 octobre 2026) ----------
+     Android : la demande du navigateur, d’un geste. iPhone (Safari) : les gestes en images, et un lien de reprise copié,
+     car l’appli installée ne voit pas ce qui a été joué dans Safari. Messenger, Instagram… : on ne peut pas installer
+     depuis leur navigateur, on explique comment ouvrir la page dans le vrai. */
+  const IOS = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  const IN_APP = /FBAN|FBAV|FB_IAB|FBIOS|Instagram|Messenger|LinkedInApp|Snapchat|musical_ly|TikTok|Line\//i.test(navigator.userAgent);
+  const isStandalone = () => (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true;
+  const GUIDE_IC = {
+    partager: '<path d="M12 3.5v11"/><path d="M8 7.5l4-4 4 4"/><path d="M8.5 10.5h-2v9h11v-9h-2"/>',
+    ajouter: '<rect x="4" y="4" width="16" height="16" rx="4"/><path d="M12 8.5v7M8.5 12h7"/>',
+    icone: '<path d="M12 7.2A5 5 0 0 1 12 16.8A5 5 0 0 1 12 7.2Z" fill="currentColor" fill-opacity=".5" stroke="none"/><circle cx="9.5" cy="12" r="5"/><circle cx="14.5" cy="12" r="5"/>',
+    points: '<circle cx="6" cy="12" r="1.6" fill="currentColor"/><circle cx="12" cy="12" r="1.6" fill="currentColor"/><circle cx="18" cy="12" r="1.6" fill="currentColor"/>',
+    boussole: '<circle cx="12" cy="12" r="8.5"/><path d="M15.5 8.5l-2 5-5 2 2-5z"/>'
+  };
+  // Le lien de reprise : les parties, les conversations et les réglages de ce téléphone, dans la partie du lien après « # »
+  // (jamais envoyée à un serveur, comme les clés des invitations)
+  const REPRISE_KEYS = ['parties', 'chats', 'paires', 'names', 'duoName', 'rulesSeen', 'envieFaite', 'connus', 'gestesVus', 'complet', 'skin', 'kiffSeen', 'decouverts', 'offertVu'];
+  const b64u = (str) => btoa(unescape(encodeURIComponent(str))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  const unb64u = (b) => decodeURIComponent(escape(atob(b.replace(/-/g, '+').replace(/_/g, '/'))));
+  function repriseLink() {
+    const o = { v: 1 };
+    REPRISE_KEYS.forEach((k) => { const v = load(k, null); if (v != null) o[k] = v; });
+    return location.origin + location.pathname + '#reprise=' + b64u(JSON.stringify(o));
+  }
+  const hasData = () => games().length > 0 || Object.keys(load('paires', {}) || {}).length > 0;
+  function importReprise(text) {
+    const m = /#reprise=([A-Za-z0-9_-]+)/.exec(text || '');
+    if (!m) return false;
+    let o = null;
+    try { o = JSON.parse(unb64u(m[1])); } catch (e) { return false; }
+    if (!o || o.v !== 1) return false;
+    // On ajoute sans rien écraser : les parties déjà ici gardent leur état
+    const mine = games();
+    const add = (Array.isArray(o.parties) ? o.parties : []).filter((g) => g && g.room && g.key && !mine.some((x) => x.room === g.room));
+    save('parties', mine.concat(add).slice(0, 40));
+    if (o.chats && typeof o.chats === 'object') save('chats', Object.assign({}, o.chats, load('chats', {}) || {}));
+    if (o.paires && typeof o.paires === 'object') save('paires', Object.assign({}, o.paires, load('paires', {}) || {}));
+    ['names', 'duoName', 'rulesSeen', 'envieFaite', 'connus', 'gestesVus', 'complet', 'skin', 'kiffSeen', 'decouverts', 'offertVu'].forEach((k) => { if (o[k] != null && load(k, null) == null) save(k, o[k]); });
+    report('installer', null, 'reprise');
+    return true;
+  }
+  function showGuide(why) {
+    const steps = IN_APP
+      ? [['points', 'guide.integre-1'], ['boussole', 'guide.integre-2'], ['ajouter', 'guide.integre-3']]
+      : [['partager', 'guide.ios-1'], ['ajouter', 'guide.ios-2'], ['icone', 'guide.ios-3']];
+    $('#guide-title').textContent = T(why === 'cloche' ? 'avertir.iphone' : 'guide.titre');
+    $('#guide-steps').innerHTML = steps.map(([ic, k], n) => '<li><span class="guide-n">' + (n + 1) + '</span><svg class="ic guide-ic" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">' + GUIDE_IC[ic] + '</svg><span>' + esc(T(k)) + '</span></li>').join('');
+    const note2 = $('#guide-note');
+    note2.hidden = true;
+    // Sur iPhone : le lien de reprise part dans le presse-papiers (dans le geste qui a ouvert ce guide)
+    if (IOS && !IN_APP && hasData() && navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(repriseLink()).then(() => { note2.textContent = T('guide.reprise'); note2.hidden = false; save('repriseCopiee', true); }).catch(() => {});
+    }
+    report('installer', null, 'guide-' + (IN_APP ? 'integre' : 'iphone'));
+    show($('#ov-guide'));
+    $('#guide-ok').focus({ preventScroll: true });
+  }
+  $('#guide-ok').addEventListener('click', () => { audio(); hide($('#ov-guide')); });
+  $('#ov-guide').addEventListener('click', (e) => { if (e.target === $('#ov-guide')) hide($('#ov-guide')); });
+  // L’appli installée sur iPhone, encore vide : retrouver ce qui a été joué dans Safari
+  function renderReprise() {
+    const box = $('#reprise');
+    if (!box) return;
+    box.hidden = !(IOS && isStandalone() && !hasData() && !load('repriseFaite', false));
+  }
+  async function doReprise(text) {
+    if (importReprise(text)) {
+      save('repriseFaite', true);
+      $('#reprise').hidden = true;
+      renderGames(); renderHome(); refreshGames(); peekBoxes();
+      homeToast(T('reprise.ok-mot'));
+      return true;
+    }
+    return false;
+  }
+  $('#reprise-go').addEventListener('click', async () => {
+    audio(); sClick(); haptic(8);
+    let text = '';
+    try { text = await navigator.clipboard.readText(); } catch (e) { text = ''; }
+    if (await doReprise(text)) return;
+    // Le presse-papiers ne l’a pas : on le colle à la main
+    $('#reprise-form').hidden = false;
+    $('#reprise-input').focus();
+  });
+  $('#reprise-form').addEventListener('submit', async (e) => {
+    e.preventDefault(); audio();
+    if (!(await doReprise($('#reprise-input').value))) { sNope(); haptic(20); homeToast(T('reprise.rate')); }
+  });
   function setupInstall() {
     if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
       navigator.serviceWorker.register('sw.js').catch(() => {});
     }
     const btn = $('#install');
-    const standalone = () => (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true;
-    $('#party-install').addEventListener('click', () => { audio(); save('installAsked', true); installer.run(); partyFoot(); });
-    if (standalone()) return;
+    $('#party-install').addEventListener('click', () => { audio(); save('installAsked', true); report('installer', null, 'oui-fete'); installer.run(); partyFoot(); });
+    // Le lien de reprise ouvert tel quel (dans Safari ou dans l’appli) : on reprend les parties
+    if (/^#reprise=/.test(location.hash)) {
+      const ok = importReprise(location.hash);
+      try { history.replaceState(null, '', location.pathname + location.search); } catch (e) { /* rien */ }
+      if (ok) { save('repriseFaite', true); setTimeout(() => { renderGames(); renderHome(); refreshGames(); homeToast(T('reprise.ok-mot')); }, 300); }
+    }
+    renderReprise();
+    if (isStandalone()) return;
     let deferred = null;
     // Android (Chrome, Edge, Samsung) : le navigateur propose l’installation, on la garde pour le bouton
     window.addEventListener('beforeinstallprompt', (e) => {
@@ -5303,18 +5510,17 @@
       btn.hidden = false;
     });
     window.addEventListener('appinstalled', () => { deferred = null; btn.hidden = true; report('installe'); });
-    // iPhone : pas d’installation automatique, on explique le geste
-    const ios = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-    if (ios) btn.hidden = false;
-    installer.can = () => !!deferred || (ios && !standalone());
+    // iPhone et navigateurs intégrés : pas d’installation automatique, on montre les gestes
+    if (IOS || IN_APP) btn.hidden = false;
+    installer.can = () => !!deferred || ((IOS || IN_APP) && !isStandalone());
     installer.run = async () => {
       if (deferred) {
         deferred.prompt();
         try { await deferred.userChoice; } catch (e) { /* rien */ }
         deferred = null;
         btn.hidden = true;
-      } else if (ios) {
-        note(T('installer.titre'), T('installer.iphone'));
+      } else if (IOS || IN_APP) {
+        showGuide('installer');
       }
     };
     btn.addEventListener('click', () => { audio(); installer.run(); });

@@ -307,29 +307,19 @@
       '<tfoot><tr><th scope="row">Total</th>' + tot(false) + tot(true) + tot(null) + '</tr></tfoot></table>' +
       gratuitHtml();
   }
-  // La version gratuite : 20 mots par roue, pris parmi les cochés « gratuit » de chaque piment choisi, à parts égales
-  // (Tendre seul : 20 tendres ; Tendre et Pimenté : 10 + 10), puis les premiers de la liste s’il en manque (comme freePick dans app.js)
-  function gratuitServi(r, lv) {
-    const of = (n, g) => words[r].filter((x) => x.s.trim() && x.lvl === n && !!x.g === g);
-    const quota = Math.floor(GRATUIT_N / lv.length);
-    const pick = [];
-    lv.forEach((n) => pick.push(...of(n, true).slice(0, quota)));
-    const fill = (lists) => {
-      for (let i = 0; pick.length < GRATUIT_N && lists.some((l) => i < l.length); i++) lists.forEach((l) => { if (l[i] && pick.length < GRATUIT_N && !pick.includes(l[i])) pick.push(l[i]); });
-    };
-    fill(lv.map((n) => of(n, true)));
-    fill(lv.map((n) => of(n, false)));
-    return pick;
-  }
-  // Sous le récapitulatif : ce que la version gratuite sert pour cette roue
+  // La version gratuite (27 octobre 2026) : 20 mots par roue, tirés à chaque partie parmi les cochés « gratuit » de chaque
+  // piment choisi, à parts égales (Tendre seul : 20 tendres ; Tendre et Pimenté : 10 + 10), dont un tiers de décalés.
+  // Plus il y a de cochés, plus les roues changent d’une partie à l’autre (comme freePick dans app.js).
   function gratuitHtml() {
+    const coches = (n) => words[roue].filter((x) => x.s.trim() && x.lvl === n && x.g);
     const servi = (lv, nom) => {
-      const pick = gratuitServi(roue, lv);
-      const t = pick.filter((x) => x.lvl === 1).length, p = pick.length - t, hors = pick.filter((x) => !x.g).length;
-      const ok = pick.length === GRATUIT_N && !hors;
-      return '<span class="chip-g ' + (ok ? 'is-ok' : 'is-low') + '">' + nom + ' : <b>' + (lv.length > 1 ? t + ' + ' + p : t) + '</b>' + (hors ? ', dont ' + hors + ' non coché' + (hors > 1 ? 's' : '') : ', tous cochés') + '</span>';
+      const quota = Math.floor(GRATUIT_N / lv.length);
+      const parts = lv.map((n) => { const c = coches(n); return { n, tot: c.length, dc: c.filter((x) => x.dc).length, ok: c.length >= quota }; });
+      const ok = parts.every((x) => x.ok);
+      const txt = parts.map((x) => (lv.length > 1 ? quota + ' ' + (x.n === 1 ? 'tendres' : 'pimentés') + ' tirés parmi ' : quota + ' tirés parmi ') + x.tot + ' cochés (dont ' + x.dc + ' décalés)').join(', ');
+      return '<span class="chip-g ' + (ok ? 'is-ok' : 'is-low') + '">' + nom + ' : <b>' + txt + '</b></span>';
     };
-    return '<p class="gratuit-n"><span class="gratuit-lead">Version gratuite, les 20 mots servis</span> ' + servi([1], 'en Tendre seul') + ' ' + servi([1, 2], 'en Tendre et Pimenté') + '</p>';
+    return '<p class="gratuit-n"><span class="gratuit-lead">Version gratuite, 20 mots tirés à chaque partie (un tiers de décalés) : plus il y a de cochés, plus ça change</span> ' + servi([1], 'en Tendre seul') + ' ' + servi([1, 2], 'en Tendre et Pimenté') + '</p>';
   }
   const renderGratuit = () => renderCounts();
 

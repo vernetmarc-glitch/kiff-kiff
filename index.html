@@ -30,7 +30,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,62..125,100..900;1,62..125,100..900&family=Bagel+Fat+One&family=Abril+Fatface&family=Merriweather:ital,opsz,wght@0,18..144,400..900;1,18..144,400..900&family=Baskervville:ital,wght@0,400..700;1,400..700&family=Jost:wght@300..700&family=Great+Vibes&family=Cinzel:wght@400..900&family=Syne:wght@600..800&family=Manrope:wght@400..800&family=Anton&family=Courier+Prime:wght@400;700&display=swap">
-<link rel="stylesheet" href="base.css?v=105">
+<link rel="stylesheet" href="base.css?v=107">
 <link rel="stylesheet" href="skins/arty.css?v=67" data-skin-sheet="arty">
 <link rel="stylesheet" href="skins/pomme.css?v=69" data-skin-sheet="pomme">
 <link rel="stylesheet" href="skins/redcorner.css?v=69" data-skin-sheet="redcorner">
@@ -233,6 +233,11 @@
             <button class="btn" id="welcome-go" type="button" data-t="accueil.commencer">Commencer</button>
             <p class="age-note" data-t="accueil.age">Réservé aux adultes&nbsp;: en jouant, tu confirmes avoir 18&nbsp;ans ou plus.</p>
             <button class="link-btn resume-link" id="resume" type="button" hidden data-t="accueil.reprendre">Reprendre la partie en cours</button>
+            <!-- Sur iPhone, l’appli installée ne voit pas ce qui a été joué dans Safari : le lien de reprise, copié en installant -->
+            <div class="reprise" id="reprise" hidden>
+              <button class="link-btn" id="reprise-go" type="button" data-t="reprise.bouton">Retrouver mes parties de Safari</button>
+              <form class="reprise-form" id="reprise-form" hidden novalidate><input id="reprise-input" type="url" autocomplete="off" placeholder="Colle ici le lien de reprise" data-t-ph="reprise.coller"><button class="btn" type="submit" data-t="reprise.ok">Retrouver</button></form>
+            </div>
           </div>
           <ol class="home-rules" id="home-rules">
             <li><b>1</b><span data-t="accueil.regle-1">Sur un téléphone, ou chacun·e sur le sien.</span></li>
@@ -326,6 +331,8 @@
             <li><span class="geste-ill" aria-hidden="true"><svg viewBox="0 0 54 54"><use href="#ill-kiff"/></svg><b>3</b></span><span class="geste-text" data-t="invite.regle-3">Vos envies se rejoignent&nbsp;: kiff kiff. On passe quand on veut, sans se justifier.</span></li>
           </ol>
           <p class="step-text inv-piments" id="inv-piments"></p>
+          <!-- Un avant-goût du Pimenté : une envie, son mot fort caché -->
+          <p class="inv-apercu" id="inv-apercu" hidden><span class="inv-apercu-kicker" data-t="invite.apercu">Et quand le piment monte :</span><span class="inv-apercu-envie" id="inv-apercu-envie"></span></p>
           <button class="btn" id="inv-ok" type="button" data-t="invite.ok">Compris</button>
           <button class="link-btn step-back" type="button"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-retour"/></svg><span data-t="joueurs.retour">Retour</span></button>
         </div>
@@ -719,6 +726,28 @@
   </div>
 </div>
 <!-- Installer l’appli : une invitation, au bon moment -->
+<!-- Supprimer une partie : on confirme, on ne peut pas revenir en arrière (27 octobre 2026) -->
+<div class="overlay overlay--edit overlay--skins" id="ov-suppr" hidden role="alertdialog" aria-modal="true" aria-labelledby="suppr-title" aria-describedby="suppr-text">
+  <div class="sheet sheet--edit sheet--skins sheet--choice">
+    <h2 class="edit-label" id="suppr-title"></h2>
+    <p class="duo-text" id="suppr-text"></p>
+    <div class="stack">
+      <button class="btn btn--danger" id="suppr-oui" type="button"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-supprimer"/></svg><span data-t="suppr.oui">Supprimer</span></button>
+      <button class="link-btn" id="suppr-non" type="button" data-t="suppr.non">Annuler</button>
+    </div>
+  </div>
+</div>
+
+<!-- Installer sur iPhone, ou depuis Messenger / Instagram : les gestes en images (27 octobre 2026) -->
+<div class="overlay overlay--edit overlay--skins" id="ov-guide" hidden role="dialog" aria-modal="true" aria-labelledby="guide-title">
+  <div class="sheet sheet--edit sheet--skins sheet--choice sheet--guide">
+    <h2 class="edit-label" id="guide-title" data-t="guide.titre">Kiff Kiff sur ton écran d’accueil</h2>
+    <ol class="guide-steps" id="guide-steps"></ol>
+    <p class="guide-note" id="guide-note" hidden></p>
+    <div class="stack"><button class="btn" id="guide-ok" type="button" data-t="guide.ok">C’est noté</button></div>
+  </div>
+</div>
+
 <div class="overlay overlay--edit overlay--skins" id="ov-install" hidden role="dialog" aria-modal="true" aria-labelledby="install-title">
   <div class="sheet sheet--edit sheet--skins sheet--choice">
     <h2 class="edit-label" id="install-title" data-t="installer.invite-titre">Kiff Kiff sous la main</h2>
@@ -765,11 +794,8 @@
 <!-- Tout Kiff Kiff : le jeu complet (pour l’instant, tout est gratuit) -->
 <div class="overlay overlay--edit overlay--skins" id="ov-complet" hidden role="dialog" aria-modal="true" aria-labelledby="complet-titre">
   <div class="sheet sheet--edit sheet--skins sheet--choice sheet--complet">
-    <div class="complet-demo" aria-hidden="true">
-      <div class="complet-roue"><div class="complet-roue-strip" id="complet-roue"></div></div>
-      <div class="complet-cherche"><span class="complet-tape">suce</span><span class="complet-caret">|</span>
-        <span class="complet-hits"><span><mark>suç</mark>otes</span><span><mark>suce</mark>s</span><span>lèches</span></span></div>
-    </div>
+    <!-- Trois envies brûlantes qui se succèdent, le mot le plus cru caché sous une barre dorée : « Tout débloquer » le révèle -->
+    <div class="complet-envies" id="complet-envies" aria-hidden="true"></div>
     <h2 class="edit-label" id="complet-titre" data-t="complet.titre">Tout Kiff Kiff</h2>
     <p class="duo-text" id="complet-texte"></p>
     <ul class="complet-liste" id="complet-liste"></ul>
@@ -793,11 +819,11 @@
 </div>
 
 <script src="data.js?v=64"></script>
-<script src="textes.js?v=19"></script>
+<script src="textes.js?v=21"></script>
 <script src="semantique.js?v=1"></script>
 <script src="config.js?v=63"></script>
 <script src="duo.js?v=63"></script>
 <script src="push.js?v=65"></script>
-<script src="app.js?v=123"></script>
+<script src="app.js?v=125"></script>
 </body>
 </html>

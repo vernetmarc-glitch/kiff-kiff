@@ -1479,3 +1479,39 @@ body:has(#ov-deal:not([hidden])) .deco-candles { display: none; }
 /* Le principe, court : une ligne par geste ; une ligne vide (changée dans l’Atelier) disparaît */
 .principe-intro:empty, .geste-sub:empty, .principe-piment:empty { display: none; }
 .gestes .geste-text { font-size: 17px; }
+/* Tout Kiff Kiff : trois envies brûlantes qui se succèdent, le mot cru sous une barre dorée */
+.complet-envies { position: relative; align-self: stretch; min-height: 118px; border-radius: 14px; display: grid;
+  background: var(--envies-bg, color-mix(in srgb, currentColor 6%, transparent)); box-shadow: var(--envies-line, inset 0 0 0 1px color-mix(in srgb, currentColor 30%, transparent)); }
+.complet-envie { grid-area: 1 / 1; margin: 0; padding: 16px 18px; align-self: center; text-align: center; font-family: var(--f-display, inherit); font-size: 19px; line-height: 1.35;
+  opacity: 0; transform: translateY(6px); transition: opacity .6s, transform .6s; }
+.complet-envie.is-on { opacity: 1; transform: none; }
+.cache { display: inline-block; width: calc(var(--n, 6) * .52em); height: .9em; margin: 0 .08em; vertical-align: -.08em; border-radius: 4px;
+  background: var(--cache-bg, linear-gradient(100deg, #8C6424, #F6DDA0 30%, #B8873A 55%, #FFF0C4 75%, #A97C30)); background-size: 200% 100%; animation: cache-brille 2.4s linear infinite; }
+@keyframes cache-brille { to { background-position: -200% 0; } }
+@media (prefers-reduced-motion: reduce) { .complet-envie { transition: none; } .cache { animation: none; } }
+.party-unlock.is-offre .pill { cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+.thread-offert { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.thread-offert-text { margin: 0; padding: 12px 16px; border-radius: 14px; text-align: center; font-size: 15px; line-height: 1.4;
+  background: var(--offert-bg, color-mix(in srgb, var(--badge-bg, #D81B50) 14%, transparent)); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--badge-bg, #D81B50) 45%, transparent); }
+/* Installer : les gestes en images */
+.guide-steps { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; text-align: left; }
+.guide-steps li { display: grid; grid-template-columns: 26px 40px 1fr; align-items: center; gap: 10px; font-size: 16px; line-height: 1.35; }
+.guide-n { width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; font-size: 13px; font-weight: 800; background: var(--pill-on-bg, currentColor); color: var(--pill-on-fg, #fff); }
+.guide-ic { width: 40px; height: 40px; padding: 8px; box-sizing: border-box; border-radius: 10px; box-shadow: inset 0 0 0 1.5px color-mix(in srgb, currentColor 45%, transparent); }
+.guide-note { margin: 0; padding: 10px 12px; border-radius: 12px; font-size: 14px; line-height: 1.4; text-align: left;
+  background: color-mix(in srgb, var(--badge-bg, #D81B50) 13%, transparent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--badge-bg, #D81B50) 45%, transparent); }
+.guide-note[hidden] { display: none; }
+.thread-install { list-style: none; align-self: stretch; margin: 8px 14px 6px; }
+.reprise { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.reprise[hidden], .reprise-form[hidden] { display: none; }
+.reprise-form { display: flex; gap: 8px; align-self: stretch; }
+.reprise-form input { flex: 1; min-width: 0; min-height: 44px; padding: 0 12px; border-radius: 12px; border: 1px solid currentColor; background: transparent; color: inherit; font: inherit; font-size: 14px; }
+.reprise-form .btn { margin: 0; min-height: 44px; padding: 0 16px; }
+.inv-apercu { margin: 0; align-self: stretch; display: flex; flex-direction: column; gap: 6px; padding: 12px 14px; border-radius: 14px; text-align: center;
+  background: color-mix(in srgb, currentColor 6%, transparent); box-shadow: inset 0 0 0 1px color-mix(in srgb, currentColor 25%, transparent); }
+.inv-apercu[hidden] { display: none; }
+.inv-apercu-kicker { font-size: 12px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; opacity: .8; }
+.inv-apercu-envie { font-family: var(--f-display, inherit); font-size: 17px; line-height: 1.35; }
+/* Supprimer pour de bon : le bouton rouge de la fenêtre de confirmation */
+.btn.btn--danger { background: var(--badge-bg, #D81B50) !important; color: #fff !important; box-shadow: none; }
+.btn.btn--danger .ic { width: 18px; height: 18px; margin-right: 6px; vertical-align: -3px; }
