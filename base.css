@@ -1583,3 +1583,12 @@ body:has(#ov-deal:not([hidden])) .deco-candles { display: none; }
 .overlay.overlay--partie:not([hidden]), .overlay.overlay--envie:not([hidden]), .overlay.overlay--kiffs:not([hidden]) { display: flex !important; flex-direction: column; align-items: center; overflow: hidden; }
 .overlay--partie > .sheet, .overlay--envie > .sheet, .overlay--kiffs > .sheet,
 .overlay--loupe.overlay--partie .sheet--loupe, .overlay--loupe.overlay--envie .sheet--loupe, .overlay--loupe.overlay--kiffs .sheet--loupe { height: auto !important; max-height: none !important; flex: 1 1 auto; min-height: 0; }
+/* Après « Tout débloquer » : le montant, un retour */
+.gratos-prix { display: flex; gap: 10px; align-self: stretch; }
+.gratos-prix[hidden] { display: none; }
+.gratos-champ { flex: 1; min-width: 0; display: flex; align-items: center; gap: 6px; padding: 0 14px; border-radius: 999px; box-shadow: inset 0 0 0 1.5px color-mix(in srgb, currentColor 45%, transparent); font-size: 18px; font-weight: 600; }
+.gratos-champ input { flex: 1; min-width: 0; min-height: 48px; border: 0; background: transparent; color: inherit; font: inherit; font-size: 20px; }
+.gratos-prix .btn { margin: 0; min-height: 48px; padding: 0 20px; flex: none; }
+.gratos-merci { margin: 0; align-self: stretch; text-align: center; font-weight: 700; }
+.gratos-merci[hidden], .gratos-retour[hidden] { display: none; }
+.gratos-retour { align-self: center; text-align: center; }

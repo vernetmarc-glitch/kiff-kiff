@@ -30,7 +30,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,62..125,100..900;1,62..125,100..900&family=Bagel+Fat+One&family=Abril+Fatface&family=Merriweather:ital,opsz,wght@0,18..144,400..900;1,18..144,400..900&family=Baskervville:ital,wght@0,400..700;1,400..700&family=Jost:wght@300..700&family=Great+Vibes&family=Cinzel:wght@400..900&family=Syne:wght@600..800&family=Manrope:wght@400..800&family=Anton&family=Courier+Prime:wght@400;700&display=swap">
-<link rel="stylesheet" href="base.css?v=115">
+<link rel="stylesheet" href="base.css?v=116">
 <link rel="stylesheet" href="skins/arty.css?v=67" data-skin-sheet="arty">
 <link rel="stylesheet" href="skins/pomme.css?v=69" data-skin-sheet="pomme">
 <link rel="stylesheet" href="skins/redcorner.css?v=71" data-skin-sheet="redcorner">
@@ -826,11 +826,26 @@
     <h2 class="edit-label" id="complet-titre" data-t="complet.titre">Tout Kiff Kiff</h2>
     <p class="duo-text" id="complet-texte"></p>
     <ul class="complet-liste" id="complet-liste"></ul>
-    <p class="complet-gratuit" data-t="complet.gratuit">Pour l’instant, tout est gratuit.</p>
     <div class="stack">
       <button class="btn" id="complet-oui" type="button" data-t="complet.oui">Tout débloquer</button>
       <button class="link-btn" id="complet-non" type="button" data-t="complet.non">Plus tard</button>
     </div>
+  </div>
+</div>
+
+<!-- Après « Tout débloquer » : c’est gratuit pour l’instant ; combien le paieriez-vous ? un retour, une idée ? (27 octobre 2026) -->
+<div class="overlay overlay--edit overlay--skins" id="ov-gratos" hidden role="dialog" aria-modal="true" aria-labelledby="gratos-title">
+  <div class="sheet sheet--edit sheet--skins sheet--choice sheet--gratos">
+    <h2 class="edit-label" id="gratos-title" data-t="gratos.titre">C’est débloqué&nbsp;!</h2>
+    <p class="duo-text" data-t="gratos.texte">Pour l’instant, c’est gratos. Un jour, Tout Kiff Kiff sera payant&nbsp;: combien mettriez-vous pour tout débloquer&nbsp;?</p>
+    <form class="gratos-prix" id="gratos-form" novalidate>
+      <label class="sr-only" for="gratos-montant" data-t="gratos.montant">Montant en euros</label>
+      <span class="gratos-champ"><input id="gratos-montant" type="text" inputmode="decimal" maxlength="6" placeholder="3" autocomplete="off"><span aria-hidden="true">€</span></span>
+      <button class="btn" type="submit" data-t="gratos.envoyer">Envoyer</button>
+    </form>
+    <p class="gratos-merci" id="gratos-merci" role="status" hidden></p>
+    <a class="link-btn gratos-retour" id="gratos-retour" href="#" data-t="gratos.retour">Une idée, un retour sur le jeu ? Écris-moi</a>
+    <button class="link-btn" id="gratos-ok" type="button" data-t="gratos.jouer">Jouer</button>
   </div>
 </div>
 <!--/APP-->
@@ -846,11 +861,11 @@
 </div>
 
 <script src="data.js?v=64"></script>
-<script src="textes.js?v=25"></script>
+<script src="textes.js?v=26"></script>
 <script src="semantique.js?v=1"></script>
 <script src="config.js?v=63"></script>
 <script src="duo.js?v=63"></script>
 <script src="push.js?v=65"></script>
-<script src="app.js?v=132"></script>
+<script src="app.js?v=133"></script>
 </body>
 </html>

@@ -329,8 +329,8 @@ window.KIFF_TEXTES = [
     ["complet.texte", "Vous jouez avec {gratuit} mots. Tout Kiff Kiff en a {total} : {envies} d’envies.", "Sous le titre ({envies} : le nombre d’envies possibles)"],
     ["complet.millions", "plus de {nombre} millions", "Le nombre d’envies, quand il dépasse deux millions"],
     ["complet.liste", "De nouveaux mots dans les roues à chaque tour\nBrûlant, quand vous en avez envie tous les deux\nChercher un mot, écrire les vôtres\nLe piment et le ton réglés à votre goût\nPour vous deux : un seul téléphone suffit", "La liste, une ligne par point"],
-    ["complet.gratuit", "Pour l’instant, tout est gratuit.", "Au-dessus du bouton (plus tard : le prix)"],
-    ["complet.oui", "Tout débloquer", "Bouton principal"],
+    ["complet.gratuit", "Pour l’instant, tout est gratuit.", "Dans le menu, sous « Tout Kiff Kiff »"],
+    ["complet.oui", "Tout débloquer, c’est gratos", "Bouton principal"],
     ["complet.non", "Plus tard", "Lien"],
     ["complet.merci", "Tout Kiff Kiff est à vous.", "La consigne, 3 secondes, après avoir tout débloqué"],
     ["complet.chercher", "Chercher parmi les {total} mots", "Dans le champ de la loupe, version gratuite"]
@@ -562,6 +562,15 @@ window.KIFF_TEXTES = [
     ["dansappli.copier", "Copier le lien", "Bouton"],
     ["dansappli.copie", "Lien copié", "Le bouton, après la copie"],
     ["dansappli.ici", "Jouer ici", "Lien (la fenêtre ne revient plus ensuite)"]
+  ] },
+  { id: "gratos", nom: "Après « Tout débloquer »", textes: [
+    ["gratos.titre", "C’est débloqué !", "Titre de la petite fenêtre, juste après avoir tout débloqué"],
+    ["gratos.texte", "Pour l’instant, c’est gratos. Un jour, Tout Kiff Kiff sera payant : combien mettriez-vous pour tout débloquer ?", "Texte"],
+    ["gratos.montant", "Montant en euros", "Le champ (lu par le lecteur d’écran)"],
+    ["gratos.envoyer", "Envoyer", "Bouton du montant"],
+    ["gratos.merci", "Merci, c’est noté !", "Après l’envoi du montant"],
+    ["gratos.retour", "Une idée, un retour sur le jeu ? Écris-moi", "Lien qui ouvre un mail (adresse : retour.adresse)"],
+    ["gratos.jouer", "Jouer", "Lien qui referme la fenêtre"]
   ] },
   { id: "guide", nom: "Installer : les gestes en images", textes: [
     ["guide.titre", "Kiff Kiff sur ton écran d’accueil", "Titre, sur iPhone ou depuis Messenger, Instagram…"],

@@ -4653,7 +4653,32 @@
       newDraw(); relist(); renderReels(); renderLevel(); renderTon(); render();
       if (duo && duo.stage === 'game') sync();
       flashHint(T('complet.merci'), 3000);
+      openGratos();
     });
+    /* Après « Tout débloquer » : c’est gratuit pour l’instant ; combien le paieriez-vous (un compte anonyme par montant) ;
+       un retour ou une idée (par mail, comme « Qui est là ? » : aucun texte libre ne part sur un serveur) */
+    const ovGratos = $('#ov-gratos');
+    function openGratos() {
+      $('#gratos-montant').value = '';
+      $('#gratos-merci').hidden = true;
+      $('#gratos-form').hidden = false;
+      const mail = T('retour.adresse').trim();
+      $('#gratos-retour').hidden = !mail.includes('@');
+      if (mail.includes('@')) $('#gratos-retour').href = 'mailto:' + mail + '?subject=' + encodeURIComponent(T('retour.sujet'));
+      show(ovGratos);
+    }
+    $('#gratos-form').addEventListener('submit', (e) => {
+      e.preventDefault(); audio();
+      const v = Math.round(Math.max(0, Math.min(100, parseFloat(String($('#gratos-montant').value).replace(',', '.')))) * 2) / 2;
+      if (!isFinite(v) || String($('#gratos-montant').value).trim() === '') { sNope(); haptic(20); $('#gratos-montant').focus(); return; }
+      report('complet', null, 'prix-' + String(v).replace('.', ','));
+      sSwitchOn(); haptic(10);
+      $('#gratos-form').hidden = true;
+      $('#gratos-merci').textContent = T('gratos.merci'); $('#gratos-merci').hidden = false;
+    });
+    $('#gratos-retour').addEventListener('click', () => { audio(); report('complet', null, 'retour-mail'); });
+    $('#gratos-ok').addEventListener('click', () => { audio(); hide(ovGratos); });
+    ovGratos.addEventListener('click', (e) => { if (e.target === ovGratos) hide(ovGratos); });
     $('#complet-non').addEventListener('click', () => { audio(); report('complet', null, 'plus-tard'); closeComplet(); });
     // Le toucher qui l’a ouverte (la recherche de la loupe s’ouvre au premier contact du doigt) finit sur le fond :
     // on ne referme pas sur ce même geste (sur téléphone, la fenêtre se refermait aussitôt)
