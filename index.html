@@ -30,7 +30,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,62..125,100..900;1,62..125,100..900&family=Bagel+Fat+One&family=Abril+Fatface&family=Merriweather:ital,opsz,wght@0,18..144,400..900;1,18..144,400..900&family=Baskervville:ital,wght@0,400..700;1,400..700&family=Jost:wght@300..700&family=Great+Vibes&family=Cinzel:wght@400..900&family=Syne:wght@600..800&family=Manrope:wght@400..800&family=Anton&family=Courier+Prime:wght@400;700&display=swap">
-<link rel="stylesheet" href="base.css?v=119">
+<link rel="stylesheet" href="base.css?v=120">
 <link rel="stylesheet" href="skins/arty.css?v=68" data-skin-sheet="arty">
 <link rel="stylesheet" href="skins/pomme.css?v=69" data-skin-sheet="pomme">
 <link rel="stylesheet" href="skins/redcorner.css?v=71" data-skin-sheet="redcorner">
@@ -397,6 +397,7 @@
   <div class="sheet sheet--edit sheet--skins">
     <h2 class="edit-label" id="piment-title" data-t="roues.titre">Dans les roues</h2>
     <p class="edit-hint" data-t="roues.sous-titre">Ce que les roues tirent pour vous. Le piment se choisit à deux.</p>
+    <div class="roues-corps">
     <p class="roues-sub" id="roues-piment" data-t="roues.piment">Piment</p>
     <div class="piment-list" id="piment-list" role="group" aria-labelledby="roues-piment"></div>
     <p class="piment-error" id="piment-error" hidden role="alert" data-t="roues.erreur">Garde au moins un piment, sinon les roues tournent à vide.</p>
@@ -408,6 +409,7 @@
       <button type="button" role="radio" data-ton="b" aria-checked="false"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-barjot"/></svg><span data-t="roues.ton-b">wtf&nbsp;!?</span></button>
     </div>
     <p class="roues-ex" id="roues-ex" aria-live="polite"></p>
+    </div>
     <div class="row row--end">
       <button class="btn" id="piment-done" type="button" data-t="roues.ok">C’est choisi</button>
     </div>

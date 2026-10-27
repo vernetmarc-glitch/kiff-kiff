@@ -1619,3 +1619,22 @@ html.kb-open .overlay.overlay--partie:not([hidden]), html.kb-open .overlay.overl
 .overlay--party .party-acts { margin-top: auto; padding-top: 18px; }
 .complet-offert { align-self: stretch; margin: 0; text-align: center; font-size: 15.5px; font-weight: 700; line-height: 1.35; text-wrap: balance; }
 .complet-offert[hidden] { display: none; }
+/* « Dans les roues » tient dans l’écran (27 octobre 2026) : le titre en haut, « C’est choisi » toujours visible en bas ;
+   seul le milieu défile s’il le faut. La feuille prend la hauteur de la fenêtre elle-même (pas de 100dvh). */
+#ov-piment:not([hidden]) { display: flex !important; flex-direction: column; justify-content: flex-end; align-items: center; overflow: hidden; }
+#ov-piment > .sheet { flex: 0 1 auto; min-height: 0; display: flex; flex-direction: column; }
+#ov-piment .roues-corps { flex: 0 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; display: flex; flex-direction: column; gap: inherit; margin: 0 -8px; padding: 2px 8px; }
+#ov-piment > .sheet > .row--end { flex: none; }
+/* Les écrans pas très hauts : tout se resserre un peu, pour ne pas avoir à défiler */
+@media (max-height: 880px) {
+  #ov-piment:not([hidden]) { padding-top: max(12px, env(safe-area-inset-top, 0px)); padding-bottom: max(12px, env(safe-area-inset-bottom, 0px)); }
+  #ov-piment > .sheet { gap: 8px; }
+  #ov-piment .roues-sub { margin: 4px 0 -2px; }
+  #ov-piment .ton-choice .ic { width: 18px; height: 18px; }
+  #ov-piment .piment-list { gap: 6px; }
+  #ov-piment .piment-toggle-body { padding-top: 7px; padding-bottom: 7px; }
+  #ov-piment .piment-tdesc { font-size: 13px; line-height: 1.25; }
+  #ov-piment .ton-choice button { min-height: 46px; padding: 4px 4px; gap: 2px; }
+  #ov-piment .roues-ex { padding: 7px 12px; font-size: 13.5px; line-height: 1.3; }
+  #ov-piment .edit-label { font-size: clamp(30px, 9vw, 40px); }
+}
