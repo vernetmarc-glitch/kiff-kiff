@@ -3446,6 +3446,23 @@
     syncT = setTimeout(() => pushState(), 80);
   }
 
+  // Un premier kiff kiff a-t-il déjà été trouvé sur ce téléphone ? (parties à distance, parties ici, la partie en cours)
+  function everKiff() {
+    if ((S.kiffs || []).length) return true;
+    if (games().some((g) => (g.kiff || 0) > 0 || (g.nk || 0) > 0)) return true;
+    const pa = load('paires', {}) || {};
+    return Object.keys(pa).some((k) => pa[k] && Array.isArray(pa[k].kiffs) && pa[k].kiffs.length > 0);
+  }
+  /* Les mots crus restent cachés dans les envies de démonstration : chaque mot de cette liste passe sous la barre dorée */
+  const CRU = /^(sexe|chatte|bite|queue|cul|anus|anal|clito|clitoris|vulve|vagin|verge|gland|couilles|testicules|bourses|roustons|seins?|tétons?|nichons|lolos|suces?|sucer|suçotes?|baises?|baiser|branles?|branler|doigtes?|doigter|jouis|jouisses?|jouir|gicle|foutre|salope|chienne|chien·ne|pénètres?|pénétrer|sodomises?|fellation|cunni|pipe|chibre|zgeg|foufoune|teub|prostate|périnée|périnéale|sphincter|raie|pubis|pubiens|entrecuisse|orifice|gode|godemiché|masturbes?|masturber|avales?|remplisses?|ken|intromettes|tringles?|zézette|humide|écartées?|chevauches?|frein|gaule|nouille)$/i;
+  function maskCrude(text) {
+    return text.split(/(\s+)/).map((w) => {
+      // « l’anus », « (au choix) » : la ponctuation et l’article élidé restent, le mot cru se cache
+      const m = /^([«(]*(?:[a-zà-ÿ]+[’'])?)(.*?)([».,!?;:)»]*)$/i.exec(w);
+      if (m && m[2] && CRU.test(m[2])) return esc(m[1]) + '<span class="cache" style="--n:' + Math.max(4, Math.min(12, m[2].length)) + '"></span>' + esc(m[3]);
+      return esc(w);
+    }).join('');
+  }
   /* Une envie écrite avec un mot caché sous une barre dorée (Tout Kiff Kiff, l’aperçu de l’invitation) */
   function hotSentence(a, o, m, dir, hide) {
     if (!a || !o || !m) return '';
@@ -3457,7 +3474,8 @@
     const obj = prep === 'de' ? withDe(base) : prep === 'à' && !/^(à|au|aux)\s/i.test(base) ? withA(base) : base;
     const man = m.t || (dir === 'me' ? m.s : m.i) || '';
     const bar = (w) => '<span class="cache" style="--n:' + Math.max(4, Math.min(14, w.length)) + '"></span>';
-    const html = 'J’ai envie ' + esc(dirForm(dir, act)) + (dirForm(dir, act).endsWith('’') ? '' : ' ') + (hide === 'act' ? bar(act) : esc(act)) + ' ' + (hide === 'obj' ? bar(obj) : esc(obj)) + ' ' + esc(man);
+    // La partie choisie est cachée ; dans le reste, chaque mot cru l’est aussi
+    const html = 'J’ai envie ' + esc(dirForm(dir, act)) + (dirForm(dir, act).endsWith('’') ? '' : ' ') + (hide === 'act' ? bar(act) : maskCrude(act)) + ' ' + (hide === 'obj' ? bar(obj) : maskCrude(obj)) + ' ' + maskCrude(man);
     return /[.!?…»]$/.test(man) ? html : html + '.';
   }
   function sentenceFrom(o) {
@@ -4582,6 +4600,9 @@
     let completFrom = null;
     openComplet = (why) => {
       if (isComplet() || !ovComplet.hidden) return;
+      // Avant le premier kiff kiff (sur ce téléphone), Brûlant ne se vend pas : on commence plus tranquille
+      if (why === 'brulant' && !everKiff()) { audio(); sClick(); report('complet', null, 'brulant-tot'); note(T('complet.tot-titre'), T('complet.tot-texte')); return; }
+      $('#complet-titre').textContent = T({ brulant: 'complet.titre-brulant', fete: 'complet.titre-brulant', recherche: 'complet.titre-recherche', ecrire: 'complet.titre-ecrire', ton: 'complet.titre-ton' }[why] || 'complet.titre');
       audio(); sClick(); haptic(10);
       completFrom = document.activeElement;
       const total = SOURCE.reduce((n, l) => n + l.length, 0);
@@ -4601,7 +4622,8 @@
        Une envie au premier degré qui cache l’action, une qui cache l’endroit, une décalée pour rire. */
     let hotT = 0;
     function showHotEnvies() {
-      const pick = (r, lv, dc) => { const l = SOURCE[r].filter((x) => (x.lvl || 1) === lv && !!x.dc === dc && (r !== 1 || x.t)); return l.length ? l[Math.floor(Math.random() * l.length)] : null; };
+      // (une action doit avoir ses deux formes, « que tu me … » et « de te … »)
+      const pick = (r, lv, dc) => { const l = SOURCE[r].filter((x) => (x.lvl || 1) === lv && !!x.dc === dc && (r !== 1 || x.t) && (r !== 0 || (x.s && x.i && x.s !== x.i))); return l.length ? l[Math.floor(Math.random() * l.length)] : null; };
       const list = [
         hotSentence(pick(0, 3, false), pick(1, 2, false), pick(2, 3, false), 'me', 'act'),
         hotSentence(pick(0, 2, false), pick(1, 3, false), pick(2, 3, false), 'te', 'obj'),
@@ -4727,7 +4749,8 @@
     function renderFirst() {
       const nw = newcomers();
       const show = nw.length > 0 && (where === 'here' || !load('rulesSeen', false));
-      $('#first-note').hidden = !show;
+      $('#first-note').hidden = true; // retirée le 27 octobre 2026 : l’écran suivant explique déjà le jeu
+      if (!show) return;
       const me = nw[0] === $('#name0').value.trim();
       if (show) $('#first-note-text').textContent = nw.length > 1 ? T('joueurs.premiere-deux') : me ? T('joueurs.premiere-toi') : T('joueurs.premiere', { prénom: nw[0] });
     }

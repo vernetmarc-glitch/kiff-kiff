@@ -319,7 +319,13 @@ window.KIFF_TEXTES = [
     ["chat.copie", "Copié", "Un mot bref, après « Copier »"]
   ] },
   { id: "complet", nom: "Version gratuite et jeu complet", textes: [
-    ["complet.titre", "Tout Kiff Kiff", "Titre de la fenêtre qui s’ouvre en touchant une fonction du jeu complet"],
+    ["complet.titre", "Tout Kiff Kiff vous attend", "Titre de la fenêtre, ouverte depuis le menu"],
+    ["complet.titre-brulant", "Brûlant vous attend dans Tout Kiff Kiff", "Titre, en touchant Brûlant (ou la pastille de la fête)"],
+    ["complet.titre-recherche", "La loupe vous attend dans Tout Kiff Kiff", "Titre, en touchant la recherche de la loupe"],
+    ["complet.titre-ecrire", "Vos propres mots vous attendent dans Tout Kiff Kiff", "Titre, en touchant la case pour écrire son mot"],
+    ["complet.titre-ton", "Tous les tons vous attendent dans Tout Kiff Kiff", "Titre, en touchant Prem’deug ou wtf !?"],
+    ["complet.tot-titre", "Brûlant ? Commençons plus tranquille", "Petite fenêtre, en touchant Brûlant avant le premier kiff kiff sur ce téléphone"],
+    ["complet.tot-texte", "Pour une première partie, on joue en Tendre et en Pimenté. Brûlant se découvre après votre premier kiff kiff.", "Son texte"],
     ["complet.texte", "Vous jouez avec {gratuit} mots. Tout Kiff Kiff en a {total} : {envies} d’envies.", "Sous le titre ({envies} : le nombre d’envies possibles)"],
     ["complet.millions", "plus de {nombre} millions", "Le nombre d’envies, quand il dépasse deux millions"],
     ["complet.liste", "De nouveaux mots dans les roues à chaque tour\nBrûlant, quand vous en avez envie tous les deux\nChercher un mot, écrire les vôtres\nLe piment et le ton réglés à votre goût\nPour vous deux : un seul téléphone suffit", "La liste, une ligne par point"],
