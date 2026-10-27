@@ -4597,6 +4597,7 @@
     $('#brulant-yes').addEventListener('click', () => { audio(); closeBrulant(true); });
     /* « Tout Kiff Kiff » : ce que le jeu complet ouvre ; pour l’instant, tout est gratuit, d’un geste */
     const ovComplet = $('#ov-complet');
+    let completAt = 0;
     let completFrom = null;
     openComplet = (why) => {
       if (isComplet() || !ovComplet.hidden) return;
@@ -4613,6 +4614,7 @@
       $('#complet-texte').textContent = T('complet.texte', { gratuit: free, total, envies: enviesTxt });
       $('#complet-liste').innerHTML = TL('complet.liste').map((x) => '<li><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>' + esc(x) + '</span></li>').join('');
       showHotEnvies();
+      completAt = Date.now();
       show(ovComplet);
       report('complet', null, 'vue-' + why);
       $('#complet-oui').focus({ preventScroll: true });
@@ -4651,7 +4653,9 @@
       flashHint(T('complet.merci'), 3000);
     });
     $('#complet-non').addEventListener('click', () => { audio(); report('complet', null, 'plus-tard'); closeComplet(); });
-    ovComplet.addEventListener('click', (e) => { if (e.target === ovComplet) closeComplet(); });
+    // Le toucher qui l’a ouverte (la recherche de la loupe s’ouvre au premier contact du doigt) finit sur le fond :
+    // on ne referme pas sur ce même geste (sur téléphone, la fenêtre se refermait aussitôt)
+    ovComplet.addEventListener('click', (e) => { if (e.target === ovComplet && Date.now() - completAt > 600) closeComplet(); });
     document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !ovComplet.hidden) closeComplet(); });
     $('#brulant-no').addEventListener('click', () => { audio(); haptic(10); closeBrulant(false); });
     ovBrulant.addEventListener('click', (e) => { if (e.target === ovBrulant) closeBrulant(false); });
