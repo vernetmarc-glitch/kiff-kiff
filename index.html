@@ -30,7 +30,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,62..125,100..900;1,62..125,100..900&family=Bagel+Fat+One&family=Abril+Fatface&family=Merriweather:ital,opsz,wght@0,18..144,400..900;1,18..144,400..900&family=Baskervville:ital,wght@0,400..700;1,400..700&family=Jost:wght@300..700&family=Great+Vibes&family=Cinzel:wght@400..900&family=Syne:wght@600..800&family=Manrope:wght@400..800&family=Anton&family=Courier+Prime:wght@400;700&display=swap">
-<link rel="stylesheet" href="base.css?v=108">
+<link rel="stylesheet" href="base.css?v=109">
 <link rel="stylesheet" href="skins/arty.css?v=67" data-skin-sheet="arty">
 <link rel="stylesheet" href="skins/pomme.css?v=69" data-skin-sheet="pomme">
 <link rel="stylesheet" href="skins/redcorner.css?v=69" data-skin-sheet="redcorner">
@@ -235,8 +235,7 @@
             <button class="link-btn resume-link" id="resume" type="button" hidden data-t="accueil.reprendre">Reprendre la partie en cours</button>
             <!-- Sur iPhone, l’appli installée ne voit pas ce qui a été joué dans Safari : le lien de reprise, copié en installant -->
             <div class="reprise" id="reprise" hidden>
-              <button class="link-btn" id="reprise-go" type="button" data-t="reprise.bouton">Retrouver mes parties de Safari</button>
-              <form class="reprise-form" id="reprise-form" hidden novalidate><input id="reprise-input" type="url" autocomplete="off" placeholder="Colle ici le lien de reprise" data-t-ph="reprise.coller"><button class="btn" type="submit" data-t="reprise.ok">Retrouver</button></form>
+              <button class="link-btn" id="reprise-go" type="button" data-t="reprise.bouton">Retrouver une partie déjà commencée</button>
             </div>
           </div>
           <ol class="home-rules" id="home-rules">
@@ -387,6 +386,7 @@
       <button class="icon-btn" id="home-cont" type="button" hidden><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-telephones"/></svg><span class="icon-label"><span data-t="menu.distance">Continuer à distance</span><span class="sr-only"> : continuer la partie sur deux téléphones</span></span><span class="menu-sub" data-t="menu.distance-sous">La partie de ce téléphone, sur deux téléphones</span></button>
       <button class="icon-btn" id="home-deal" type="button" aria-haspopup="dialog"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-tourner"/></svg><span class="icon-label"><span data-t="accueil.tourner">Fais tourner&nbsp;!</span><span class="sr-only"> : faire découvrir le jeu</span></span><span class="menu-sub" data-t="menu.tourner-sous">Faire découvrir le jeu</span></button>
       <button class="icon-btn" id="home-who" type="button" aria-haspopup="dialog"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-qui"/></svg><span class="icon-label"><span data-t="accueil.quiestla">Qui est là&nbsp;?</span><span class="sr-only"> L’histoire du jeu, un café, un retour</span></span><span class="menu-sub" data-t="menu.quiestla-sous">L’histoire du jeu, un café, un mot à Marc</span></button>
+      <button class="icon-btn" id="menu-retrouver" type="button" aria-haspopup="dialog"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-lien"/></svg><span class="icon-label"><span data-t="menu.retrouver">Retrouver une partie</span></span><span class="menu-sub" data-t="menu.retrouver-sous">Coller le lien reçu, ou celui copié dans le navigateur</span></button>
       <button class="icon-btn" id="menu-complet" type="button"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-etoiles"/></svg><span class="icon-label"><span data-t="menu.complet">Tout Kiff Kiff</span></span><span class="menu-sub" data-t="complet.gratuit">Pour l’instant, tout est gratuit.</span></button>
     </nav>
   </div>
@@ -726,6 +726,20 @@
   </div>
 </div>
 <!-- Installer l’appli : une invitation, au bon moment -->
+<!-- Retrouver une partie : coller un lien d’invitation ou le lien de reprise (dans l’appli installée, par exemple) -->
+<div class="overlay overlay--edit overlay--skins" id="ov-retrouver" hidden role="dialog" aria-modal="true" aria-labelledby="retrouver-title">
+  <form class="sheet sheet--edit sheet--skins sheet--choice" id="retrouver-form" novalidate>
+    <h2 class="edit-label" id="retrouver-title" data-t="retrouver.titre">Retrouver une partie</h2>
+    <p class="duo-text" data-t="retrouver.texte">Colle le lien reçu pour jouer, ou celui copié dans le navigateur avec « Copier pour l’appli ».</p>
+    <input class="retrouver-input" id="retrouver-input" type="url" autocomplete="off" placeholder="https://kiff-kiff.fr/#…" aria-labelledby="retrouver-title">
+    <div class="stack">
+      <button class="btn" type="submit" data-t="retrouver.ok">Retrouver</button>
+      <button class="btn btn--line" id="retrouver-coller" type="button" data-t="retrouver.coller">Coller le lien</button>
+      <button class="link-btn" id="retrouver-non" type="button" data-t="retrouver.non">Annuler</button>
+    </div>
+  </form>
+</div>
+
 <!-- Supprimer une partie : on confirme, on ne peut pas revenir en arrière (27 octobre 2026) -->
 <div class="overlay overlay--edit overlay--skins" id="ov-suppr" hidden role="alertdialog" aria-modal="true" aria-labelledby="suppr-title" aria-describedby="suppr-text">
   <div class="sheet sheet--edit sheet--skins sheet--choice">
@@ -819,11 +833,11 @@
 </div>
 
 <script src="data.js?v=64"></script>
-<script src="textes.js?v=21"></script>
+<script src="textes.js?v=22"></script>
 <script src="semantique.js?v=1"></script>
 <script src="config.js?v=63"></script>
 <script src="duo.js?v=63"></script>
 <script src="push.js?v=65"></script>
-<script src="app.js?v=126"></script>
+<script src="app.js?v=127"></script>
 </body>
 </html>

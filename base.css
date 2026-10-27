@@ -1518,3 +1518,4 @@ body:has(#ov-deal:not([hidden])) .deco-candles { display: none; }
 /* La une se touche partout : elle ouvre la conversation de la partie */
 .home-une { cursor: pointer; -webkit-tap-highlight-color: transparent; }
 .home-une:active { filter: brightness(1.06); }
+.retrouver-input { align-self: stretch; min-height: 48px; padding: 0 12px; border-radius: 12px; border: 1px solid color-mix(in srgb, currentColor 50%, transparent); background: transparent; color: inherit; font: inherit; font-size: 15px; }

@@ -2087,11 +2087,22 @@
      Une carte au bout de la conversation dit à quoi ça sert (être prévenu·e de sa réponse), tant qu’on ne l’a ni faite ni écartée. */
   const installWanted = () => !!duo && duo.stage === 'game' && ['review', 'adjust', 'reconfirm'].includes(S.phase) && !myTurn()
     && installer.can() && !load('installAsked', false) && !load('installCarteNon', false);
+  // L’appli est installée sur ce téléphone, mais on joue dans le navigateur : copier ses parties pour l’y retrouver
+  const appCardWanted = () => !!duo && duo.stage === 'game' && !isStandalone() && (appHere || !!load('installAsked', false)) && !installWanted()
+    && !load('copieAppli', 0) && !load('appliCarteNon', false);
+  function appCardHtml() {
+    return '<li class="thread-install"><div class="invite-card install-card">' +
+      '<span class="thread-kiff-kicker">' + esc(T('reprise.carte-kicker')) + '</span>' +
+      '<p class="invite-text">' + esc(T('reprise.carte')) + '</p>' +
+      '<div class="invite-share"><button class="btn" type="button" data-installer="copier">' + esc(T('reprise.copier')) + '</button></div>' +
+      '<button class="link-btn invite-cancel" type="button" data-installer="appli-non">' + esc(T('installer.non')) + '</button></div></li>';
+  }
   function installCardHtml(B) {
     return '<li class="thread-install"><div class="invite-card install-card">' +
       '<span class="thread-kiff-kicker">' + esc(T('installer.carte-kicker')) + '</span>' +
       '<p class="invite-text">' + esc(T('installer.carte', { prénom: B })) + '</p>' +
       '<div class="invite-share"><button class="btn" type="button" data-installer="oui"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-installer"/></svg> ' + esc(T('installer.oui')) + '</button></div>' +
+      '<button class="link-btn invite-cancel" type="button" data-installer="copier">' + esc(T('reprise.deja')) + '</button>' +
       '<button class="link-btn invite-cancel" type="button" data-installer="non">' + esc(T('installer.non')) + '</button></div></li>';
   }
   function renderChat(toEnd) {
@@ -2137,6 +2148,7 @@
         (m.r && Object.keys(m.r).length ? '<span class="chat-reacts">' + reactsHtml(m.r) + '</span>' : '') + '</li>';
     });
     if (installWanted()) html += installCardHtml(B);
+    else if (appCardWanted()) html += appCardHtml();
     if (typingKid) html += '<li class="chat-typing" aria-label="' + esc(B + ' ' + T('chat.ecrit')) + '"><span></span><span></span><span></span></li>';
     const sc = $('#kiff-scroll');
     const atEnd = sc.scrollHeight - sc.scrollTop - sc.clientHeight < 80;
@@ -2361,6 +2373,8 @@
     if (ins) {
       audio(); sClick(); haptic(8);
       if (ins.dataset.installer === 'oui') { save('installAsked', true); report('installer', null, 'oui-carte'); installer.run(); }
+      else if (ins.dataset.installer === 'copier') { copyForApp(); return; }
+      else if (ins.dataset.installer === 'appli-non') save('appliCarteNon', true);
       else { save('installCarteNon', true); report('installer', null, 'plus-tard-carte'); }
       renderChat();
       return;
@@ -5468,35 +5482,66 @@
   }
   $('#guide-ok').addEventListener('click', () => { audio(); hide($('#ov-guide')); });
   $('#ov-guide').addEventListener('click', (e) => { if (e.target === $('#ov-guide')) hide($('#ov-guide')); });
-  // L’appli installée sur iPhone, encore vide : retrouver ce qui a été joué dans Safari
+  /* Retrouver une partie (27 octobre 2026) : coller le lien d’invitation reçu, ou le lien de reprise copié dans le navigateur.
+     Utile dans l’appli installée, qui ne voit pas toujours ce qui a été joué dans le navigateur (iPhone ; Android avec
+     un autre navigateur, ou le navigateur de Messenger, WhatsApp…). */
   function renderReprise() {
     const box = $('#reprise');
     if (!box) return;
-    box.hidden = !(IOS && isStandalone() && !hasData() && !load('repriseFaite', false));
+    box.hidden = !(isStandalone() && !hasData() && !load('repriseFaite', false));
   }
-  async function doReprise(text) {
+  async function findFromText(text) {
     if (importReprise(text)) {
       save('repriseFaite', true);
+      hide($('#ov-retrouver'));
       $('#reprise').hidden = true;
       renderGames(); renderHome(); refreshGames(); peekBoxes();
       homeToast(T('reprise.ok-mot'));
       return true;
     }
-    return false;
+    const m = /#(duo=[^\s]+)/.exec(text || '');
+    const inv = m && window.KiffDuo ? window.KiffDuo.parse('#' + m[1]) : null;
+    if (!inv) return false;
+    hide($('#ov-retrouver'));
+    report('installer', null, 'retrouver-lien');
+    if (findGame(inv.room)) openGame(inv.room);
+    else { if (duo) parkDuo(); startJoin(inv); }
+    return true;
   }
-  $('#reprise-go').addEventListener('click', async () => {
-    audio(); sClick(); haptic(8);
+  function openRetrouver(tryClip) {
+    $('#retrouver-input').value = '';
+    show($('#ov-retrouver'));
+    $('#retrouver-coller').hidden = !(navigator.clipboard && navigator.clipboard.readText);
+    if (tryClip) pasteRetrouver(true);
+  }
+  async function pasteRetrouver(quiet) {
     let text = '';
     try { text = await navigator.clipboard.readText(); } catch (e) { text = ''; }
-    if (await doReprise(text)) return;
-    // Le presse-papiers ne l’a pas : on le colle à la main
-    $('#reprise-form').hidden = false;
-    $('#reprise-input').focus();
-  });
-  $('#reprise-form').addEventListener('submit', async (e) => {
+    if (text) $('#retrouver-input').value = text.trim();
+    if (await findFromText(text)) return;
+    if (!quiet) { sNope(); haptic(20); homeToast(T('reprise.rate')); }
+    $('#retrouver-input').focus();
+  }
+  $('#menu-retrouver').addEventListener('click', () => { audio(); sClick(); haptic(8); openRetrouver(false); });
+  $('#reprise-go').addEventListener('click', () => { audio(); sClick(); haptic(8); openRetrouver(true); });
+  $('#retrouver-coller').addEventListener('click', () => { audio(); pasteRetrouver(false); });
+  $('#retrouver-non').addEventListener('click', () => { audio(); hide($('#ov-retrouver')); });
+  $('#ov-retrouver').addEventListener('click', (e) => { if (e.target === $('#ov-retrouver')) hide($('#ov-retrouver')); });
+  $('#retrouver-form').addEventListener('submit', async (e) => {
     e.preventDefault(); audio();
-    if (!(await doReprise($('#reprise-input').value))) { sNope(); haptic(20); homeToast(T('reprise.rate')); }
+    if (!(await findFromText($('#retrouver-input').value))) { sNope(); haptic(20); homeToast(T('reprise.rate')); }
   });
+  // Dans le navigateur, alors que l’appli est installée sur ce téléphone (Android sait le dire) : copier ses parties pour elle
+  let appHere = false;
+  if (!isStandalone() && navigator.getInstalledRelatedApps) {
+    navigator.getInstalledRelatedApps().then((l) => { appHere = Array.isArray(l) && l.length > 0; if (appHere && !ovPartie.hidden) renderChat(); }).catch(() => {});
+  }
+  function copyForApp() {
+    if (!navigator.clipboard || !navigator.clipboard.writeText) { flashPresence(T('duo.copie-impossible')); return; }
+    navigator.clipboard.writeText(repriseLink())
+      .then(() => { save('copieAppli', Date.now()); report('installer', null, 'copie-appli'); flashPresence(T('reprise.copie')); if (!ovPartie.hidden) renderChat(); })
+      .catch(() => flashPresence(T('duo.copie-impossible')));
+  }
   function setupInstall() {
     if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
       navigator.serviceWorker.register('sw.js').catch(() => {});

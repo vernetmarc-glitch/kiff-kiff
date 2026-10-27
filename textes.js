@@ -61,6 +61,8 @@ window.KIFF_TEXTES = [
     ["menu.distance-sous", "La partie de ce téléphone, sur deux téléphones", "Menu, sous « Continuer à distance »"],
     ["menu.tourner-sous", "Faire découvrir le jeu", "Menu, sous « Fais tourner ! »"],
     ["menu.quiestla-sous", "L’histoire du jeu, un café, un mot à Marc", "Menu, sous « Qui est là ? »"],
+    ["menu.retrouver", "Retrouver une partie", "Menu"],
+    ["menu.retrouver-sous", "Coller le lien reçu, ou celui copié dans le navigateur", "Menu, sous « Retrouver une partie »"],
     ["menu.complet", "Tout Kiff Kiff", "Menu : le jeu complet"]
   ] },
   { id: "joueurs", nom: "Qui joue ?", textes: [
@@ -547,13 +549,21 @@ window.KIFF_TEXTES = [
     ["guide.integre-1", "Touche ••• en haut de l’écran.", "Depuis Messenger, Instagram…, étape 1"],
     ["guide.integre-2", "Choisis « Ouvrir dans le navigateur ».", "Depuis Messenger, Instagram…, étape 2"],
     ["guide.integre-3", "Là, installe Kiff Kiff sur ton écran d’accueil.", "Depuis Messenger, Instagram…, étape 3"],
-    ["guide.reprise", "Ton lien de reprise est copié : dans l’appli, touche « Retrouver mes parties de Safari ».", "Sous les étapes, sur iPhone, quand des parties sont en cours"],
+    ["guide.reprise", "Tes parties sont copiées : dans l’appli, touche « Retrouver une partie déjà commencée ».", "Sous les étapes, sur iPhone, quand des parties sont en cours"],
     ["guide.ok", "C’est noté", "Bouton"],
-    ["reprise.bouton", "Retrouver mes parties de Safari", "Sur l’accueil de l’appli installée sur iPhone, encore vide"],
-    ["reprise.coller", "Colle ici le lien de reprise", "Le champ, si le presse-papiers ne l’a pas"],
-    ["reprise.ok", "Retrouver", "Le bouton du champ"],
+    ["reprise.bouton", "Retrouver une partie déjà commencée", "Sur l’accueil de l’appli installée, encore vide"],
+    ["reprise.carte-kicker", "Dans l’appli", "Dans la conversation, quand on joue dans le navigateur alors que l’appli est installée"],
+    ["reprise.carte", "Kiff Kiff est installée sur ce téléphone ? Copie tes parties, puis dans l’appli : menu, « Retrouver une partie ».", "La carte"],
+    ["reprise.copier", "Copier pour l’appli", "Le bouton de la carte"],
+    ["reprise.deja", "Déjà installée ? Copier pour l’appli", "Sous la carte pour installer, dans la conversation"],
+    ["reprise.copie", "Copié : dans l’appli, menu › Retrouver une partie", "Le mot bref après la copie"],
     ["reprise.ok-mot", "Tes parties sont là", "Le mot bref, 3 secondes"],
-    ["reprise.rate", "Ce lien ne contient pas de parties", "Le mot bref, quand le lien collé ne marche pas"]
+    ["reprise.rate", "Ce lien ne mène à aucune partie", "Le mot bref, quand le lien collé ne marche pas"],
+    ["retrouver.titre", "Retrouver une partie", "Fenêtre ouverte depuis le menu"],
+    ["retrouver.texte", "Colle le lien reçu pour jouer, ou celui copié dans le navigateur avec « Copier pour l’appli ».", "Texte"],
+    ["retrouver.ok", "Retrouver", "Bouton"],
+    ["retrouver.coller", "Coller le lien", "Bouton : lit le presse-papiers"],
+    ["retrouver.non", "Annuler", "Lien"]
   ] },
   { id: "installer", nom: "Installer l’appli", textes: [
     ["installer.titre", "Installer Kiff Kiff", "Titre, en touchant « Installer » sur un iPhone"],
