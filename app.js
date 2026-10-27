@@ -1852,6 +1852,10 @@
   const closeKiffs = () => { hide(ovKiffs); if (kiffsFrom) kiffsFrom.focus({ preventScroll: true }); };
   // Le compteur du jeu : à deux téléphones, la partie (la conversation) ; sur un seul, le catalogue
   $('#kiffs-open').addEventListener('click', (e) => { if (duo && duo.stage === 'game') { audio(); sClick(); haptic(8); openPartie(); } else openKiffs(e); });
+  // « Avec Lou », en haut du jeu : la conversation aussi
+  const topWho = $('#top-who');
+  topWho.addEventListener('click', () => { if (duo && duo.stage === 'game') { audio(); sClick(); haptic(8); openPartie(); } });
+  topWho.addEventListener('keydown', (e) => { if ((e.key === 'Enter' || e.key === ' ') && duo && duo.stage === 'game') { e.preventDefault(); openPartie(); } });
   $('#wait-kiffs').addEventListener('click', openKiffs);
   $('#party-history').addEventListener('click', openKiffs);
   $('#kiffs-action-go').addEventListener('click', () => { audio(); sClick(); closeKiffs(); });
@@ -2052,12 +2056,22 @@
   const msgHtml = (t) => esc(t).replace(/\n/g, '<br>');
   const cutSentence = (t, n) => { const x = (t || '').replace(/^J’ai envie\s+/, '…'); return x.length > n ? x.slice(0, n - 1) + '…' : x; };
   // Un kiff kiff dans le fil : sa carte, touchée elle s’ouvre en plein écran
+  // Qui a proposé l’envie : sa place (k.s), sinon son prénom (k.w) pour les plus anciennes
+  function authorOf(k) {
+    if (!duo) return null;
+    const seat = k.s === 0 || k.s === 1 ? k.s : (k.w && k.w === nameOf(duo.seat) ? duo.seat : k.w && k.w === nameOf(other(duo.seat)) ? other(duo.seat) : -1);
+    if (seat < 0) return null;
+    return { mine: seat === duo.seat, name: nameOf(seat) };
+  }
+  const authorBadge = (a) => (a ? '<span class="avatar thread-author" aria-hidden="true">' + esc(initial(a.name)) + '</span>' : '');
   function threadKiffHtml(k, b) {
     const kid = kidOf(k), kr = b ? (b.kr[kid] || {}) : {};
     const r = reactsHtml(kr);
-    return '<li class="thread-kiff' + (k.v !== 0 ? ' is-done' : '') + '" data-kid="' + esc(kid) + '"><button class="thread-kiff-btn" type="button" data-envie="' + esc(kid) + '">' +
-      '<span class="thread-kiff-kicker">' + esc(T('partie.kiff-kicker', { etat: k.v === 0 ? T('kiff.a-vivre') : T('kiff.vecue') })) + '</span>' +
-      '<span class="party-sentence thread-kiff-card"><span class="thread-kiff-text">' + esc(k.t || '') + '</span>' +
+    const a = authorOf(k), etat = k.v === 0 ? T('kiff.a-vivre') : T('kiff.vecue');
+    const kick = !a ? T('partie.kiff-kicker', { etat }) : a.mine ? T('partie.kiff-kicker-toi', { etat }) : T('partie.kiff-kicker-de', { prénom: a.name, etat });
+    return '<li class="thread-kiff' + (k.v !== 0 ? ' is-done' : '') + (a ? (a.mine ? ' is-mine' : ' is-theirs') : '') + '" data-kid="' + esc(kid) + '"><button class="thread-kiff-btn" type="button" data-envie="' + esc(kid) + '">' +
+      '<span class="thread-kiff-kicker">' + esc(kick) + '</span>' +
+      '<span class="party-sentence thread-kiff-card">' + authorBadge(a) + '<span class="thread-kiff-text">' + esc(k.t || '') + '</span>' +
       (r ? '<span class="thread-kiff-reacts">' + r + '</span>' : '') + '</span></button></li>';
   }
   /* L’envie en cours (proposée, pas encore un kiff kiff) : une carte dans le fil, à l’heure où elle est arrivée sur ce téléphone */
@@ -2079,9 +2093,10 @@
     const kick = e.adj ? (e.mine ? T('partie.envie-ajustee-par', { prénom: B }) : T('partie.envie-ajustee-toi'))
       : e.mine ? T('partie.envie-toi') : T('partie.envie-de', { prénom: B });
     const go = myTurn() && !$('#wait-go').hidden;
-    return '<li class="thread-kiff thread-envie"><button class="thread-kiff-btn" type="button"' + (go ? ' data-envie-go="1"' : ' disabled') + '>' +
+    const a = { mine: e.mine, name: e.mine ? nameOf(duo.seat) : B };
+    return '<li class="thread-kiff thread-envie' + (a.mine ? ' is-mine' : ' is-theirs') + '"><button class="thread-kiff-btn" type="button"' + (go ? ' data-envie-go="1"' : ' disabled') + '>' +
       '<span class="thread-kiff-kicker">' + esc(kick) + '</span>' +
-      '<span class="party-sentence thread-kiff-card"><span class="thread-kiff-text">' + esc(e.text) + '</span></span></button></li>';
+      '<span class="party-sentence thread-kiff-card">' + authorBadge(a) + '<span class="thread-kiff-text">' + esc(e.text) + '</span></span></button></li>';
   }
   /* Installer, au bon moment (27 octobre 2026) : après avoir envoyé une envie, on attend la réponse de l’autre.
      Une carte au bout de la conversation dit à quoi ça sert (être prévenu·e de sa réponse), tant qu’on ne l’a ni faite ni écartée. */
@@ -2143,7 +2158,8 @@
       const meta = hhmm(m.d) + (m.e ? ' · ' + T('chat.modifie') : '') + (mine && lastMine && lastMine.id === m.id && vu >= m.d ? ' · ' + T('chat.lu') : '');
       const cont = sameRun(items[i - 1], it), more = sameRun(it, items[i + 1]);
       const showMeta = !more || m.e || (mine && lastMine && lastMine.id === m.id);
-      html += '<li class="chat-msg' + (mine ? ' is-mine' : '') + (cont ? ' is-cont' : '') + (more ? ' is-more' : '') + '" data-mid="' + esc(m.id) + '" tabindex="0" aria-label="' + esc((mine ? T('chat.toi') : B) + ' : ' + m.t + ', ' + hhmm(m.d)) + '">' +
+      const jumbo = !quote && /^(?:[\p{Extended_Pictographic}\p{Emoji_Component}\u200d\ufe0f]|\s){1,24}$/u.test(m.t) && !/^[\d#*\s]+$/.test(m.t) && [...m.t.replace(/\s/g, '')].length <= 12;
+      html += '<li class="chat-msg' + (mine ? ' is-mine' : '') + (jumbo ? ' is-emoji' : '') + (cont ? ' is-cont' : '') + (more ? ' is-more' : '') + '" data-mid="' + esc(m.id) + '" tabindex="0" aria-label="' + esc((mine ? T('chat.toi') : B) + ' : ' + m.t + ', ' + hhmm(m.d)) + '">' +
         quote + '<span class="chat-text">' + msgHtml(m.t) + '</span>' + (showMeta ? '<span class="chat-meta">' + esc(meta) + '</span>' : '') +
         (m.r && Object.keys(m.r).length ? '<span class="chat-reacts">' + reactsHtml(m.r) + '</span>' : '') + '</li>';
     });
@@ -3628,6 +3644,8 @@
     // En haut : « Avec Lou » et sa présence, à la place du nom du jeu
     const inGame = !!duo && duo.stage === 'game';
     $('#top-who').hidden = !inGame;
+    // À deux téléphones, le bouton en haut à droite est la conversation (une bulle), avec ses messages non lus
+    $('#kiffs-open').classList.toggle('is-chat', inGame);
     document.querySelector('.top > .logo').hidden = inGame;
     if (!inGame) { line.hidden = true; return; }
     const B = nameOf(other(duo.seat));
@@ -4777,7 +4795,7 @@
     let fromKiff = '';
     try { fromNotif = new URLSearchParams(location.search).get('jouer') || ''; fromKiff = new URLSearchParams(location.search).get('kiff') || ''; } catch (e) { /* rien */ }
     if (fromNotif) { try { const u = new URL(location.href); u.searchParams.delete('jouer'); u.searchParams.delete('kiff'); history.replaceState(null, '', u.pathname + u.search + u.hash); } catch (e) { /* rien */ } }
-    if (inv) startJoin(inv);
+    if (inv) askAppFirst(inv);
     else if (fromNotif && findGame(fromNotif)) { report('notif', null, fromKiff ? 'ouverte-message' : 'ouverte'); pendingKiff = /^\d{6,16}$/.test(fromKiff) ? fromKiff : ''; openGame(fromNotif); }
     else { renderGames(); refreshGames(); }
     refreshPush();
@@ -5533,9 +5551,34 @@
   });
   // Dans le navigateur, alors que l’appli est installée sur ce téléphone (Android sait le dire) : copier ses parties pour elle
   let appHere = false;
-  if (!isStandalone() && navigator.getInstalledRelatedApps) {
-    navigator.getInstalledRelatedApps().then((l) => { appHere = Array.isArray(l) && l.length > 0; if (appHere && !ovPartie.hidden) renderChat(); }).catch(() => {});
+  const appCheck = !isStandalone() && navigator.getInstalledRelatedApps
+    ? navigator.getInstalledRelatedApps().then((l) => { appHere = Array.isArray(l) && l.length > 0; if (appHere && !ovPartie.hidden) renderChat(); }).catch(() => {})
+    : Promise.resolve();
+  /* Un lien de partie ouvert dans le navigateur alors que l’appli est installée (27 octobre 2026) : on propose d’y jouer
+     (copier le lien, puis menu › Retrouver une partie dans l’appli), ou de jouer ici. Une partie déjà connue de ce
+     navigateur s’ouvre directement. */
+  let appInv = null;
+  async function askAppFirst(inv) {
+    if (isStandalone() || findGame(inv.room)) { startJoin(inv); return; }
+    await Promise.race([appCheck, new Promise((r) => setTimeout(r, 600))]);
+    if (!(appHere || (IOS && load('installAsked', false))) || load('dansAppliNon', false)) { startJoin(inv); return; }
+    appInv = inv;
+    report('installer', null, 'lien-navigateur');
+    show($('#ov-dansappli'));
+    $('#dansappli-copier').focus({ preventScroll: true });
   }
+  $('#dansappli-copier').addEventListener('click', () => {
+    audio(); sClick(); haptic(8);
+    const url = appInv && window.KiffDuo ? window.KiffDuo.link(appInv) : location.href;
+    if (!navigator.clipboard || !navigator.clipboard.writeText) return;
+    navigator.clipboard.writeText(url).then(() => { report('installer', null, 'lien-copie'); $('#dansappli-copier').textContent = T('dansappli.copie'); }).catch(() => {});
+  });
+  $('#dansappli-ici').addEventListener('click', () => {
+    audio(); hide($('#ov-dansappli'));
+    save('dansAppliNon', true); // la prochaine fois, on joue ici sans demander
+    const inv = appInv; appInv = null;
+    if (inv) startJoin(inv);
+  });
   function copyForApp() {
     if (!navigator.clipboard || !navigator.clipboard.writeText) { flashPresence(T('duo.copie-impossible')); return; }
     navigator.clipboard.writeText(repriseLink())

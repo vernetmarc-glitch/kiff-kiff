@@ -129,6 +129,8 @@ window.KIFF_TEXTES = [
     ["partie.envie-ajustee-par", "Ajustée par {prénom} · à toi de répondre", "Dans la conversation, ton envie après le « Oui, mais… » de l’autre"],
     ["partie.envie-ajustee-toi", "Ajustée par toi · en attente", "Dans la conversation, l’envie de l’autre après ton « Oui, mais… »"],
     ["partie.kiff-kicker", "Kiff kiff · {etat}", "Au-dessus d’une carte dans la conversation ({etat} : à vivre, vécue)"],
+    ["partie.kiff-kicker-toi", "Ton envie · kiff kiff {etat}", "Au-dessus d’une carte de kiff kiff que tu avais proposée"],
+    ["partie.kiff-kicker-de", "Envie de {prénom} · kiff kiff {etat}", "Au-dessus d’une carte de kiff kiff proposée par l’autre"],
     ["partie.seul-titre", "{prénom} et {autre}", "En haut de la partie, sur un seul téléphone"],
     ["partie.seul", "sur ce téléphone", "Sous les prénoms, sur un seul téléphone (suivi du piment)"],
     ["partie.tour-de", "Au tour de {prénom} de proposer.", "En tête de vos kiff kiff, sur un seul téléphone"],
@@ -540,6 +542,13 @@ window.KIFF_TEXTES = [
     ["gestes.passer", "Je connais", "Lien : ne plus montrer les bulles"],
     ["gestes.suivant", "Suivant", "Bouton"],
     ["gestes.fin", "À moi", "Bouton de la dernière bulle"]
+  ] },
+  { id: "dansappli", nom: "Un lien ouvert dans le navigateur, l’appli installée", textes: [
+    ["dansappli.titre", "Kiff Kiff est sur ce téléphone", "Titre, quand un lien de partie s’ouvre dans le navigateur alors que l’appli est installée"],
+    ["dansappli.texte", "Pour jouer dans l’appli : copie ce lien, ouvre Kiff Kiff, puis menu › Retrouver une partie.", "Texte"],
+    ["dansappli.copier", "Copier le lien", "Bouton"],
+    ["dansappli.copie", "Lien copié", "Le bouton, après la copie"],
+    ["dansappli.ici", "Jouer ici", "Lien (la fenêtre ne revient plus ensuite)"]
   ] },
   { id: "guide", nom: "Installer : les gestes en images", textes: [
     ["guide.titre", "Kiff Kiff sur ton écran d’accueil", "Titre, sur iPhone ou depuis Messenger, Instagram…"],

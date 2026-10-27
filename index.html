@@ -30,7 +30,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,62..125,100..900;1,62..125,100..900&family=Bagel+Fat+One&family=Abril+Fatface&family=Merriweather:ital,opsz,wght@0,18..144,400..900;1,18..144,400..900&family=Baskervville:ital,wght@0,400..700;1,400..700&family=Jost:wght@300..700&family=Great+Vibes&family=Cinzel:wght@400..900&family=Syne:wght@600..800&family=Manrope:wght@400..800&family=Anton&family=Courier+Prime:wght@400;700&display=swap">
-<link rel="stylesheet" href="base.css?v=109">
+<link rel="stylesheet" href="base.css?v=111">
 <link rel="stylesheet" href="skins/arty.css?v=67" data-skin-sheet="arty">
 <link rel="stylesheet" href="skins/pomme.css?v=69" data-skin-sheet="pomme">
 <link rel="stylesheet" href="skins/redcorner.css?v=69" data-skin-sheet="redcorner">
@@ -156,9 +156,9 @@
         <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M3.5 11.2 12 4l8.5 7.2" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/><path d="M6 10v9.5h4.5v-5h3v5H18V10" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linejoin="round"/></svg>
       </button>
     <h1 class="logo"><span class="ink" data-ink="Kiff Kiff">Kiff Kiff</span></h1>
-    <div class="top-who" id="top-who" hidden><span class="top-name" id="top-name"></span><span class="top-pres" id="top-pres"></span></div>
+    <div class="top-who" id="top-who" hidden role="button" tabindex="0" aria-label="La conversation de la partie"><span class="top-name" id="top-name"></span><span class="top-pres" id="top-pres"></span></div>
     <div class="top-actions">
-      <button class="sticker kiffs-btn" id="kiffs-open" type="button" aria-haspopup="dialog" hidden><svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><use href="#i-kiff"/></svg><span class="kiffs-n" id="kiffs-n"></span></button>
+      <button class="sticker kiffs-btn" id="kiffs-open" type="button" aria-haspopup="dialog" hidden><svg class="ic ic-kiff" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><use href="#i-kiff"/></svg><svg class="ic ic-chat" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><use href="#i-qui"/></svg><span class="kiffs-n" id="kiffs-n"></span></button>
       <button class="sticker sticker--pass" hidden id="pass" type="button">On passe</button>
     </div>
   </header>
@@ -726,6 +726,18 @@
   </div>
 </div>
 <!-- Installer l’appli : une invitation, au bon moment -->
+<!-- Un lien de partie ouvert dans le navigateur, alors que l’appli est installée : y jouer -->
+<div class="overlay overlay--edit overlay--skins" id="ov-dansappli" hidden role="dialog" aria-modal="true" aria-labelledby="dansappli-title">
+  <div class="sheet sheet--edit sheet--skins sheet--choice">
+    <h2 class="edit-label" id="dansappli-title" data-t="dansappli.titre">Kiff Kiff est sur ce téléphone</h2>
+    <p class="duo-text" data-t="dansappli.texte">Pour jouer dans l’appli : copie ce lien, ouvre Kiff Kiff, puis menu › Retrouver une partie.</p>
+    <div class="stack">
+      <button class="btn" id="dansappli-copier" type="button" data-t="dansappli.copier">Copier le lien</button>
+      <button class="link-btn" id="dansappli-ici" type="button" data-t="dansappli.ici">Jouer ici</button>
+    </div>
+  </div>
+</div>
+
 <!-- Retrouver une partie : coller un lien d’invitation ou le lien de reprise (dans l’appli installée, par exemple) -->
 <div class="overlay overlay--edit overlay--skins" id="ov-retrouver" hidden role="dialog" aria-modal="true" aria-labelledby="retrouver-title">
   <form class="sheet sheet--edit sheet--skins sheet--choice" id="retrouver-form" novalidate>
@@ -833,11 +845,11 @@
 </div>
 
 <script src="data.js?v=64"></script>
-<script src="textes.js?v=22"></script>
+<script src="textes.js?v=23"></script>
 <script src="semantique.js?v=1"></script>
 <script src="config.js?v=63"></script>
 <script src="duo.js?v=63"></script>
 <script src="push.js?v=65"></script>
-<script src="app.js?v=127"></script>
+<script src="app.js?v=128"></script>
 </body>
 </html>

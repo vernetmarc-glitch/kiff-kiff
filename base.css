@@ -1519,3 +1519,22 @@ body:has(#ov-deal:not([hidden])) .deco-candles { display: none; }
 .home-une { cursor: pointer; -webkit-tap-highlight-color: transparent; }
 .home-une:active { filter: brightness(1.06); }
 .retrouver-input { align-self: stretch; min-height: 48px; padding: 0 12px; border-radius: 12px; border: 1px solid color-mix(in srgb, currentColor 50%, transparent); background: transparent; color: inherit; font: inherit; font-size: 15px; }
+/* À deux téléphones : le bouton en haut à droite du jeu est la conversation (une bulle) */
+.kiffs-btn .ic-chat { display: none; }
+.kiffs-btn.is-chat .ic-chat { display: block; }
+.kiffs-btn.is-chat .ic-kiff, .kiffs-btn.is-chat .kiffs-n { display: none; }
+#top-who { cursor: pointer; -webkit-tap-highlight-color: transparent; }
+/* Qui a proposé l’envie : la carte penche de son côté, avec son initiale */
+.thread-kiff.is-mine { margin-left: 44px; }
+.thread-kiff.is-theirs { margin-right: 44px; }
+.thread-kiff.is-mine .thread-kiff-kicker { align-self: flex-end; }
+.thread-kiff.is-theirs .thread-kiff-kicker { align-self: flex-start; }
+.thread-kiff .thread-kiff-card { position: relative; }
+.thread-author { position: absolute; top: -12px; width: 28px; height: 28px; font-size: 13px; z-index: 1; }
+.thread-kiff.is-mine .thread-author { right: -10px; }
+.thread-kiff.is-theirs .thread-author { left: -10px; }
+/* Un message fait seulement d’émojis : en grand, sans bulle (sur l’or, on ne les voyait pas) */
+.chat-msg.is-emoji { background: none !important; box-shadow: none !important; padding: 0 2px; }
+.chat-msg.is-emoji .chat-text { font-size: 40px; line-height: 1.15; }
+.chat-msg.is-emoji .chat-meta { color: inherit; opacity: .7; }
+.thread-kiff.is-mine .thread-kiff-btn, .thread-kiff.is-theirs .thread-kiff-btn { gap: 12px; }

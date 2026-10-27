@@ -11,6 +11,8 @@
   "orientation": "portrait",
   "background_color": "#2B040C",
   "theme_color": "#2B040C",
+  "launch_handler": { "client_mode": ["focus-existing", "auto"] },
+  "handle_links": "preferred",
   "related_applications": [{ "platform": "webapp", "url": "https://kiff-kiff.fr/manifest.webmanifest" }],
   "categories": ["games", "entertainment", "lifestyle"],
   "icons": [
