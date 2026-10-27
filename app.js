@@ -2505,7 +2505,8 @@
   // Un avertissement de message touché : la partie, à la bonne envie
   let pendingKiff = '';
   function openPendingKiff() {
-    if (pendingPartie && duo && duo.stage === 'game') { pendingPartie = false; if (!pendingKiff) { openPartie(); return; } }
+    // Ouverte depuis l’accueil pour la conversation : l’envie à lire attend dans l’action du moment, pas par-dessus
+    if (pendingPartie && duo && duo.stage === 'game') { pendingPartie = false; if (!pendingKiff) { hideOffer(); openPartie(); return; } }
     if (!pendingKiff || !duo || duo.stage !== 'game') return;
     const k = pendingKiff; pendingKiff = '';
     hide(el.ovStart);
@@ -5190,7 +5191,15 @@
     report('accueil', null, b.classList.contains('une-go') ? 'une' : 'liste');
     openGame(room);
   }
-  $('#home-une').addEventListener('click', (e) => { const b = e.target.closest('[data-home]'); if (b) openFromHome(b); });
+  // La une : son bouton fait l’action ; toucher ailleurs sur la carte ouvre la conversation de la partie,
+  // avec l’action à faire en haut (27 octobre 2026). Une partie sur ce téléphone, sans conversation, s’ouvre telle quelle.
+  $('#home-une').addEventListener('click', (e) => {
+    if (e.target.closest('[data-del]')) return;
+    const b = e.target.closest('[data-home]') || $('#home-une .une-go');
+    if (!b) return;
+    if (e.target.closest('.une-go')) { openFromHome(b); return; }
+    openFromHome({ dataset: { home: b.dataset.home, partie: '1' }, classList: { contains: () => false } });
+  });
   $('#home-list').addEventListener('click', (e) => { const b = e.target.closest('[data-home]'); if (b) openFromHome(b); });
   /* Supprimer une partie : glisser sa ligne vers la gauche, ou la corbeille au-dessus de la liste (toutes les lignes, la une comprise).
      Une partie à distance est arrêtée pour les deux : l’autre est prévenu·e. Un mot bref confirme. */
