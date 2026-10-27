@@ -4211,9 +4211,11 @@
 
   /* Petit message de l’autre téléphone */
   let noteThen = null;
-  function note(title, text, then) {
+  // ok : le texte du bouton, quand il diffère de « D’accord »
+  function note(title, text, then, ok) {
     $('#note-title').textContent = title;
     $('#note-text').textContent = text;
+    $('#note-ok').textContent = ok || T('nouvelles.ok');
     noteThen = then || null;
     show($('#ov-note'));
     sSwitchOff(); haptic(20);
@@ -4604,7 +4606,7 @@
     openComplet = (why) => {
       if (isComplet() || !ovComplet.hidden) return;
       // Avant le premier kiff kiff (sur ce téléphone), Brûlant ne se vend pas : on commence plus tranquille
-      if (why === 'brulant' && !everKiff()) { audio(); sClick(); report('complet', null, 'brulant-tot'); note(T('complet.tot-titre'), T('complet.tot-texte')); return; }
+      if (why === 'brulant' && !everKiff()) { audio(); sClick(); report('complet', null, 'brulant-tot'); note(T('complet.tot-titre'), T('complet.tot-texte'), null, T('complet.tot-ok')); return; }
       $('#complet-titre').textContent = T({ brulant: 'complet.titre-brulant', fete: 'complet.titre-brulant', recherche: 'complet.titre-recherche', ecrire: 'complet.titre-ecrire', ton: 'complet.titre-ton' }[why] || 'complet.titre');
       audio(); sClick(); haptic(10);
       completFrom = document.activeElement;
