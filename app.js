@@ -101,6 +101,7 @@
   let openComplet = () => {};
   function isComplet() {
     if (OFFRE === 'tout') return true;
+    // Offert par l’autre : seulement dans la partie avec cette personne (jamais sur un téléphone seul, ni dans une autre partie)
     return !!load('complet', false) || !!S.cpOther;
   }
   // La version gratuite (27 octobre 2026) : 20 mots par roue, tirés à chaque partie parmi les mots cochés « gratuit »
@@ -3434,7 +3435,10 @@
       t0: S.t0 || null,
       rencontre: !!S.rencontre,
       prog: !!S.prog,
-      cp: isComplet() && OFFRE !== 'tout' ? 1 : 0, // le jeu complet : un seul des deux téléphones suffit
+      // Le jeu complet : un seul des deux téléphones suffit, dans cette partie. Chaque téléphone dit s’il l’a payé lui-même (cps) ;
+      // l’offert ne se transmet pas plus loin (27 octobre 2026). cp reste pour les téléphones pas encore à jour.
+      cp: isComplet() && OFFRE !== 'tout' ? 1 : 0,
+      cps: duo ? [0, 1].map((k) => (k === duo.seat ? (load('complet', false) && OFFRE !== 'tout' ? 1 : 0) : (S.cpOther ? 1 : 0))) : null,
       gift: S.gift || null,
       skin: currentSkin(), // l’ambiance de qui envoie : la personne invitée découvre le jeu dedans
       push: pushPair(), // adresses d’avertissement des deux téléphones (l’état est chiffré)
@@ -3574,7 +3578,7 @@
       S.seen[r] = remote.concat(S.seen[r].filter((k) => !remote.includes(k))).slice(-SEEN_MAX);
     });
     S.prog = !!st.prog;
-    S.cpOther = !!st.cp;
+    S.cpOther = Array.isArray(st.cps) ? !!st.cps[other(duo.seat)] : !!st.cp;
     S.ton = tonOf(st);
     renderTon();
     if (lv.join() !== S.levels.join()) { S.levels = lv; renderLevel(); }
@@ -3825,6 +3829,7 @@
     duoSheet({ stage: 'creating', title: T('duo.continuer'), wait: T('duo.ouvre'), cancel: T('duo.annuler') });
     try { await loadDuoLibs(); } catch (e) { duoError('net'); return; }
     const id = window.KiffDuo.newId();
+    S.cpOther = false; // Tout Kiff Kiff offert vaut pour une seule partie
     duo = { seat: 0, id, seq: 0, lastBy: '', stage: 'creating', partnerOn: null, online: true, passN: null };
     let conn;
     try { conn = await window.KiffDuo.create(id, duoHandlers); } catch (e) { duo = null; duoError('relay'); return; }
@@ -3857,6 +3862,7 @@
     duoSheet({ stage: 'creating', title: T('duo.titre'), wait: T('duo.ouvre'), cancel: T('duo.annuler') });
     try { await loadDuoLibs(); } catch (e) { duoError('net'); return; }
     const id = window.KiffDuo.newId();
+    S.cpOther = false; // Tout Kiff Kiff offert vaut pour une seule partie
     duo = { seat: 0, id, seq: 0, lastBy: '', stage: 'creating', partnerOn: null, online: true, passN: null };
     let conn;
     try { conn = await window.KiffDuo.create(id, duoHandlers); } catch (e) { duo = null; duoError('relay'); return; }
@@ -4135,6 +4141,7 @@
     if (snap && snap.phase !== 'ended' && snap.phase !== 'lobby') {
       // La partie s’ouvre tout de suite, telle que ce téléphone l’a laissée ; la mise à jour suit
       applyPendingMots();
+      S.cpOther = false; // Tout Kiff Kiff offert vaut pour une seule partie
       duo = { info, seat, id, seq: 0, lastBy: '', stage: 'connecting', resume: true, partnerOn: null, online: true, passN: null, updating: true };
       onRemoteState(snap);
       report('partie', null, 'photo');
@@ -4143,6 +4150,7 @@
       // Les deux téléphones doivent avoir les mêmes mots : on attend un instant ceux de l’atelier
       await Promise.race([motsReady, new Promise((r) => setTimeout(r, 4000))]);
       applyPendingMots();
+      S.cpOther = false; // Tout Kiff Kiff offert vaut pour une seule partie
       duo = { info, seat, id, seq: 0, lastBy: '', stage: 'connecting', resume: !!same, partnerOn: null, online: true, passN: null };
     }
     const d = duo;
@@ -4206,7 +4214,7 @@
   // announce : prévenir l’autre que la partie s’arrête ; keep : la garder pour plus tard (accueil)
   async function leaveDuo(announce, keep) {
     const d = duo;
-    duo = null;
+    duo = null; S.cpOther = false;
     clearTimeout(syncT);
     save('duo', null);
     if (d && d.info && !keep) forgetGame(d.info.room);
@@ -4262,7 +4270,7 @@
       const kind = ovDuo.dataset.retry;
       const info = duo && duo.info;
       if (duo && duo.conn) duo.conn.close(false).catch(() => {});
-      duo = null;
+      duo = null; S.cpOther = false;
       if (info) startJoin(info); else if (kind === 'version') location.reload(); else openDuoSetup();
     }
   });
@@ -5123,7 +5131,7 @@
   function parkDuo() {
     if (!duo) return;
     const d = duo;
-    duo = null;
+    duo = null; S.cpOther = false;
     clearTimeout(syncT);
     if (d.conn) d.conn.close(false).catch(() => {});
     try { history.replaceState(null, '', location.pathname + location.search); } catch (e) { /* rien */ }
