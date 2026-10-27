@@ -630,6 +630,7 @@
     if (miss.length) w.push('Il manque ' + miss.join(', ') + '.');
     if (extra.length) w.push(extra.join(', ') + ' ne sera pas remplacé.');
     if (!txCur[k].trim() && TBASE[k].trim()) w.push('Vide : rien ne s’affichera.');
+    if (k === 'complet.vitrine') { const n = txCur[k].split('\n').map((x) => x.trim()).filter(Boolean).filter((x) => !/\*\*.+?\*\*/.test(x)).length; if (n) w.push(n === 1 ? 'Une phrase n’a pas de **mot** à cacher.' : n + ' phrases n’ont pas de **mot** à cacher.'); }
     return w.join(' ');
   }
   // La capture : un cadrage autour du texte, ou l’écran entier

@@ -4668,10 +4668,17 @@
        Le mot le plus cru est caché sous une barre dorée (l’imagination le complète ; discret si l’écran est vu par-dessus l’épaule).
        Une envie au premier degré qui cache l’action, une qui cache l’endroit, une décalée pour rire. */
     let hotT = 0;
+    function vitrine() {
+      const lines = String(TX['complet.vitrine'] || '').split('\n').map((x) => x.trim()).filter(Boolean);
+      for (let i = lines.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [lines[i], lines[j]] = [lines[j], lines[i]]; }
+      return lines.slice(0, 3).map((l) => tidy(escT(typo(l))).replace(/\*\*(.+?)\*\*/g, (m, w) => '<span class="cache" style="--n:' + Math.max(4, Math.min(14, w.length)) + '" aria-hidden="true"></span>').replace(/\*\*/g, ''));
+    }
     function showHotEnvies() {
       // (une action doit avoir ses deux formes, « que tu me … » et « de te … »)
       const pick = (r, lv, dc) => { const l = SOURCE[r].filter((x) => (x.lvl || 1) === lv && !!x.dc === dc && (r !== 1 || x.t) && (r !== 0 || (x.s && x.i && x.s !== x.i))); return l.length ? l[Math.floor(Math.random() * l.length)] : null; };
-      const list = [
+      // Les envies écrites dans l’Atelier (complet.vitrine) passent d’abord : trois au hasard, les **mots** cachés sous la barre dorée
+      const mine = vitrine();
+      const list = mine.length ? mine : [
         hotSentence(pick(0, 3, false), pick(1, 2, false), pick(2, 3, false), 'me', 'act'),
         hotSentence(pick(0, 2, false), pick(1, 3, false), pick(2, 3, false), 'te', 'obj'),
         hotSentence(pick(0, 3, true), pick(1, 3, true), pick(2, 3, true), 'te', 'act')

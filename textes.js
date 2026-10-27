@@ -329,6 +329,7 @@ window.KIFF_TEXTES = [
     ["complet.tot-titre", "Brûlant ? Wopopoo !", "Petite fenêtre, en touchant Brûlant avant le premier kiff kiff sur ce téléphone"],
     ["complet.tot-texte", "On va peut-être commencer mollo mollo hein. Faites un premier kiff kiff et on en reparle.", "Son texte"],
     ["complet.tot-ok", "Bon d’accord", "Son bouton"],
+    ["complet.vitrine", "", "Les envies qui défilent en haut de la fenêtre : une phrase par ligne, le ou les mots à cacher sous la barre dorée entre **deux astérisques**. Trois sont tirées au hasard à chaque ouverture. Vide : le jeu compose trois envies Brûlant au hasard dans la réserve"],
     ["complet.texte", "Vous jouez avec {gratuit} mots. Tout Kiff Kiff en a {total} : {envies} d’envies.", "Sous le titre ({envies} : le nombre d’envies possibles)"],
     ["complet.millions", "plus de {nombre} millions", "Le nombre d’envies, quand il dépasse deux millions"],
     ["complet.liste", "De nouveaux mots dans les roues à chaque tour\nBrûlant, quand vous en avez envie tous les deux\nChercher un mot, écrire les vôtres\nLe piment et le ton réglés à votre goût\nOffert à chaque personne avec qui tu joues, dans votre partie", "La liste, une ligne par point"],
