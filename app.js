@@ -2027,6 +2027,25 @@
     myTypingAt = 0; replyTo = null; editing2 = null; citeKid = '';
     partieWanted = false; partieFront = false; ovPartie.classList.remove('is-front');
   }
+  // Le clavier : la page de la partie se cale au-dessus de lui, et le fil reste sur le dernier message si on y était (27 octobre 2026).
+  // Chrome sur Android le fait seul (interactive-widget dans index.html) ; ailleurs, on suit la partie visible de l’écran.
+  {
+    const sc = $('#kiff-scroll'), root = document.documentElement, vv = window.visualViewport;
+    let stickEnd = true;
+    sc.addEventListener('scroll', () => { stickEnd = sc.scrollHeight - sc.scrollTop - sc.clientHeight < 80; }, { passive: true });
+    const fit = () => {
+      if (vv) {
+        const kb = window.innerHeight - vv.height - vv.offsetTop;
+        root.classList.toggle('kb-open', kb > 80);
+        root.style.setProperty('--vv-top', vv.offsetTop + 'px');
+        root.style.setProperty('--vv-h', vv.height + 'px');
+      }
+      if (stickEnd && !ovPartie.hidden) sc.scrollTop = sc.scrollHeight;
+    };
+    if (vv) { vv.addEventListener('resize', fit); vv.addEventListener('scroll', fit); }
+    window.addEventListener('resize', fit);
+    chatInput.addEventListener('focus', () => { setTimeout(fit, 120); setTimeout(fit, 400); });
+  }
   function scrollToKiff(kid) {
     const li = $('#chat-list').querySelector('[data-kid="' + CSS.escape(kid) + '"]');
     if (!li) return;

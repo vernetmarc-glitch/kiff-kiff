@@ -1592,3 +1592,5 @@ body:has(#ov-deal:not([hidden])) .deco-candles { display: none; }
 .gratos-merci { margin: 0; align-self: stretch; text-align: center; font-weight: 700; }
 .gratos-merci[hidden], .gratos-retour[hidden] { display: none; }
 .gratos-retour { align-self: center; text-align: center; }
+/* Le clavier ouvert, là où le navigateur ne rétrécit pas la page : les pages pleines se calent sur la partie visible de l’écran */
+html.kb-open .overlay.overlay--partie:not([hidden]), html.kb-open .overlay.overlay--envie:not([hidden]), html.kb-open .overlay.overlay--kiffs:not([hidden]) { top: var(--vv-top, 0px); bottom: auto; height: var(--vv-h, 100%); }
