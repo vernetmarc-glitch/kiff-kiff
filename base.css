@@ -1741,3 +1741,9 @@ html.ios-app:has(.overlay--partie:not([hidden]), .overlay--envie:not([hidden]), 
 html.ios-app:root { padding-top: max(12px, env(safe-area-inset-top, 0px)); padding-bottom: max(12px, env(safe-area-inset-bottom, 0px)); }
 html.ios-app .overlay--partie > .sheet, html.ios-app .overlay--envie > .sheet, html.ios-app .overlay--kiffs > .sheet {
   padding-top: max(16px, calc(env(safe-area-inset-top, 0px) + 4px)) !important; padding-bottom: max(16px, calc(env(safe-area-inset-bottom, 0px) + 4px)) !important; }
+
+/* L’envie reçue, retournée dans la conversation tant qu’on ne l’a pas ouverte (29 octobre 2026) : le dos de la carte */
+.thread-envie.is-cachee .thread-kiff-card { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 16px !important; outline-style: solid; }
+.thread-envie-dos .carte-emblem { width: 72px; height: auto; margin: 6px 0; }
+.thread-envie-dos .carte-emblem .e-ring { fill: none; stroke: currentColor; stroke-width: 7; opacity: .85; }
+.thread-envie-dos .carte-emblem .e-lens { fill: var(--carte-dos-lentille, #FF3B6B); }

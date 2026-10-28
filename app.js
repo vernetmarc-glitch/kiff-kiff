@@ -819,8 +819,20 @@
   }
 
   /* ---------- Overlays ---------- */
-  function show(ov) { ov.hidden = false; }
-  function hide(ov) { ov.hidden = true; }
+  function show(ov) { ov.hidden = false; offerVue(); }
+  function hide(ov) { ov.hidden = true; offerVue(); }
+  // L’envie à lire n’est « ouverte » que si sa fenêtre est vraiment à l’écran (pas sous l’accueil ni sous la conversation)
+  // (regardé un instant après : un écran se ferme souvent juste avant qu’un autre s’ouvre)
+  let offerVueT = 0;
+  function offerVue() {
+    clearTimeout(offerVueT);
+    offerVueT = setTimeout(() => {
+      if (!el || !el.ovOffer || el.ovOffer.hidden || !el.ovStart.hidden || document.visibilityState !== 'visible') return;
+      const pw = document.getElementById('ov-wait');
+      if (pw && !pw.hidden) return;
+      envieLue();
+    }, 600);
+  }
 
   /* La phrase, avec la partie changée surlignée */
   function sentenceHtml(marks = []) {
@@ -2210,13 +2222,28 @@
       save('envieVue', Object.fromEntries(keep.map((k) => [k, all[k]])));
     }
     const mine = S.proposer === duo.seat;
-    return { d: all[room].d, text, adj, mine };
+    // L’envie à lire reste retournée dans la conversation tant qu’on ne l’a pas ouverte (29 octobre 2026)
+    const cachee = myTurn() && (S.phase === 'review' || S.phase === 'reconfirm') && all[room].lu !== text;
+    return { d: all[room].d, text, adj, mine, cachee };
+  }
+  // L’envie s’ouvre (la fenêtre pour y répondre) : elle se montre aussi dans la conversation
+  function envieLue() {
+    if (!duo || !duo.info || !S.original) return;
+    const text = S.phase === 'reconfirm' ? sentence() : sentenceFrom(S.original);
+    const all = load('envieVue', {}) || {};
+    const room = duo.info.room;
+    if (all[room] && all[room].lu === text) return;
+    all[room] = Object.assign({ d: Date.now() }, all[room] || {}, { sig: text, lu: text });
+    save('envieVue', all);
   }
   function threadEnvieHtml(e, B) {
     const kick = e.adj ? (e.mine ? T('partie.envie-ajustee-par', { prénom: B }) : T('partie.envie-ajustee-toi'))
       : e.mine ? T('partie.envie-toi') : T('partie.envie-de', { prénom: B });
     const go = myTurn() && !$('#wait-go').hidden;
     const a = { mine: e.mine, name: e.mine ? nameOf(duo.seat) : B };
+    if (e.cachee) return '<li class="thread-kiff thread-envie is-cachee' + (a.mine ? ' is-mine' : ' is-theirs') + '"><button class="thread-kiff-btn" type="button"' + (go ? ' data-envie-go="1"' : ' disabled') + '>' +
+      '<span class="thread-kiff-kicker">' + esc(kick) + '</span>' +
+      '<span class="party-sentence thread-kiff-card thread-envie-dos">' + CARTE_DOS + '<span class="sr-only">' + esc(T('partie.lire')) + '</span></span></button></li>';
     return '<li class="thread-kiff thread-envie' + (a.mine ? ' is-mine' : ' is-theirs') + '"><button class="thread-kiff-btn" type="button"' + (go ? ' data-envie-go="1"' : ' disabled') + '>' +
       '<span class="thread-kiff-kicker">' + esc(kick) + '</span>' +
       '<span class="party-sentence thread-kiff-card">' + authorBadge(a) + '<span class="thread-kiff-text">' + esc(e.text) + '</span></span></button></li>';
@@ -3547,6 +3574,7 @@
     const list = was ? all.map((g) => (g.room === entry.room ? entry : g)) : [entry].concat(all);
     save('parties', list.slice(0, 40));
     saveSnap(duo.info.room, st);
+    if (moved && document.visibilityState === 'visible' && el.ovStart.hidden) partieVue(duo.info.room);
   }
   /* La dernière photo de chaque partie, sur ce téléphone seulement : la partie s’ouvre tout de suite avec,
      puis se met à jour quand le relais et la feuille répondent. */
@@ -3557,6 +3585,17 @@
     const keep = Object.keys(all).sort((a, b) => (all[b].t || 0) - (all[a].t || 0)).slice(0, 12);
     try { save('etats', Object.fromEntries(keep.map((k) => [k, all[k]]))); } catch (e) { /* place pleine : tant pis */ }
   }
+  // Quand j’ai regardé une partie pour la dernière fois (29 octobre 2026) : ce qui est arrivé avant n’est plus « du nouveau »
+  function partieVue(room) {
+    if (!room) return;
+    const all = load('partieVue', {}) || {};
+    all[room] = Date.now();
+    const keep = Object.keys(all).sort((a, b) => all[b] - all[a]).slice(0, 40);
+    save('partieVue', Object.fromEntries(keep.map((k) => [k, all[k]])));
+  }
+  const vuLe = (room) => (load('partieVue', {}) || {})[room] || 0;
+  // La première fois : les parties déjà là comptent comme vues (le rose ne revient que pour ce qui arrive ensuite)
+  if (load('partieVue', null) === null) save('partieVue', Object.fromEntries(games().map((g) => [g.room, Date.now()])));
   const snapOf = (room) => { const x = (load('etats', {}) || {})[room]; return x && x.st && x.st.v === 1 ? x.st : null; };
   const forgetGame = (room) => save('parties', games().filter((g) => g.room !== room));
   function myTurn() {
@@ -3714,6 +3753,7 @@
 
   function enterGame(st, spin) {
     duo.stage = 'game';
+    if (duo.info) partieVue(duo.info.room);
     S.cont = false;
     S.kept = [[], [], []]; newDraw();
     hide($('#ov-duo')); hide($('#ov-invited'));
@@ -5359,6 +5399,7 @@
   function parkDuo() {
     if (!duo) return;
     const d = duo;
+    if (d.info && d.stage === 'game') partieVue(d.info.room);
     duo = null; S.cpOther = false;
     clearTimeout(syncT);
     if (d.conn) d.conn.close(false).catch(() => {});
@@ -5434,7 +5475,8 @@
   $('#games-sheet-list').addEventListener('click', onGames);
   $('#games-open').addEventListener('click', () => { audio(); sClick(); haptic(8); refreshGames(); show(ovGames); $('#games-close').focus({ preventScroll: true }); });
   /* ---------- L’accueil (26 octobre 2026) : la une, puis vos parties ----------
-     La une : la partie qui a du nouveau (envie à lire, messages, kiff kiff), sinon la dernière jouée.
+     La une : la partie où il s’est passé quelque chose en dernier (29 octobre 2026 ; avant : celle qui avait du nouveau).
+     En rose : du nouveau arrivé depuis ma dernière visite de la partie (envie, à moi de jouer, messages, kiff kiff).
      Dessous, les autres parties : une ligne chacune, avec où elle en est ou son dernier message.
      Sans partie : le grand emblème, « Commencer », le principe en trois lignes. Le reste est dans le menu. */
   const peek = {}; // les messages qui attendent dans la boîte aux lettres, par partie (vus de l’accueil, pas encore lus)
@@ -5480,7 +5522,8 @@
       const lastMsg = pk.last && (!last || pk.last.d > last.d) ? pk.last : last;
       const state = st ? gameState(st, g.seat, B) : { me: g.turn === 'me', line: g.turn === 'me' ? T('parties.a-toi') : T('parties.tour', { prénom: B }), go: 'ouvrir' };
       const freshKiff = (g.kiff || 0) > kiffSeen(g.room);
-      const news = state.me || nu > 0 || freshKiff;
+      // Du nouveau (en rose) : seulement ce qui est arrivé depuis que j’ai regardé cette partie (29 octobre 2026)
+      const news = (state.me && (g.t || 0) > vuLe(g.room)) || nu > 0 || freshKiff;
       const t = Math.max(g.t || 0, lastMsg ? lastMsg.d : 0);
       const msgLine = lastMsg ? (lastMsg.s === g.seat ? T('chat.toi') : B) + ' : ' + lastMsg.t : '';
       return { kind: 'duo', g, B, state, nu, news, t, freshKiff, msgLine, lastMsg, nk: g.nk || 0, lobby: g.turn === 'lobby' && g.seat === 0,
@@ -5509,8 +5552,8 @@
     $('#welcome-go').classList.remove('btn--line');
     const une = $('#home-une'), list = $('#home-list');
     if (!has) { une.hidden = true; list.hidden = true; $('#home-sec').hidden = true; return; }
-    // La une : du nouveau d’abord (le plus récent), sinon la dernière partie jouée
-    const sorted = items.slice().sort((a, b) => (b.news - a.news) || (b.t - a.t));
+    // La une : la partie où il s’est passé quelque chose en dernier (29 octobre 2026) ; le rose dit si c’est du nouveau
+    const sorted = items.slice().sort((a, b) => b.t - a.t);
     const top = sorted[0];
     const rest = sorted.slice(1);
     const isDuo = top.kind === 'duo';
