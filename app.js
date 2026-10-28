@@ -3780,7 +3780,7 @@
     const c = $('#partie-carte');
     if (!c || !duo) return;
     const O = nameOf(other(duo.seat));
-    const who = (n) => (n ? '<span class="who-badge carte-who"><span class="who-initial" aria-hidden="true">' + esc(initial(n)) + '</span>' + esc(n) + '</span>' : '');
+    const who = (n) => (n ? '<span class="who-badge carte-who"><span class="who-initial" aria-hidden="true">' + esc(initial(n)) + '</span><span class="carte-who-nom">' + esc(n) + '</span></span>' : '');
     const text = (marks) => '<span class="carte-text">' + sentenceHtml(marks) + '</span>';
     let face = 'blanche', html = '';
     if (S.phase === 'compose') { face = 'blanche'; html = '<span class="carte-script">' + esc(T('jeu.titre')) + '</span><span class="carte-blanc"></span><span class="carte-blanc"></span><span class="carte-blanc"></span>' + (waiting ? who(O) : ''); }

@@ -1714,3 +1714,12 @@ html.kb-open .overlay.overlay--partie:not([hidden]), html.kb-open .overlay.overl
 #ov-partage { z-index: 36; } /* par-dessus la fête et l’envie en grand, d’où on l’ouvre */
 .partage-plus .btn { letter-spacing: .02em; font-size: 13.5px; line-height: 1.15; }
 .sheet--partage .partage-head .edit-label { font-size: clamp(28px, 8.5vw, 36px); line-height: 1.1; }
+/* La petite carte : « J’ai envie… » sur une ligne ; un prénom long se coupe (28 octobre 2026) */
+.partie-carte .carte-script { white-space: nowrap; font-size: 14px; max-width: 100%; overflow: hidden; }
+.partie-carte .carte-who { max-width: calc(100% - 8px); box-sizing: border-box; }
+.partie-carte .carte-who-nom { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.partie-carte .who-initial { flex: none; }
+/* Un bouton au prénom long (« Prévenir … ») reste dans la carte */
+.partie-acts { min-width: 0; max-width: 100%; }
+.partie-acts .partie-go { max-width: 100%; min-width: 0; }
+.partie-prevenir > span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
