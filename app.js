@@ -5676,7 +5676,9 @@
       if (navigator.serviceWorker && navigator.serviceWorker.getRegistration) {
         const reg = await navigator.serviceWorker.getRegistration();
         if (reg && reg.getNotifications) (await reg.getNotifications()).forEach((n) => n.close());
+        // Le compte de la pastille repart de zéro (le service worker le tient dans le même rangement)
       }
+      if (window.caches) await (await caches.open('kiffkiff-textes')).delete('./_pastille');
       if (navigator.clearAppBadge) await navigator.clearAppBadge();
     } catch (e) { /* pas de pastille ici : tant pis */ }
   }

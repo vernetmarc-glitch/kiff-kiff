@@ -78,6 +78,7 @@ self.addEventListener('push', (e) => {
     const wins = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
     if (!ios && wins.some((c) => c.visibilityState === 'visible' && c.focused)) return;
     const nom = typeof m.n === 'string' ? m.n.replace(/[\u0000-\u001f<>]/g, '').trim().slice(0, 30) : '';
+    if (!wins.some((c) => c.visibilityState === 'visible')) await badgeUp();
     return self.registration.showNotification('Kiff Kiff', {
     body: avis(m, await textes(), nom),
     icon: 'icons/icon-192.png',
@@ -88,9 +89,28 @@ self.addEventListener('push', (e) => {
     });
   })());
 });
+/* La pastille sur l’icône de l’appli (28 octobre 2026) : sur iPhone, un avertissement ne la pose pas tout seul.
+   On compte les avertissements arrivés depuis la dernière ouverture de l’appli (1, 2…) ; l’appli remet à zéro
+   en s’ouvrant (elle efface le compte, rangé avec les textes des avertissements). */
+const BADGE = './_pastille';
+async function badgeUp() {
+  if (!self.navigator.setAppBadge) return;
+  let n = 1;
+  try {
+    const c = await caches.open(TEXTES);
+    const r = await c.match(BADGE);
+    n = Math.min(99, (r ? parseInt(await r.text(), 10) || 0 : 0) + 1);
+    await c.put(BADGE, new Response(String(n)));
+  } catch (err) { /* pas de mémoire : 1 */ }
+  try { await self.navigator.setAppBadge(n); } catch (err) { /* rien */ }
+}
+async function badgeZero() {
+  try { await (await caches.open(TEXTES)).delete(BADGE); } catch (err) { /* rien */ }
+  try { if (self.navigator.clearAppBadge) await self.navigator.clearAppBadge(); } catch (err) { /* rien */ }
+}
 self.addEventListener('notificationclick', (e) => {
   e.notification.close();
-  try { if (self.navigator.clearAppBadge) self.navigator.clearAppBadge(); } catch (err) { /* rien */ }
+  e.waitUntil(badgeZero());
   const room = (e.notification.data && e.notification.data.r) || '';
   const kf = (e.notification.data && e.notification.data.kf) || '';
   const url = new URL(room ? './?jouer=' + room + (kf ? '&kiff=' + kf : '') : './', self.registration.scope).href;
