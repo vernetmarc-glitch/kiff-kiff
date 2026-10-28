@@ -107,7 +107,7 @@ body {
 .hint .undo { font-weight: 900; color: var(--red); text-decoration: underline; text-underline-offset: 3px; }
 
 /* ---------- Switches : interrupteur en bakélite ---------- */
-.switch { align-self: stretch; padding: 9px 18px; gap: 14px; }
+.switch { align-self: stretch; padding: 6px 18px; gap: 14px; }
 .switch:disabled { cursor: default; }
 .track {
   background: linear-gradient(var(--navy-deep), var(--navy));
@@ -130,7 +130,7 @@ body {
 /* ---------- La borne ---------- */
 .press {
   gap: 10px;
-  padding: 22px 12px 14px;
+  padding: 18px 12px 12px;
   border-radius: 22px;
   background:
     var(--rivets),
@@ -210,9 +210,10 @@ body {
 @keyframes pull { 35% { transform: scaleY(.45) translateY(6px); } }
 
 /* Hublots chromés et tambours crème */
-.strips { gap: 10px; }
+/* Cinq mots visibles par roue, comme dans Red Corner (28 octobre 2026) */
+.strips { gap: 8px; }
 .reel {
-  --item-h: 36px;
+  --item-h: 32px;
   border-radius: 14px;
   background: var(--chrome);
   box-shadow: 0 2px 0 rgba(0, 0, 0, .35);
@@ -235,7 +236,7 @@ body {
 }
 .reel-item {
   font-family: var(--f-ui);
-  font-size: 18.5px;
+  font-size: 17.5px;
   font-weight: 700;
   color: var(--navy);
 }

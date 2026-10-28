@@ -303,13 +303,14 @@ button { font: inherit; color: inherit; }
   min-height: 0;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 12px;
   padding: 2px 8px 8px 2px;
 }
 
 /* ---------- Rouleaux en bandes de papier ---------- */
+/* Cinq mots visibles par roue, comme dans Red Corner (28 octobre 2026) */
 .reel {
-  --item-h: 38px;
+  --item-h: 34px;
   --fill: var(--pink);
   --text: var(--violet);
   --shade: var(--halftone-blue);
@@ -354,8 +355,8 @@ button { font: inherit; color: inherit; }
   overflow: hidden;
   perspective: 520px;
   transform-style: preserve-3d;
-  -webkit-mask-image: linear-gradient(transparent, #000 30%, #000 70%, transparent);
-  mask-image: linear-gradient(transparent, #000 30%, #000 70%, transparent);
+  -webkit-mask-image: linear-gradient(transparent, #000 10%, #000 90%, transparent);
+  mask-image: linear-gradient(transparent, #000 10%, #000 90%, transparent);
 }
 .reel-item {
   position: absolute;
@@ -365,7 +366,7 @@ button { font: inherit; color: inherit; }
   display: flex; align-items: center; justify-content: center;
   padding: 0 34px;
   font-weight: 700;
-  font-size: 21px;
+  font-size: 19.5px;
   font-stretch: 100%;
   white-space: nowrap;
   color: var(--text);
