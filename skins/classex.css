@@ -403,3 +403,4 @@ body { background: var(--kraft); color: var(--ink); font-family: var(--f-ui); ca
 /* Avec des parties : le tampon passe en haut, à côté du menu, pour laisser lire la phrase sous le titre */
 .welcome.has-games::before { top: -2px; right: 62px; font-size: 16px; padding: 1px 8px; }
 .overlay--party .party-unlock { margin-top: 16px; } /* sous le tampon DÉCLASSIFIÉ */
+:root { --carte-dos: repeating-linear-gradient(45deg, rgba(255,255,255,.07) 0 2px, transparent 2px 8px), var(--ink); --carte-dos-ombre: inset 0 0 0 2px var(--paper), 0 4px 10px rgba(0,0,0,.4); --carte-dos-lentille: var(--red); } /* la petite carte retournée de la conversation */

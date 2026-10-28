@@ -698,3 +698,4 @@ button { font: inherit; color: inherit; }
 
 /* L’accueil : le fond derrière « Nouvelle partie », collée en bas */
 :root { --home-go-bg: var(--paper); }
+:root { --carte-dos: radial-gradient(circle, rgba(255,255,255,.35) 1.2px, transparent 1.7px) 0 0 / 6px 6px, var(--blue); --carte-dos-ombre: inset 0 0 0 2px var(--violet), 0 4px 0 var(--violet); } /* la petite carte retournée de la conversation */

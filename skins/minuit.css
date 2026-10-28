@@ -291,3 +291,4 @@ body { background: var(--ink); color: var(--fg); font-family: var(--f-ui); caret
 /* L’accueil : le fond derrière « Nouvelle partie », collée en bas */
 :root { --home-go-bg: var(--ink); }
 :root { --envie-drop: #FF8FB0; }
+:root { --carte-dos: radial-gradient(circle at 50% 40%, #3B3466, #17142B); --carte-dos-ombre: inset 0 0 0 1px var(--lilac), 0 6px 14px rgba(0,0,0,.45); --carte-dos-lentille: var(--lilac); } /* la petite carte retournée de la conversation */

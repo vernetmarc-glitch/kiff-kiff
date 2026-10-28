@@ -30,12 +30,12 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,62..125,100..900;1,62..125,100..900&family=Bagel+Fat+One&family=Abril+Fatface&family=Merriweather:ital,opsz,wght@0,18..144,400..900;1,18..144,400..900&family=Baskervville:ital,wght@0,400..700;1,400..700&family=Jost:wght@300..700&family=Great+Vibes&family=Cinzel:wght@400..900&family=Syne:wght@600..800&family=Manrope:wght@400..800&family=Anton&family=Courier+Prime:wght@400;700&display=swap">
-<link rel="stylesheet" href="base.css?v=120">
-<link rel="stylesheet" href="skins/arty.css?v=68" data-skin-sheet="arty">
-<link rel="stylesheet" href="skins/pomme.css?v=69" data-skin-sheet="pomme">
-<link rel="stylesheet" href="skins/redcorner.css?v=71" data-skin-sheet="redcorner">
-<link rel="stylesheet" href="skins/minuit.css?v=65" data-skin-sheet="minuit">
-<link rel="stylesheet" href="skins/classex.css?v=70" data-skin-sheet="classex">
+<link rel="stylesheet" href="base.css?v=122">
+<link rel="stylesheet" href="skins/arty.css?v=69" data-skin-sheet="arty">
+<link rel="stylesheet" href="skins/pomme.css?v=70" data-skin-sheet="pomme">
+<link rel="stylesheet" href="skins/redcorner.css?v=72" data-skin-sheet="redcorner">
+<link rel="stylesheet" href="skins/minuit.css?v=66" data-skin-sheet="minuit">
+<link rel="stylesheet" href="skins/classex.css?v=71" data-skin-sheet="classex">
 <script>
 /* Déménagement vers kiff-kiff.fr : l’ancienne adresse apporte, dans le « # » du lien (jamais envoyé
    à un serveur), ce que le téléphone gardait là-bas : parties à deux, prénoms, ambiance, réglages.
@@ -544,7 +544,7 @@
     <div class="stack">
       <button class="btn" id="pass-same" type="button"></button>
       <button class="btn btn--line" id="pass-other" type="button"></button>
-      <button class="link-btn" id="pass-cancel" type="button" data-t="passe.annuler">Finalement, on continue</button>
+      <button class="btn btn--line pass-cancel" id="pass-cancel" type="button" data-t="passe.annuler">Finalement, on continue</button>
     </div>
   </div>
 </div>
@@ -606,16 +606,21 @@
         <button class="sticker kiffs-btn" id="wait-kiffs" type="button" hidden><svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><use href="#i-kiff"/></svg><span class="kiffs-n" id="wait-kiffs-label"></span></button>
       </div>
     </header>
+    <!-- L’action du moment, comme une carte du jeu (28 octobre 2026) : blanche quand c’est à toi de proposer, retournée quand une envie
+         arrive, tamponnée « envoyée » quand l’autre la lit, le mot changé surligné après « Oui, mais… » -->
     <section class="partie-action" id="partie-action" aria-live="polite">
+      <div class="partie-carte party-sentence" id="partie-carte" aria-hidden="true"></div>
       <div class="partie-action-text">
         <span class="partie-label" id="wait-title"></span>
         <span class="partie-line" id="wait-kicker"></span>
-        <button class="link-btn wait-pass" id="wait-pass" type="button" data-t="attente.passe">On passe</button>
+        <div class="partie-acts">
+          <button class="btn partie-go" id="wait-go" type="button" hidden></button>
+          <button class="btn partie-go" id="wait-install" type="button" hidden><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-installer"/></svg><span data-t="attente.installer-court">Installer</span></button>
+          <button class="link-btn wait-pass" id="wait-pass" type="button" data-t="attente.passe">Retirer mon envie</button>
+          <button class="icon-btn icon-btn--bare partie-ic" id="wait-nudge" type="button" hidden><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-partager"/></svg></button>
+          <button class="icon-btn icon-btn--bare partie-ic" id="wait-notif" type="button" aria-pressed="false" hidden><svg class="ic ic--on" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-avertir"/></svg><svg class="ic ic--off" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-avertir-non"/></svg><span class="sr-only"><span class="notif-word" data-t="attente.avertir">M’avertir</span>&nbsp;: <span id="wait-notif-state">désactivé</span></span></button>
+        </div>
       </div>
-      <button class="btn partie-go" id="wait-install" type="button" hidden><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-installer"/></svg><span data-t="attente.installer-court">Installer</span></button>
-      <button class="icon-btn icon-btn--bare partie-ic" id="wait-nudge" type="button" hidden><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-partager"/></svg></button>
-      <button class="icon-btn icon-btn--bare partie-ic" id="wait-notif" type="button" aria-pressed="false" hidden><svg class="ic ic--on" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-avertir"/></svg><svg class="ic ic--off" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-avertir-non"/></svg><span class="sr-only"><span class="notif-word" data-t="attente.avertir">M’avertir</span>&nbsp;: <span id="wait-notif-state">désactivé</span></span></button>
-      <button class="btn partie-go" id="wait-go" type="button" hidden></button>
     </section>
     <div class="kiff-scroll" id="kiff-scroll"><ol class="chat-list" id="chat-list" aria-label="La conversation"></ol></div>
     <div class="chat-bar" id="chat-bar" hidden>
@@ -872,11 +877,11 @@
 </div>
 
 <script src="data.js?v=64"></script>
-<script src="textes.js?v=32"></script>
+<script src="textes.js?v=33"></script>
 <script src="semantique.js?v=1"></script>
 <script src="config.js?v=63"></script>
 <script src="duo.js?v=63"></script>
 <script src="push.js?v=65"></script>
-<script src="app.js?v=141"></script>
+<script src="app.js?v=142"></script>
 </body>
 </html>

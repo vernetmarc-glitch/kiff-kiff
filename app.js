@@ -1260,9 +1260,18 @@
     audio();
     if (S.gifting) { endGift(false); return; } // finalement, inviter sans envie
     const A = nameOf(S.proposer), B = nameOf(other(S.proposer));
-    $('#pass-same').textContent = T('passe.meme', { prénom: A });
-    $('#pass-other').textContent = T('passe.autre', { prénom: B });
+    // À deux téléphones, retirer son envie pendant que l’autre la lit : on le dit clairement, et la garder vient en premier (28 octobre 2026)
+    const retire = !!duo && duo.stage === 'game' && S.proposer === duo.seat && (S.phase === 'review' || S.phase === 'adjust') && !myTurn();
+    el.ovPass.classList.toggle('is-retirer', retire);
+    { const ink = $('.pass-title .ink'); const tt = retire ? T('passe.retirer-titre') : T('passe.titre'); ink.textContent = tt; ink.setAttribute('data-ink', tt); }
+    $('.pass-text').textContent = retire ? T('passe.retirer-texte', { prénom: B }) : T('passe.texte');
+    $('#pass-same').textContent = retire ? T('passe.retirer-meme') : T('passe.meme', { prénom: A });
+    $('#pass-other').textContent = retire ? T('passe.retirer-autre', { prénom: B }) : T('passe.autre', { prénom: B });
+    $('#pass-cancel').textContent = retire ? T('passe.garder') : T('passe.annuler');
+    $('#pass-same').classList.toggle('btn--line', retire);
+    $('#pass-cancel').classList.toggle('btn--line', !retire);
     show(el.ovPass);
+    (retire ? $('#pass-cancel') : $('#pass-same')).focus({ preventScroll: true });
     sSwitchOff();
   });
   function duoPass(to, why) {
@@ -3685,13 +3694,36 @@
     }
     $('#partie-action').hidden = !line;
     $('#partie-action').classList.toggle('is-turn', !waiting);
+    renderCarte(waiting);
     $('#wait-title').textContent = label;
     $('#wait-kicker').textContent = line;
-    $('#wait-pass').hidden = !waiting;
+    // Pendant que l’autre lit ton envie : « Retirer mon envie » ; pendant qu’il relit ton « Oui, mais… » : « On passe »
+    const wp = $('#wait-pass');
+    wp.hidden = !(waiting && ['review', 'adjust', 'reconfirm'].includes(S.phase));
+    wp.textContent = S.phase === 'reconfirm' ? T('offre.passe') : T('attente.passe');
     const g = $('#wait-go');
     g.hidden = !go; g.textContent = go;
     // Après une envie envoyée, tant que l’appli n’est pas installée : l’installer, pour être averti·e de la réponse
     $('#wait-install').hidden = true; // depuis le 27 octobre 2026 : une carte dans la conversation (installCardHtml)
+  }
+
+  /* La petite carte de l’action (28 octobre 2026) : blanche (à proposer), retournée (une envie à lire), tamponnée (envoyée),
+     le mot changé surligné (après « Oui, mais… ») */
+  const CARTE_DOS = '<svg class="carte-emblem" viewBox="0 0 168 124" aria-hidden="true"><path class="e-lens" d="M84 21.6A46 46 0 0 1 84 102.4A46 46 0 0 1 84 21.6Z"/><circle class="e-ring" cx="62" cy="62" r="46"/><circle class="e-ring" cx="106" cy="62" r="46"/></svg>';
+  function renderCarte(waiting) {
+    const c = $('#partie-carte');
+    if (!c || !duo) return;
+    const O = nameOf(other(duo.seat));
+    const who = (n) => (n ? '<span class="who-badge carte-who"><span class="who-initial" aria-hidden="true">' + esc(initial(n)) + '</span>' + esc(n) + '</span>' : '');
+    const text = (marks) => '<span class="carte-text">' + sentenceHtml(marks) + '</span>';
+    let face = 'blanche', html = '';
+    if (S.phase === 'compose') { face = 'blanche'; html = '<span class="carte-script">' + esc(T('jeu.titre')) + '</span><span class="carte-blanc"></span><span class="carte-blanc"></span><span class="carte-blanc"></span>' + (waiting ? who(O) : ''); }
+    else if (S.phase === 'review' && !waiting) { face = 'dos'; html = CARTE_DOS + who(O); }
+    else if (S.phase === 'review' || (S.phase === 'adjust' && waiting)) { face = 'envoyee'; html = text([]) + '<span class="carte-tampon">' + esc(T('attente.tampon')) + '</span>'; }
+    else if (S.phase === 'reconfirm') { face = 'changee'; html = text(changes()); }
+    else { face = 'envie'; html = text([]); }
+    c.dataset.face = face;
+    c.innerHTML = html;
   }
 
   /* Connexion : la mienne et celle de l’autre */

@@ -230,7 +230,12 @@ window.KIFF_TEXTES = [
     ["passe.texte", "Pas besoin d’expliquer pourquoi.", "Sous le titre"],
     ["passe.meme", "{prénom} propose autre chose", "Premier bouton"],
     ["passe.autre", "{prénom} propose à son tour", "Deuxième bouton"],
-    ["passe.annuler", "Finalement, on continue", "Lien en bas"]
+    ["passe.annuler", "Finalement, on continue", "Le bouton en bas, pour ne pas passer"],
+    ["passe.retirer-titre", "Retirer ton envie ?", "Le titre, quand tu retires ton envie pendant que l’autre la lit (à deux téléphones)"],
+    ["passe.retirer-texte", "{prénom} ne pourra plus y répondre. Pas besoin d’expliquer pourquoi.", "Sous ce titre"],
+    ["passe.garder", "Garder mon envie", "Le premier bouton : on ne retire rien"],
+    ["passe.retirer-meme", "La retirer et proposer autre chose", "Deuxième bouton"],
+    ["passe.retirer-autre", "La retirer : à {prénom} de proposer", "Troisième bouton"]
   ] },
   { id: "passage", nom: "Passe le téléphone", textes: [
     ["passage.titre", "Au tour de {prénom}", "Titre de l’écran qui fait passer le téléphone"],
@@ -454,6 +459,7 @@ window.KIFF_TEXTES = [
     ["attente.tour", "Au tour de {prénom}", "Titre de l’écran d’attente, quand l’autre compose ou relit"],
     ["attente.compose", "{prénom} compose une envie.", "Sous le titre, quand l’autre compose"],
     ["attente.envoyee", "Envie envoyée", "Titre, après avoir proposé"],
+    ["attente.tampon", "Envoyée", "Le tampon sur la petite carte, pendant que l’autre lit ton envie"],
     ["attente.lit", "{prénom} la lit.", "Sous « Envie envoyée »"],
     ["attente.piment", "{prénom} doit d’abord accepter le nouveau piment.", "Sous « Envie envoyée », quand le piment est monté"],
     ["attente.ajuste", "{prénom} ajuste ton envie", "Titre, pendant le « Oui, mais… » de l’autre"],
@@ -467,7 +473,7 @@ window.KIFF_TEXTES = [
     ["attente.absent", "{prénom} n’est pas là : la partie l’attendra.", "Ligne de présence, quand l’autre n’a pas l’appli ouverte"],
     ["attente.absent-averti", "{prénom} n’est pas là. Ton téléphone t’avertira.", "Même chose, avertissements activés"],
     ["attente.installer-court", "Installer", "En tête de la partie, après une envie envoyée, tant que l’appli n’est pas installée"],
-    ["attente.passe", "On passe", "Petit lien sous les boutons : on retire l’envie"],
+    ["attente.passe", "Retirer mon envie", "Petit lien sur la carte, pendant que l’autre lit ton envie : ouvre la fenêtre pour la retirer"],
     ["attente.prevenir", "Prévenir", "Icône : envoyer un message à l’autre (quand il ou elle n’est pas là)"],
     ["attente.message", "À toi de jouer sur Kiff Kiff !", "Le message envoyé par « Prévenir »"],
     ["attente.copie", "Message copié : colle-le-lui.", "Ligne de présence, après « Prévenir » quand le téléphone copie"],

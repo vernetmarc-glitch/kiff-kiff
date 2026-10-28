@@ -643,3 +643,4 @@ body:has(#ov-menu:not([hidden])) .deco-candles { display: none; }
 /* Vos kiff kiff : le nom de qui a proposé ; une envie en grand */
 :root { --who-bg: #5A0C1D; --who-fg: #F6DDA0; --who-mine-bg: linear-gradient(100deg, #8C6424, #F6DDA0 40%, #C9963F); --who-mine-fg: #2B040C; --envie-act-line: #C9963F; --envie-act-on: rgba(201, 150, 63, .35); --envie-drop: #FF8FB0; }
 .env-card .env-more { color: #4A0A18; }
+:root { --carte-dos: repeating-linear-gradient(45deg, rgba(246,221,160,.08) 0 2px, transparent 2px 9px), radial-gradient(circle at 50% 40%, #7A1230, #3A0613); --carte-dos-ombre: inset 0 0 0 1.5px #D9AE5B, inset 0 0 0 4px #3A0613, inset 0 0 0 5px #8C6424, 0 6px 14px rgba(0,0,0,.45); --carte-dos-trait: #FFC2D4; } /* la petite carte retournée de la conversation */
