@@ -1672,3 +1672,45 @@ html.kb-open .overlay.overlay--partie:not([hidden]), html.kb-open .overlay.overl
 .partie-carte[data-face="envoyee"] .carte-text { -webkit-line-clamp: 5; }
 .partie-carte[data-face="envoyee"] .carte-tampon { bottom: 6px; }
 #ov-pass { z-index: 35; } /* par-dessus la conversation, d’où on peut retirer son envie */
+/* Le retour des pages pleines : le même rond que l’accueil de la conversation (28 octobre 2026) */
+.kiff-head .kiff-back { flex: none; }
+.kiff-head .kiff-head-pad { width: 40px; }
+/* Partager une envie : toujours dans le coin supérieur droit de sa carte */
+.envie-card .icon-btn--card { top: -20px; right: -10px; }
+.party-card .icon-btn--card { top: -20px; right: -10px; }
+/* Prévenir l’autre : un vrai bouton sur la carte, avec la main qui toque (28 octobre 2026) */
+.partie-prevenir { gap: 8px; }
+.partie-prevenir .ic { width: 20px; height: 20px; }
+/* Les avertissements dans le menu : un interrupteur */
+.menu-avertir { position: relative; }
+.menu-avertir .menu-toggle { position: absolute; right: 4px; top: 50%; width: 44px; height: 26px; margin-top: -13px; border-radius: 999px;
+  background: color-mix(in srgb, currentColor 14%, transparent); box-shadow: inset 0 0 0 1px color-mix(in srgb, currentColor 45%, transparent); }
+.menu-avertir .menu-toggle::after { content: ""; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%; background: currentColor; transition: transform .2s; }
+.menu-avertir[aria-pressed="true"] .menu-toggle { background: var(--toggle-on, var(--pill-on-bg, currentColor)); }
+.menu-avertir[aria-pressed="true"] .menu-toggle::after { transform: translateX(18px); background: var(--toggle-knob, #fff); }
+.menu-avertir .menu-sub { padding-right: 52px; }
+.menu-avertir[hidden] { display: none; }
+/* La fenêtre de partage */
+.sheet--partage { gap: 12px; }
+.partage-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.partage-head .edit-label { margin: 0; }
+.partage-texte { margin: -4px 0 0 !important; }
+.partage-formats { display: flex; justify-content: center; align-items: flex-end; gap: 22px; padding: 4px 0; }
+.partage-formats button { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 0; border: 0; background: none; color: inherit; font: inherit; font-size: 14px; cursor: pointer; opacity: .7; }
+.partage-formats button[aria-checked="true"] { opacity: 1; font-weight: 700; }
+.partage-apercu { display: block; border-radius: 6px; overflow: hidden; background: color-mix(in srgb, currentColor 10%, transparent);
+  box-shadow: 0 0 0 1px color-mix(in srgb, currentColor 30%, transparent); }
+.partage-formats button[aria-checked="true"] .partage-apercu { box-shadow: 0 0 0 2.5px var(--partage-on, currentColor), 0 6px 14px rgba(0, 0, 0, .35); }
+.partage-apercu--story { width: 92px; height: 164px; }
+.partage-apercu--post { width: 112px; height: 140px; }
+.partage-apercu img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.partage-apercu img:not([src]) { visibility: hidden; }
+.sheet--partage #partage-go { margin: 4px 0 0; width: 100%; }
+.partage-note { margin: -4px 0 0 !important; text-align: center; font-size: 12.5px; opacity: .8; }
+.partage-plus { display: flex; gap: 10px; }
+.partage-plus .btn { flex: 1; margin: 0; min-height: 44px; padding: 0 10px; font-size: 14px; }
+.partage-done { margin: 0 !important; text-align: center; font-size: 14px; font-weight: 600; }
+.partage-done[hidden] { display: none; }
+#ov-partage { z-index: 36; } /* par-dessus la fête et l’envie en grand, d’où on l’ouvre */
+.partage-plus .btn { letter-spacing: .02em; font-size: 13.5px; line-height: 1.15; }
+.sheet--partage .partage-head .edit-label { font-size: clamp(28px, 8.5vw, 36px); line-height: 1.1; }

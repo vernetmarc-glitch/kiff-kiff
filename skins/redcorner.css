@@ -644,3 +644,11 @@ body:has(#ov-menu:not([hidden])) .deco-candles { display: none; }
 :root { --who-bg: #5A0C1D; --who-fg: #F6DDA0; --who-mine-bg: linear-gradient(100deg, #8C6424, #F6DDA0 40%, #C9963F); --who-mine-fg: #2B040C; --envie-act-line: #C9963F; --envie-act-on: rgba(201, 150, 63, .35); --envie-drop: #FF8FB0; }
 .env-card .env-more { color: #4A0A18; }
 :root { --carte-dos: repeating-linear-gradient(45deg, rgba(246,221,160,.08) 0 2px, transparent 2px 9px), radial-gradient(circle at 50% 40%, #7A1230, #3A0613); --carte-dos-ombre: inset 0 0 0 1.5px #D9AE5B, inset 0 0 0 4px #3A0613, inset 0 0 0 5px #8C6424, 0 6px 14px rgba(0,0,0,.45); --carte-dos-trait: #FFC2D4; } /* la petite carte retournée de la conversation */
+/* Une seule DA (28 octobre 2026) : toutes les pages pleines sur le velours strié de l’accueil, du jeu et de la fête ;
+   le dégradé sombre reste aux fenêtres encadrées d’or (menu, « Dans les roues », Tout Kiff Kiff…) */
+.overlay--partie > .sheet, .overlay--envie > .sheet, .overlay--kiffs > .sheet { background: var(--velvet-bg); background-color: var(--velvet-lo); }
+.overlay--handoff, .overlay--pass { background: var(--velvet-bg); background-color: var(--velvet-lo); }
+/* Les titres des pages, comme « Avec Sam » : Cinzel en petites capitales, feuille d’or */
+.sheet--kiffs .kiff-title, .sheet--envie .kiff-title.envie-kicker { font-family: var(--f-title); font-weight: 700; font-size: 21px !important; letter-spacing: .06em; font-variant: small-caps; text-transform: none;
+  background: var(--foil); -webkit-background-clip: text; background-clip: text; color: transparent; }
+:root { --toggle-on: var(--foil); --toggle-knob: var(--velvet-lo); --partage-on: var(--gold-hi); }

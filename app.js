@@ -2159,6 +2159,14 @@
       '<button class="link-btn invite-cancel" type="button" data-installer="copier">' + esc(T('reprise.deja')) + '</button>' +
       '<button class="link-btn invite-cancel" type="button" data-installer="non">' + esc(T('installer.non')) + '</button></div></li>';
   }
+  const avertirWanted = () => !!duo && !!KP && pushStatus === 'off' && !load('avertirCarteNon', false);
+  function avertirCardHtml(B) {
+    return '<li class="thread-install"><div class="invite-card install-card">' +
+      '<span class="thread-kiff-kicker">' + esc(T('avertir.carte-kicker')) + '</span>' +
+      '<p class="invite-text">' + esc(T('avertir.carte', { prénom: B })) + '</p>' +
+      '<div class="invite-share"><button class="btn" type="button" data-avertir="oui"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-avertir"/></svg> ' + esc(T('avertir.carte-oui')) + '</button></div>' +
+      '<button class="link-btn invite-cancel" type="button" data-avertir="non">' + esc(T('avertir.carte-non')) + '</button></div></li>';
+  }
   function renderChat(toEnd) {
     if (ovPartie.hidden) return;
     if (duo && duo.stage === 'invite' && duo.info) { $('#chat-list').innerHTML = inviteThreadHtml(); $('#chat-down').hidden = true; return; }
@@ -2204,6 +2212,7 @@
     });
     if (installWanted()) html += installCardHtml(B);
     else if (appCardWanted()) html += appCardHtml();
+    else if (avertirWanted()) html += avertirCardHtml(B);
     if (typingKid) html += '<li class="chat-typing" aria-label="' + esc(B + ' ' + T('chat.ecrit')) + '"><span></span><span></span><span></span></li>';
     const sc = $('#kiff-scroll');
     const atEnd = sc.scrollHeight - sc.scrollTop - sc.clientHeight < 80;
@@ -2434,6 +2443,11 @@
       renderChat();
       return;
     }
+    const av = e.target.closest('[data-avertir]');
+    if (av) {
+      if (av.dataset.avertir === 'oui') { report('notif', null, 'carte'); toggleNotif(av).then(() => renderChat()); return; }
+      audio(); save('avertirCarteNon', true); report('notif', null, 'carte-plus-tard'); renderChat(); return;
+    }
     // L’invitation : envoyer le lien, le copier, annuler la partie
     const iv = e.target.closest('[data-inv]');
     if (iv && duo && duo.info) {
@@ -2566,12 +2580,7 @@
       openEnvie(kidOf(all[j]), dx < 0 ? 'next' : 'prev');
     });
   })();
-  $('#kiff-image').addEventListener('click', async () => {
-    audio(); sClick(); haptic(8);
-    const k = kiffById(kiffOpen); if (!k) return;
-    const r = await shareImage(k.t || '', 'kiff');
-    if (r === 'saved') flashKiffMsg(T('fete.image-ok'));
-  });
+  $('#kiff-image').addEventListener('click', (e) => { const k = kiffById(kiffOpen); if (k) openPartage(k.t || '', 'kiff', e.currentTarget); });
   $('#kiff-back').addEventListener('click', () => { audio(); closeEnvie(); });
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !ovKiff.hidden && ovMenu.hidden) closeEnvie(); });
   // Le catalogue : toucher une envie l’ouvre ; ses petits boutons citent, partagent, ou la marquent vécue
@@ -2581,7 +2590,7 @@
       const kid = a.dataset.kid, k = kiffById(kid); if (!k) return;
       audio(); sClick(); haptic(8);
       if (a.dataset.act === 'citer') { report('discussion', null, 'citer'); toPartie(kid, true); }
-      else if (a.dataset.act === 'partager') { await shareImage(k.t || '', 'kiff'); }
+      else if (a.dataset.act === 'partager') { openPartage(k.t || '', 'liste', a); }
       else if (a.dataset.act === 'vecue') { k.v = 1; sSwitchOn(); renderKiffs(); savePair(); if (duo && duo.stage === 'game') sync(); renderKiffList(); }
       return;
     }
@@ -2941,13 +2950,15 @@
       t1: ['{s}px "Abril Fatface", Georgia, serif', '#FFF6DE'], t2: ['italic 400 {s}px "Merriweather", Georgia, serif', '#E6B33A', 36], t3: ['400 {s}px "Merriweather", Georgia, serif', '#FFF6DE']
     }
   };
-  async function phraseImage(text, skin) {
+  // H : 1350 (publication) ou 1920 (story, la même mise en page au milieu) ; garder : la même formule que l’image d’avant
+  async function phraseImage(text, skin, H = 1350, garder = false) {
     const T = IMG[skin] || IMG[currentSkin()] || IMG.redcorner;
     try { await Promise.all(T.fonts.map((f) => document.fonts.load(f))); } catch (e) { /* polices de secours */ }
-    const W = 1080, H = 1350, cv = document.createElement('canvas');
+    const W = 1080, cv = document.createElement('canvas');
     cv.width = W; cv.height = H;
     const c = cv.getContext('2d');
     T.bg(c, W, H);
+    c.translate(0, Math.round((H - 1350) / 2));
     c.textAlign = 'center';
     // l’emblème : deux cercles qui se rejoignent, leur intersection allumée
     c.save();
@@ -2991,7 +3002,7 @@
     // en bas, une formule (plus de code ni de publicité) : elle change à chaque envoi
     c.strokeStyle = T.rule; c.lineWidth = 2;
     c.beginPath(); c.moveTo(W / 2 - 160, 1060); c.lineTo(W / 2 + 160, 1060); c.stroke();
-    const f = nextFormule();
+    const f = garder && formule ? formule : nextFormule();
     c.textAlign = 'center';
     // La police de l’interface, bien lisible même en petit dans une messagerie
     let ts = 40, fl;
@@ -3001,34 +3012,88 @@
     fl.forEach((l, i) => c.fillText(l, W / 2, y0 + i * lh2));
     return new Promise((res) => cv.toBlob(res, 'image/png'));
   }
-  // L’envie en image : partagée (WhatsApp, Messages…) ou enregistrée ; une autre formule à chaque fois
-  async function shareImage(text, from) {
-    const blob = await phraseImage(text);
-    if (!blob) return '';
-    const file = new File([blob], 'kiff-kiff.png', { type: 'image/png' });
-    report('partage', null, 'image');
-    report('carte', null, from || 'fete');
-    if (navigator.canShare && navigator.canShare({ files: [file] })) {
-      // Un seul lien : la formule dit déjà kiff-kiff.fr (sinon on ajoute l’adresse)
-      const msg = /kiff-kiff\.fr/i.test(tagline()) ? tagline() : tagline() + ' ' + APP_URL;
-      try { await navigator.share({ files: [file], title: 'Kiff Kiff', text: msg }); return 'shared'; } catch (e) { return ''; }
-    }
+  $('#party-image').addEventListener('click', (e) => openPartage($('#party-sentence').textContent, 'fete', e.currentTarget));
+
+  /* Partager une envie (28 octobre 2026) : une fenêtre, deux formats (story verticale, publication), les applis du téléphone.
+     Sans prénom : seulement l’envie, l’emblème et kiff-kiff.fr. Un compteur anonyme par format et par geste. */
+  const ovPartage = $('#ov-partage');
+  let partage = null; // { text, from, blobs: { story, post }, urls, back }
+  async function openPartage(text, from, back) {
+    if (!text) return;
+    audio(); sClick(); haptic(8);
+    if (partage) Object.values(partage.urls || {}).forEach((u) => URL.revokeObjectURL(u));
+    partage = { text, from, blobs: {}, urls: {}, back };
+    const fmt = load('partageFormat', 'story') === 'post' ? 'post' : 'story';
+    ovPartage.querySelectorAll('[data-format]').forEach((b) => b.setAttribute('aria-checked', b.dataset.format === fmt ? 'true' : 'false'));
+    $('#partage-done').hidden = true;
+    $('#partage-img-story').removeAttribute('src'); $('#partage-img-post').removeAttribute('src');
+    show(ovPartage);
+    $('#partage-go').focus({ preventScroll: true });
+    report('partage', null, 'fenetre-' + (from || 'fete'));
+    const p = partage;
+    const post = await phraseImage(text, null, 1350);
+    const story = await phraseImage(text, null, 1920, true);
+    if (partage !== p) return;
+    p.blobs = { post, story };
+    ['post', 'story'].forEach((k) => { if (p.blobs[k]) { p.urls[k] = URL.createObjectURL(p.blobs[k]); $('#partage-img-' + k).src = p.urls[k]; } });
+  }
+  const partageFmt = () => (ovPartage.querySelector('[data-format][aria-checked="true"]') || {}).dataset?.format || 'story';
+  function closePartage() {
+    hide(ovPartage);
+    if (partage && partage.back && partage.back.focus) partage.back.focus({ preventScroll: true });
+  }
+  function partageMot(t) {
+    const d = $('#partage-done'); d.textContent = t; d.hidden = false;
+    clearTimeout(partageMot.t); partageMot.t = setTimeout(() => { d.hidden = true; }, 3000);
+  }
+  ovPartage.querySelector('.partage-formats').addEventListener('click', (e) => {
+    const b = e.target.closest('[data-format]'); if (!b) return;
+    audio(); sClick(); haptic(6);
+    ovPartage.querySelectorAll('[data-format]').forEach((x) => x.setAttribute('aria-checked', x === b ? 'true' : 'false'));
+    save('partageFormat', b.dataset.format);
+  });
+  async function partageBlob() {
+    if (!partage) return null;
+    const k = partageFmt();
+    if (!partage.blobs[k]) partage.blobs[k] = await phraseImage(partage.text, null, k === 'story' ? 1920 : 1350, true);
+    return partage.blobs[k];
+  }
+  function telecharger(blob) {
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob); a.download = 'kiff-kiff.png';
     document.body.appendChild(a); a.click(); a.remove();
     setTimeout(() => URL.revokeObjectURL(a.href), 4000);
-    return 'saved';
   }
-  $('#party-image').addEventListener('click', async () => {
+  $('#partage-go').addEventListener('click', async () => {
     audio(); sClick(); haptic(8);
-    const btn = $('#party-image');
-    const r = await shareImage($('#party-sentence').textContent, 'fete');
-    if (r !== 'saved') return;
-    const done = $('#party-done');
-    done.textContent = T('fete.image-ok');
-    done.hidden = false;
-    btn.focus({ preventScroll: true });
+    const blob = await partageBlob(); if (!blob) return;
+    const file = new File([blob], 'kiff-kiff.png', { type: 'image/png' });
+    report('partage', null, 'image');
+    report('partage', null, 'format-' + partageFmt());
+    report('carte', null, (partage && partage.from) || 'fete');
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      const msg = /kiff-kiff\.fr/i.test(tagline()) ? tagline() : tagline() + ' ' + APP_URL;
+      try { await navigator.share({ files: [file], title: 'Kiff Kiff', text: msg }); closePartage(); } catch (e) { /* annulé */ }
+      return;
+    }
+    telecharger(blob); partageMot(T('fete.image-ok'));
   });
+  $('#partage-save').addEventListener('click', async () => {
+    audio(); sClick(); haptic(8);
+    const blob = await partageBlob(); if (!blob) return;
+    report('partage', null, 'enregistree-' + partageFmt());
+    telecharger(blob); partageMot(T('fete.image-ok'));
+  });
+  $('#partage-lien').addEventListener('click', async () => {
+    audio(); sClick(); haptic(8);
+    let ok = false;
+    try { await navigator.clipboard.writeText(APP_URL); ok = true; } catch (e) { ok = false; }
+    report('partage', null, 'lien-copie');
+    partageMot(ok ? T('partage.lien-ok') : T('duo.copie-impossible'));
+  });
+  $('#partage-close').addEventListener('click', () => { audio(); closePartage(); });
+  ovPartage.addEventListener('click', (e) => { if (e.target === ovPartage) closePartage(); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !ovPartage.hidden) closePartage(); });
 
   /* Confettis */
   let confRaf = 0;
@@ -3331,6 +3396,7 @@
     pushMine = pushStatus === 'on' ? await KP.current() : null;
     if (pushStatus === 'on' && !pushMine) pushStatus = 'off';
     renderDuoStatus();
+    if (!ovPartie.hidden) renderChat(); // la carte « Être averti·e » suit l’état des avertissements
     pushRefresh();
   }
   // La partie n’a pas encore ma dernière adresse : on la lui donne (sans rien changer d’autre)
@@ -3726,8 +3792,15 @@
     c.innerHTML = html;
   }
 
+  // Les avertissements, dans le menu : un interrupteur pour toutes les parties
+  function renderMenuAvertir() {
+    const b = $('#menu-avertir'); if (!b) return;
+    b.hidden = !KP || !['on', 'off', 'install', 'blocked'].includes(pushStatus);
+    b.setAttribute('aria-pressed', pushStatus === 'on' ? 'true' : 'false');
+  }
   /* Connexion : la mienne et celle de l’autre */
   function renderDuoStatus() {
+    renderMenuAvertir();
     // La cloche de l’invitation : tant qu’on attend que l’autre rejoigne
     const dn = $('#duo-notif');
     const inv = !!duo && duo.stage === 'invite';
@@ -3742,7 +3815,7 @@
       $('#wait-presence-text').textContent = presenceFlash || (duo.partnerOn ? T('partie.invite-la') : T('partie.invite-absent'));
       $('#wait-who').classList.toggle('is-off', duo.partnerOn !== true);
       const nb = $('#wait-notif'); nb.setAttribute('aria-pressed', pushStatus === 'on' ? 'true' : 'false');
-      nb.hidden = !(pushStatus === 'on' || pushStatus === 'off' || pushStatus === 'install' || pushStatus === 'blocked');
+      nb.hidden = true;
     }
     const line = $('#duo-status');
     // En haut : « Avec Lou » et sa présence, à la place du nom du jeu
@@ -3782,9 +3855,11 @@
     // Prévenir et M’avertir : seulement quand l’autre a la main
     const waitingNow = ['compose', 'review', 'adjust', 'reconfirm'].includes(S.phase) && !myTurn();
     nudge.hidden = !away || !waitingNow;
+    $('#wait-nudge-text').textContent = T('attente.prevenir-nom', { prénom: B });
     nudge.setAttribute('aria-label', 'Prévenir ' + B + ' que c’est son tour');
+    // Les avertissements : un seul réglage, dans le menu (28 octobre 2026) ; plus de cloche dans la conversation
     const nb = $('#wait-notif');
-    nb.hidden = !waitingNow || !(on || pushStatus === 'off' || pushStatus === 'install' || pushStatus === 'blocked');
+    nb.hidden = true;
     nb.setAttribute('aria-label', T(on ? 'attente.averti' : 'attente.avertir'));
     nb.setAttribute('aria-pressed', on ? 'true' : 'false');
     $('#wait-notif-state').textContent = on ? 'activé' : 'désactivé';
@@ -3978,8 +4053,7 @@
     $('#wait-kicker').textContent = T('parties.personne') + '.';
     ['#wait-pass', '#wait-go', '#wait-install', '#wait-nudge'].forEach((q) => { $(q).hidden = true; });
     const nb = $('#wait-notif');
-    nb.hidden = !(pushStatus === 'on' || pushStatus === 'off' || pushStatus === 'install' || pushStatus === 'blocked');
-    nb.setAttribute('aria-pressed', pushStatus === 'on' ? 'true' : 'false');
+    nb.hidden = true;
     const was = ov.hidden;
     show(ov);
     if (was) partieShown(); else renderChat();
@@ -4002,6 +4076,7 @@
       '<button class="btn btn--line" type="button" data-inv="copy">' + esc(T('duo.copier')) + '</button></div>' +
       '<button class="link-btn invite-cancel" type="button" data-inv="cancel">' + esc(T('duo.annuler-partie')) + '</button>' +
       '</div></li>';
+    if (avertirWanted()) html += avertirCardHtml(nameOf(1));
     return html;
   }
   /* La personne invitée ne connaît peut-être pas le jeu : trois écrans avant de rejoindre */
@@ -4433,6 +4508,7 @@
     return T('avertir.bloques-autre');
   }
   $('#wait-notif').addEventListener('click', (e) => toggleNotif(e.currentTarget));
+  $('#menu-avertir').addEventListener('click', async (e) => { await toggleNotif(e.currentTarget); renderMenuAvertir(); report('notif', null, 'menu'); });
   $('#duo-notif').addEventListener('click', (e) => toggleNotif(e.currentTarget));
   document.addEventListener('visibilitychange', () => {
     const vis = document.visibilityState === 'visible';
@@ -5529,7 +5605,7 @@
   $('#menu-close').addEventListener('click', () => { audio(); hide(ovMenu2); });
   ovMenu2.addEventListener('click', (e) => { if (e.target === ovMenu2) hide(ovMenu2); });
   // Un choix du menu le referme ; la fenêtre choisie s’ouvre à sa place
-  $('#ov-menu .menu-list').addEventListener('click', (e) => { if (e.target.closest('button')) hide(ovMenu2); }, true);
+  $('#ov-menu .menu-list').addEventListener('click', (e) => { if (e.target.closest('button') && !e.target.closest('#menu-avertir')) hide(ovMenu2); }, true);
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !ovMenu2.hidden) hide(ovMenu2); });
   $('#menu-complet').addEventListener('click', () => { audio(); openComplet('menu'); });
 

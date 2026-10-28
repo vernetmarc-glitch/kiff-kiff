@@ -61,6 +61,8 @@ window.KIFF_TEXTES = [
     ["menu.distance-sous", "La partie de ce téléphone, sur deux téléphones", "Menu, sous « Continuer à distance »"],
     ["menu.tourner-sous", "Faire découvrir le jeu", "Menu, sous « Fais tourner ! »"],
     ["menu.quiestla-sous", "L’histoire du jeu, un café, un mot à Marc", "Menu, sous « Qui est là ? »"],
+    ["menu.avertir", "Avertissements", "Dans le menu : activer ou couper les avertissements, pour toutes les parties"],
+    ["menu.avertir-sous", "Quand c’est ton tour, dans toutes tes parties", "Sous « Avertissements »"],
     ["menu.retrouver", "Retrouver une partie", "Menu"],
     ["menu.retrouver-sous", "Coller le lien reçu, ou celui copié dans le navigateur", "Menu, sous « Retrouver une partie »"],
     ["menu.complet", "Tout Kiff Kiff", "Menu : le jeu complet"]
@@ -476,6 +478,11 @@ window.KIFF_TEXTES = [
     ["attente.passe", "Retirer mon envie", "Petit lien sur la carte, pendant que l’autre lit ton envie : ouvre la fenêtre pour la retirer"],
     ["attente.prevenir", "Prévenir", "Icône : envoyer un message à l’autre (quand il ou elle n’est pas là)"],
     ["attente.message", "À toi de jouer sur Kiff Kiff !", "Le message envoyé par « Prévenir »"],
+    ["attente.prevenir-nom", "Prévenir {prénom}", "Le bouton sur la carte, quand l’autre a la main et n’est pas là : lui envoyer un message (WhatsApp, SMS…)"],
+    ["avertir.carte-kicker", "Être averti·e", "Dans la conversation, une fois, tant que les avertissements ne sont pas activés : au-dessus de la carte"],
+    ["avertir.carte", "Pour savoir tout de suite quand {prénom} répond, dans toutes tes parties.", "Cette carte"],
+    ["avertir.carte-oui", "Activer les avertissements", "Son bouton"],
+    ["avertir.carte-non", "Plus tard", "Son lien (elle ne revient plus)"],
     ["attente.copie", "Message copié : colle-le-lui.", "Ligne de présence, après « Prévenir » quand le téléphone copie"],
     ["attente.copie-impossible", "Copie impossible.", "Ligne de présence, quand la copie échoue"]
   ] },
@@ -605,6 +612,17 @@ window.KIFF_TEXTES = [
     ["retrouver.ok", "Retrouver", "Bouton"],
     ["retrouver.coller", "Coller le lien", "Bouton : lit le presse-papiers"],
     ["retrouver.non", "Annuler", "Lien"]
+  ] },
+  { id: "partage", nom: "Partager une envie", textes: [
+    ["partage.titre", "Partager cette envie", "Le titre de la fenêtre, ouverte par l’avion en papier au coin de la carte"],
+    ["partage.texte", "Sans prénom : seulement l’envie et kiff-kiff.fr.", "Sous le titre"],
+    ["partage.story", "Story", "Le format vertical (Instagram, WhatsApp…)"],
+    ["partage.publication", "Publication", "Le format de publication (plus carré)"],
+    ["partage.go", "Partager…", "Le bouton : ouvre les applis du téléphone"],
+    ["partage.note", "Instagram, WhatsApp, Messages… : les applis de ton téléphone", "Sous le bouton"],
+    ["partage.enregistrer", "Enregistrer l’image", "Bouton en contour"],
+    ["partage.lien", "Copier le lien du jeu", "Bouton en contour"],
+    ["partage.lien-ok", "Lien copié.", "Le mot bref après « Copier le lien du jeu »"]
   ] },
   { id: "installer", nom: "Installer l’appli", textes: [
     ["installer.titre", "Installer Kiff Kiff", "Titre, en touchant « Installer » sur un iPhone"],
