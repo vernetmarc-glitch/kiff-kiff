@@ -7,7 +7,9 @@
   padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 *, *::before, *::after { box-sizing: border-box; }
-html { height: 100%; height: 100dvh; }
+/* La hauteur de la fenêtre elle-même, pas 100dvh : dans l’appli installée, certains Android comptent dans 100dvh
+   la barre du système, et le bas du jeu (« Proposer ») passait sous le bas de l’écran (28 octobre 2026). */
+html { height: 100%; }
 [hidden] { display: none !important; }
 body {
   height: 100%;
