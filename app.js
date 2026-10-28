@@ -3560,6 +3560,8 @@
     S.started = true;
     S.mustRestart = false;
     applyGame(st, { first: true, spin: !!spin });
+    // Ouverte depuis l’accueil pour la conversation : elle s’ouvre tout de suite, sans attendre la boîte aux lettres (28 octobre 2026)
+    if (pendingPartie && !pendingKiff) openPendingKiff();
     // La discussion : les messages arrivés pendant l’absence, puis le kiff kiff d’un avertissement touché
     pullBox(true).then(openPendingKiff);
     renderChatBadges();
@@ -5320,7 +5322,7 @@
       (top.nu ? '<span class="badge badge--row" aria-label="' + top.nu + ' message' + (top.nu > 1 ? 's' : '') + ' non lu' + (top.nu > 1 ? 's' : '') + '">' + top.nu + '</span>' : '') + '</div>' +
       (line ? '<p class="une-line">' + esc(line) + '</p>' : '') +
       (top.msgLine ? '<p class="une-msg">' + esc(top.msgLine) + '</p>' : '') +
-      '<button class="btn une-go" type="button" data-home="' + esc(homeId(top)) + '"' + (isDuo && !top.state.me && top.nu ? ' data-partie="1"' : '') + '>' + esc(goLabel) + '</button>';
+      '<button class="btn une-go" type="button" data-home="' + esc(homeId(top)) + '"' + (isDuo && !['tourner', 'lire', 'relire', 'reprendre'].includes(top.state.go) ? ' data-partie="1"' : '') + '>' + esc(goLabel) + '</button>';
     une.classList.toggle('is-new', !!top.news);
     une.hidden = false;
     // Le titre de la liste porte la corbeille : il reste là, même avec une seule partie
@@ -5335,14 +5337,14 @@
       // Glisser la ligne vers la gauche (ou toucher la corbeille au-dessus de la liste) montre « Supprimer »
       return '<li class="home-game' + (it.news ? ' is-new' : '') + (homeOpen === id ? ' is-open' : '') + '" data-id="' + esc(id) + '">' +
         '<button class="home-del" type="button" data-del="' + esc(id) + '" tabindex="-1"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-supprimer"/></svg><span>' + esc(T('accueil.supprimer')) + '</span></button>' +
-        '<button class="home-game-btn" type="button" data-home="' + esc(id) + '"' + (isD && !it.state.me && it.nu ? ' data-partie="1"' : '') + '>' +
+        '<button class="home-game-btn" type="button" data-home="' + esc(id) + '"' + (isD ? ' data-partie="1"' : '') + '>' +
         '<span class="avatar' + (it.news ? ' is-new' : '') + '" aria-hidden="true">' + esc(initial(it.B || it.title)) + '</span>' +
         '<span class="home-game-text"><span class="home-game-name">' + esc(it.title) + '</span><span class="home-game-line' + (it.state.me ? ' is-me' : '') + '">' + esc(st) + '</span></span>' +
         '<span class="home-game-side"><span class="home-game-time">' + esc(it.t > 1 ? agoText(it.t) : '') + '</span>' +
         (it.nu ? '<span class="badge badge--row">' + it.nu + '<span class="sr-only"> non lus</span></span>' : '') + '</span></button></li>';
     }).join('');
   }
-  // Toucher une partie : elle s’ouvre (tout de suite) ; avec des messages non lus, à la conversation
+  // Toucher une partie de la liste : sa conversation, tout de suite (28 octobre 2026) ; le jeu seulement par le bouton de la une quand l’action y est (tourner, lire, relire, reprendre)
   let pendingPartie = false;
   function openFromHome(b) {
     const room = b.dataset.home;
