@@ -1033,6 +1033,8 @@ body:has(#ov-deal:not([hidden])) .deco-candles { display: none; }
 .chat-msg--gone { font-style: italic; opacity: .65; background: none; box-shadow: inset 0 0 0 1px color-mix(in srgb, currentColor 30%, transparent); padding: 6px 12px; }
 .chat-text { display: block; }
 .chat-meta { display: block; margin-top: 2px; text-align: right; font-size: 11.5px; opacity: .7; }
+/* Pas encore parti : le message pâlit tant qu’il attend la connexion */
+.chat-msg.is-attente { opacity: .62; }
 .chat-quote { display: block; margin: 0 0 5px; padding: 4px 8px; border-radius: 8px; font-size: 13px; opacity: .85;
   background: color-mix(in srgb, currentColor 8%, transparent); box-shadow: inset 3px 0 0 color-mix(in srgb, currentColor 55%, transparent);
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }

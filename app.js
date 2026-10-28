@@ -1896,16 +1896,17 @@
   const kidOf = (k) => String((k && k.d) || '');
   const kiffById = (kid) => (S.kiffs || []).find((k) => kidOf(k) === kid) || null;
   const roomNow = () => (duo && duo.info ? duo.info.room : '');
-  const canChat = () => !!duo && duo.stage === 'game' && !!duo.conn;
+  // Écrire marche aussi sans connexion : le message attend dans la boîte d’envoi
+  const canChat = () => !!duo && duo.stage === 'game' && !!duo.info;
   function chatBox(room) {
     const all = load('chats', {}) || {};
     const b = all[room || roomNow()] || {};
-    b.m = Array.isArray(b.m) ? b.m : []; b.lu = b.lu || {}; b.vu = b.vu || {}; b.kr = b.kr || {}; b.ev = Array.isArray(b.ev) ? b.ev : [];
+    b.m = Array.isArray(b.m) ? b.m : []; b.lu = b.lu || {}; b.vu = b.vu || {}; b.kr = b.kr || {}; b.ev = Array.isArray(b.ev) ? b.ev : []; b.out = Array.isArray(b.out) ? b.out : [];
     return b;
   }
   function chatSave(b, room) {
     const all = load('chats', {}) || {};
-    b.m = b.m.slice(-CHAT_MAX); b.ev = b.ev.slice(-600); b.t = Date.now();
+    b.m = b.m.slice(-CHAT_MAX); b.ev = b.ev.slice(-600); b.out = (b.out || []).slice(-300); b.t = Date.now();
     all[room || roomNow()] = b;
     // 30 parties au plus, les plus récentes
     const keep = Object.keys(all).sort((x, y) => (all[y].t || 0) - (all[x].t || 0)).slice(0, 30);
@@ -1939,9 +1940,17 @@
       if (emo) target[s] = emo; else delete target[s];
     } else if (ev.ty === 'v') {
       b.vu[k] = Math.max(b.vu[k] || 0, +ev.d || 0);
+    } else if (ev.ty === 'a' && Array.isArray(ev.ids)) {
+      // L’accusé de réception : ces messages sont arrivés sur l’autre téléphone
+      const ids = new Set(ev.ids.slice(0, 200).map(String));
+      b.m.forEach((m) => { if (m.s !== s && ids.has(m.id)) m.st = Math.max(m.st || 0, 3); });
     }
     return true;
   }
+  /* La boîte d’envoi (28 octobre 2026) : chaque message reste sur le téléphone tant que la feuille n’a pas dit
+     qu’elle le garde pour l’autre. Il repart tout seul (connexion retrouvée, retour dans l’appli, toutes les 15 s).
+     Sous mes messages : « en attente » (pas encore parti), « envoyé » (il attend l’autre), « reçu », « lu ».
+     m.st : 1 en attente, 2 envoyé, 3 reçu. */
   function sendChat(ev) {
     if (!canChat()) return;
     ev.ev = window.KiffDuo.newId();
@@ -1949,14 +1958,77 @@
     ev.d = ev.d || Date.now();
     const b = chatBox();
     applyChat(ev, b);
-    chatSave(b);
-    duo.conn.chat(ev).catch(() => {});
+    let p = 0;
     if (ev.ty === 'm') {
-      // L’autre téléphone est averti à chaque message (il se tait s’il a déjà Kiff Kiff à l’écran)
+      const m = b.m.find((x) => x.id === ev.id); if (m) m.st = 1;
+      // L’autre téléphone est averti quand le message est parti (il se tait s’il a déjà Kiff Kiff à l’écran)
       const sub = Array.isArray(duo.push) ? duo.push[other(duo.seat)] : null;
-      if (KP && sub) KP.send(sub, { k: 'message', r: duo.info.room, n: String(nameOf(duo.seat) || '').trim().slice(0, 30), kf: ev.k });
+      if (KP && sub) p = { sub, n: String(nameOf(duo.seat) || '').trim().slice(0, 30), kf: ev.k };
     }
+    b.out.push({ ev, p });
+    chatSave(b);
+    flushOut();
   }
+  const hasOut = () => { const all = load('chats', {}) || {}; return Object.keys(all).some((r) => Array.isArray(all[r].out) && all[r].out.length); };
+  let flushing = false, flushAgain = false;
+  async function flushOut() {
+    if (flushing) { flushAgain = true; return; }
+    if (!window.KiffDuo || !window.KiffDuo.boxSend || !window.crypto || !crypto.subtle) return;
+    flushing = true;
+    let touched = false;
+    try {
+      const all = load('chats', {}) || {};
+      for (const room of Object.keys(all)) {
+        const out = Array.isArray(all[room].out) ? all[room].out.slice() : [];
+        if (!out.length) continue;
+        const g = findGame(room);
+        if (!g || !g.key) continue;
+        const info = { broker: g.broker, room, key: g.key };
+        const done = [];
+        let push = null;
+        // Dans l’ordre : au premier échec, on s’arrête (on réessaiera)
+        for (const it of out) {
+          if (!it || !it.ev) { done.push(''); continue; }
+          const conn = duo && duo.info && duo.info.room === room ? duo.conn : null;
+          let ok = false;
+          try { ok = await window.KiffDuo.boxSend(info, other(g.seat), it.ev, conn); } catch (e) { ok = false; }
+          if (!ok) break;
+          done.push(it.ev.ev);
+          if (it.p) push = it.p;
+        }
+        if (!done.length) continue;
+        touched = true;
+        const b = chatBox(room);
+        const ids = new Set(done);
+        const sent = new Set();
+        b.out = b.out.filter((it) => { if (!it || !it.ev) return false; if (!ids.has(it.ev.ev)) return true; if (it.ev.ty === 'm') sent.add(it.ev.id); return false; });
+        b.m.forEach((m) => { if (sent.has(m.id)) m.st = Math.max(m.st || 0, 2); });
+        chatSave(b, room);
+        if (push && KP) KP.send(push.sub, { k: 'message', r: room, n: push.n, kf: push.kf });
+      }
+    } finally { flushing = false; }
+    if (touched && duo && !ovPartie.hidden) renderChat();
+    if (flushAgain) { flushAgain = false; flushOut(); }
+  }
+  // Les messages d’avant la boîte d’envoi, qui n’ont peut-être jamais quitté ce téléphone : ils repartent une fois.
+  // L’autre téléphone ne garde pas un message qu’il a déjà.
+  function resendOld() {
+    const all = load('chats', {}) || {};
+    const since = Date.now() - 14 * 864e5;
+    Object.keys(all).forEach((room) => {
+      const b0 = all[room];
+      if (!b0 || b0.mig || !Array.isArray(b0.m)) return;
+      const g = findGame(room);
+      if (!g || !g.key || !window.KiffDuo) return;
+      const b = chatBox(room);
+      b.mig = 1;
+      b.m.filter((m) => m.s === g.seat && !m.x && !m.st && m.d > since && m.d > Math.max(b.vu[THREAD] || 0, b.vu[m.k] || 0)).slice(-30)
+        .forEach((m) => b.out.push({ ev: { ty: 'm', id: m.id, k: m.k, t: m.t, d: m.d, q: m.q || '', s: g.seat, ev: window.KiffDuo.newId() }, p: 0 }));
+      chatSave(b, room);
+    });
+  }
+  // L’accusé de réception : quelques secondes après, une fois pour tout ce qui vient d’arriver
+  let recT = 0, recIds = [], recRoom = '';
   // Ce qui arrive de l’autre téléphone, en direct ou par la boîte aux lettres
   let ackT = 0, ackIds = [];
   function receiveChat(list, viaBox) {
@@ -1967,9 +2039,15 @@
       if (!ev) return;
       if (ev.s === duo.seat) return; // un écho de mes propres messages
       if (applyChat(ev, b) && ev.ty === 'm') fresh++;
+      if (ev.ty === 'm' && ev.id) recIds.push(String(ev.id));
       if (!viaBox) ackIds.push(ev.ev);
     });
     chatSave(b);
+    if (recIds.length) {
+      if (recRoom !== duo.info.room) { recRoom = duo.info.room; recIds = recIds.slice(-list.length); }
+      clearTimeout(recT);
+      recT = setTimeout(() => { const ids = [...new Set(recIds.splice(0))].slice(-100); if (ids.length && canChat() && duo.info.room === recRoom) sendChat({ ty: 'a', k: THREAD, ids }); }, 1200);
+    }
     if (ackIds.length) { clearTimeout(ackT); ackT = setTimeout(() => { if (duo && duo.info) window.KiffDuo.boxAck(duo.info, duo.seat, ackIds.splice(0)); }, 1500); }
     if (fresh && partieOn() && document.visibilityState === 'visible') { sClick(); haptic(8); }
     renderChat(); renderChatBadges();
@@ -1986,7 +2064,10 @@
     receiveChat(got.map((x) => x.obj).filter(Boolean).sort((x, y) => (x.d || 0) - (y.d || 0)), true);
     window.KiffDuo.boxAck(duo.info, seat, got.map((x) => x.id));
   }
-  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') pullBox(); });
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') { pullBox(); flushOut(); } });
+  window.addEventListener('online', () => flushOut());
+  setInterval(() => { if (document.visibilityState === 'visible' && navigator.onLine !== false && hasOut()) flushOut(); }, 15000);
+  setTimeout(() => { try { resendOld(); } catch (e) { /* rien */ } flushOut(); }, 1500);
   // « écrit… »
   let typingKid = '', typingT = 0, myTypingT = 0, myTypingAt = 0;
   function onTyping(kid) {
@@ -2202,11 +2283,14 @@
       if (m.q === '_') { const k = kiffById(m.k); quote = '<span class="chat-quote" data-goto="' + esc(m.k) + '">' + esc(T('chat.cite-kiff')) + ' · ' + esc(k ? cutSentence(k.t, 60) : '…') + '</span>'; }
       else if (m.q) { const q = b.m.find((x) => x.id === m.q); if (q) quote = '<span class="chat-quote">' + esc(q.x ? T('chat.supprime') : (q.t || '').slice(0, 80)) + '</span>'; }
       const vu = Math.max(b.vu[THREAD] || 0, b.vu[m.k] || 0);
-      const meta = hhmm(m.d) + (m.e ? ' · ' + T('chat.modifie') : '') + (mine && lastMine && lastMine.id === m.id && vu >= m.d ? ' · ' + T('chat.lu') : '');
+      // L’état d’un message à moi : en attente (sur chacun), puis envoyé, reçu, lu (sous le dernier)
+      const wait = mine && m.st === 1;
+      const etat = wait ? T('chat.attente') : mine && lastMine && lastMine.id === m.id ? (vu >= m.d ? T('chat.lu') : m.st === 3 ? T('chat.recu') : m.st === 2 ? T('chat.envoye') : '') : '';
+      const meta = hhmm(m.d) + (m.e ? ' · ' + T('chat.modifie') : '') + (etat ? ' · ' + etat : '');
       const cont = sameRun(items[i - 1], it), more = sameRun(it, items[i + 1]);
-      const showMeta = !more || m.e || (mine && lastMine && lastMine.id === m.id);
+      const showMeta = !more || m.e || wait || (mine && lastMine && lastMine.id === m.id);
       const jumbo = !quote && /^(?:[\p{Extended_Pictographic}\p{Emoji_Component}\u200d\ufe0f]|\s){1,24}$/u.test(m.t) && !/^[\d#*\s]+$/.test(m.t) && [...m.t.replace(/\s/g, '')].length <= 12;
-      html += '<li class="chat-msg' + (mine ? ' is-mine' : '') + (jumbo ? ' is-emoji' : '') + (cont ? ' is-cont' : '') + (more ? ' is-more' : '') + '" data-mid="' + esc(m.id) + '" tabindex="0" aria-label="' + esc((mine ? T('chat.toi') : B) + ' : ' + m.t + ', ' + hhmm(m.d)) + '">' +
+      html += '<li class="chat-msg' + (mine ? ' is-mine' : '') + (wait ? ' is-attente' : '') + (jumbo ? ' is-emoji' : '') + (cont ? ' is-cont' : '') + (more ? ' is-more' : '') + '" data-mid="' + esc(m.id) + '" tabindex="0" aria-label="' + esc((mine ? T('chat.toi') : B) + ' : ' + m.t + ', ' + hhmm(m.d)) + '">' +
         quote + '<span class="chat-text">' + msgHtml(m.t) + '</span>' + (showMeta ? '<span class="chat-meta">' + esc(meta) + '</span>' : '') +
         (m.r && Object.keys(m.r).length ? '<span class="chat-reacts">' + reactsHtml(m.r) + '</span>' : '') + '</li>';
     });
@@ -2278,7 +2362,7 @@
     growInput();
     if (!canChat()) return;
     const now = Date.now();
-    if (now - myTypingAt > 2500 && chatInput.value.trim()) { myTypingAt = now; duo.conn.typing(THREAD); }
+    if (now - myTypingAt > 2500 && chatInput.value.trim() && duo.conn) { myTypingAt = now; duo.conn.typing(THREAD); }
     clearTimeout(myTypingT);
     myTypingT = setTimeout(() => { if (myTypingAt && duo && duo.conn) { duo.conn.typing(''); myTypingAt = 0; } }, 4000);
   });
@@ -2298,7 +2382,7 @@
     }
     chatInput.value = ''; growInput();
     replyTo = null; editing2 = null; citeKid = ''; renderReplyBar();
-    if (myTypingAt) { duo.conn.typing(''); myTypingAt = 0; }
+    if (myTypingAt && duo.conn) { duo.conn.typing(''); myTypingAt = 0; }
     renderChat(true);
   });
   // Les émojis du jeu
@@ -3875,7 +3959,7 @@
       duo.partnerOn = on;
       renderDuoStatus();
     },
-    status: (ok) => { if (duo) { duo.online = ok; renderDuoStatus(); } },
+    status: (ok) => { if (duo) { duo.online = ok; renderDuoStatus(); if (ok) flushOut(); } },
     chat: (obj) => receiveChat([obj]),
     typing: (kid) => onTyping(kid)
   };

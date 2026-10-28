@@ -105,12 +105,25 @@
 
   /* La boîte aux lettres de la discussion, dans la feuille : un message attend, chiffré, que l’autre
      téléphone vienne le chercher ; il est effacé dès qu’il l’a reçu (30 jours au plus). */
+  // Vrai seulement quand la feuille a répondu qu’elle garde le message : sinon il reste à envoyer
   async function boxPut(info, place, id, corps) {
-    if (!api()) return;
+    if (!api()) return false;
+    const ctl = window.AbortController ? new AbortController() : null;
+    const t = setTimeout(() => ctl && ctl.abort(), 20000);
     try {
-      await fetch(api(), { method: 'POST', mode: 'no-cors', keepalive: corps.length < 60000,
-        body: JSON.stringify({ action: 'boite', partie: info.room, place, id, corps }) });
-    } catch (e) { /* le relais l’a peut-être déjà remis */ }
+      const r = await fetch(api(), Object.assign({ method: 'POST', body: JSON.stringify({ action: 'boite', partie: info.room, place, id, corps }) }, ctl ? { signal: ctl.signal } : {}));
+      const j = await r.json();
+      return !!(j && j.ok);
+    } catch (e) { return false; } finally { clearTimeout(t); }
+  }
+  // Un message de la boîte d’envoi : par le relais s’il est là, et dans la boîte aux lettres de la feuille.
+  // Marche aussi sans connexion au relais (la partie n’a pas besoin d’être ouverte).
+  async function boxSend(info, place, obj, conn) {
+    const data = await seal(await keyOf(info), obj);
+    let relais = false;
+    if (conn && conn.client && conn.client.connected && !conn.closed) { try { conn.client.publish(conn.base + 'm/' + place, data, { qos: 1 }); relais = true; } catch (e) { /* la feuille suffit */ } }
+    if (!api()) return relais;
+    return boxPut(info, place, obj.ev, b64u.enc(data));
   }
   async function boxLoad(info, place, timeoutMs = 8000) {
     const out = [];
@@ -198,14 +211,6 @@
       }).catch(() => {});
       return this.queue;
     }
-    // La discussion : en direct par le relais, et dans la boîte aux lettres pour quand l’autre n’est pas là
-    async chat(obj) {
-      const dest = 1 - this.seat;
-      const data = await seal(this.key, obj);
-      // Hors connexion, le client garde le message et l’envoie en se reconnectant ; la boîte aux lettres le garde aussi
-      if (this.client) this.client.publish(this.base + 'm/' + dest, data, { qos: 1 });
-      await boxPut(this.info, dest, obj.ev, b64u.enc(data));
-    }
     typing(kid) {
       if (this.client && this.client.connected && !this.closed) this.client.publish(this.base + 't/' + this.seat, kid || '', { qos: 0 });
     }
@@ -249,5 +254,5 @@
     return qr.createSvgTag({ cellSize: 4, margin: 2, scalable: true });
   }
 
-  window.KiffDuo = { supported, parse, link, create, join, qrSvg, storeSave, storeLoad, boxLoad, boxAck, newId: () => b64u.enc(rand(9)) };
+  window.KiffDuo = { supported, parse, link, create, join, qrSvg, storeSave, storeLoad, boxLoad, boxAck, boxSend, newId: () => b64u.enc(rand(9)) };
 })();
