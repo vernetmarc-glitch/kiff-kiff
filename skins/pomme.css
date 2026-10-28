@@ -33,6 +33,7 @@
   --f-ui: "Merriweather", Georgia, "Times New Roman", serif;
 
   --theme-color: #D7262F;
+  --edge-haut: #D7262F; --edge-bas: #F3E3C0; --edge-page: #FFF5DD; --edge-page-bas: #F3E3C0;
   --confetti: #E6B33A, #D7262F, #FFF6DE, #1E8C8A, #E6B33A, #1D2A55;
   --confetti-shapes: star, ticket, dot, star, rect;
 }

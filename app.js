@@ -16,6 +16,8 @@
  */
 (() => {
   'use strict';
+  // iPhone, appli installée sur l’écran d’accueil : les bandes unies du haut et du bas (base.css, .edge)
+  if (navigator.standalone === true) document.documentElement.classList.add('ios-app');
 
   const D = window.ROUE_DATA;
   const $ = (s) => document.querySelector(s);
@@ -2110,6 +2112,7 @@
     chatInput.placeholder = duo ? T('chat.placeholder', { prénom: nameOf(other(duo.seat)) }) : '';
     $('#chat-bar').hidden = !canChat();
     renderChat(true);
+    fitCarte();
     // Tant que la partie est à l’écran : la boîte aux lettres, de temps en temps, au cas où le relais aurait manqué un message
     clearInterval(boxPoll); if (canChat()) boxPoll = setInterval(() => { if (document.visibilityState === 'visible') pullBox(); }, 20000);
     report('discussion', null, 'ouverte');
@@ -3874,7 +3877,17 @@
     else { face = 'envie'; html = text([]); }
     c.dataset.face = face;
     c.innerHTML = html;
+    fitCarte();
   }
+  // « J’ai envie… » sur une ligne, dans la largeur de la petite carte, quelle que soit la police de l’ambiance
+  function fitCarte() {
+    const s = document.querySelector('#partie-carte .carte-script');
+    if (!s) return;
+    s.style.fontSize = '';
+    const cw = s.clientWidth, w = s.scrollWidth;
+    if (cw && w > cw) s.style.fontSize = Math.max(9, Math.floor(parseFloat(getComputedStyle(s).fontSize) * cw / w * 10) / 10) + 'px';
+  }
+  if (document.fonts && document.fonts.addEventListener) document.fonts.addEventListener('loadingdone', () => fitCarte());
 
   // Les avertissements, dans le menu : un interrupteur pour toutes les parties
   function renderMenuAvertir() {

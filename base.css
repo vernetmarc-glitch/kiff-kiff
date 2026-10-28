@@ -1719,7 +1719,7 @@ html.kb-open .overlay.overlay--partie:not([hidden]), html.kb-open .overlay.overl
 .partage-plus .btn { letter-spacing: .02em; font-size: 13.5px; line-height: 1.15; }
 .sheet--partage .partage-head .edit-label { font-size: clamp(28px, 8.5vw, 36px); line-height: 1.1; }
 /* La petite carte : « J’ai envie… » sur une ligne ; un prénom long se coupe (28 octobre 2026) */
-.partie-carte .carte-script { white-space: nowrap; font-size: 14px; max-width: 100%; overflow: hidden; }
+.partie-carte .carte-script { white-space: nowrap; font-size: 14px; max-width: calc(100% + 8px); margin-left: -4px; margin-right: -4px; overflow: hidden; text-align: center; }
 .partie-carte .carte-who { max-width: calc(100% - 8px); box-sizing: border-box; }
 .partie-carte .carte-who-nom { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .partie-carte .who-initial { flex: none; }
@@ -1727,3 +1727,17 @@ html.kb-open .overlay.overlay--partie:not([hidden]), html.kb-open .overlay.overl
 .partie-acts { min-width: 0; max-width: 100%; }
 .partie-acts .partie-go { max-width: 100%; min-width: 0; }
 .partie-prevenir > span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* iPhone, appli installée sur l’écran d’accueil (iOS 26, 28 octobre 2026) : le système floute le haut de l’écran
+   (la barre d’état et environ 40 pt dessous), sauf s’il y trouve une boîte fixe, pleine largeur, d’une couleur unie,
+   dont il prolonge alors la couleur. Même chose en bas, où il laissait une bande noire. Deux bandes unies aux couleurs
+   de l’ambiance (--edge-haut, --edge-bas ; --edge-page pour les pages pleines), et le contenu se pousse d’autant. */
+.edge { display: none; }
+html.ios-app .edge { display: block; position: fixed; left: 0; right: 0; z-index: 2147483000; background-color: var(--edge-haut, var(--theme-color, #000)); }
+html.ios-app .edge--haut { top: 0; height: max(12px, env(safe-area-inset-top, 0px)); }
+html.ios-app .edge--bas { bottom: 0; height: max(12px, env(safe-area-inset-bottom, 0px)); background-color: var(--edge-bas, var(--edge-haut, var(--theme-color, #000))); }
+html.ios-app:has(.overlay--partie:not([hidden]), .overlay--envie:not([hidden]), .overlay--kiffs:not([hidden])) .edge { background-color: var(--edge-page, var(--edge-haut, var(--theme-color, #000))); }
+html.ios-app:has(.overlay--partie:not([hidden]), .overlay--envie:not([hidden]), .overlay--kiffs:not([hidden])) .edge--bas { background-color: var(--edge-page-bas, var(--edge-page, var(--edge-bas, var(--theme-color, #000)))); }
+html.ios-app:root { padding-top: max(12px, env(safe-area-inset-top, 0px)); padding-bottom: max(12px, env(safe-area-inset-bottom, 0px)); }
+html.ios-app .overlay--partie > .sheet, html.ios-app .overlay--envie > .sheet, html.ios-app .overlay--kiffs > .sheet {
+  padding-top: max(16px, calc(env(safe-area-inset-top, 0px) + 4px)) !important; padding-bottom: max(16px, calc(env(safe-area-inset-bottom, 0px) + 4px)) !important; }

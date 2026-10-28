@@ -22,6 +22,7 @@
   --f-ui: "Archivo", "Helvetica Neue", Arial, sans-serif;
 
   --theme-color: #FFE45C;
+  --edge-haut: #F6D95A; --edge-bas: #F6D95A;
   --confetti: #FFE45C, #2E4FA3, #2E1670, #FFF08F, #FFE45C, #2E4FA3;
   --confetti-shapes: dot, rect, dot, rect, rect;
   --halftone-pink: radial-gradient(circle, var(--pink) 1.25px, transparent 1.7px) 0 0 / 5px 5px;

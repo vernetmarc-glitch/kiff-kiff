@@ -31,6 +31,7 @@
   --f-ui: "Jost", "Futura", "Century Gothic", "Trebuchet MS", sans-serif;
 
   --theme-color: #2B040C;
+  --edge-haut: #6E1B2C; --edge-bas: #5E1826;
   --confetti: #D9AE5B, #F6DDA0, #E9A6B0, #C2213F, #F7E9D3, #D9AE5B;
   --confetti-shapes: petal, sparkle, petal, sparkle, sparkle, petal;
 

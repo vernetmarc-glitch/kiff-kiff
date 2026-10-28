@@ -27,6 +27,7 @@
   --f-ui: "Courier Prime", "Courier New", monospace;
 
   --theme-color: #141414;
+  --edge-haut: #C6AC7A; --edge-bas: #C6AC7A; --edge-page: #F3F2EC; --edge-page-bas: #F3F2EC;
   --confetti: #C8102E, #141414, #F2EFE8, #C8102E, #3D3B36, #141414;
   --confetti-shapes: rect, rect, dot, rect, rect;
   --orig-hl: rgba(200, 16, 46, .14);

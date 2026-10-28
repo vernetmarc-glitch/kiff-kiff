@@ -29,6 +29,7 @@
   --f-ui: "Manrope", "Avenir Next", "Helvetica Neue", sans-serif;
 
   --theme-color: #0E0C16;
+  --edge-haut: #0E0C16; --edge-bas: #0E0C16; --edge-page: #17141F; --edge-page-bas: #17141F;
   --confetti: #B9A6FF, #D9CEFF, #FF7A9C, #F2EFFA, #7E6AD6, #B9A6FF;
   --confetti-shapes: dot, rect, dot, sparkle, rect;
   --orig-hl: rgba(185, 166, 255, .22);

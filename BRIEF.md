@@ -243,6 +243,7 @@ Page de travail : https://kiff-kiff.fr/atelier/ (remplace l’ancien « Atelier 
 
 ## Fichiers
 
+- **iPhone, appli installée (iOS 26)** (28 octobre 2026) : le système floute le haut de l’écran sauf s’il y trouve une boîte fixe d’une couleur unie, et laissait une bande noire en bas. Deux bandes unies aux couleurs de l’ambiance (`.edge`, variables `--edge-haut`, `--edge-bas`, `--edge-page`, `--edge-page-bas` dans chaque ambiance) se posent en haut et en bas, seulement dans l’appli installée sur iPhone (`html.ios-app`). Sur la petite carte, « J’ai envie… » rétrécit pour tenir sur sa ligne, quelle que soit la police.
 - **Adresse** : https://kiff-kiff.fr (domaine chez OVHcloud, DNS vers GitHub Pages, HTTPS forcé ; fichier `CNAME`). Dépôt `vernetmarc-glitch/kiff-kiff`. L’ancienne adresse `vernetmarc-glitch.github.io/roue-du-consentement/` est servie par le petit dépôt `vernetmarc-glitch/roue-du-consentement` : une page de passage emporte dans le « # » du lien (jamais envoyé à un serveur) ce que le téléphone gardait là-bas (parties à deux, prénoms, ambiance, réglages), et le haut de `index.html` le reprend sur kiff-kiff.fr sans écraser ce qui y est déjà. Les anciens liens d’invitation, les QR codes déjà partagés et les applis installées continuent de marcher ; il faut seulement réactiver les avertissements et réinstaller l’appli sur l’écran d’accueil depuis kiff-kiff.fr.
 
 - `index.html` : structure de l’écran, écrans superposés, sélecteur d’ambiance.
