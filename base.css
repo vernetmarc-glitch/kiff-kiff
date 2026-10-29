@@ -1807,3 +1807,5 @@ body.en-jeu #home .ic-back { display: block; }
 @media (prefers-reduced-motion: reduce) {
   .non-carte.is-anim, .non-carte.is-anim .non-face, .non-carte.is-anim .non-cadre, .non-carte.is-anim .emblem, .overlay--non .party-title, .overlay--non .non-texte, .overlay--non .party-acts { animation-duration: .01s; animation-delay: 0s; }
 }
+/* Sous les trois réponses (29 octobre 2026) : toutes les réponses sont bonnes */
+.offer-toutes { margin: 14px 0 0; text-align: center; font-size: 15px; line-height: 1.4; opacity: .85; white-space: pre-line; }

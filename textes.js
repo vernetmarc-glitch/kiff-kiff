@@ -226,6 +226,7 @@ window.KIFF_TEXTES = [
     ["offre.oui-ajuste", "Oui, j’ai envie", "Le premier bouton, quand on relit son envie ajustée"],
     ["offre.mais", "Oui, mais j’ajuste", "Le deuxième bouton : l’écran d’après explique qu’on change une chose"],
     ["offre.passe", "Non, et c’est très bien", "Le troisième bouton, du même poids que les deux autres"],
+    ["offre.toutes", "Et toi, tu as vraiment envie ?\nToutes les réponses sont bonnes !", "Sous les trois réponses (deux lignes)"],
     ["offre.oups", "Oups, {prénom} n’avait pas fini", "Tout en bas, sur un seul téléphone"]
   ] },
   { id: "mais", nom: "Oui, mais…", textes: [
