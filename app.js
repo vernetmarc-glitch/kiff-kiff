@@ -4000,7 +4000,8 @@
     g.hidden = !!choix || !go; g.textContent = go;
     // Après une envie envoyée, tant que l’appli n’est pas installée : l’installer, pour être averti·e de la réponse
     $('#wait-install').hidden = true; // depuis le 27 octobre 2026 : une carte dans la conversation (installCardHtml)
-    if (choix) $('#wait-nudge').hidden = true;
+    // « Prévenir Lou » : seulement à distance (sur un téléphone, on se passe le téléphone)
+    if (choix || !duo) $('#wait-nudge').hidden = true;
   }
   $('#partie-choix').addEventListener('click', (e) => {
     const b = e.target.closest('[data-choix]');
