@@ -30,7 +30,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,62..125,100..900;1,62..125,100..900&family=Bagel+Fat+One&family=Abril+Fatface&family=Merriweather:ital,opsz,wght@0,18..144,400..900;1,18..144,400..900&family=Baskervville:ital,wght@0,400..700;1,400..700&family=Jost:wght@300..700&family=Great+Vibes&family=Cinzel:wght@400..900&family=Syne:wght@600..800&family=Manrope:wght@400..800&family=Anton&family=Courier+Prime:wght@400;700&display=swap">
-<link rel="stylesheet" href="base.css?v=132">
+<link rel="stylesheet" href="base.css?v=133">
 <link rel="stylesheet" href="skins/arty.css?v=72" data-skin-sheet="arty">
 <link rel="stylesheet" href="skins/pomme.css?v=74" data-skin-sheet="pomme">
 <link rel="stylesheet" href="skins/redcorner.css?v=76" data-skin-sheet="redcorner">
@@ -667,6 +667,22 @@
 </div>
 
 <!-- Vos kiff kiff : le catalogue des envies -->
+<!-- Un non, c’est une fête aussi (29 octobre 2026) : la carte se retourne et s’en va, les mêmes confettis que pour un kiff kiff.
+     Chez qui dit non : qui propose maintenant ; chez qui le reçoit (à deux téléphones) : un mot, puis la partie. -->
+<div class="overlay overlay--party overlay--non" id="ov-non" hidden role="dialog" aria-modal="true" aria-labelledby="non-title">
+  <canvas class="confetti" id="confetti-non" aria-hidden="true"></canvas>
+  <div class="sheet">
+    <div class="non-scene" aria-hidden="true">
+      <div class="non-carte" id="non-carte">
+        <div class="non-face party-card"><p class="party-sentence" id="non-sentence"></p></div>
+        <div class="non-face non-dos"><span class="non-cadre party-sentence"></span><svg class="emblem emblem--party" viewBox="0 0 168 124"><path class="e-lens" d="M84 21.6A46 46 0 0 1 84 102.4A46 46 0 0 1 84 21.6Z"/><circle class="e-ring" cx="62" cy="62" r="46"/><circle class="e-ring" cx="106" cy="62" r="46"/></svg></div>
+      </div>
+    </div>
+    <h2 class="party-title" id="non-title"><span class="ink ink--flat" data-ink="Non, et c’est très bien.">Non, et c’est très bien.</span></h2>
+    <p class="party-text non-texte" id="non-texte"></p>
+    <div class="party-acts" id="non-acts"></div>
+  </div>
+</div>
 <div class="overlay overlay--edit overlay--skins overlay--loupe overlay--kiffs" id="ov-kiffs" hidden role="dialog" aria-modal="true" aria-labelledby="kiffs-title">
   <div class="sheet sheet--edit sheet--skins sheet--loupe sheet--kiffs">
     <div class="kiff-head">
@@ -902,12 +918,12 @@
 </div>
 
 <script src="data.js?v=64"></script>
-<script src="textes.js?v=37"></script>
+<script src="textes.js?v=38"></script>
 <script src="semantique.js?v=1"></script>
 <script src="config.js?v=63"></script>
 <script src="duo.js?v=64"></script>
 <script src="push.js?v=65"></script>
-<script src="app.js?v=154"></script>
+<script src="app.js?v=155"></script>
 <!-- iPhone, appli installée : deux bandes d’une couleur unie en haut et en bas de l’écran (voir base.css) -->
 <div class="edge edge--haut" aria-hidden="true"></div><div class="edge edge--bas" aria-hidden="true"></div>
 </body>

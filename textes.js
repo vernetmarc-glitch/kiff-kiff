@@ -237,6 +237,9 @@ window.KIFF_TEXTES = [
   { id: "passe", nom: "Non", textes: [
     ["passe.titre", "Non, et c’est très bien.", "Le grand titre, après avoir dit non"],
     ["passe.titre-tour", "On passe.", "Le titre de la carte, quand on passe son tour sans proposer"],
+    ["non.texte", "Dire non, c’est faire confiance à l’autre. C’est ce qui fait des oui de vrais oui.", "La fête du non, chez qui dit non : sous le titre « Non, et c’est très bien. »"],
+    ["non.recu-titre", "{prénom} a dit non.", "La fête du non, chez qui le reçoit (à deux téléphones) : le titre"],
+    ["non.recu-texte", "Merci pour sa confiance : un non libre, c’est ce qui fait des oui de vrais oui.", "La fête du non, chez qui le reçoit : sous le titre"],
     ["passe.texte", "Pas besoin d’expliquer pourquoi.", "Sous le titre"],
     ["passe.meme", "{prénom} propose autre chose", "Premier bouton"],
     ["passe.autre", "{prénom} propose à son tour", "Deuxième bouton"],

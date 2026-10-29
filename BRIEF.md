@@ -95,6 +95,8 @@ Une seule façon de jouer, qu’on soit sur un téléphone ou à distance : **le
 
 Sur un seul téléphone, chaque modale commence par « Passe le téléphone à … » et offre un lien « Oups, … n’avait pas fini » pour revenir en arrière.
 
+**La fête du non** (29 octobre 2026) : toute réponse à une envie est une célébration. Après « Non, et c’est très bien » (et « Finalement, non » après un kiff kiff), un écran plein (`#ov-non`) : l’envie sur sa carte, la carte se retourne, son cadre se dissout et il reste les deux cercles ; les mêmes confettis et le même son que pour un kiff kiff ; puis « Non, et c’est très bien. », « Dire non, c’est faire confiance à l’autre. C’est ce qui fait des oui de vrais oui. » (`non.texte`) et le choix de qui propose (« Finalement, on continue » rouvre l’envie). À deux téléphones, chez qui reçoit le non : la même fête avec sa propre envie, « Marc a dit non. » (`non.recu-titre`), « Merci pour sa confiance : un non libre, c’est ce qui fait des oui de vrais oui. » (`non.recu-texte`), « D’accord » ramène au fil. Pas de fête quand on retire sa propre envie ou qu’on passe son tour.
+
 **Dire non** est possible à tout moment, sans justification : la même personne propose autre chose, ou l’autre propose à son tour. Dans les règles et le principe, on dit « Non » (29 octobre 2026 ; avant : « On passe ») ; le bouton « On passe » de l’écran de jeu, pour changer de tour sans proposer, garde son nom.
 
 ## Grammaire

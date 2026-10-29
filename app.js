@@ -823,11 +823,11 @@
   function hide(ov) { ov.hidden = true; offerVue(); if (FIL_MODALES.has(ov.id)) filMaj(); }
   /* Le fil de la partie (29 octobre 2026) : sur un ou deux téléphones, le rendez-vous de la partie. Il revient tout seul
      quand une fenêtre du jeu se ferme (l’envie, la fête, l’accueil…) ; un instant après, quand tout est en place. */
-  const FIL_MODALES = new Set(['ov-start', 'ov-offer', 'ov-hot', 'ov-one', 'ov-party', 'ov-edit', 'ov-gift']);
+  const FIL_MODALES = new Set(['ov-start', 'ov-offer', 'ov-hot', 'ov-one', 'ov-party', 'ov-edit', 'ov-gift', 'ov-non']);
   let filPret = false, filT = false;
   // roues : on est allé aux roues depuis le fil ; choix : la carte d’action propose qui propose après un non ;
   // nouvelle : ce que l’autre téléphone vient de faire (un non…), dit dans la carte ; tient : qui tient le téléphone (un téléphone)
-  let roues = false, choix = null, nouvelle = null, rouesThen = null, tient = -1;
+  let roues = false, choix = null, nouvelle = null, rouesThen = null, tient = -1, nonRecu = '';
   const enJeu = () => (duo ? duo.stage === 'game' : S.started && !S.mustRestart && !S.gifting);
   const tourCle = () => S.phase + ':' + S.proposer;
   const rouesVisibles = () => roues && !choix && myTurn() && (S.phase === 'compose' || S.phase === 'adjust');
@@ -1306,13 +1306,52 @@
     const retire = !!duo && duo.stage === 'game' && S.proposer === duo.seat && (S.phase === 'review' || S.phase === 'adjust') && !myTurn();
     const fete = !el.ovParty.hidden;
     choix = { kind: retire ? 'retirer' : fete ? 'fete' : S.phase === 'compose' ? 'tour' : 'non', offre: offerKind };
+    // L’envie à laquelle on dit non (pour la carte qui se retourne)
+    const refusee = offerKind === 'reconfirm' || fete ? sentence() : S.original ? sentenceFrom(S.original) : sentence();
     hide(el.ovPass);
     if (offerKind) hideOffer();
     if (fete) { hide(el.ovParty); stopConfetti(); }
     roues = false;
     partieWanted = false; partieFront = false; ovPartie.classList.remove('is-front');
+    // Un non à une envie, c’est une fête aussi (29 octobre 2026) : en grand, avec les confettis, puis qui propose
+    if (choix.kind === 'non' || choix.kind === 'fete') { feteNon('dit', refusee); return; }
     renderWait();
     sSwitchOff();
+  });
+  /* Un non, c’est une fête aussi (29 octobre 2026) : la carte se retourne, il n’en reste que les deux cercles, et les mêmes confettis
+     que pour un kiff kiff. dit : chez qui dit non (puis qui propose) ; recu : chez qui le reçoit, à deux téléphones. */
+  const ovNon = $('#ov-non');
+  function feteNon(mode, phrase) {
+    ovNon.dataset.mode = mode;
+    $('#non-sentence').textContent = phrase || '';
+    $('#non-carte').hidden = !phrase;
+    const carte = $('#non-carte');
+    carte.classList.remove('is-anim'); void carte.offsetWidth; carte.classList.add('is-anim');
+    const A = nameOf(S.proposer), B = nameOf(other(S.proposer));
+    const titre = mode === 'dit' ? T('passe.titre') : T('non.recu-titre', { prénom: nameOf(S.pass ? S.pass.by : other(S.proposer)) });
+    const ink = $('#non-title .ink');
+    ink.textContent = titre; ink.setAttribute('data-ink', titre);
+    $('#non-title').classList.toggle('is-long', titre.length > 11 && titre.length <= 16);
+    $('#non-title').classList.toggle('is-xlong', titre.length > 16);
+    $('#non-texte').textContent = mode === 'dit' ? T('non.texte') : T('non.recu-texte');
+    const bt = (id, t, cls) => '<button class="' + cls + '" type="button" data-non="' + id + '">' + esc(t) + '</button>';
+    $('#non-acts').innerHTML = mode === 'dit'
+      ? bt('meme', T('passe.meme', { prénom: A }), 'btn') + bt('autre', T('passe.autre', { prénom: B }), 'btn btn--line') + bt('annuler', T('passe.annuler'), 'link-btn')
+      : bt('ok', T('nouvelles.ok'), 'btn');
+    show(ovNon);
+    confetti('#confetti-non');
+    sParty(); haptic(40);
+  }
+  ovNon.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-non]');
+    if (!b) return;
+    audio(); sClick(); haptic(8);
+    hide(ovNon); stopConfetti();
+    const k = b.dataset.non;
+    if (k === 'meme') passMeme();
+    else if (k === 'autre') passAutre();
+    else if (k === 'annuler') passAnnuler();
+    else renderWait();
   });
   function duoPass(to, why) {
     S.pass = { by: duo.seat, n: (S.pass ? S.pass.n : 0) + 1 };
@@ -3262,8 +3301,8 @@
   /* Confettis */
   let confRaf = 0;
   function stopConfetti() { cancelAnimationFrame(confRaf); confRaf = 0; }
-  function confetti() {
-    const cv = $('#confetti');
+  function confetti(id) {
+    const cv = $(id || '#confetti');
     const ctx = cv.getContext('2d');
     if (!ctx) return;
     const dpr = Math.min(2, window.devicePixelRatio || 1);
@@ -3828,6 +3867,9 @@
   function applyGame(st, opts) {
     const prev = { phase: S.phase, proposer: S.proposer };
     const cle0 = tourCle();
+    // L’envie en cours, avant la mise à jour : si l’autre y dit non, c’est elle qui se retourne
+    let envieAvant = '';
+    try { if (S.original && ['review', 'adjust', 'reconfirm'].includes(S.phase)) envieAvant = S.phase === 'reconfirm' ? sentence() : sentenceFrom(S.original); } catch (e) { envieAvant = ''; }
     S.names = (st.names || ['', '']).slice();
     const lv = parseLevels(st.levels);
     // Vos mots à vous deux et les mots déjà proposés : ceux de la partie, rejoints par ceux de ce téléphone
@@ -3877,9 +3919,13 @@
       } else if (st.pass.by !== duo.seat) {
         hide(el.ovPass); choix = null;
         nouvelle = { t: T('nouvelles.passe', { prénom: nameOf(st.pass.by) }), x: T(S.proposer === duo.seat ? 'nouvelles.passe-toi' : 'nouvelles.passe-autre', { prénom: nameOf(st.pass.by), autre: nameOf(S.proposer) }), key: tourCle() };
+        // Un non reçu : une fête aussi, en grand (sauf quand l’autre retire son envie, ou se passe de proposer)
+        const lecteur = prev.phase === 'reconfirm' ? prev.proposer : other(prev.proposer);
+        if (envieAvant && (prev.phase === 'celebrate' || (['review', 'adjust', 'reconfirm'].includes(prev.phase) && st.pass.by === lecteur))) nonRecu = envieAvant;
       }
     }
     S.pass = st.pass || null;
+    if (nonRecu) { const ph = nonRecu; nonRecu = ''; setTimeout(() => feteNon('recu', ph), 0); }
     S.lvOk = parseLevels(st.lvOk || st.levels);
     S.kiff = st.kiff || null;
     S.kiffs = Array.isArray(st.kiffs) ? st.kiffs.slice(-60) : [];
@@ -3918,7 +3964,7 @@
     const ov = ovPartie;
     if (duo && duo.stage === 'invite') { renderInvitePage(); return; }
     ov.classList.remove('is-invite');
-    const modale = [el.ovOffer, ovHot, el.ovOne, el.ovEdit, $('#ov-gift')].some((o) => o && !o.hidden) || (!el.ovParty.hidden && !partieFront);
+    const modale = [el.ovOffer, ovHot, el.ovOne, el.ovEdit, $('#ov-gift'), $('#ov-non')].some((o) => o && !o.hidden) || (!el.ovParty.hidden && !partieFront);
     const inGame = enJeu() && el.ovStart.hidden && !modale && PHASES_TOUR.concat('celebrate').includes(S.phase);
     document.body.classList.toggle('en-jeu', enJeu());
     if (!inGame || (rouesVisibles() && !partieWanted)) { if (!ov.hidden) { hide(ov); partieHidden(); } renderDuoStatus(); return; }
