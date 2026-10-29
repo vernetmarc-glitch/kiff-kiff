@@ -819,8 +819,23 @@
   }
 
   /* ---------- Overlays ---------- */
-  function show(ov) { ov.hidden = false; offerVue(); }
-  function hide(ov) { ov.hidden = true; offerVue(); }
+  function show(ov) { ov.hidden = false; offerVue(); if (FIL_MODALES.has(ov.id)) filMaj(); }
+  function hide(ov) { ov.hidden = true; offerVue(); if (FIL_MODALES.has(ov.id)) filMaj(); }
+  /* Le fil de la partie (29 octobre 2026) : sur un ou deux téléphones, le rendez-vous de la partie. Il revient tout seul
+     quand une fenêtre du jeu se ferme (l’envie, la fête, l’accueil…) ; un instant après, quand tout est en place. */
+  const FIL_MODALES = new Set(['ov-start', 'ov-offer', 'ov-hot', 'ov-one', 'ov-party', 'ov-edit', 'ov-gift']);
+  let filPret = false, filT = false;
+  // roues : on est allé aux roues depuis le fil ; choix : la carte d’action propose qui propose après un non ;
+  // nouvelle : ce que l’autre téléphone vient de faire (un non…), dit dans la carte ; tient : qui tient le téléphone (un téléphone)
+  let roues = false, choix = null, nouvelle = null, rouesThen = null, tient = -1;
+  const enJeu = () => (duo ? duo.stage === 'game' : S.started && !S.mustRestart && !S.gifting);
+  const tourCle = () => S.phase + ':' + S.proposer;
+  const rouesVisibles = () => roues && !choix && myTurn() && (S.phase === 'compose' || S.phase === 'adjust');
+  function filMaj() {
+    if (!filPret || filT) return;
+    filT = true;
+    Promise.resolve().then(() => { filT = false; renderWait(); });
+  }
   // L’envie à lire n’est « ouverte » que si sa fenêtre est vraiment à l’écran (pas sous l’accueil ni sous la conversation)
   // (regardé un instant après : un écran se ferme souvent juste avant qu’un autre s’ouvre)
   let offerVueT = 0;
@@ -851,7 +866,8 @@
     const A = nameOf(S.proposer), B = nameOf(other(S.proposer));
     const to = kind === 'offer' ? B : A;
     const kick = $('#offer-kicker');
-    kick.textContent = duo ? (kind === 'offer' ? lowered : '') : T('offre.passe-tel', { prénom: to });
+    // Sur un téléphone, on s’est passé le téléphone dans le fil (« C’est moi, Lou ») : plus de rappel ici
+    kick.textContent = duo && kind === 'offer' ? lowered : '';
     kick.hidden = !kick.textContent;
     lowered = '';
     $('#offer-title').textContent = kind === 'offer' ? T('offre.titre', { prénom: A }) : T('offre.titre-ajuste', { prénom: B });
@@ -872,9 +888,11 @@
   const ovHot = $('#ov-hot');
   const hotter = () => !!duo && S.levels.some((n) => !(S.lvOk || S.levels).includes(n));
   let lowered = '';
-  function showTurnModal() {
+  // ouvrir : le geste du joueur (« Lire son envie ») ; sans lui, on remet seulement d’aplomb ce qui est déjà ouvert
+  function showTurnModal(ouvrir) {
     if (!duo) return;
     const want = myTurn() && S.phase === 'review' ? 'offer' : (myTurn() && S.phase === 'reconfirm' ? 'reconfirm' : '');
+    if (!ouvrir && want && el.ovOffer.hidden && ovHot.hidden) return;
     if (want === 'offer' && hotter()) {
       if (offerKind) hideOffer();
       if (ovHot.hidden) showHot();
@@ -920,6 +938,7 @@
   $('#offer-yes').addEventListener('click', () => {
     audio();
     if (!myTurn() || (offerKind === 'offer' && S.phase !== 'review') || (offerKind === 'reconfirm' && S.phase !== 'reconfirm')) return;
+    if (!duo) tient = offerKind === 'offer' ? other(S.proposer) : S.proposer;
     hideOffer();
     sSwitchOn(); haptic(15);
     report('kiff', choiceLabels()); pushKiff();
@@ -939,6 +958,8 @@
   $('#one-ok').addEventListener('click', () => {
     audio();
     if (S.phase !== 'review' || !myTurn()) return;
+    if (!duo) tient = other(S.proposer);
+    roues = true;
     hideOffer();
     S.phase = 'adjust';
     renderReels();
@@ -950,11 +971,14 @@
   $('#offer-back').addEventListener('click', () => {
     audio();
     const kind = offerKind;
+    tient = kind === 'offer' ? S.proposer : other(S.proposer);
+    roues = true;
     hideOffer();
     if (kind === 'offer') { S.phase = 'compose'; S.original = null; }
     else S.phase = 'adjust';
     renderReels();
     render();
+    filMaj();
   });
 
   /* ---------- Actions ---------- */
@@ -1184,10 +1208,13 @@
     if (!load('envieFaite', false)) { save('envieFaite', true); save('accueilApres', 0); }
     S.original = { idx: S.idx.slice(), custom: S.custom.slice(), dir: S.dir };
     S.phase = 'review';
+    roues = false; choix = null;
+    if (!duo) tient = S.proposer;
     sSwitchOn(); haptic(15);
     render();
     if (duo) { sync(); renderWait(); return; }
-    setTimeout(() => showOffer('offer'), 300);
+    // Sur un téléphone : le fil, l’envie retournée, « Passe le téléphone à Lou »
+    renderWait();
   }
   /* B a fini d’ajuster (ou dit finalement oui tel quel) */
   function finishAdjust() {
@@ -1201,9 +1228,11 @@
       return;
     }
     S.phase = 'reconfirm';
+    roues = false; choix = null;
+    if (!duo) tient = other(S.proposer);
     render();
     if (duo) { sync(); renderWait(); return; }
-    setTimeout(() => showOffer('reconfirm'), 300);
+    renderWait();
   }
   el.actMain.addEventListener('click', () => {
     audio();
@@ -1269,23 +1298,20 @@
     if (!S.muted) sClick();
   });
 
-  /* On passe */
+  /* Dire non (ou passer son tour, retirer son envie) : dans la carte d’action du fil (29 octobre 2026 ; avant : une fenêtre) */
   el.pass.addEventListener('click', () => {
     audio();
     if (S.gifting) { endGift(false); return; } // finalement, inviter sans envie
-    const A = nameOf(S.proposer), B = nameOf(other(S.proposer));
     // À deux téléphones, retirer son envie pendant que l’autre la lit : on le dit clairement, et la garder vient en premier (28 octobre 2026)
     const retire = !!duo && duo.stage === 'game' && S.proposer === duo.seat && (S.phase === 'review' || S.phase === 'adjust') && !myTurn();
-    el.ovPass.classList.toggle('is-retirer', retire);
-    { const ink = $('.pass-title .ink'); const tt = retire ? T('passe.retirer-titre') : T('passe.titre'); ink.textContent = tt; ink.setAttribute('data-ink', tt); }
-    $('.pass-text').textContent = retire ? T('passe.retirer-texte', { prénom: B }) : T('passe.texte');
-    $('#pass-same').textContent = retire ? T('passe.retirer-meme') : T('passe.meme', { prénom: A });
-    $('#pass-other').textContent = retire ? T('passe.retirer-autre', { prénom: B }) : T('passe.autre', { prénom: B });
-    $('#pass-cancel').textContent = retire ? T('passe.garder') : T('passe.annuler');
-    $('#pass-same').classList.toggle('btn--line', retire);
-    $('#pass-cancel').classList.toggle('btn--line', !retire);
-    show(el.ovPass);
-    (retire ? $('#pass-cancel') : $('#pass-same')).focus({ preventScroll: true });
+    const fete = !el.ovParty.hidden;
+    choix = { kind: retire ? 'retirer' : fete ? 'fete' : S.phase === 'compose' ? 'tour' : 'non', offre: offerKind };
+    hide(el.ovPass);
+    if (offerKind) hideOffer();
+    if (fete) { hide(el.ovParty); stopConfetti(); }
+    roues = false;
+    partieWanted = false; partieFront = false; ovPartie.classList.remove('is-front');
+    renderWait();
     sSwitchOff();
   });
   function duoPass(to, why) {
@@ -1297,39 +1323,43 @@
     renderWait();
     if (myTurn()) setTimeout(() => { if (S.phase === 'compose' && myTurn()) shuffle(false, false, true); }, 500);
   }
-  // Un nouveau tour sur un téléphone, après « On passe » : nouvelles roues
+  // Un nouveau tour sur un téléphone, après un non : nouvelles roues
   const freshTurn = () => setTimeout(() => { if (S.phase === 'compose') shuffle(false, false, true); }, 400);
-  $('#pass-same').addEventListener('click', () => {
-    hide(el.ovPass);
+  function passMeme() {
+    choix = null;
     report('passe');
     hide(el.ovParty); stopConfetti();
     if (duo) { duoPass(S.proposer); return; }
-    const A = S.proposer;
-    // Si c’est l’autre qui tient le téléphone, on le rend à A
-    if (S.phase === 'review' || S.phase === 'adjust') { hideOffer(); handoffNewTurn(A, null, freshTurn); return; }
-    startComposition(A); freshTurn();
-  });
-  $('#pass-other').addEventListener('click', () => {
-    hide(el.ovPass);
+    hideOffer();
+    handoffNewTurn(S.proposer, null, freshTurn);
+  }
+  function passAutre() {
+    choix = null;
     report('passe');
     hide(el.ovParty); stopConfetti();
     const to = other(S.proposer);
     if (duo) { duoPass(to); return; }
     hideOffer();
-    if (S.phase === 'review' || S.phase === 'adjust') { startComposition(to); freshTurn(); return; }
     handoffNewTurn(to, null, freshTurn);
-  });
-  $('#pass-cancel').addEventListener('click', () => { hide(el.ovPass); if (S.phase === 'celebrate') show(el.ovParty); });
+  }
+  function passAnnuler() {
+    const c = choix; choix = null;
+    if (c && c.kind === 'fete' && S.phase === 'celebrate') { show(el.ovParty); return; }
+    if (c && c.offre && myTurn() && ((c.offre === 'offer' && S.phase === 'review') || (c.offre === 'reconfirm' && S.phase === 'reconfirm'))) { showOffer(c.offre); return; }
+    if (c && (c.kind === 'tour' || S.phase === 'compose' || S.phase === 'adjust') && myTurn()) roues = true;
+    renderWait();
+  }
+  $('#pass-same').addEventListener('click', () => { hide(el.ovPass); passMeme(); });
+  $('#pass-other').addEventListener('click', () => { hide(el.ovPass); passAutre(); });
+  $('#pass-cancel').addEventListener('click', () => { hide(el.ovPass); passAnnuler(); });
 
+  // Sur un téléphone, le tour suivant : la carte d’action du fil dit à qui passer le téléphone (29 octobre 2026 ; avant : un écran)
   function handoffNewTurn(to, text, then) {
-    $('#handoff-title').textContent = T('passage.titre', { prénom: nameOf(to) });
-    $('#handoff-kicker').textContent = T('passage.kicker');
-    $('#handoff-text').textContent = text || T('passage.texte');
-    const go = $('#handoff-go');
-    go.textContent = T('passage.go', { prénom: nameOf(to) });
-    go.onclick = () => { hide(el.ovHandoff); startComposition(to); if (then) then(); };
-    $('#handoff-back').hidden = true;
-    show(el.ovHandoff);
+    hide(el.ovHandoff);
+    choix = null; roues = false;
+    startComposition(to);
+    rouesThen = then || null;
+    renderWait();
   }
 
   /* Texte libre */
@@ -1760,7 +1790,7 @@
     const n = kiffCount();
     const B = duo ? nameOf(other(duo.seat)) : '';
     const btn = $('#kiffs-open');
-    btn.hidden = !n;
+    btn.hidden = !n && !(duo && duo.stage === 'game');
     $('#kiffs-n').textContent = n || '';
     btn.setAttribute('aria-label', n + ' kiff kiff trouvé' + (n > 1 ? 's' : '') + (B ? ' avec ' + B : ' ensemble') + '. Voir l’historique');
     const wk = $('#wait-kiffs');
@@ -1885,12 +1915,21 @@
   });
   const closeKiffs = () => { hide(ovKiffs); if (kiffsFrom) kiffsFrom.focus({ preventScroll: true }); };
   // Le compteur du jeu : à deux téléphones, la partie (la conversation) ; sur un seul, le catalogue
-  $('#kiffs-open').addEventListener('click', (e) => { if (duo && duo.stage === 'game') { audio(); sClick(); haptic(8); openPartie(); } else openKiffs(e); });
+  $('#kiffs-open').addEventListener('click', (e) => { if (enJeu()) { audio(); sClick(); haptic(8); openPartie(); } else openKiffs(e); });
   // « Avec Lou », en haut du jeu : la conversation aussi
   const topWho = $('#top-who');
   topWho.addEventListener('click', () => { if (duo && duo.stage === 'game') { audio(); sClick(); haptic(8); openPartie(); } });
   topWho.addEventListener('keydown', (e) => { if ((e.key === 'Enter' || e.key === ' ') && duo && duo.stage === 'game') { e.preventDefault(); openPartie(); } });
-  $('#wait-kiffs').addEventListener('click', openKiffs);
+  // « Vos kiff kiff » : un filtre du fil (29 octobre 2026 ; avant : une liste à part) : seulement les cartes, ou tout le fil
+  $('#wait-kiffs').addEventListener('click', () => {
+    audio(); sClick(); haptic(8);
+    const on = !$('#chat-list').classList.contains('is-cartes');
+    $('#chat-list').classList.toggle('is-cartes', on);
+    $('#wait-kiffs').setAttribute('aria-pressed', on ? 'true' : 'false');
+    $('#wait-kiffs').classList.toggle('is-on', on);
+    report('kiffs', null, on ? 'filtre' : 'fil');
+    const sc = $('#kiff-scroll'); sc.scrollTop = sc.scrollHeight;
+  });
   $('#party-history').addEventListener('click', openKiffs);
   $('#kiffs-action-go').addEventListener('click', () => { audio(); sClick(); closeKiffs(); });
   // La fête : écrire tout de suite, en citant le kiff kiff ; la fête attend dessous
@@ -1910,6 +1949,8 @@
   const kidOf = (k) => String((k && k.d) || '');
   const kiffById = (kid) => (S.kiffs || []).find((k) => kidOf(k) === kid) || null;
   const roomNow = () => (duo && duo.info ? duo.info.room : '');
+  // La partie en cours, à deux téléphones (sa salle sur le relais) ou sur ce téléphone (la paire de prénoms)
+  const salle = () => (duo && duo.info ? duo.info.room : 'ici:' + pairKey());
   // Écrire marche aussi sans connexion : le message attend dans la boîte d’envoi
   const canChat = () => !!duo && duo.stage === 'game' && !!duo.info;
   function chatBox(room) {
@@ -2096,6 +2137,7 @@
      En tête, l’action du moment. Une envie s’ouvre en plein écran : citer, partager, vécue, supprimer.
      La page de la partie garde l’identifiant de l’ancien écran d’attente (#ov-wait) : elle s’ouvre toute seule quand l’autre a la main. */
   const ovPartie = $('#ov-wait');
+  filPret = true;
   const ovKiff = $('#ov-kiff');
   const chatInput = $('#chat-input');
   let kiffOpen = '', replyTo = null, editing2 = null, citeKid = '';
@@ -2104,7 +2146,7 @@
   // Ouvrir la partie : depuis le jeu, la fête (par-dessus), un avertissement ; citer une envie ; aller à sa carte
   function openPartie(opt) {
     opt = opt || {};
-    if (!duo || duo.stage !== 'game') return;
+    if (!enJeu()) return;
     partieWanted = true;
     partieFront = !!opt.front;
     ovPartie.classList.toggle('is-front', partieFront);
@@ -2127,8 +2169,7 @@
     fitCarte();
     // Tant que la partie est à l’écran : la boîte aux lettres, de temps en temps, au cas où le relais aurait manqué un message
     clearInterval(boxPoll); if (canChat()) boxPoll = setInterval(() => { if (document.visibilityState === 'visible') pullBox(); }, 20000);
-    report('discussion', null, 'ouverte');
-    if (canChat()) pullBox(true);
+    if (canChat()) { report('discussion', null, 'ouverte'); pullBox(true); }
   }
   function partieHidden() {
     clearInterval(boxPoll);
@@ -2211,36 +2252,40 @@
   }
   /* L’envie en cours (proposée, pas encore un kiff kiff) : une carte dans le fil, à l’heure où elle est arrivée sur ce téléphone */
   function pendingEnvie() {
-    if (!duo || !duo.info || !S.original || !['review', 'adjust', 'reconfirm'].includes(S.phase)) return null;
+    if ((duo && !duo.info) || !enJeu() || !S.original || !['review', 'adjust', 'reconfirm'].includes(S.phase)) return null;
+    // Une envie à laquelle on vient de dire non quitte le fil : ce qui a été refusé ne laisse pas de trace
+    if (choix && choix.kind === 'non') return null;
     const adj = S.phase === 'reconfirm';
     const text = adj ? sentence() : sentenceFrom(S.original);
     const all = load('envieVue', {}) || {};
-    const room = duo.info.room;
+    const room = salle();
     if (!all[room] || all[room].sig !== text) {
       all[room] = { sig: text, d: Date.now() };
       const keep = Object.keys(all).sort((a, c) => (all[c].d || 0) - (all[a].d || 0)).slice(0, 20);
       save('envieVue', Object.fromEntries(keep.map((k) => [k, all[k]])));
     }
-    const mine = S.proposer === duo.seat;
+    const mine = !!duo && S.proposer === duo.seat;
     // L’envie à lire reste retournée dans la conversation tant qu’on ne l’a pas ouverte (29 octobre 2026)
     const cachee = myTurn() && (S.phase === 'review' || S.phase === 'reconfirm') && all[room].lu !== text;
     return { d: all[room].d, text, adj, mine, cachee };
   }
   // L’envie s’ouvre (la fenêtre pour y répondre) : elle se montre aussi dans la conversation
   function envieLue() {
-    if (!duo || !duo.info || !S.original) return;
+    if ((duo && !duo.info) || !S.original) return;
     const text = S.phase === 'reconfirm' ? sentence() : sentenceFrom(S.original);
     const all = load('envieVue', {}) || {};
-    const room = duo.info.room;
+    const room = salle();
     if (all[room] && all[room].lu === text) return;
     all[room] = Object.assign({ d: Date.now() }, all[room] || {}, { sig: text, lu: text });
     save('envieVue', all);
   }
   function threadEnvieHtml(e, B) {
-    const kick = e.adj ? (e.mine ? T('partie.envie-ajustee-par', { prénom: B }) : T('partie.envie-ajustee-toi'))
+    const P = nameOf(S.proposer), Q = nameOf(other(S.proposer));
+    const kick = !duo ? (e.adj ? T('fil.envie-ajustee', { prénom: P, autre: Q }) : T('fil.envie-de', { prénom: P }))
+      : e.adj ? (e.mine ? T('partie.envie-ajustee-par', { prénom: B }) : T('partie.envie-ajustee-toi'))
       : e.mine ? T('partie.envie-toi') : T('partie.envie-de', { prénom: B });
-    const go = myTurn() && !$('#wait-go').hidden;
-    const a = { mine: e.mine, name: e.mine ? nameOf(duo.seat) : B };
+    const go = myTurn() && !$('#wait-go').hidden && actionGo === 'offre';
+    const a = { mine: e.mine, name: duo ? (e.mine ? nameOf(duo.seat) : B) : P };
     if (e.cachee) return '<li class="thread-kiff thread-envie is-cachee' + (a.mine ? ' is-mine' : ' is-theirs') + '"><button class="thread-kiff-btn" type="button"' + (go ? ' data-envie-go="1"' : ' disabled') + '>' +
       '<span class="thread-kiff-kicker">' + esc(kick) + '</span>' +
       '<span class="party-sentence thread-kiff-card thread-envie-dos">' + CARTE_DOS + '<span class="sr-only">' + esc(T('partie.lire')) + '</span></span></button></li>';
@@ -2296,7 +2341,7 @@
     items.sort((x, y) => x.d - y.d);
     const lastMine = b ? b.m.filter((m) => m.s === duo.seat && !m.x).slice(-1)[0] : null;
     let day = '', html = '';
-    if (!items.length) html = '<li class="chat-empty">' + esc(T('chat.vide', { prénom: B })) + '</li>';
+    if (!items.length) html = '<li class="chat-empty">' + esc(duo ? T('chat.vide', { prénom: B }) : T('fil.vide')) + '</li>';
     // Les messages qui se suivent (même personne, moins de 3 minutes, même jour) forment une suite : l’heure sur le dernier
     const GAP = 3 * 60000;
     const sameRun = (a, c) => !!a && !!c && !!a.m && !!c.m && !a.m.x && !c.m.x && a.m.s === c.m.s && Math.abs(c.d - a.d) < GAP && dayLabel(a.d) === dayLabel(c.d);
@@ -2366,6 +2411,8 @@
   // Les pastilles des messages non lus : sur le compteur de kiff kiff du jeu
   function renderChatBadges() {
     const n = duo ? unread('') : 0;
+    // À deux téléphones, la bulle en haut à droite des roues reste là : le fil de la partie et ses messages, à tout moment
+    if (duo && duo.stage === 'game') $('#kiffs-open').hidden = false;
     [['#kiffs-chat', '#kiffs-open']].forEach(([sel, hostSel]) => {
       const host = $(hostSel); if (!host) return;
       let b = $(sel);
@@ -2903,12 +2950,11 @@
   $('#party-pass').addEventListener('click', () => {
     const k = lastKiff();
     if (k && k.v === 0) { S.kiffs.pop(); renderKiffs(); savePair(); }
-    hide(el.ovParty);
-    stopConfetti();
     el.pass.click();
   });
   // Le tour suivant, après une envie vécue ou gardée
   function partyContinue() {
+    roues = false; choix = null;
     hide(el.ovParty);
     stopConfetti();
     startComposition(other(S.proposer));
@@ -2919,7 +2965,7 @@
   const lastKiff = () => (S.kiffs || [])[(S.kiffs || []).length - 1];
   function partyAct(act) {
     audio();
-    if (act === 'next') { hide(el.ovParty); stopConfetti(); partyNormal(); render(); showTurnModal(); renderWait(); return; }
+    if (act === 'next') { hide(el.ovParty); stopConfetti(); partyNormal(); render(); renderWait(); return; }
     if (act === 'now') {
       sClick(); haptic(12);
       partyMode('vivre');
@@ -3764,6 +3810,12 @@
     applyGame(st, { first: true, spin: !!spin });
     // Ouverte depuis l’accueil pour la conversation : elle s’ouvre tout de suite, sans attendre la boîte aux lettres (28 octobre 2026)
     if (pendingPartie && !pendingKiff) openPendingKiff();
+    // Depuis le bouton de la une : les roues, ou l’envie à lire, directement (29 octobre 2026)
+    if (pendingGo) {
+      const go = pendingGo; pendingGo = '';
+      if (go === 'roues' && myTurn() && (S.phase === 'compose' || S.phase === 'adjust')) { roues = true; renderWait(); }
+      else if (go === 'offre') showTurnModal(true);
+    }
     // La discussion : les messages arrivés pendant l’absence, puis le kiff kiff d’un avertissement touché
     pullBox(true).then(openPendingKiff);
     renderChatBadges();
@@ -3771,6 +3823,7 @@
 
   function applyGame(st, opts) {
     const prev = { phase: S.phase, proposer: S.proposer };
+    const cle0 = tourCle();
     S.names = (st.names || ['', '']).slice();
     const lv = parseLevels(st.levels);
     // Vos mots à vous deux et les mots déjà proposés : ceux de la partie, rejoints par ceux de ce téléphone
@@ -3813,12 +3866,13 @@
     if (opts.first || duo.passN == null) duo.passN = pn;
     else if (pn > duo.passN) {
       duo.passN = pn;
+      // Dit dans la carte d’action du fil (29 octobre 2026 ; avant : une fenêtre à fermer)
       if (st.pass.by !== duo.seat && st.pass.why === 'piment') {
-        hide(el.ovPass);
-        note(T('nouvelles.piment'), T('nouvelles.piment-texte', { prénom: nameOf(st.pass.by), piment: levelNames(parseLevels(st.lvOk || st.levels)) }));
+        hide(el.ovPass); choix = null;
+        nouvelle = { t: T('nouvelles.piment'), x: T('nouvelles.piment-texte', { prénom: nameOf(st.pass.by), piment: levelNames(parseLevels(st.lvOk || st.levels)) }), key: tourCle() };
       } else if (st.pass.by !== duo.seat) {
-        hide(el.ovPass);
-        note(T('nouvelles.passe', { prénom: nameOf(st.pass.by) }), T(S.proposer === duo.seat ? 'nouvelles.passe-toi' : 'nouvelles.passe-autre', { prénom: nameOf(st.pass.by), autre: nameOf(S.proposer) }));
+        hide(el.ovPass); choix = null;
+        nouvelle = { t: T('nouvelles.passe', { prénom: nameOf(st.pass.by) }), x: T(S.proposer === duo.seat ? 'nouvelles.passe-toi' : 'nouvelles.passe-autre', { prénom: nameOf(st.pass.by), autre: nameOf(S.proposer) }), key: tourCle() };
       }
     }
     S.pass = st.pass || null;
@@ -3845,74 +3899,130 @@
     if (arrived && S.phase !== 'celebrate') { sSwitchOn(); haptic(30); }
     renderReels();
     render();
-    // La proposition (ou l’envie ajustée) arrive dans une modale ; un piment plus chaud s’accepte avant
+    // Le tour a changé (l’autre a joué) : on revient au fil, qui dit quoi faire ; l’envie s’ouvre par « Lire son envie »
+    if (tourCle() !== cle0) { roues = false; if (choix && choix.kind === 'retirer') choix = null; }
     if (!lateKiff) showTurnModal();
     renderWait();
   }
 
-  /* Écran d’attente : pendant que l’autre téléphone a la main */
+  /* Le fil de la partie (29 octobre 2026) : sur un ou deux téléphones, la partie se joue depuis ce fil.
+     En haut, l’action du moment (une carte) ; dans le fil, les kiff kiff, l’envie en cours (retournée tant qu’on ne l’a pas ouverte)
+     et, à deux téléphones, les messages. Seules les roues, l’envie à lire, la fête et un kiff kiff en grand s’ouvrent par-dessus. */
   const PHASES_TOUR = ['compose', 'review', 'adjust', 'reconfirm'];
+  let filCle = '';
   function renderWait() {
     const ov = ovPartie;
     if (duo && duo.stage === 'invite') { renderInvitePage(); return; }
     ov.classList.remove('is-invite');
-    const inGame = !!duo && duo.stage === 'game' && el.ovStart.hidden;
-    const waiting = inGame && PHASES_TOUR.includes(S.phase) && !myTurn();
-    // La partie s’ouvre toute seule quand l’autre a la main ; à mon tour, elle reste ouverte si je l’ai ouverte
-    if (!waiting && !(partieWanted && inGame)) { if (!ov.hidden) { hide(ov); partieHidden(); } renderDuoStatus(); return; }
-    ov.classList.toggle('is-back', partieFront);
+    const modale = [el.ovOffer, ovHot, el.ovOne, el.ovEdit, $('#ov-gift')].some((o) => o && !o.hidden) || (!el.ovParty.hidden && !partieFront);
+    const inGame = enJeu() && el.ovStart.hidden && !modale && PHASES_TOUR.concat('celebrate').includes(S.phase);
+    document.body.classList.toggle('en-jeu', enJeu());
+    if (!inGame || (rouesVisibles() && !partieWanted)) { if (!ov.hidden) { hide(ov); partieHidden(); } renderDuoStatus(); return; }
+    if (nouvelle && nouvelle.key !== tourCle()) nouvelle = null;
+    ov.classList.toggle('is-back', partieFront || (partieWanted && rouesVisibles()));
+    ov.classList.toggle('is-ici', !duo);
+    const waiting = !!duo && PHASES_TOUR.includes(S.phase) && !myTurn();
     renderAction(waiting);
+    if (!duo) renderIciTop();
+    document.body.classList.add('en-jeu');
     const was = ov.hidden;
     show(ov);
+    const cle = tourCle() + (choix ? ':' + choix.kind : '');
     if (was) partieShown();
+    else if (cle !== filCle) renderChat(true);
+    filCle = cle;
     renderDuoStatus();
   }
-  // L’action du moment, en tête de la partie
-  let actionGo = '';
+  // En haut du fil, sur un téléphone : « Marc et Lou », puis « Sur ce téléphone · Tendre »
+  function renderIciTop() {
+    $('#wait-name').textContent = T('partie.seul-titre', { prénom: nameOf(0), autre: nameOf(1) });
+    $('#wait-presence-text').textContent = T('fil.ici') + (S.levels && S.levels.length ? ' · ' + D.niveaux[Math.max(...S.levels) - 1].nom : '');
+    $('#wait-who').classList.remove('is-off');
+  }
+  // L’action du moment, en tête du fil
+  let actionGo = '', goTient = -1;
   function renderAction(waiting) {
-    const A = nameOf(S.proposer), B = nameOf(other(S.proposer)), O = nameOf(other(duo.seat));
+    const A = nameOf(S.proposer), B = nameOf(other(S.proposer));
+    const O = duo ? nameOf(other(duo.seat)) : '';
     let label = '', line = '', go = '';
-    actionGo = '';
-    if (waiting) {
+    actionGo = ''; goTient = -1;
+    const card = $('#partie-action');
+    card.classList.toggle('is-choix', !!choix);
+    $('#partie-choix').hidden = !choix;
+    if (choix) {
+      // Après un non (ou pour passer son tour, retirer son envie) : qui propose maintenant, et un retour possible
+      const k = choix.kind;
+      label = k === 'retirer' ? T('passe.retirer-titre') : k === 'tour' ? T('passe.titre-tour') : T('passe.titre');
+      line = k === 'retirer' ? T('passe.retirer-texte', { prénom: B }) : T('passe.texte');
+      const bt = (id, t, cls) => '<button class="btn' + (cls ? ' ' + cls : '') + '" type="button" data-choix="' + id + '">' + esc(t) + '</button>';
+      $('#partie-choix').innerHTML = k === 'retirer'
+        ? bt('annuler', T('passe.garder')) + bt('meme', T('passe.retirer-meme'), 'btn--line') + bt('autre', T('passe.retirer-autre', { prénom: B }), 'btn--line')
+        : bt('meme', T('passe.meme', { prénom: A })) + bt('autre', T('passe.autre', { prénom: B }), 'btn--line') + bt('annuler', T('passe.annuler'), 'btn--line');
+    } else if (!duo) {
+      // Un téléphone : la carte dit à qui le passer ; « C’est moi, Lou » quand ce n’est pas la personne qui le tient
+      const qui = S.phase === 'compose' || S.phase === 'reconfirm' ? S.proposer : other(S.proposer);
+      const N = nameOf(qui);
+      const passer = tient !== qui;
+      if (S.phase === 'compose') { line = passer ? T('passage.titre', { prénom: N }) + '. ' + T('passage.kicker') : T('fil.proposer', { prénom: N }); go = passer ? T('passage.go', { prénom: N }) : T('partie.tourner'); actionGo = 'roues'; }
+      else if (S.phase === 'review') { line = passer ? T('offre.passe-tel', { prénom: N }) : T('fil.envie-recue', { prénom: N, autre: A }); go = passer ? T('passage.go', { prénom: N }) : T('partie.lire'); actionGo = 'offre'; }
+      else if (S.phase === 'adjust') { line = passer ? T('offre.passe-tel', { prénom: N }) : T('partie.ajuster', { prénom: A }); go = passer ? T('passage.go', { prénom: N }) : T('partie.reprendre'); actionGo = 'roues'; }
+      else if (S.phase === 'reconfirm') { line = passer ? T('offre.passe-tel', { prénom: N }) : T('fil.ajustee', { prénom: N, autre: B }); go = passer ? T('passage.go', { prénom: N }) : T('partie.relire'); actionGo = 'offre'; }
+      if (passer) goTient = qui;
+    } else if (waiting) {
       // Une seule ligne : ce qui se passe, sans titre au-dessus
       if (S.phase === 'compose') line = T('attente.compose', { prénom: A });
       else if (S.phase === 'review') line = T('attente.envoyee') + ' · ' + (hotter() ? T('attente.piment', { prénom: B }) : T('attente.lit', { prénom: B }));
       else if (S.phase === 'adjust') line = T('attente.ajuste', { prénom: B }) + '.';
       else { const ch = changes(); line = T('attente.relit', { chose: CHANGE_NAMES[ch.length ? ch[0] : 0], prénom: A }); }
     } else if (PHASES_TOUR.includes(S.phase)) {
-      if (S.phase === 'compose') { line = T('partie.proposer'); go = T('partie.tourner'); }
+      if (S.phase === 'compose') { line = T('partie.proposer'); go = T('partie.tourner'); actionGo = 'roues'; }
       else if (S.phase === 'review') { line = T('partie.envie-recue', { prénom: O }); go = T('partie.lire'); actionGo = 'offre'; }
       else if (S.phase === 'reconfirm') { line = T('partie.ajustee', { prénom: O }); go = T('partie.relire'); actionGo = 'offre'; }
-      else { line = T('partie.ajuster', { prénom: O }); go = T('partie.reprendre'); }
+      else { line = T('partie.ajuster', { prénom: O }); go = T('partie.reprendre'); actionGo = 'roues'; }
     }
+    // Ce que l’autre téléphone vient de faire (un non…) : le titre de la carte, et sa phrase à la place de la ligne
+    if (!choix && nouvelle) { label = nouvelle.t; line = nouvelle.x; }
     $('#partie-action').hidden = !line;
     $('#partie-action').classList.toggle('is-turn', !waiting);
     renderCarte(waiting);
     $('#wait-title').textContent = label;
+    $('#wait-title').hidden = !label;
     $('#wait-kicker').textContent = line;
-    // Pendant que l’autre lit ton envie : « Retirer mon envie » ; pendant qu’il relit ton « Oui, mais… » : « On passe »
+    // Pendant que l’autre lit (ou relit) ton envie : « Retirer mon envie »
     const wp = $('#wait-pass');
-    wp.hidden = !(waiting && ['review', 'adjust', 'reconfirm'].includes(S.phase));
+    wp.hidden = !!choix || !(waiting && ['review', 'adjust', 'reconfirm'].includes(S.phase));
     wp.textContent = T('attente.passe');
     const g = $('#wait-go');
-    g.hidden = !go; g.textContent = go;
+    g.hidden = !!choix || !go; g.textContent = go;
     // Après une envie envoyée, tant que l’appli n’est pas installée : l’installer, pour être averti·e de la réponse
     $('#wait-install').hidden = true; // depuis le 27 octobre 2026 : une carte dans la conversation (installCardHtml)
+    if (choix) $('#wait-nudge').hidden = true;
   }
+  $('#partie-choix').addEventListener('click', (e) => {
+    const b = e.target.closest('[data-choix]');
+    if (!b) return;
+    audio(); sClick(); haptic(8);
+    if (b.dataset.choix === 'meme') passMeme();
+    else if (b.dataset.choix === 'autre') passAutre();
+    else passAnnuler();
+  });
 
   /* La petite carte de l’action (28 octobre 2026) : blanche (à proposer), retournée (une envie à lire), tamponnée (envoyée),
      le mot changé surligné (après « Oui, mais… ») */
   const CARTE_DOS = '<svg class="carte-emblem" viewBox="0 0 168 124" aria-hidden="true"><path class="e-lens" d="M84 21.6A46 46 0 0 1 84 102.4A46 46 0 0 1 84 21.6Z"/><circle class="e-ring" cx="62" cy="62" r="46"/><circle class="e-ring" cx="106" cy="62" r="46"/></svg>';
   function renderCarte(waiting) {
     const c = $('#partie-carte');
-    if (!c || !duo) return;
-    const O = nameOf(other(duo.seat));
+    if (!c) return;
+    // Sur un téléphone, le badge dit qui propose (ou qui a proposé l’envie à lire)
+    const O = duo ? nameOf(other(duo.seat)) : nameOf(S.phase === 'reconfirm' ? other(S.proposer) : S.proposer);
+    if (!duo) waiting = S.phase === 'compose';
     const who = (n) => (n ? '<span class="who-badge carte-who"><span class="who-initial" aria-hidden="true">' + esc(initial(n)) + '</span><span class="carte-who-nom">' + esc(n) + '</span></span>' : '');
     const text = (marks) => '<span class="carte-text">' + sentenceHtml(marks) + '</span>';
     let face = 'blanche', html = '';
     if (S.phase === 'compose') { face = 'blanche'; html = '<span class="carte-script">' + esc(T('jeu.titre')) + '</span><span class="carte-blanc"></span><span class="carte-blanc"></span><span class="carte-blanc"></span>' + (waiting ? who(O) : ''); }
-    else if (S.phase === 'review' && !waiting) { face = 'dos'; html = CARTE_DOS + who(O); }
-    else if (S.phase === 'review' || (S.phase === 'adjust' && waiting)) { face = 'envoyee'; html = text([]) + '<span class="carte-tampon">' + esc(T('attente.tampon')) + '</span>'; }
+    // L’envie à lire (ou à relire, ajustée) reste retournée tant qu’on ne l’a pas ouverte
+    else if ((S.phase === 'review' && !waiting) || (S.phase === 'reconfirm' && !waiting && (!duo || (pendingEnvie() || {}).cachee))) { face = 'dos'; html = CARTE_DOS + who(O); }
+    else if (S.phase === 'review' || (S.phase === 'adjust' && (waiting || !duo))) { face = 'envoyee'; html = text([]) + '<span class="carte-tampon">' + esc(T('attente.tampon')) + '</span>'; }
     else if (S.phase === 'reconfirm') { face = 'changee'; html = text(changes()); }
     else { face = 'envie'; html = text([]); }
     c.dataset.face = face;
@@ -4362,6 +4472,8 @@
     next.dir = gift.dir === 'te' ? 'te' : 'me';
     next.original = { keys: next.keys.slice(), custom: next.custom.slice(), dir: next.dir };
     beginJoined(next);
+    // « La découvrir » : on a choisi de l’ouvrir, elle s’ouvre (sans repasser par « Lire son envie »)
+    showTurnModal(true);
   });
   $('#gift-later').addEventListener('click', () => {
     if (!giftNext) return;
@@ -4568,13 +4680,26 @@
   });
   // L’attente : revenir à l’accueil en attendant, ou d’abord installer l’appli pour être averti·e
   // L’action du moment : les roues, ou l’envie à lire
-  $('#wait-go').addEventListener('click', () => { audio(); sClick(); haptic(8); report('attente', null, 'action'); const offre = actionGo === 'offre'; closePartie(); if (offre) showTurnModal(); });
+  $('#wait-go').addEventListener('click', () => {
+    audio(); sClick(); haptic(8); report('attente', null, 'action');
+    if (goTient >= 0) tient = goTient;
+    const go = actionGo;
+    if (go === 'offre') {
+      closePartie();
+      if (duo) showTurnModal(true);
+      else showOffer(S.phase === 'reconfirm' ? 'reconfirm' : 'offer');
+      return;
+    }
+    // Les roues (composer, ou reprendre son « Oui, mais… »)
+    roues = true; closePartie();
+    if (rouesThen) { const f = rouesThen; rouesThen = null; f(); }
+  });
   // En haut à gauche : l’accueil ; depuis la fête, le retour à la fête
   $('#wait-home').addEventListener('click', () => {
     audio(); sClick(); haptic(8);
     if (partieFront) { closePartie(); return; }
     if (duo && duo.stage === 'invite') { report('attente', null, 'accueil'); leaveDuo(false, true); return; }
-    report('attente', null, 'accueil'); closePartie(); el.home.click();
+    report('attente', null, 'accueil'); closePartie(); openHome();
   });
   $('#wait-install').addEventListener('click', () => { audio(); sClick(); haptic(8); save('installAsked', true); report('attente', null, 'installer'); installer.run(); renderWait(); });
   // Un mot bref à la place de la ligne de présence (copie, avertissements), puis elle revient
@@ -5149,7 +5274,8 @@
       render();
     });
     // Retour à l’accueil depuis le jeu
-    el.home.addEventListener('click', () => { audio(); openHome(); });
+    // En haut à gauche des roues : le fil de la partie (29 octobre 2026) ; hors partie, l’accueil
+    el.home.addEventListener('click', () => { audio(); if (enJeu()) { sClick(); haptic(8); roues = false; renderWait(); return; } openHome(); });
     // Deux téléphones
     $('#duo-resume').addEventListener('click', () => {
       audio();
@@ -5283,6 +5409,7 @@
     save('rulesSeen', true);
     addKnown(S.names[0], S.names[1]);
     savePair(); // la partie rejoint la liste de l’accueil
+    tient = -1; nouvelle = null; choix = null;
     handoffNewTurn(1, T('passage.premier'), () => setTimeout(() => shuffle(false, true), 250));
   }
   /* Les parties sur ce téléphone : chaque paire de prénoms garde sa partie (paires), on la retrouve à l’accueil */
@@ -5326,6 +5453,7 @@
     S.proposer = it.p;
     S.phase = 'compose';
     render();
+    tient = -1; nouvelle = null; choix = null;
     handoffNewTurn(it.p, T('passage.texte'), () => setTimeout(() => shuffle(false, true), 250));
   }
   function forgetIci(key) {
@@ -5399,6 +5527,7 @@
   function parkDuo() {
     if (!duo) return;
     const d = duo;
+    roues = false; choix = null; nouvelle = null;
     if (d.info && d.stage === 'game') partieVue(d.info.room);
     duo = null; S.cpOther = false;
     clearTimeout(syncT);
@@ -5570,7 +5699,7 @@
       (top.nu ? '<span class="badge badge--row" aria-label="' + top.nu + ' message' + (top.nu > 1 ? 's' : '') + ' non lu' + (top.nu > 1 ? 's' : '') + '">' + top.nu + '</span>' : '') + '</div>' +
       (line ? '<p class="une-line">' + esc(line) + '</p>' : '') +
       (top.msgLine ? '<p class="une-msg">' + esc(top.msgLine) + '</p>' : '') +
-      '<button class="btn une-go" type="button" data-home="' + esc(homeId(top)) + '"' + (isDuo && !['tourner', 'lire', 'relire', 'reprendre'].includes(top.state.go) ? ' data-partie="1"' : '') + '>' + esc(goLabel) + '</button>';
+      '<button class="btn une-go" type="button" data-home="' + esc(homeId(top)) + '" data-go="' + esc(top.state.go || '') + '"' + (isDuo && !['tourner', 'lire', 'relire', 'reprendre'].includes(top.state.go) ? ' data-partie="1"' : '') + '>' + esc(goLabel) + '</button>';
     une.classList.toggle('is-new', !!top.news);
     une.hidden = false;
     // Le titre de la liste porte la corbeille : il reste là, même avec une seule partie
@@ -5593,7 +5722,7 @@
     }).join('');
   }
   // Toucher une partie de la liste : sa conversation, tout de suite (28 octobre 2026) ; le jeu seulement par le bouton de la une quand l’action y est (tourner, lire, relire, reprendre)
-  let pendingPartie = false;
+  let pendingPartie = false, pendingGo = '';
   function openFromHome(b) {
     const room = b.dataset.home;
     if (!room) return;
@@ -5601,6 +5730,9 @@
     if (homeOpen || $('#welcome').classList.contains('is-editing')) { homeOpen = ''; $('#welcome').classList.remove('is-editing'); renderHome(); return; } // un toucher referme « Supprimer »
     if (room.startsWith('ici:')) { report('accueil', null, 'ici'); openIci(room.slice(4)); return; }
     pendingPartie = !!b.dataset.partie;
+    // Le bouton de la une fait son action tout de suite : les roues, ou l’envie à lire
+    const go = b.classList.contains('une-go') && !b.dataset.partie ? (/^(tourner|reprendre)$/.test(b.dataset.go || '') ? 'roues' : 'offre') : '';
+    pendingGo = go;
     report('accueil', null, b.classList.contains('une-go') ? 'une' : 'liste');
     openGame(room);
   }

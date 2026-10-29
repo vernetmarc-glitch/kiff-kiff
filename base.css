@@ -1747,3 +1747,25 @@ html.ios-app .overlay--partie > .sheet, html.ios-app .overlay--envie > .sheet, h
 .thread-envie-dos .carte-emblem { width: 72px; height: auto; margin: 6px 0; }
 .thread-envie-dos .carte-emblem .e-ring { fill: none; stroke: currentColor; stroke-width: 7; opacity: .85; }
 .thread-envie-dos .carte-emblem .e-lens { fill: var(--carte-dos-lentille, #FF3B6B); }
+
+/* ---------- Le fil de la partie, sur un ou deux téléphones (29 octobre 2026) ---------- */
+/* En haut à gauche des roues : la flèche du retour au fil pendant une partie, la maison sinon */
+#home .ic-back { display: none; }
+body.en-jeu #home .ic-home { display: none; }
+body.en-jeu #home .ic-back { display: block; }
+/* Le titre de la carte d’action : ce que l’autre vient de faire (« Lou a dit non. »), en clair, pas en petites capitales */
+.sheet--partie .partie-label { font-size: 16px; font-weight: 700; letter-spacing: 0; text-transform: none; opacity: 1; line-height: 1.25; }
+/* Après un non : qui propose maintenant, trois boutons pleine largeur sous la phrase */
+.partie-action.is-choix { flex-wrap: wrap; align-items: flex-start; padding: 12px 14px 14px; }
+.partie-action.is-choix .partie-carte { display: none; }
+.partie-action.is-choix .partie-action-text { flex: 1 1 100%; flex-direction: column; align-items: stretch; gap: 4px; }
+.partie-action.is-choix .partie-acts { display: block; width: 100%; }
+.partie-choix { display: flex; flex-direction: column; gap: 8px; width: 100%; margin-top: 10px; }
+.partie-choix[hidden] { display: none !important; }
+.partie-choix .btn { width: 100%; min-height: 46px; }
+/* Sur un téléphone : pas de champ pour écrire, le fil va jusqu’en bas */
+.overlay--partie.is-ici .chat-bar { display: none !important; }
+/* « Vos kiff kiff » : le fil sans les messages, seulement les cartes */
+.chat-list.is-cartes > li:not(.thread-kiff):not(.chat-day) { display: none; }
+.chat-list.is-cartes > li.thread-envie, .chat-list.is-cartes > li.thread-offert { display: none; }
+#wait-kiffs.is-on { background: var(--kiffs-on-bg, color-mix(in srgb, currentColor 22%, transparent)); }

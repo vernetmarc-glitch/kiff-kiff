@@ -43,6 +43,16 @@ Chaque écran glisse vers le suivant dès la réponse ; trois points en haut mon
 - **En bas, le tour** : « On passe » à gauche (« Sans envie » quand on compose l’envie de l’invitation), le bouton principal à droite, à toutes les étapes. Il n’y a plus de « On passe » en haut.
 - Dans Red Corner, le prénom sous « J’ai envie… » ne s’affiche plus : la consigne le dit déjà.
 
+## Le fil de la partie, sur un ou deux téléphones (depuis le 29 octobre 2026)
+Une seule façon de jouer, qu’on soit sur un téléphone ou à distance : **le fil de la partie** est le rendez-vous de la partie (l’écran `#ov-wait`, la conversation à deux téléphones).
+- **En haut**, « Avec Lou » (à distance) ou « Marc et Lou · Sur ce téléphone · Pimenté » (sur un téléphone), et l’icône « Vos kiff kiff », qui **filtre le fil** pour ne garder que les cartes (la liste à part n’est plus ouverte depuis le jeu).
+- **Juste dessous, la carte d’action** : la seule chose à faire maintenant. Sur un téléphone, elle dit à qui passer le téléphone : « Au tour de Lou. Passe-lui le téléphone. » [C’est moi, Lou] ; « Passe le téléphone à Marc. » [C’est moi, Marc] ; quand la bonne personne le tient déjà : « Marc, à toi de proposer une envie. » [Tourner les roues], « Marc, Lou t’a proposé une envie. » [Lire son envie]. À distance : « À toi de proposer une envie. » [Tourner les roues], « Lou t’a envoyé une envie. » [Lire son envie], « Envie envoyée · Lou la lit. »…
+- **Ce que l’autre téléphone vient de faire** se dit dans la carte, plus dans une fenêtre : « Lou a dit non. » en titre, « Un non libre, c’est ce qui fait des oui de vrais oui. C’est à toi de proposer. » dessous, jusqu’au tour suivant. Même chose quand l’autre garde le piment d’avant.
+- **Après « Non, et c’est très bien »** (et pour « On passe » depuis les roues, « Retirer mon envie », « Finalement, non » de la fête), le choix se fait dans la carte : « Lou propose autre chose », « Marc propose à son tour », « Finalement, on continue » (qui rouvre l’envie). L’ancienne fenêtre « On passe » et l’écran « Passe le téléphone » ne servent plus.
+- **Dans le fil** : les kiff kiff à leur heure, l’envie en cours (retournée tant qu’on ne l’a pas ouverte, sur la petite carte comme dans le fil) et, à deux téléphones, les messages. **Une envie refusée quitte le fil** : ce qui a été refusé ne laisse pas de trace.
+- **S’ouvrent par-dessus**, et on revient au fil ensuite : les roues (on y va par la carte d’action ; en haut à gauche des roues, une flèche ramène au fil, et à distance la bulle reste en haut à droite avec ses messages non lus), l’envie à lire (seulement quand on touche « Lire son envie » ou la carte retournée), l’accord pour monter le piment, « Une seule modification », la fête, un kiff kiff en grand.
+- Le bouton de la une, à l’accueil, mène directement à son action (les roues, ou l’envie à lire) ; « La découvrir » ouvre directement l’envie glissée dans l’invitation.
+
 ## La partie, c’est la conversation (depuis le 26 octobre 2026)
 
 - **À deux téléphones, la page de la partie est un seul fil** : les messages, et chaque kiff kiff posé en carte là où il a été trouvé (« Kiff kiff · à vivre »). Elle remplace l’écran d’attente, la liste des kiff kiff et la discussion par kiff kiff. Elle s’ouvre toute seule quand l’autre a la main (après une envie envoyée) ; à son tour, on l’ouvre par le compteur de kiff kiff du jeu.

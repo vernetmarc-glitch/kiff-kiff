@@ -30,9 +30,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,62..125,100..900;1,62..125,100..900&family=Bagel+Fat+One&family=Abril+Fatface&family=Merriweather:ital,opsz,wght@0,18..144,400..900;1,18..144,400..900&family=Baskervville:ital,wght@0,400..700;1,400..700&family=Jost:wght@300..700&family=Great+Vibes&family=Cinzel:wght@400..900&family=Syne:wght@600..800&family=Manrope:wght@400..800&family=Anton&family=Courier+Prime:wght@400;700&display=swap">
-<link rel="stylesheet" href="base.css?v=131">
+<link rel="stylesheet" href="base.css?v=132">
 <link rel="stylesheet" href="skins/arty.css?v=72" data-skin-sheet="arty">
-<link rel="stylesheet" href="skins/pomme.css?v=73" data-skin-sheet="pomme">
+<link rel="stylesheet" href="skins/pomme.css?v=74" data-skin-sheet="pomme">
 <link rel="stylesheet" href="skins/redcorner.css?v=76" data-skin-sheet="redcorner">
 <link rel="stylesheet" href="skins/minuit.css?v=68" data-skin-sheet="minuit">
 <link rel="stylesheet" href="skins/classex.css?v=73" data-skin-sheet="classex">
@@ -153,8 +153,10 @@
 <div class="app" id="app">
   <!-- En haut, la navigation : l’accueil, avec qui l’on joue, les kiff kiff et leurs discussions -->
   <header class="top">
-    <button class="sticker sticker--round" id="home" type="button" aria-label="Accueil : prénoms et réglages">
-        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M3.5 11.2 12 4l8.5 7.2" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/><path d="M6 10v9.5h4.5v-5h3v5H18V10" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linejoin="round"/></svg>
+    <!-- Pendant une partie : le retour au fil de la partie (29 octobre 2026) ; sinon l’accueil -->
+    <button class="sticker sticker--round" id="home" type="button" aria-label="Le fil de la partie">
+        <svg class="ic-home" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M3.5 11.2 12 4l8.5 7.2" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/><path d="M6 10v9.5h4.5v-5h3v5H18V10" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linejoin="round"/></svg>
+        <svg class="ic-back" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </button>
     <h1 class="logo"><span class="ink" data-ink="Kiff Kiff">Kiff Kiff</span></h1>
     <div class="top-who" id="top-who" hidden role="button" tabindex="0" aria-label="La conversation de la partie"><span class="top-name" id="top-name"></span><span class="top-pres" id="top-pres"></span></div>
@@ -634,13 +636,14 @@
     <section class="partie-action" id="partie-action" aria-live="polite">
       <div class="partie-carte party-sentence" id="partie-carte" aria-hidden="true"></div>
       <div class="partie-action-text">
-        <span class="partie-label" id="wait-title"></span>
+        <span class="partie-label" id="wait-title" hidden></span>
         <span class="partie-line" id="wait-kicker"></span>
         <div class="partie-acts">
           <button class="btn partie-go" id="wait-go" type="button" hidden></button>
           <button class="btn btn--line partie-go partie-prevenir" id="wait-nudge" type="button" hidden><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-toquer"/></svg><span id="wait-nudge-text"></span></button>
           <button class="btn partie-go" id="wait-install" type="button" hidden><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-installer"/></svg><span data-t="attente.installer-court">Installer</span></button>
           <button class="link-btn wait-pass" id="wait-pass" type="button" data-t="attente.passe">Retirer mon envie</button>
+          <div class="partie-choix" id="partie-choix" hidden></div>
           <button class="icon-btn icon-btn--bare partie-ic" id="wait-notif" type="button" aria-pressed="false" hidden><svg class="ic ic--on" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-avertir"/></svg><svg class="ic ic--off" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-avertir-non"/></svg><span class="sr-only"><span class="notif-word" data-t="attente.avertir">M’avertir</span>&nbsp;: <span id="wait-notif-state">désactivé</span></span></button>
         </div>
       </div>
@@ -899,12 +902,12 @@
 </div>
 
 <script src="data.js?v=64"></script>
-<script src="textes.js?v=36"></script>
+<script src="textes.js?v=37"></script>
 <script src="semantique.js?v=1"></script>
 <script src="config.js?v=63"></script>
 <script src="duo.js?v=64"></script>
 <script src="push.js?v=65"></script>
-<script src="app.js?v=151"></script>
+<script src="app.js?v=152"></script>
 <!-- iPhone, appli installée : deux bandes d’une couleur unie en haut et en bas de l’écran (voir base.css) -->
 <div class="edge edge--haut" aria-hidden="true"></div><div class="edge edge--bas" aria-hidden="true"></div>
 </body>
