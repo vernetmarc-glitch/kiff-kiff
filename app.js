@@ -3818,7 +3818,7 @@
         note(T('nouvelles.piment'), T('nouvelles.piment-texte', { prénom: nameOf(st.pass.by), piment: levelNames(parseLevels(st.lvOk || st.levels)) }));
       } else if (st.pass.by !== duo.seat) {
         hide(el.ovPass);
-        note(T('nouvelles.passe'), T(S.proposer === duo.seat ? 'nouvelles.passe-toi' : 'nouvelles.passe-autre', { prénom: nameOf(st.pass.by), autre: nameOf(S.proposer) }));
+        note(T('nouvelles.passe', { prénom: nameOf(st.pass.by) }), T(S.proposer === duo.seat ? 'nouvelles.passe-toi' : 'nouvelles.passe-autre', { prénom: nameOf(st.pass.by), autre: nameOf(S.proposer) }));
       }
     }
     S.pass = st.pass || null;
@@ -3893,7 +3893,7 @@
     // Pendant que l’autre lit ton envie : « Retirer mon envie » ; pendant qu’il relit ton « Oui, mais… » : « On passe »
     const wp = $('#wait-pass');
     wp.hidden = !(waiting && ['review', 'adjust', 'reconfirm'].includes(S.phase));
-    wp.textContent = S.phase === 'reconfirm' ? T('offre.passe') : T('attente.passe');
+    wp.textContent = T('attente.passe');
     const g = $('#wait-go');
     g.hidden = !go; g.textContent = go;
     // Après une envie envoyée, tant que l’appli n’est pas installée : l’installer, pour être averti·e de la réponse

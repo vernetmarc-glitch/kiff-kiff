@@ -162,7 +162,7 @@
       '<h2 class="sec">Journal</h2>' + journalHtml();
   }
   // Les derniers comptes, dans l’ordre (rien de personnel : un geste et sa variante)
-  const NOMS_J = { visite: 'Ouverture', partie: 'Partie', envie: 'Envie', kiff: 'Kiff kiff', passe: 'On passe', invitation: 'Invitation', rejoint: 'Invitation rejointe',
+  const NOMS_J = { visite: 'Ouverture', partie: 'Partie', envie: 'Envie', kiff: 'Kiff kiff', passe: 'Non', invitation: 'Invitation', rejoint: 'Invitation rejointe',
     mais: 'Oui, mais…', premier: 'Premier kiff kiff', piment: 'Piment', monte: 'Montée de piment', partage: 'Partage', cafe: 'Café', installe: 'Installée',
     historique: 'Vos kiff kiff', notif: 'Avertissement', discussion: 'Discussion', carte: 'Carte en image', installer: 'Inviter à installer', attente: 'Attente',
     brulant: 'Brûlant', complet: 'Jeu complet', loupe: 'Loupe', recherche: 'Recherche' };

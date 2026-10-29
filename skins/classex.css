@@ -168,6 +168,9 @@ body { background: var(--kraft); color: var(--ink); font-family: var(--f-ui); ca
 .btn .ic { stroke-width: 2; }
 .btn--paper { background: var(--paper); color: var(--ink); box-shadow: inset 0 0 0 2px var(--ink); }
 .btn--line { background: transparent; color: var(--ink); box-shadow: inset 0 0 0 2px var(--ink); }
+/* L’envie reçue : trois réponses du même poids, trois couleurs (29 octobre 2026) */
+.btn.btn--mais { background: var(--red); color: var(--paper); }
+.btn.btn--non { background: var(--paper); color: var(--ink); box-shadow: inset 0 0 0 2px var(--ink); }
 .link-btn { font-weight: 700; font-size: 15px; color: var(--ink); text-decoration-color: var(--red); text-decoration-thickness: 2px; }
 
 /* ---------- Écrans superposés ---------- */
@@ -251,6 +254,8 @@ body { background: var(--kraft); color: var(--ink); font-family: var(--f-ui); ca
 .overlay--handoff .link-btn, .overlay--pass .link-btn { color: var(--paper); }
 .overlay--handoff .btn, .overlay--pass .btn { background: var(--paper); color: var(--ink); }
 .overlay--handoff .btn--line, .overlay--pass .btn--line { background: transparent; color: var(--paper); box-shadow: inset 0 0 0 2px var(--paper); }
+.overlay--handoff .btn.btn--mais { background: var(--red); color: var(--paper); }
+.overlay--handoff .btn.btn--non { background: var(--kraft); color: var(--ink); }
 .handoff-title { font-family: var(--f-display); font-size: clamp(36px, 11vw, 54px); line-height: 1; letter-spacing: .02em; text-transform: uppercase; }
 .handoff-kicker { font-size: 13px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--red-hi); }
 .handoff-text { font-size: 16px; line-height: 1.5; }

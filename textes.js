@@ -27,7 +27,7 @@ window.KIFF_TEXTES = [
     ["accueil.en-cours-msg", "En cours : partie à deux avec {prénom}. {etat}", "Même chose, quand la connexion pose problème ({etat} : le message de connexion)"],
     ["accueil.en-cours-kiffs", "{nombre} kiff kiff ensemble.", "À la suite, quand il y a déjà des kiff kiff"],
     ["accueil.regle-1", "Sur un téléphone, ou chacun·e sur le sien.", "Le principe, ligne 1, sous « Commencer » quand aucune partie n’est en cours"],
-    ["accueil.regle-2", "« J’ai envie aussi », « Oui, mais… » ou « On passe ».", "Le principe, ligne 2"],
+    ["accueil.regle-2", "« J’ai envie aussi », « Oui, mais… » ou « Non ».", "Le principe, ligne 2"],
     ["accueil.regle-3", "Deux « j’ai envie » : c’est un kiff kiff.", "Le principe, ligne 3"],
     ["accueil.vos-parties", "Vos parties", "Titre de la liste, sous la une"],
     ["accueil.du-nouveau", "Du nouveau", "Au-dessus de la une, quand une partie a du nouveau (suivi du temps)"],
@@ -89,11 +89,11 @@ window.KIFF_TEXTES = [
     ["principe.intro", "", "Sous le titre (vide : rien ne s’affiche)"],
     ["principe.1", "{prénom} compose une envie avec trois roues.", "Premier geste ; {prénom} : qui commence"],
     ["principe.1-sous", "", "Sous le premier geste, en petit (vide : rien ne s’affiche)"],
-    ["principe.2", "{prénom} répond « J’ai envie aussi », « Oui, mais… » ou « On passe ».", "Deuxième geste ; {prénom} : qui répond"],
+    ["principe.2", "{prénom} répond « J’ai envie aussi », « Oui, mais… » ou « Non ».", "Deuxième geste ; {prénom} : qui répond"],
     ["principe.2-sous", "", "Sous le deuxième geste, en petit (vide : rien ne s’affiche)"],
     ["principe.3", "Deux « j’ai envie » : kiff kiff !", "Troisième geste"],
     ["principe.3-sous", "", "Sous le troisième geste, en petit (vide : rien ne s’affiche)"],
-    ["principe.piment", "On passe quand on veut. Le piment monte à deux.", "Sous les trois gestes"],
+    ["principe.piment", "On dit non quand on veut. Le piment monte à deux.", "Sous les trois gestes"],
     ["principe.ok", "Compris", "Bouton"],
     ["principe.autre", "L’autre", "À la place du prénom dans la première règle, quand l’autre joue sur son téléphone"]
   ] },
@@ -215,10 +215,10 @@ window.KIFF_TEXTES = [
     ["offre.passe-tel", "Passe le téléphone à {prénom}.", "Au-dessus du titre, sur un seul téléphone"],
     ["offre.titre", "L’envie de {prénom}", "Titre, quand on reçoit une envie"],
     ["offre.titre-ajuste", "{prénom} a ajusté ton envie", "Titre, quand on relit son envie après « Oui, mais… »"],
-    ["offre.oui", "J’ai envie aussi", "Le bouton principal"],
-    ["offre.oui-ajuste", "J’ai envie", "Le bouton principal, quand on relit son envie ajustée"],
-    ["offre.mais", "Oui, mais…", "Le deuxième bouton"],
-    ["offre.passe", "On passe", "Le lien en bas"],
+    ["offre.oui", "Oui, j’ai envie aussi", "Le premier des trois boutons (les trois ont le même poids)"],
+    ["offre.oui-ajuste", "Oui, j’ai envie", "Le premier bouton, quand on relit son envie ajustée"],
+    ["offre.mais", "Oui, mais j’ajuste", "Le deuxième bouton : l’écran d’après explique qu’on change une chose"],
+    ["offre.passe", "Non, et c’est très bien", "Le troisième bouton, du même poids que les deux autres"],
     ["offre.oups", "Oups, {prénom} n’avait pas fini", "Tout en bas, sur un seul téléphone"]
   ] },
   { id: "mais", nom: "Oui, mais…", textes: [
@@ -227,8 +227,8 @@ window.KIFF_TEXTES = [
     ["mais.retour", "Retour", "Lien à gauche"],
     ["mais.ok", "Compris", "Bouton"]
   ] },
-  { id: "passe", nom: "On passe", textes: [
-    ["passe.titre", "On passe.", "Le grand titre"],
+  { id: "passe", nom: "Non", textes: [
+    ["passe.titre", "Non, et c’est très bien.", "Le grand titre, après avoir dit non"],
     ["passe.texte", "Pas besoin d’expliquer pourquoi.", "Sous le titre"],
     ["passe.meme", "{prénom} propose autre chose", "Premier bouton"],
     ["passe.autre", "{prénom} propose à son tour", "Deuxième bouton"],
@@ -264,7 +264,7 @@ window.KIFF_TEXTES = [
     ["fete.gardee", "Gardée pour plus tard.", "Le petit mot après « On la garde pour plus tard »"],
     ["fete.gardee-par", "{prénom} la garde pour plus tard.", "À distance, quand l’autre a gardé l’envie"],
     ["fete.absence", "{prénom} a dit oui pendant ton absence.", "À distance, sous le grand titre"],
-    ["fete.passe", "Finalement, on passe", "Lien sous les boutons"],
+    ["fete.passe", "Finalement, non", "Lien sous les boutons"],
     ["fete.kiffez", "Vous kiffez ?", "Tout en bas, à partir du deuxième kiff kiff"],
     ["fete.installer", "Garder Kiff Kiff sur ton écran d’accueil", "Tout en bas, au premier kiff kiff, quand l’appli peut s’installer"],
     ["fete.image-ok", "Image enregistrée dans tes téléchargements.", "Sous l’envie, après avoir touché l’icône image (sur ordinateur)"]
@@ -438,7 +438,7 @@ window.KIFF_TEXTES = [
     ["invite.regle-2", "{prénom} répond « J’ai envie aussi », ou « Oui, mais… » en changeant une chose.", "Deuxième écran, deuxième règle"],
     ["invite.regle-1-envie", "{prénom} t’a glissé une envie : tu la découvres juste après.", "Première règle, quand l’invitation contient une envie"],
     ["invite.regle-2-envie", "Tu réponds « J’ai envie aussi », ou « Oui, mais… » en changeant une chose. Puis chacun·e son tour.", "Deuxième règle, quand l’invitation contient une envie"],
-    ["invite.regle-3", "Vos envies se rejoignent : kiff kiff. On passe quand on veut, sans se justifier.", "Troisième règle"],
+    ["invite.regle-3", "Vos envies se rejoignent : kiff kiff. On dit non quand on veut, sans se justifier.", "Troisième règle"],
     ["invite.apercu", "Et quand le piment monte :", "Sous le piment, au-dessus d’une envie Pimenté dont le mot fort est caché"],
     ["invite.piment-monte", "Vous commencez en {piment}. Le piment monte en jouant, à deux.", "Sous les règles"],
     ["invite.piments", "Piments choisis par {prénom} : {piments}", "Sous les règles (parties lancées avant le piment qui monte en jouant)"],
@@ -509,9 +509,9 @@ window.KIFF_TEXTES = [
     ["nouvelles.fin-texte", "{prénom} a arrêté la partie.", "Texte"],
     ["nouvelles.piment", "On garde le piment d’avant", "Titre, quand l’autre refuse de monter le piment"],
     ["nouvelles.piment-texte", "{prénom} préfère rester en {piment}. Pas besoin d’expliquer pourquoi. Propose une autre envie avec ce piment-là.", "Texte"],
-    ["nouvelles.passe", "On passe.", "Titre, quand l’autre a passé"],
-    ["nouvelles.passe-toi", "{prénom} a passé. Pas besoin d’expliquer pourquoi. C’est à toi de proposer.", "Texte, quand c’est à toi de proposer"],
-    ["nouvelles.passe-autre", "{prénom} a passé. Pas besoin d’expliquer pourquoi. {autre} propose autre chose.", "Texte, quand l’autre repropose"],
+    ["nouvelles.passe", "{prénom} a dit non.", "Titre, quand l’autre a dit non à ton envie"],
+    ["nouvelles.passe-toi", "Un non libre, c’est ce qui fait des oui de vrais oui. C’est à toi de proposer.", "Texte, quand c’est à toi de proposer"],
+    ["nouvelles.passe-autre", "Un non libre, c’est ce qui fait des oui de vrais oui. {autre} propose à son tour.", "Texte, quand c’est l’autre qui propose"],
     ["nouvelles.ok", "D’accord", "Bouton"]
   ] },
   { id: "parties", nom: "Parties à distance", textes: [
@@ -570,7 +570,7 @@ window.KIFF_TEXTES = [
   { id: "gestes", nom: "Les premiers gestes", textes: [
     ["gestes.roues", "Glisse chaque roue vers le haut ou le bas : le mot du milieu fait la phrase. La loupe cherche un mot, ou l’écrit.", "Première bulle, sur les roues, à la première envie de quelqu’un"],
     ["gestes.reglages", "« que tu me » ou « de te » : qui fait l’action. Le dé tire une phrase au hasard.", "Deuxième bulle, sur la ligne du dé"],
-    ["gestes.proposer", "La phrase te plaît ? Propose-la. {prénom} répondra « J’ai envie aussi », « Oui, mais… » ou « On passe ».", "Troisième bulle, sur « Proposer »"],
+    ["gestes.proposer", "La phrase te plaît ? Propose-la. {prénom} répondra « J’ai envie aussi », « Oui, mais… » ou « Non ».", "Troisième bulle, sur « Proposer »"],
     ["gestes.compte", "{nombre} sur 3", "En haut de chaque bulle"],
     ["gestes.passer", "Je connais", "Lien : ne plus montrer les bulles"],
     ["gestes.suivant", "Suivant", "Bouton"],

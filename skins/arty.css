@@ -471,6 +471,9 @@ button { font: inherit; color: inherit; }
 .btn:active::before { transform: translate(2px, 2px); }
 .btn--paper { --btn-bg: var(--paper); --btn-shade: var(--halftone-pink); color: var(--blue); }
 .btn--line { --btn-bg: transparent; color: var(--blue); box-shadow: inset 0 0 0 3px var(--blue); }
+/* L’envie reçue : trois réponses du même poids, trois couleurs (29 octobre 2026) */
+.btn.btn--mais { --btn-bg: var(--paper); --btn-shade: var(--halftone-pink); color: var(--violet); }
+.btn.btn--non { --btn-bg: var(--violet); --btn-shade: var(--halftone-pink); color: var(--paper); }
 .btn--line::before { display: none; }
 .link-btn {
   border: 0; background: none; padding: 10px;

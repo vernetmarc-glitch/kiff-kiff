@@ -31,11 +31,11 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,62..125,100..900;1,62..125,100..900&family=Bagel+Fat+One&family=Abril+Fatface&family=Merriweather:ital,opsz,wght@0,18..144,400..900;1,18..144,400..900&family=Baskervville:ital,wght@0,400..700;1,400..700&family=Jost:wght@300..700&family=Great+Vibes&family=Cinzel:wght@400..900&family=Syne:wght@600..800&family=Manrope:wght@400..800&family=Anton&family=Courier+Prime:wght@400;700&display=swap">
 <link rel="stylesheet" href="base.css?v=131">
-<link rel="stylesheet" href="skins/arty.css?v=71" data-skin-sheet="arty">
-<link rel="stylesheet" href="skins/pomme.css?v=72" data-skin-sheet="pomme">
-<link rel="stylesheet" href="skins/redcorner.css?v=75" data-skin-sheet="redcorner">
-<link rel="stylesheet" href="skins/minuit.css?v=67" data-skin-sheet="minuit">
-<link rel="stylesheet" href="skins/classex.css?v=72" data-skin-sheet="classex">
+<link rel="stylesheet" href="skins/arty.css?v=72" data-skin-sheet="arty">
+<link rel="stylesheet" href="skins/pomme.css?v=73" data-skin-sheet="pomme">
+<link rel="stylesheet" href="skins/redcorner.css?v=76" data-skin-sheet="redcorner">
+<link rel="stylesheet" href="skins/minuit.css?v=68" data-skin-sheet="minuit">
+<link rel="stylesheet" href="skins/classex.css?v=73" data-skin-sheet="classex">
 <script>
 /* Déménagement vers kiff-kiff.fr : l’ancienne adresse apporte, dans le « # » du lien (jamais envoyé
    à un serveur), ce que le téléphone gardait là-bas : parties à deux, prénoms, ambiance, réglages.
@@ -241,7 +241,7 @@
           </div>
           <ol class="home-rules" id="home-rules">
             <li><b>1</b><span data-t="accueil.regle-1">Sur un téléphone, ou chacun·e sur le sien.</span></li>
-            <li><b>2</b><span data-t="accueil.regle-2">« J’ai envie aussi », « Oui, mais… » ou « On passe ».</span></li>
+            <li><b>2</b><span data-t="accueil.regle-2">« J’ai envie aussi », « Oui, mais… » ou « Non ».</span></li>
             <li><b>3</b><span data-t="accueil.regle-3">Deux « j’ai envie » : c’est un kiff kiff.</span></li>
           </ol>
           <div class="games games--old" id="games" hidden>
@@ -281,10 +281,10 @@
           <p class="step-text principe-intro" data-t="principe.intro"></p>
           <ol class="gestes">
             <li><span class="geste-ill" aria-hidden="true"><svg viewBox="0 0 54 54"><use href="#ill-roues"/></svg><b>1</b></span><span class="geste-text"><span data-t="principe.1"><b id="rule-a" data-tk="prénom">Cerise</b> compose une envie avec trois roues.</span><span class="geste-sub" data-t="principe.1-sous"></span></span></li>
-            <li><span class="geste-ill" aria-hidden="true"><svg viewBox="0 0 54 54"><use href="#ill-reponses"/></svg><b>2</b></span><span class="geste-text"><span data-t="principe.2"><b id="rule-b" data-tk="prénom">Pistache</b> répond «&nbsp;J’ai envie aussi&nbsp;», «&nbsp;Oui, mais…&nbsp;» ou «&nbsp;On passe&nbsp;».</span><span class="geste-sub" data-t="principe.2-sous"></span></span></li>
+            <li><span class="geste-ill" aria-hidden="true"><svg viewBox="0 0 54 54"><use href="#ill-reponses"/></svg><b>2</b></span><span class="geste-text"><span data-t="principe.2"><b id="rule-b" data-tk="prénom">Pistache</b> répond «&nbsp;J’ai envie aussi&nbsp;», «&nbsp;Oui, mais…&nbsp;» ou «&nbsp;Non&nbsp;».</span><span class="geste-sub" data-t="principe.2-sous"></span></span></li>
             <li><span class="geste-ill" aria-hidden="true"><svg viewBox="0 0 54 54"><use href="#ill-kiff"/></svg><b>3</b></span><span class="geste-text"><span data-t="principe.3">Deux «&nbsp;j’ai envie&nbsp;»&nbsp;: kiff kiff&nbsp;!</span><span class="geste-sub" data-t="principe.3-sous"></span></span></li>
           </ol>
-          <p class="step-text principe-piment" data-t="principe.piment">On passe quand on veut. Le piment monte à deux.</p>
+          <p class="step-text principe-piment" data-t="principe.piment">On dit non quand on veut. Le piment monte à deux.</p>
           <button class="btn" id="rules-ok" type="button" data-t="principe.ok">Compris</button>
           <button class="link-btn step-back" type="button"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-retour"/></svg><span data-t="joueurs.retour">Retour</span></button>
         </div>
@@ -328,7 +328,7 @@
           <ol class="gestes">
             <li><span class="geste-ill" aria-hidden="true"><svg viewBox="0 0 54 54"><use href="#ill-roues"/></svg><b>1</b></span><span class="geste-text" id="inv-rule-1"><b>Tu commences</b>&nbsp;: trois roues, «&nbsp;J’ai envie que tu me…&nbsp;».</span></li>
             <li><span class="geste-ill" aria-hidden="true"><svg viewBox="0 0 54 54"><use href="#ill-reponses"/></svg><b>2</b></span><span class="geste-text" id="inv-rule-2"><b class="inv-a">Cerise</b> répond «&nbsp;J’ai envie aussi&nbsp;», ou «&nbsp;Oui, mais…&nbsp;» en changeant une chose.</span></li>
-            <li><span class="geste-ill" aria-hidden="true"><svg viewBox="0 0 54 54"><use href="#ill-kiff"/></svg><b>3</b></span><span class="geste-text" data-t="invite.regle-3">Vos envies se rejoignent&nbsp;: kiff kiff. On passe quand on veut, sans se justifier.</span></li>
+            <li><span class="geste-ill" aria-hidden="true"><svg viewBox="0 0 54 54"><use href="#ill-kiff"/></svg><b>3</b></span><span class="geste-text" data-t="invite.regle-3">Vos envies se rejoignent&nbsp;: kiff kiff. On dit non quand on veut, sans se justifier.</span></li>
           </ol>
           <p class="step-text inv-piments" id="inv-piments"></p>
           <!-- Un avant-goût du Pimenté : une envie, son mot fort caché -->
@@ -487,9 +487,10 @@
     <h2 class="handoff-title" id="offer-title"></h2>
     <p class="party-sentence offer-sentence" id="offer-sentence"></p>
     <div class="stack">
-      <button class="btn" id="offer-yes" type="button">J’ai envie aussi</button>
-      <button class="btn btn--line" id="offer-but" type="button" data-t="offre.mais">Oui, mais…</button>
-      <button class="link-btn" id="offer-pass" type="button" data-t="offre.passe">On passe</button>
+      <!-- Trois réponses du même poids (29 octobre 2026) : le non est une vraie réponse, comme les deux oui -->
+      <button class="btn btn--oui" id="offer-yes" type="button">Oui, j’ai envie aussi</button>
+      <button class="btn btn--mais" id="offer-but" type="button" data-t="offre.mais">Oui, mais j’ajuste</button>
+      <button class="btn btn--non" id="offer-pass" type="button" data-t="offre.passe">Non, et c’est très bien</button>
     </div>
     <button class="link-btn offer-back" id="offer-back" type="button" hidden></button>
   </div>
@@ -558,10 +559,10 @@
   </div>
 </div>
 
-<!-- On passe -->
+<!-- Non (avant le 29 octobre 2026 : « On passe ») -->
 <div class="overlay overlay--pass" id="ov-pass" hidden>
   <div class="sheet">
-    <h2 class="pass-title"><span class="ink" data-ink="On passe." data-t="passe.titre">On passe.</span></h2>
+    <h2 class="pass-title"><span class="ink" data-ink="Non, et c’est très bien." data-t="passe.titre">Non, et c’est très bien.</span></h2>
     <p class="pass-text" data-t="passe.texte">Pas besoin d’expliquer pourquoi.</p>
     <div class="stack">
       <button class="btn" id="pass-same" type="button"></button>
@@ -609,7 +610,7 @@
     <div class="party-acts">
       <button class="btn" id="party-next" type="button"></button>
       <button class="btn btn--line" id="party-later" type="button"></button>
-      <button class="link-btn" id="party-pass" type="button" data-t="fete.passe">Finalement, on passe</button>
+      <button class="link-btn" id="party-pass" type="button" data-t="fete.passe">Finalement, non</button>
     </div>
   </div>
   <div class="party-foot">
@@ -898,12 +899,12 @@
 </div>
 
 <script src="data.js?v=64"></script>
-<script src="textes.js?v=35"></script>
+<script src="textes.js?v=36"></script>
 <script src="semantique.js?v=1"></script>
 <script src="config.js?v=63"></script>
 <script src="duo.js?v=64"></script>
 <script src="push.js?v=65"></script>
-<script src="app.js?v=150"></script>
+<script src="app.js?v=151"></script>
 <!-- iPhone, appli installée : deux bandes d’une couleur unie en haut et en bas de l’écran (voir base.css) -->
 <div class="edge edge--haut" aria-hidden="true"></div><div class="edge edge--bas" aria-hidden="true"></div>
 </body>
