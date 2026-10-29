@@ -1368,7 +1368,7 @@
   function editPreview() {
     const r = editing;
     const backup = S.custom[r];
-    S.custom[r] = editInput.value || '…';
+    S.custom[r] = sansMajuscule(editInput.value) || '…';
     const idx = S.idx.slice(); idx[r] = reels[r].index;
     const p = parts(idx);
     S.custom[r] = backup;
@@ -1727,7 +1727,11 @@
     if (i === rl.index) { rl.settle(); return; }
     rl.spinTo(i, 0, 520);
   }
+  // Un mot écrit à la main va au milieu de la phrase : pas de majuscule au début (le clavier la met tout seul) ;
+  // un sigle (« PQ ») ou une majuscule voulue plus loin restent tels quels (29 octobre 2026)
+  const sansMajuscule = (v) => (/^\p{Lu}(?:\p{Ll}|\s|$)/u.test(v) ? v.charAt(0).toLowerCase() + v.slice(1) : v);
   function loupeWrite(text) {
+    text = sansMajuscule(text);
     const r = loupeR, rl = reels[r];
     const fi = LISTS[r].findIndex((x) => x.free);
     closeLoupe(false);
@@ -1756,7 +1760,7 @@
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !ovLoupe.hidden) closeLoupe(); });
   $('#edit-form').addEventListener('submit', (e) => {
     e.preventDefault();
-    const v = editInput.value.replace(/\s+/g, ' ').trim().slice(0, 35);
+    const v = sansMajuscule(editInput.value.replace(/\s+/g, ' ').trim().slice(0, 35));
     S.custom[editing] = v;
     hide(el.ovEdit);
     editInput.blur();

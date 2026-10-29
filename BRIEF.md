@@ -123,6 +123,7 @@ Trois niveaux qui se cochent indépendamment (au moins un) : **Tendre** (1 pimen
 - Les listes ont été revues par Marc dans l’Atelier des roues (une page d’édition à part) le 16 octobre 2026 (cinquième passe) : 53 tendres, 28 pimentées, 36 brûlantes au total.
 
 ## Texte libre
+- Un mot écrit à la main va au milieu de la phrase : le clavier ne met plus de majuscule au début (`autocapitalize="none"`), et une majuscule en tête est retirée (« Sur la Tour Eiffel » → « sur la Tour Eiffel ») ; un sigle (« PQ ») et les majuscules plus loin restent (29 octobre 2026).
 
 Chaque rouleau a une dernière case avec un crayon (« écris ton action », « écris ton endroit », « écris ta manière »). En la touchant, on écrit sa propre action, son endroit ou sa manière (40 caractères max), avec un aperçu de la phrase. Pour l’action, il faut écrire le verbe dans la bonne forme (indiqué dans l’aide). La case libre ne sort jamais au hasard.
 
