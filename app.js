@@ -1368,20 +1368,53 @@
     const carte = $('#non-carte');
     carte.classList.remove('is-anim'); void carte.offsetWidth; carte.classList.add('is-anim');
     const A = nameOf(S.proposer), B = nameOf(other(S.proposer));
-    const titre = mode === 'dit' ? T('passe.titre') : T('non.recu-titre', { prénom: nameOf(S.pass ? S.pass.by : other(S.proposer)) });
+    const quiNon = nameOf(S.pass ? S.pass.by : other(S.proposer));
+    const titre = mode === 'dit' ? T('passe.titre') : T('non.recu-titre', { prénom: quiNon });
+    // Chez qui le reçoit : « Lou a dit non », en petit, puis « C’est un non, youpi ! » (2 novembre 2026)
+    const kick = $('#non-kicker');
+    kick.textContent = mode === 'dit' ? '' : T('non.recu-kicker', { prénom: quiNon });
+    kick.hidden = !kick.textContent;
     const ink = $('#non-title .ink');
     ink.textContent = titre; ink.setAttribute('data-ink', titre);
     $('#non-title').classList.toggle('is-long', titre.length > 11 && titre.length <= 16);
     $('#non-title').classList.toggle('is-xlong', titre.length > 16);
     $('#non-texte').textContent = mode === 'dit' ? T('non.texte') : T('non.recu-texte');
     const bt = (id, t, cls) => '<button class="' + cls + '" type="button" data-non="' + id + '">' + esc(t) + '</button>';
+    const pourquoi = '<button class="link-btn non-pourquoi" type="button" data-histoire="non">' + esc(T('non.pourquoi')) + '</button>';
     $('#non-acts').innerHTML = mode === 'dit'
-      ? bt('meme', T('passe.meme', { prénom: A }), 'btn') + bt('autre', T('passe.autre', { prénom: B }), 'btn btn--line') + bt('annuler', T('passe.annuler'), 'link-btn')
-      : bt('ok', T('nouvelles.ok'), 'btn');
+      ? bt('meme', T('passe.meme', { prénom: A }), 'btn') + bt('autre', T('passe.autre', { prénom: B }), 'btn btn--line') + pourquoi + bt('annuler', T('passe.annuler'), 'link-btn')
+      : bt('ok', T('nouvelles.ok'), 'btn') + pourquoi;
     show(ovNon);
     confetti('#confetti-non');
     sParty(); haptic(40);
   }
+  /* « Ah oui ?! », « Pourquoi c’est bien ? » : l’histoire du jeu, ouverte à la bonne partie (2 novembre 2026) */
+  const ovHistoire = $('#ov-histoire');
+  let histoireDe = null;
+  function openHistoire(part, from) {
+    histoireDe = from || null;
+    report('histoire', null, part || 'tout');
+    show(ovHistoire);
+    const sh = ovHistoire.querySelector('.sheet');
+    const cible = ovHistoire.querySelector('.histoire-part[data-part="' + part + '"]');
+    // la partie demandée en premier, les autres ensuite
+    if (cible) cible.parentElement.prepend(cible);
+    $('#histoire-close').focus({ preventScroll: true });
+    const haut = () => { sh.scrollTop = 0; ovHistoire.scrollTop = 0; };
+    haut(); requestAnimationFrame(haut);
+  }
+  const closeHistoire = () => { hide(ovHistoire); if (histoireDe && histoireDe.focus) histoireDe.focus({ preventScroll: true }); };
+  $('#histoire-close').addEventListener('click', () => { audio(); closeHistoire(); });
+  $('#histoire-ok').addEventListener('click', () => { audio(); sClick(); closeHistoire(); });
+  ovHistoire.addEventListener('click', (e) => { if (e.target === ovHistoire) closeHistoire(); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !ovHistoire.hidden) closeHistoire(); });
+  document.addEventListener('click', (e) => {
+    const h = e.target.closest('[data-histoire]');
+    if (!h) return;
+    e.preventDefault(); e.stopPropagation();
+    audio(); sClick(); haptic(8);
+    openHistoire(h.dataset.histoire, h);
+  }, true);
   ovNon.addEventListener('click', (e) => {
     const b = e.target.closest('[data-non]');
     if (!b) return;
@@ -2978,7 +3011,7 @@
     box.classList.toggle('is-offre', offre);
     $('#party-unlock-text').textContent = offre ? T('fete.brulant-complet') : T('fete.debloque', { niveau: D.niveaux[now - 1].nom });
     if (offre) report('complet', null, 'propose-brulant');
-    box.querySelector('.party-unlock-line').setAttribute('aria-label', D.niveaux[now - 1].nom + ' débloqué : le piment peut monter, si vous en avez envie tous les deux.');
+    box.querySelector('.party-unlock-line').setAttribute('aria-label', D.niveaux[now - 1].nom + ' débloqué : le piment peut monter, si vous en avez envie tous·tes les deux.');
   }
   $('#party-unlock').addEventListener('click', () => { if ($('#party-unlock').dataset.complet) openComplet('fete'); });
   function celebrateLate() {
@@ -4406,7 +4439,7 @@
     report('invitation', null, 'progressif');
     askGift();
   }
-  /* Une envie dans l’invitation : l’autre la découvrira après le principe du jeu, s’il ou elle le veut */
+  /* Une envie dans l’invitation : l’autre la découvrira après le principe du jeu, si iel le veut */
   function askGift() {
     duoSheet({
       stage: 'gift-ask',

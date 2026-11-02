@@ -1860,3 +1860,13 @@ body.en-jeu #home .ic-back { display: block; }
 .etiquette { display: inline-block; padding: 3px 8px; border-radius: 6px; font-family: var(--f-ui, system-ui, sans-serif); font-size: 11.5px; font-weight: 800; line-height: 1.2; letter-spacing: .01em; white-space: nowrap; transform: rotate(-2deg); }
 .etiquette.is-tour, .etiquette.is-kiff { background: var(--badge-bg, #D81B50); color: var(--badge-fg, #fff); box-shadow: 0 2px 0 color-mix(in srgb, #000 25%, transparent); }
 .etiquette.is-ecrit { background: transparent; color: inherit; box-shadow: inset 0 0 0 1.5px var(--badge-bg, #D81B50); transform: rotate(1.5deg); }
+
+/* « Ah oui ?! » : un petit lien à côté d’une règle ; « Kiff Kiff, l’histoire » s’ouvre à la bonne partie (2 novembre 2026) */
+.ahoui { display: inline; margin: 0 0 0 4px; padding: 0; border: 0; background: none; color: inherit; font: inherit; font-size: .88em; font-weight: 700; text-decoration: underline 1.5px; text-underline-offset: 3px; cursor: pointer; opacity: .9; white-space: nowrap; }
+.geste-text > .ahoui { align-self: flex-start; margin: 3px 0 0; }
+.histoire-card { padding: 4px 0 0; gap: 0; }
+.histoire-part + .histoire-part { border-top: 1px solid color-mix(in srgb, currentColor 18%, transparent); }
+.histoire-titre { margin: 0; padding: 16px 16px 8px; font-family: var(--f-title, inherit); font-size: 17px; text-align: left; }
+.non-kicker { margin: 0 0 -6px; font-size: 14px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; opacity: .85; text-align: center; }
+.non-kicker[hidden] { display: none; }
+.non-pourquoi { font-size: 14.5px; }

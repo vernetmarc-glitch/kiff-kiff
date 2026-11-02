@@ -30,7 +30,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,62..125,100..900;1,62..125,100..900&family=Bagel+Fat+One&family=Abril+Fatface&family=Merriweather:ital,opsz,wght@0,18..144,400..900;1,18..144,400..900&family=Baskervville:ital,wght@0,400..700;1,400..700&family=Jost:wght@300..700&family=Great+Vibes&family=Cinzel:wght@400..900&family=Syne:wght@600..800&family=Manrope:wght@400..800&family=Anton&family=Courier+Prime:wght@400;700&display=swap">
-<link rel="stylesheet" href="base.css?v=138">
+<link rel="stylesheet" href="base.css?v=139">
 <link rel="stylesheet" href="skins/arty.css?v=72" data-skin-sheet="arty">
 <link rel="stylesheet" href="skins/pomme.css?v=76" data-skin-sheet="pomme">
 <link rel="stylesheet" href="skins/redcorner.css?v=76" data-skin-sheet="redcorner">
@@ -261,7 +261,7 @@
             <button class="where-btn" type="button" data-where="duo" aria-pressed="false" data-t="joueurs.distance">Sur son téléphone</button>
           </div>
           <div class="name1-box" id="name1-box">
-            <label for="name1" id="name1-label">Son prénom (c’est l’autre qui commence)</label>
+            <label for="name1" id="name1-label">Son prénom</label>
             <input id="name1" maxlength="20" autocomplete="off" placeholder="Pistache" enterkeyhint="go" data-t-ph="joueurs.exemple-2">
           </div>
           <!-- Une personne qui n’a jamais joué sur ce téléphone : le principe lui sera montré -->
@@ -277,11 +277,11 @@
           <h2 class="step-title" id="rules-title" data-t="principe.titre">Le jeu en trois gestes</h2>
           <p class="step-text principe-intro" data-t="principe.intro"></p>
           <ol class="gestes">
-            <li><span class="geste-ill" aria-hidden="true"><svg viewBox="0 0 54 54"><use href="#ill-roues"/></svg><b>1</b></span><span class="geste-text"><span data-t="principe.1"><b id="rule-a" data-tk="prénom">Cerise</b> compose une envie avec trois roues.</span><span class="geste-sub" data-t="principe.1-sous"></span></span></li>
+            <li><span class="geste-ill" aria-hidden="true"><svg viewBox="0 0 54 54"><use href="#ill-roues"/></svg><b>1</b></span><span class="geste-text"><span data-t="principe.1"><b id="rule-a" data-tk="prénom">Cerise</b> compose une envie avec trois roues.</span><span class="geste-sub" data-t="principe.1-sous"></span><button class="ahoui" type="button" data-histoire="donner" data-t="histoire.ahoui">Ah oui&nbsp;?!</button></span></li>
             <li><span class="geste-ill" aria-hidden="true"><svg viewBox="0 0 54 54"><use href="#ill-reponses"/></svg><b>2</b></span><span class="geste-text"><span data-t="principe.2"><b id="rule-b" data-tk="prénom">Pistache</b> répond «&nbsp;J’ai envie aussi&nbsp;», «&nbsp;Oui, mais…&nbsp;» ou «&nbsp;Non&nbsp;».</span><span class="geste-sub" data-t="principe.2-sous"></span></span></li>
             <li><span class="geste-ill" aria-hidden="true"><svg viewBox="0 0 54 54"><use href="#ill-kiff"/></svg><b>3</b></span><span class="geste-text"><span data-t="principe.3">Deux «&nbsp;j’ai envie&nbsp;»&nbsp;: kiff kiff&nbsp;!</span><span class="geste-sub" data-t="principe.3-sous"></span></span></li>
           </ol>
-          <p class="step-text principe-piment" data-t="principe.piment">On dit non quand on veut. Le piment monte à deux.</p>
+          <p class="step-text principe-piment"><span data-t="principe.piment">On dit non quand on veut. Le piment monte à deux.</span> <button class="ahoui" type="button" data-histoire="non" data-t="histoire.ahoui">Ah oui&nbsp;?!</button></p>
           <button class="btn" id="rules-ok" type="button" data-t="principe.ok">Compris</button>
           <button class="link-btn step-back" type="button"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-retour"/></svg><span data-t="joueurs.retour">Retour</span></button>
         </div>
@@ -325,7 +325,7 @@
           <ol class="gestes">
             <li><span class="geste-ill" aria-hidden="true"><svg viewBox="0 0 54 54"><use href="#ill-roues"/></svg><b>1</b></span><span class="geste-text" id="inv-rule-1"><b>Tu commences</b>&nbsp;: trois roues, «&nbsp;J’ai envie que tu me…&nbsp;».</span></li>
             <li><span class="geste-ill" aria-hidden="true"><svg viewBox="0 0 54 54"><use href="#ill-reponses"/></svg><b>2</b></span><span class="geste-text" id="inv-rule-2"><b class="inv-a">Cerise</b> répond «&nbsp;J’ai envie aussi&nbsp;», ou «&nbsp;Oui, mais…&nbsp;» en changeant une chose.</span></li>
-            <li><span class="geste-ill" aria-hidden="true"><svg viewBox="0 0 54 54"><use href="#ill-kiff"/></svg><b>3</b></span><span class="geste-text" data-t="invite.regle-3">Vos envies se rejoignent&nbsp;: kiff kiff. On dit non quand on veut, sans se justifier.</span></li>
+            <li><span class="geste-ill" aria-hidden="true"><svg viewBox="0 0 54 54"><use href="#ill-kiff"/></svg><b>3</b></span><span class="geste-text"><span data-t="invite.regle-3">Vos envies se rejoignent&nbsp;: kiff kiff. On dit non quand on veut, sans se justifier.</span> <button class="ahoui" type="button" data-histoire="non" data-t="histoire.ahoui">Ah oui&nbsp;?!</button></span></li>
           </ol>
           <p class="step-text inv-piments" id="inv-piments"></p>
           <!-- Un avant-goût du Pimenté : une envie, son mot fort caché -->
@@ -675,6 +675,7 @@ Toutes les réponses sont bonnes&nbsp;!</p>
         <div class="non-face non-dos"><span class="non-cadre party-sentence"></span><svg class="emblem emblem--party" viewBox="0 0 168 124"><path class="e-lens" d="M84 21.6A46 46 0 0 1 84 102.4A46 46 0 0 1 84 21.6Z"/><circle class="e-ring" cx="62" cy="62" r="46"/><circle class="e-ring" cx="106" cy="62" r="46"/></svg></div>
       </div>
     </div>
+    <p class="non-kicker" id="non-kicker" hidden></p>
     <h2 class="party-title" id="non-title"><span class="ink ink--flat" data-ink="Non, et c’est très bien.">Non, et c’est très bien.</span></h2>
     <p class="party-text non-texte" id="non-texte"></p>
     <div class="party-acts" id="non-acts"></div>
@@ -716,6 +717,20 @@ Toutes les réponses sont bonnes&nbsp;!</p>
 </div>
 
 <!-- « Tu kiffes ? » : partager le jeu, offrir un café, l’histoire du jeu -->
+<div class="overlay overlay--edit overlay--skins overlay--histoire" id="ov-histoire" hidden role="dialog" aria-modal="true" aria-labelledby="histoire-title">
+  <div class="sheet sheet--edit sheet--skins sheet--coffee">
+    <div class="deal-head">
+      <h2 class="edit-label" id="histoire-title" data-t="histoire.titre">Kiff Kiff, l’histoire</h2>
+      <button class="icon-btn icon-btn--bare" id="histoire-close" type="button" aria-label="Fermer"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-fermer"/></svg></button>
+    </div>
+    <div class="deal-card histoire-card">
+        <div class="histoire-part" data-part="donner"><h4 class="histoire-titre" data-t="histoire.donner-titre">Donner, puis recevoir</h4><div class="deal-story-text" data-t="histoire.donner" data-t-par></div></div>
+        <div class="histoire-part" data-part="non"><h4 class="histoire-titre" data-t="histoire.non-titre">Pourquoi on fête les non</h4><div class="deal-story-text" data-t="histoire.non" data-t-par></div></div>
+      <div class="histoire-part" data-part="tout"><h4 class="histoire-titre" data-t="histoire.tout-titre">Pourquoi ce jeu</h4><div class="deal-story-text" data-t="tukiffes.story" data-t-par></div></div>
+    </div>
+    <button class="btn" id="histoire-ok" type="button" data-t="histoire.ok">Compris</button>
+  </div>
+</div>
 <div class="overlay overlay--edit overlay--skins" id="ov-deal" hidden role="dialog" aria-modal="true" aria-labelledby="deal-title">
   <div class="sheet sheet--edit sheet--skins sheet--coffee">
     <div class="deal-head">
@@ -748,6 +763,8 @@ Toutes les réponses sont bonnes&nbsp;!</p>
         <p>Un vrai oui n’est, on le sait, ni un oui arraché, ni un oui lâché du bout des lèvres comme on finit par accepter une demande peu engageante. C’est ici un «&nbsp;j’ai envie aussi&nbsp;», qui invite chacun·e à se poser la question de sa propre envie.</p>
         <p>Le jeu propose aussi de voir le sexe autrement que comme une chasse, ou un rapport où l’un·e demande et l’autre finit par céder&nbsp;: plutôt comme un échange, où chacun·e partage ses envies à son tour, d’autant plus librement qu’iel sait que l’autre pourra les ajuster ou les décliner sans difficulté.</p>
       </div>
+      <div class="histoire-part" data-part="donner"><h4 class="histoire-titre" data-t="histoire.donner-titre">Donner, puis recevoir</h4><div class="deal-story-text" data-t="histoire.donner" data-t-par></div></div>
+      <div class="histoire-part" data-part="non"><h4 class="histoire-titre" data-t="histoire.non-titre">Pourquoi on fête les non</h4><div class="deal-story-text" data-t="histoire.non" data-t-par></div></div>
     </details>
     <section class="deal-card" aria-labelledby="deal-coffee-title" data-in="qui fete">
       <div class="deal-card-head deal-card-head--icon">
@@ -915,12 +932,12 @@ Toutes les réponses sont bonnes&nbsp;!</p>
 </div>
 
 <script src="data.js?v=64"></script>
-<script src="textes.js?v=42"></script>
+<script src="textes.js?v=43"></script>
 <script src="semantique.js?v=1"></script>
 <script src="config.js?v=63"></script>
 <script src="duo.js?v=64"></script>
 <script src="push.js?v=65"></script>
-<script src="app.js?v=160"></script>
+<script src="app.js?v=161"></script>
 <!-- iPhone, appli installée : deux bandes d’une couleur unie en haut et en bas de l’écran (voir base.css) -->
 <div class="edge edge--haut" aria-hidden="true"></div><div class="edge edge--bas" aria-hidden="true"></div>
 </body>

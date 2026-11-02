@@ -42,7 +42,7 @@ const ROUES = ['action', 'endroit', 'maniere'];
 // Les événements comptés (aucun identifiant, aucune phrase) ; « detail » précise une variante courte
 const TYPES = ['partie', 'envie', 'kiff', 'passe', 'visite', 'invitation', 'rejoint', 'mais', 'premier', 'piment', 'monte',
   'partage', 'cafe', 'installe', 'historique', 'notif',
-  'discussion', 'carte', 'installer', 'attente', 'brulant', 'complet', 'loupe', 'recherche',
+  'discussion', 'carte', 'installer', 'attente', 'brulant', 'complet', 'loupe', 'recherche', 'histoire',
   // 2 novembre 2026 : un téléphone nouveau (et d’où il vient), l’appli installée (une fois par téléphone),
   // le retour d’un téléphone (jour 1, semaine…), l’achat
   'appareil', 'retour', 'achat'];
