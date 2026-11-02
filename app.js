@@ -83,6 +83,9 @@
   /* Piment : les roues ne montrent que les cases de niveau inférieur ou égal */
   const FREE = [{ free: true }, { free: true }, { free: true }];
   const SOURCE = [D.actions, D.objets, D.manieres].map((l) => l.map((x) => (typeof x === 'string' ? { t: x } : x)));
+  /* Une action sans sa forme « de te » (la même que « que tu me », ou vide) : on la devine, comme dans l’Atelier
+     (« de te frôles » devient « de te frôler » ; 2 novembre 2026, le premier tour de chaque personne est « de te ») */
+  const formeDeTe = (l) => l.forEach((x) => { if (x && x.s && (!x.i || x.i === x.s)) x.i = toInf(x.s); });
   const LISTS = [[], [], []];
   /* Niveaux actifs : on coche 1, 2 et/ou 3 indépendamment (au moins un) */
   function parseLevels(v) {
@@ -1073,6 +1076,7 @@
     'écrives': 'écrire', offres: 'offrir', ouvres: 'ouvrir', sentes: 'sentir', boives: 'boire', tendes: 'tendre', ailles: 'aller',
     viennes: 'venir', tiennes: 'tenir', fesses: 'fesser', suces: 'sucer', circlues: 'circlure' };
   const IRR_INV = Object.fromEntries(Object.entries(IRR).map(([a, b]) => [b, a]));
+  formeDeTe(SOURCE[0]); // la liste de secours (data.js), une fois les formes connues
   function toInf(t) {
     const m = t.match(/^(\S+)(.*)$/); if (!m) return t;
     const v = m[1], lc = v.toLowerCase();
@@ -5028,6 +5032,7 @@
     window.KIFF_MOTS_VERSION = res.version;
     const norm = (l) => l.map((x) => (typeof x === 'string' ? { t: x } : x));
     SOURCE[0] = norm(D.actions); SOURCE[1] = norm(D.objets); SOURCE[2] = norm(D.manieres);
+    formeDeTe(SOURCE[0]);
     buildLists(S.levels);
     S.idx = LISTS.map((l) => Math.floor(Math.random() * (l.length - 1)));
     S.custom = ['', '', ''];
