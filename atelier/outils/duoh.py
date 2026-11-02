@@ -45,7 +45,9 @@ async def create(pg, name='Marc', other=''):
     return pg.url
 async def join(pg, link, name='Lou'):
     await pg.goto(link.replace(BASE, BASE + '').replace('#', '&design=' + pg.skin + '#') if '?' in link else link); await pg.wait_for_timeout(1500)
-    await click(pg, 'Comment on joue')
-    await click(pg, 'Compris')
-    if name is not None: await pg.fill('#inv-name', name)
-    await pg.click('#inv-join'); await pg.wait_for_timeout(1200)
+    # Depuis le 2 novembre 2026, l’invitation s’ouvre dans la conversation : le prénom et « Rejoindre » sont dans la carte d’action
+    for _ in range(40):
+        if await pg.is_visible('#arr-name'): break
+        await pg.wait_for_timeout(200)
+    if name is not None: await pg.fill('#arr-name', name)
+    await pg.click('#arr-join'); await pg.wait_for_timeout(1200)

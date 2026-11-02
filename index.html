@@ -30,7 +30,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,62..125,100..900;1,62..125,100..900&family=Bagel+Fat+One&family=Abril+Fatface&family=Merriweather:ital,opsz,wght@0,18..144,400..900;1,18..144,400..900&family=Baskervville:ital,wght@0,400..700;1,400..700&family=Jost:wght@300..700&family=Great+Vibes&family=Cinzel:wght@400..900&family=Syne:wght@600..800&family=Manrope:wght@400..800&family=Anton&family=Courier+Prime:wght@400;700&display=swap">
-<link rel="stylesheet" href="base.css?v=139">
+<link rel="stylesheet" href="base.css?v=140">
 <link rel="stylesheet" href="skins/arty.css?v=72" data-skin-sheet="arty">
 <link rel="stylesheet" href="skins/pomme.css?v=76" data-skin-sheet="pomme">
 <link rel="stylesheet" href="skins/redcorner.css?v=76" data-skin-sheet="redcorner">
@@ -637,6 +637,15 @@ Toutes les réponses sont bonnes&nbsp;!</p>
         <span class="partie-line" id="wait-kicker"></span>
         <div class="partie-acts">
           <button class="btn partie-go" id="wait-go" type="button" hidden></button>
+          <!-- L’arrivée d’une personne invitée, dans la conversation (2 novembre 2026 ; avant : trois écrans) -->
+          <form class="arrivee-form" id="arrivee-form" hidden novalidate>
+            <label for="arr-name" data-t="invite.ton-prenom">Ton prénom</label>
+            <input id="arr-name" maxlength="20" autocomplete="off" placeholder="Pistache" enterkeyhint="go" data-t-ph="invite.exemple">
+            <p class="arrivee-aide" id="arr-help"></p>
+            <button class="btn" type="submit" id="arr-join" data-t="invite.rejoindre">Rejoindre la partie</button>
+            <p class="age-note arrivee-age" data-t="accueil.age">Réservé aux adultes&nbsp;: en jouant, tu confirmes avoir 18&nbsp;ans ou plus.</p>
+          </form>
+          <button class="link-btn partie-alt" id="wait-alt" type="button" hidden></button>
           <button class="btn btn--line partie-go partie-prevenir" id="wait-nudge" type="button" hidden><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-toquer"/></svg><span id="wait-nudge-text"></span></button>
           <button class="btn partie-go" id="wait-install" type="button" hidden><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-installer"/></svg><span data-t="attente.installer-court">Installer</span></button>
           <button class="link-btn wait-pass" id="wait-pass" type="button" data-t="attente.passe">Retirer mon envie</button>
@@ -949,12 +958,12 @@ Toutes les réponses sont bonnes&nbsp;!</p>
 </div>
 
 <script src="data.js?v=64"></script>
-<script src="textes.js?v=44"></script>
+<script src="textes.js?v=45"></script>
 <script src="semantique.js?v=1"></script>
 <script src="config.js?v=63"></script>
 <script src="duo.js?v=64"></script>
 <script src="push.js?v=65"></script>
-<script src="app.js?v=163"></script>
+<script src="app.js?v=164"></script>
 <!-- iPhone, appli installée : deux bandes d’une couleur unie en haut et en bas de l’écran (voir base.css) -->
 <div class="edge edge--haut" aria-hidden="true"></div><div class="edge edge--bas" aria-hidden="true"></div>
 </body>

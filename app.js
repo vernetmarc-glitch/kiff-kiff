@@ -863,6 +863,7 @@
   // roues : on est allé aux roues depuis le fil ; choix : la carte d’action propose qui propose après un non ;
   // nouvelle : ce que l’autre téléphone vient de faire (un non…), dit dans la carte ; tient : qui tient le téléphone (un téléphone)
   let roues = false, choix = null, nouvelle = null, rouesThen = null, tient = -1, nonRecu = '';
+  const altActions = {}; // les seconds gestes de la carte d’action (un lien sous le bouton), par nom
   const enJeu = () => (duo ? duo.stage === 'game' : S.started && !S.mustRestart && !S.gifting);
   const tourCle = () => S.phase + ':' + S.proposer;
   const rouesVisibles = () => roues && !choix && myTurn() && (S.phase === 'compose' || S.phase === 'adjust');
@@ -942,9 +943,11 @@
     if (!duo) return;
     const want = myTurn() && S.phase === 'review' ? 'offer' : (myTurn() && S.phase === 'reconfirm' ? 'reconfirm' : '');
     if (!ouvrir && want && el.ovOffer.hidden && ovHot.hidden) return;
+    // La montée du piment se répond dans la carte d’action du fil (2 novembre 2026 ; avant : une fenêtre avant l’envie)
     if (want === 'offer' && hotter()) {
       if (offerKind) hideOffer();
-      if (ovHot.hidden) showHot();
+      hide(ovHot);
+      renderWait();
       return;
     }
     hide(ovHot);
@@ -968,23 +971,26 @@
     sSwitchOn(); haptic(30);
     $('#hot-yes').focus({ preventScroll: true });
   }
-  $('#hot-yes').addEventListener('click', () => {
+  function hotOui() {
     audio(); sClick(); haptic(8);
     report('monte', null, 'oui');
     S.lvOk = S.levels.slice();
     noteLv();
     hide(ovHot);
     sync();
+    closePartie();
     showOffer('offer');
-  });
-  $('#hot-no').addEventListener('click', () => {
+  }
+  function hotNon() {
     audio(); haptic(20);
     report('monte', null, 'non');
     hide(ovHot);
     // On revient au piment accepté, et l’envie repart chez celui ou celle qui l’a proposée
     setLevels(S.lvOk, { silent: true, remote: true });
     duoPass(S.proposer, 'piment');
-  });
+  }
+  $('#hot-yes').addEventListener('click', hotOui);
+  $('#hot-no').addEventListener('click', hotNon);
 
   $('#offer-yes').addEventListener('click', () => {
     audio();
@@ -1000,10 +1006,15 @@
     audio();
     if (S.phase !== 'review' || !myTurn()) return;
     report('mais');
-    $('#one-text').textContent = T('mais.texte');
-    show(el.ovOne);
+    // Directement aux roues (2 novembre 2026) : leur consigne dit déjà « change une seule chose » ; avant, une fenêtre le répétait
+    if (!duo) tient = other(S.proposer);
+    roues = true;
+    hideOffer();
+    S.phase = 'adjust';
+    renderReels();
+    render();
+    sync();
     sClick(); haptic(8);
-    $('#one-ok').focus({ preventScroll: true });
   });
   $('#one-back').addEventListener('click', () => { audio(); hide(el.ovOne); });
   $('#one-ok').addEventListener('click', () => {
@@ -1382,9 +1393,8 @@
     $('#non-texte').textContent = mode === 'dit' ? T('non.texte') : T('non.recu-texte');
     const bt = (id, t, cls) => '<button class="' + cls + '" type="button" data-non="' + id + '">' + esc(t) + '</button>';
     const pourquoi = '<button class="link-btn non-pourquoi" type="button" data-histoire="non">' + esc(T('non.pourquoi')) + '</button>';
-    $('#non-acts').innerHTML = mode === 'dit'
-      ? bt('meme', T('passe.meme', { prénom: A }), 'btn') + bt('autre', T('passe.autre', { prénom: B }), 'btn btn--line') + pourquoi + bt('annuler', T('passe.annuler'), 'link-btn')
-      : bt('ok', T('nouvelles.ok'), 'btn') + pourquoi;
+    // Un seul bouton (2 novembre 2026) : qui propose ensuite se choisit dans la carte d’action du fil, une seule place pour chaque décision
+    $('#non-acts').innerHTML = bt('ok', T('nouvelles.ok'), 'btn') + pourquoi;
     show(ovNon);
     confetti('#confetti-non');
     sParty(); haptic(40);
@@ -2443,7 +2453,8 @@
   }
   function renderChat(toEnd) {
     if (ovPartie.hidden) return;
-    if (duo && duo.stage === 'invite' && duo.info) { $('#chat-list').innerHTML = inviteThreadHtml(); $('#chat-down').hidden = true; return; }
+    if (duo && (duo.stage === 'invite' || duo.stage === 'gift-ask') && duo.info) { $('#chat-list').innerHTML = inviteThreadHtml(); $('#chat-down').hidden = true; return; }
+    if (duo && duo.stage === 'join' && arrivee) { $('#chat-list').innerHTML = arriveeThreadHtml(); $('#chat-down').hidden = true; return; }
     const b = duo && duo.info ? chatBox() : null;
     const B = duo ? nameOf(other(duo.seat)) : '';
     const items = (S.kiffs || []).map((k) => ({ d: k.d || 0, k }));
@@ -2451,6 +2462,9 @@
     const pe = pendingEnvie();
     if (pe) items.push({ d: pe.d, e: pe });
     lvFil(pe).forEach((x) => items.push(x));
+    if (S.regles) items.push({ d: (S.t0 || Date.now()) - 1, regles: S.regles });
+    // L’envie glissée gardée pour plus tard : chez qui l’a glissée, une note, le temps du premier tour
+    if (duo && duo.seat === 0 && S.pass && S.pass.why === 'cadeau' && !(S.kiffs || []).length) items.push({ d: (S.t0 || 0) + 1, note: T('nouvelles.commence-texte', { prénom: nameOf(1) }) });
     // L’autre a Tout Kiff Kiff : il ou elle vous l’offre (un seul téléphone suffit) ; une carte, à l’heure où on l’a vu
     if (duo && duo.info && S.cpOther && !load('complet', false) && OFFRE !== 'tout') {
       const vu = load('offertVu', {}) || {};
@@ -2470,6 +2484,8 @@
       if (it.k) { html += threadKiffHtml(it.k, b); return; }
       if (it.e) { html += threadEnvieHtml(it.e, B); return; }
       if (it.lv) { html += pimentFilHtml(it, B); return; }
+      if (it.note) { html += '<li class="thread-note">' + esc(it.note) + '</li>'; return; }
+      if (it.regles) { html += reglesHtml(it.regles === 'invite' ? 'invite' : 'cree', duo ? (duo.remote || { names: S.names, prog: S.prog, levels: S.levels }) : {}, true); return; }
       if (it.o) { html += '<li class="thread-kiff thread-offert"><span class="thread-kiff-kicker">' + esc(T('partie.offert-kicker')) + '</span><p class="thread-offert-text">' + esc(T('partie.offert', { prénom: B })) + '</p></li>'; return; }
       const m = it.m, mine = m.s === duo.seat;
       if (m.x) { html += '<li class="chat-msg chat-msg--gone' + (mine ? ' is-mine' : '') + '">' + esc(T('chat.supprime')) + '</li>'; return; }
@@ -3970,7 +3986,7 @@
       const wasInvite = duo.stage === 'invite';
       enterGame(st, wasInvite);
       if (wasInvite) { sSwitchOn(); haptic(30); report('partie', null, 'deux'); }
-      if (wasInvite && st.pass && st.pass.why === 'cadeau') note(T('nouvelles.commence', { prénom: nameOf(1) }), T('nouvelles.commence-texte', { prénom: nameOf(1) }));
+      // « Lou préfère proposer en premier » : une note du fil (2 novembre 2026 ; avant : une fenêtre)
       pushRefresh();
     } else {
       showJoin(st);
@@ -4102,8 +4118,11 @@
   let filCle = '';
   function renderWait() {
     const ov = ovPartie;
-    if (duo && duo.stage === 'invite') { renderInvitePage(); return; }
-    ov.classList.remove('is-invite');
+    if (duo && (duo.stage === 'invite' || duo.stage === 'gift-ask')) { renderInvitePage(); return; }
+    if (duo && duo.stage === 'join' && arrivee) { renderArriveePage(); return; }
+    ov.classList.remove('is-invite', 'is-arrivee');
+    $('#arrivee-form').hidden = true;
+    $('#partie-carte').hidden = false;
     const modale = [el.ovOffer, ovHot, el.ovOne, el.ovEdit, $('#ov-gift'), $('#ov-non')].some((o) => o && !o.hidden) || (!el.ovParty.hidden && !partieFront);
     const inGame = enJeu() && el.ovStart.hidden && !modale && PHASES_TOUR.concat('celebrate').includes(S.phase);
     document.body.classList.toggle('en-jeu', enJeu());
@@ -4131,12 +4150,12 @@
     $('#wait-who').classList.remove('is-off');
   }
   // L’action du moment, en tête du fil
-  let actionGo = '', goTient = -1;
+  let actionGo = '', goTient = -1, actionAlt = '';
   function renderAction(waiting) {
     const A = nameOf(S.proposer), B = nameOf(other(S.proposer));
     const O = duo ? nameOf(other(duo.seat)) : '';
-    let label = '', line = '', go = '';
-    actionGo = ''; goTient = -1;
+    let label = '', line = '', go = '', alt = '';
+    actionGo = ''; goTient = -1; actionAlt = '';
     const card = $('#partie-action');
     card.classList.toggle('is-choix', !!choix);
     $('#partie-choix').hidden = !choix;
@@ -4167,6 +4186,12 @@
       else { const ch = changes(); line = T('attente.relit', { chose: CHANGE_NAMES[ch.length ? ch[0] : 0], prénom: A }); }
     } else if (PHASES_TOUR.includes(S.phase)) {
       if (S.phase === 'compose') { line = T('partie.proposer'); go = T('partie.tourner'); actionGo = 'roues'; }
+      else if (S.phase === 'review' && hotter()) {
+        const ajout = S.levels.filter((n) => !lvActuel().includes(n));
+        label = T('montee.titre', { prénom: O });
+        line = T(ajout.length > 1 ? 'montee.texte-plusieurs' : 'montee.texte', { piment: lvNoms(lvActuel()), prénom: O, niveaux: ajout.map((n) => D.niveaux[n - 1].nom).join(' et ') });
+        go = T('montee.oui'); actionGo = 'hot-oui'; alt = T('montee.non', { piment: lvNoms(lvActuel()) }); actionAlt = 'hot-non';
+      }
       else if (S.phase === 'review') { line = T('partie.envie-recue', { prénom: O }); go = T('partie.lire'); actionGo = 'offre'; }
       else if (S.phase === 'reconfirm') { line = T('partie.ajustee', { prénom: O }); go = T('partie.relire'); actionGo = 'offre'; }
       else { line = T('partie.ajuster', { prénom: O }); go = T('partie.reprendre'); actionGo = 'roues'; }
@@ -4185,6 +4210,8 @@
     wp.textContent = T('attente.passe');
     const g = $('#wait-go');
     g.hidden = !!choix || !go; g.textContent = go;
+    const wa = $('#wait-alt');
+    wa.hidden = !!choix || !alt; wa.textContent = alt;
     // Après une envie envoyée, tant que l’appli n’est pas installée : l’installer, pour être averti·e de la réponse
     $('#wait-install').hidden = true; // depuis le 27 octobre 2026 : une carte dans la conversation (installCardHtml)
     // « Prévenir Lou » : seulement à distance (sur un téléphone, on se passe le téléphone)
@@ -4441,14 +4468,15 @@
     askGift();
   }
   /* Une envie dans l’invitation : l’autre la découvrira après le principe du jeu, si iel le veut */
+  // Dans la carte d’action de la conversation (2 novembre 2026 ; avant : une fenêtre)
+  let giftAsk = false;
   function askGift() {
-    duoSheet({
-      stage: 'gift-ask',
-      title: T('duo.cadeau'),
-      text: T('duo.cadeau-texte'),
-      go: T('duo.composer'), cancel: T('jeu.sans-envie')
-    });
+    giftAsk = true;
+    duo.stage = 'gift-ask';
+    hide(ovDuo); hide(el.ovStart);
+    renderWait();
   }
+  altActions['sans-envie'] = () => { giftAsk = false; showInvite(); };
   function startGift() {
     duo.stage = 'gift';
     S.gifting = true;
@@ -4482,6 +4510,8 @@
   function renderInvitePage() {
     const ov = ovPartie;
     ov.classList.add('is-invite');
+    ov.classList.remove('is-arrivee');
+    $('#arrivee-form').hidden = true;
     const B = (S.names[1] || '').trim();
     $('#wait-name').textContent = B ? T('parties.invitation-a', { prénom: B }) : T('parties.invitation');
     $('#wait-presence-text').textContent = presenceFlash || (duo.partnerOn ? T('partie.invite-la') : T('partie.invite-absent'));
@@ -4492,7 +4522,17 @@
     $('#partie-action').classList.remove('is-turn');
     $('#wait-title').textContent = '';
     $('#wait-kicker').textContent = T('parties.personne') + '.';
-    ['#wait-pass', '#wait-go', '#wait-install', '#wait-nudge'].forEach((q) => { $(q).hidden = true; });
+    ['#wait-pass', '#wait-go', '#wait-install', '#wait-nudge', '#wait-alt', '#partie-choix'].forEach((q) => { $(q).hidden = true; });
+    $('#partie-carte').hidden = false;
+    if (giftAsk) {
+      // « Une envie dans l’invitation ? » : Composer, ou Sans envie ; l’invitation apparaît ensuite dans le fil
+      $('#partie-action').classList.add('is-turn');
+      $('#wait-title').textContent = T('duo.cadeau'); $('#wait-title').hidden = false;
+      $('#wait-kicker').textContent = T('duo.cadeau-texte');
+      actionGo = 'cadeau'; actionAlt = 'sans-envie';
+      $('#wait-go').hidden = false; $('#wait-go').textContent = T('duo.composer');
+      $('#wait-alt').hidden = false; $('#wait-alt').textContent = T('jeu.sans-envie');
+    } else $('#wait-title').hidden = true;
     const nb = $('#wait-notif');
     nb.hidden = true;
     const was = ov.hidden;
@@ -4508,7 +4548,9 @@
       if (text) html += '<li class="thread-kiff thread-envie"><button class="thread-kiff-btn" type="button" disabled><span class="thread-kiff-kicker">' + esc(T('partie.envie-glissee')) + '</span>' +
         '<span class="party-sentence thread-kiff-card"><span class="thread-kiff-text">' + esc(text) + '</span></span></button></li>';
     }
+    if (S.regles) html += reglesHtml('cree');
     if (S.prog) html += '<li class="thread-note">' + esc(T('depart.texte-distance')) + '</li>';
+    if (giftAsk) { if (avertirWanted()) html += avertirCardHtml(nameOf(1)); return html; }
     const url = window.KiffDuo.link(duo.info);
     html += '<li class="thread-invite"><div class="invite-card">' +
       '<span class="thread-kiff-kicker">' + esc(T('partie.invite-kicker')) + '</span>' +
@@ -4524,39 +4566,100 @@
   /* La personne invitée ne connaît peut-être pas le jeu : trois écrans avant de rejoindre */
   const ovInv = $('#ov-invited');
   let invSteps = null;
+  /* L’arrivée d’une personne invitée : directement la conversation « Avec Marc » (2 novembre 2026 ; avant : trois écrans plein écran
+     et une fenêtre pour l’envie glissée). Dans le fil : l’invitation, les règles, l’envie glissée ; dans la carte d’action : le prénom,
+     « Rejoindre la partie » et la mention 18 ans ; puis, s’il y a une envie, « La découvrir » ou « Pas maintenant, je propose ». */
+  let arrivee = null;
   function showInvited(st) {
     const A = (st.names && st.names[0] || '').trim() || 'Cerise';
-    const bA = { html: '<b class="inv-a">' + esc(A) + '</b>' };
-    $('#ov-invited .inv-from').innerHTML = st.rencontre ? '<b class="inv-a"></b> te propose un jeu avant de vous voir, chacun·e sur son téléphone. Vous commencez en Tendre.' : TH('invite.de', { prénom: bA });
-    $('#inv-name-help').textContent = T('invite.prenom-aide', { prénom: A });
-    const lv = parseLevels(st.levels);
-    const chip = (n) => '<span class="inv-piment"><span class="pgroup pgroup--' + n + ' is-on">' + CHILI.repeat(n) + '</span> ' + esc(D.niveaux[n - 1].nom) + '</span>';
-    $('#inv-piments').innerHTML = st.prog
-      ? TH('invite.piment-monte', { piment: { html: chip(1) } })
-      : TH('invite.piments', { prénom: A, piments: { html: lv.map(chip).join(' ') } });
     // Un avant-goût du Pimenté (qui se débloque en jouant) : une envie tirée de la réserve, l’action cachée
     const pk = (r, dc) => { const l = SOURCE[r].filter((x) => (x.lvl || 1) === 2 && !!x.dc === dc && (r !== 1 || x.t)); return l.length ? l[Math.floor(Math.random() * l.length)] : null; };
-    const ap = st.prog ? hotSentence(pk(0, false), pk(1, false), pk(2, false), 'me', 'act') : '';
-    $('#inv-apercu').hidden = !ap;
-    $('#inv-apercu-envie').innerHTML = ap;
-    const r1 = $('#inv-rule-1'), r2 = $('#inv-rule-2');
-    if (!r1.dataset.html) { r1.dataset.html = r1.innerHTML; r2.dataset.html = r2.innerHTML; }
-    if (st.gift) {
-      r1.innerHTML = TH('invite.regle-1-envie', { prénom: bA });
-      r2.innerHTML = TH('invite.regle-2-envie');
-    } else { r1.innerHTML = TH('invite.regle-1'); r2.innerHTML = TH('invite.regle-2', { prénom: bA }); }
-    document.querySelectorAll('#ov-invited .inv-a').forEach((b) => { b.textContent = A; });
+    const deja = arrivee && arrivee.st === st;
+    arrivee = { st, A, ap: deja ? arrivee.ap : (st.prog ? hotSentence(pk(0, false), pk(1, false), pk(2, false), 'me', 'act') : '') };
     // Première visite : on découvre le jeu dans l’ambiance de qui invite (chacun·e peut ensuite choisir la sienne)
     if (st.skin && SKINS.includes(st.skin) && !window.KIFF_SKIN_SET) { applySkin(st.skin); window.KIFF_SKIN_SET = true; }
-    if (!ovInv.hidden) return; // déjà là : on garde l’écran en cours de lecture
-    if (!invSteps) invSteps = makeSteps($('#inv-steps'), $('#inv-dots'), ovInv);
-    hide(ovDuo);
-    const prov = (st.names && st.names[1] || '').trim();
-    $('#inv-name').value = prov || load('duoName', '') || '';
-    $('#inv-name-help').textContent = prov ? T('invite.prenom-propose', { prénom: A }) : T('invite.prenom-aide', { prénom: A });
-    invSteps.go(0, true);
-    show(ovInv);
+    hide(ovDuo); hide(ovInv);
+    if (!deja) {
+      const prov = (st.names && st.names[1] || '').trim();
+      $('#arr-name').value = prov || load('duoName', '') || '';
+      $('#arr-help').textContent = prov ? T('invite.prenom-propose', { prénom: A }) : T('invite.prenom-aide', { prénom: A });
+    }
+    renderWait();
   }
+  function renderArriveePage() {
+    const ov = ovPartie, A = arrivee.A;
+    ov.classList.add('is-invite', 'is-arrivee');
+    $('#wait-name').textContent = T('jeu.avec', { prénom: A });
+    $('#wait-presence-text').textContent = T('arrivee.presence');
+    $('#wait-who').classList.remove('is-off');
+    $('#wait-kiffs').hidden = true;
+    $('#partie-action').hidden = false;
+    $('#partie-action').classList.add('is-turn');
+    $('#partie-carte').innerHTML = ''; $('#partie-carte').hidden = true;
+    ['#wait-pass', '#wait-install', '#wait-nudge', '#wait-notif', '#partie-choix'].forEach((q) => { $(q).hidden = true; });
+    const cadeau = !!giftNext;
+    $('#wait-title').hidden = true;
+    // L’invitation elle-même est la première carte du fil : la carte d’action ne garde que le geste (le prénom, puis l’envie glissée)
+    $('#wait-kicker').textContent = cadeau ? T('cadeau.titre', { prénom: A }) : '';
+    $('#arrivee-form').hidden = cadeau;
+    actionGo = cadeau ? 'cadeau-ouvrir' : ''; actionAlt = cadeau ? 'cadeau-plus-tard' : 'solo'; goTient = -1;
+    $('#wait-go').hidden = !cadeau; $('#wait-go').textContent = T('cadeau.ouvrir');
+    $('#wait-alt').hidden = false; $('#wait-alt').textContent = cadeau ? T('cadeau.plus-tard') : T('invite.solo');
+    const was = ov.hidden;
+    show(ov);
+    if (was) partieShown(); else renderChat();
+  }
+  function arriveeThreadHtml() {
+    const st = arrivee.st, A = arrivee.A;
+    let html = '<li class="chat-day"><span>' + esc(dayLabel(Date.now())) + '</span></li>';
+    html += '<li class="thread-invite"><div class="invite-card arrivee-carte">' +
+      '<span class="thread-kiff-kicker">' + esc(T('arrivee.kicker', { prénom: A })) + '</span>' +
+      '<svg class="arrivee-emblem" viewBox="0 0 168 124" aria-hidden="true"><use href="#emblem"/></svg>' +
+      '<p class="invite-text">' + TH('invite.de', { prénom: { html: '<b>' + esc(A) + '</b>' } }) + '</p>' +
+      '<p class="invite-text arrivee-accroche">' + esc(T('invite.accroche')) + '</p></div></li>';
+    html += reglesHtml('invite', st);
+    if (st.gift && st.gift.keys) html += '<li class="thread-kiff thread-envie"><button class="thread-kiff-btn" type="button" disabled><span class="thread-kiff-kicker">' + esc(T('cadeau.titre', { prénom: A })) + '</span>' +
+      '<span class="party-sentence thread-kiff-card is-dos">' + CARTE_DOS + '</span></button></li>';
+    return html;
+  }
+  /* Les règles, en carte au début du fil (2 novembre 2026 ; avant : l’écran « Le jeu en trois gestes » et « Le principe ») */
+  function reglesHtml(mode, st, enPartie) {
+    const b = (n) => ({ html: '<b>' + esc(n) + '</b>' });
+    const geste = (ill, txt, sous) => '<li><span class="geste-ill" aria-hidden="true"><svg viewBox="0 0 54 54"><use href="#' + ill + '"/></svg></span><span class="geste-text">' + txt + (sous ? '<span class="geste-sub">' + esc(sous) + '</span>' : '') + '</span></li>';
+    const ahoui = (k) => ' <button class="ahoui" type="button" data-histoire="' + k + '">' + esc(T('histoire.ahoui')) + '</button>';
+    let titre, l1, l2, l3, pied = '';
+    if (mode === 'invite') {
+      const A = ((st.names && st.names[0]) || '').trim() || 'Cerise';
+      titre = T('invite.principe');
+      const g = st.gift && !enPartie; // une fois la partie commencée, l’envie glissée n’est plus à venir
+      l1 = g ? TH('invite.regle-1-envie', { prénom: b(A) }) : TH('invite.regle-1');
+      l2 = g ? TH('invite.regle-2-envie') : TH('invite.regle-2', { prénom: b(A) });
+      l3 = esc(T('invite.regle-3')) + ahoui('non');
+      const chip = (n) => '<span class="inv-piment"><span class="pgroup pgroup--' + n + ' is-on">' + CHILI.repeat(n) + '</span> ' + esc(D.niveaux[n - 1].nom) + '</span>';
+      if (!enPartie) pied = '<p class="regles-pied">' + (st.prog ? TH('invite.piment-monte', { piment: { html: chip(1) } }) : TH('invite.piments', { prénom: A, piments: { html: parseLevels(st.levels).map(chip).join(' ') } })) + '</p>';
+      if (!enPartie && arrivee && arrivee.ap) pied += '<p class="inv-apercu"><span class="inv-apercu-kicker">' + esc(T('invite.apercu')) + '</span><span class="inv-apercu-envie">' + arrivee.ap + '</span></p>';
+    } else {
+      titre = T('principe.titre');
+      // Qui propose en premier : l’autre téléphone (son prénom une fois la partie rejointe), ou la deuxième personne sur un téléphone
+      l1 = TH('principe.1', { prénom: b(duo ? ((enPartie && nameOf(1)) || T('principe.autre')) : nameOf(1)) }) + ahoui('donner');
+      l2 = TH('principe.2', { prénom: b(nameOf(0)) });
+      l3 = esc(T('principe.3'));
+      pied = '<p class="regles-pied">' + esc(T('principe.piment')) + ahoui('non') + '</p>';
+    }
+    return '<li class="thread-regles"><div class="regles-carte"><span class="thread-kiff-kicker">' + esc(titre) + '</span><ol class="gestes gestes--fil">' +
+      geste('ill-roues', l1, mode === 'invite' ? '' : T('principe.1-sous')) + geste('ill-reponses', l2, '') + geste('ill-kiff', l3, '') + '</ol>' + pied + '</div></li>';
+  }
+  $('#arrivee-form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    audio();
+    if (!duo || !duo.remote) return;
+    if (needName($('#arr-name'))) return;
+    document.activeElement && document.activeElement.blur();
+    sClick(); haptic(8);
+    joinGame($('#arr-name').value);
+  });
+  altActions.solo = () => { arrivee = null; closePartie(); leaveDuo(false); };
+  altActions['cadeau-plus-tard'] = () => giftPlusTard();
   $('#inv-go').addEventListener('click', () => { audio(); sClick(); haptic(8); invSteps.go(1); });
   $('#inv-ok').addEventListener('click', () => { audio(); sClick(); haptic(8); invSteps.go(2); });
   $('#inv-form').addEventListener('submit', (e) => {
@@ -4636,23 +4739,25 @@
     beginJoined(next);
   }
   function beginJoined(next) {
+    const venu = !!arrivee;
+    arrivee = null;
+    if (ovPartie) ovPartie.classList.remove('is-arrivee');
+    $('#arrivee-form').hidden = true;
     next.gift = null;
     duo.resume = true;
     save('duo', { room: duo.info.room, key: duo.info.key, broker: duo.info.broker, seat: duo.seat, id: duo.id });
     enterGame(next, next.proposer === duo.seat);
+    if (venu) S.regles = 'invite'; // les règles restent en tête du fil
     pushState();
   }
   const ovGift = $('#ov-gift');
   let giftNext = null;
   function showGift(next, gift) {
     giftNext = { next, gift };
-    const A = ((next.names && next.names[0]) || '').trim();
-    $('#gift-title').textContent = A ? T('cadeau.titre', { prénom: A }) : T('cadeau.titre-anonyme');
-    show(ovGift);
     sSwitchOn(); haptic(30);
-    $('#gift-open').focus({ preventScroll: true });
+    renderWait(); // la carte d’action : « Marc t’a glissé une envie », « La découvrir », « Pas maintenant, je propose »
   }
-  $('#gift-open').addEventListener('click', () => {
+  function giftOuvrir() {
     if (!giftNext) return;
     audio(); sClick(); haptic(12);
     const { next, gift } = giftNext;
@@ -4668,9 +4773,11 @@
     next.original = { keys: next.keys.slice(), custom: next.custom.slice(), dir: next.dir };
     beginJoined(next);
     // « La découvrir » : on a choisi de l’ouvrir, elle s’ouvre (sans repasser par « Lire son envie »)
+    closePartie();
     showTurnModal(true);
-  });
-  $('#gift-later').addEventListener('click', () => {
+  }
+  $('#gift-open').addEventListener('click', giftOuvrir);
+  function giftPlusTard() {
     if (!giftNext) return;
     audio(); haptic(12);
     const { next } = giftNext;
@@ -4680,7 +4787,8 @@
     // Pas besoin d’expliquer pourquoi : c’est la personne invitée qui propose
     next.pass = { by: 1, n: 1, why: 'cadeau' };
     beginJoined(next);
-  });
+  }
+  $('#gift-later').addEventListener('click', giftPlusTard);
 
   async function startJoin(info) {
     const stored = findGame(info.room);
@@ -4879,6 +4987,9 @@
     audio(); sClick(); haptic(8); report('attente', null, 'action');
     if (goTient >= 0) tient = goTient;
     const go = actionGo;
+    if (go === 'hot-oui') { hotOui(); return; }
+    if (go === 'cadeau-ouvrir') { giftOuvrir(); return; }
+    if (go === 'cadeau') { giftAsk = false; closePartie(); startGift(); return; }
     if (go === 'offre') {
       closePartie();
       if (duo) showTurnModal(true);
@@ -4889,11 +5000,18 @@
     roues = true; closePartie();
     if (rouesThen) { const f = rouesThen; rouesThen = null; f(); }
   });
+  // Le second geste de la carte d’action (un lien) : refuser la montée du piment, « Sans envie », « Pas maintenant »…
+  $('#wait-alt').addEventListener('click', () => {
+    const a = actionAlt;
+    if (a === 'hot-non') { hotNon(); return; }
+    if (altActions[a]) { audio(); sClick(); haptic(8); altActions[a](); }
+  });
   // En haut à gauche : l’accueil ; depuis la fête, le retour à la fête
   $('#wait-home').addEventListener('click', () => {
     audio(); sClick(); haptic(8);
     if (partieFront) { closePartie(); return; }
-    if (duo && duo.stage === 'invite') { report('attente', null, 'accueil'); leaveDuo(false, true); return; }
+    if (duo && (duo.stage === 'invite' || duo.stage === 'gift-ask')) { report('attente', null, 'accueil'); giftAsk = false; leaveDuo(false, true); return; }
+    if (duo && duo.stage === 'join' && arrivee) { arrivee = null; giftNext = null; closePartie(); leaveDuo(false); return; }
     report('attente', null, 'accueil'); closePartie(); openHome();
   });
   $('#wait-install').addEventListener('click', () => { audio(); sClick(); haptic(8); save('installAsked', true); report('attente', null, 'installer'); installer.run(); renderWait(); });
@@ -5570,8 +5688,10 @@
       const first = nw.length > 0 && (where === 'here' || !load('rulesSeen', false));
       $('#principe-kicker').hidden = !(first && where === 'here');
       $('#principe-kicker').textContent = T('principe.kicker', { prénom: nameOf(0), autre: nameOf(1) });
-      if (!load('rulesSeen', false) || first) goStep(2);
-      else $('#piment-go').click();
+      // Le principe devient la première carte du fil (2 novembre 2026)
+      S.regles = !load('rulesSeen', false) || first ? 'cree' : '';
+      save('rulesSeen', true);
+      $('#piment-go').click();
     };
     document.querySelectorAll('.where-btn').forEach((b) => b.addEventListener('click', () => {
       audio();

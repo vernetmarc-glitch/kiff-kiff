@@ -505,7 +505,9 @@ window.KIFF_TEXTES = [
     ["invite.prenom-aide", "{prénom} verra ton prénom sur son téléphone.", "Sous le champ"],
     ["invite.prenom-propose", "{prénom} t’a inscrit·e ainsi : change-le si tu veux.", "Sous le champ, quand qui invite a déjà écrit ton prénom"],
     ["invite.rejoindre", "Rejoindre la partie", "Bouton"],
-    ["invite.solo", "Jouer sur ce téléphone seulement", "Lien sous le bouton"]
+    ["invite.solo", "Jouer sur ce téléphone seulement", "Lien sous le bouton"],
+    ["arrivee.kicker", "L’invitation de {prénom}", "Dans la conversation de la personne invitée : au-dessus de l’invitation (2 novembre 2026)"],
+    ["arrivee.presence", "t’invite à jouer", "En haut de la conversation de la personne invitée, sous « Avec Marc »"]
   ] },
   { id: "cadeau", nom: "L’envie glissée dans l’invitation", textes: [
     ["cadeau.kicker", "Une envie Tendre", "Au-dessus du titre"],

@@ -1876,3 +1876,33 @@ body.en-jeu #home .ic-back { display: block; }
   background: color-mix(in srgb, currentColor 8%, transparent); }
 .achat-code[hidden], .achat-form[hidden] { display: none; }
 .achat-form input { flex: 1; min-width: 0; }
+
+/* Les phases de la partie dans le fil (2 novembre 2026) : les règles en carte, l’arrivée d’une personne invitée, le second geste de la carte d’action */
+.thread-regles { list-style: none; align-self: stretch; margin: 6px 14px; }
+.regles-carte { display: flex; flex-direction: column; gap: 10px; padding: 14px 16px; border-radius: 16px; text-align: left;
+  background: var(--invite-bg, color-mix(in srgb, currentColor 6%, transparent)); box-shadow: var(--invite-line, inset 0 0 0 1px color-mix(in srgb, currentColor 25%, transparent)); }
+.regles-carte > .thread-kiff-kicker { text-align: center; }
+.gestes.gestes--fil { margin: 0; gap: 10px; }
+.gestes--fil li { gap: 12px; align-items: center; }
+.gestes--fil .geste-ill { width: 40px; height: 40px; }
+.gestes--fil .geste-ill svg { width: 30px; height: 30px; }
+.gestes--fil .geste-text { font-size: 14.5px; line-height: 1.4; }
+.gestes--fil .geste-sub { display: block; margin-top: 2px; font-size: 12.5px; opacity: .8; }
+.regles-pied { margin: 0; font-size: 13.5px; line-height: 1.45; text-align: center; opacity: .9; }
+.regles-carte .inv-apercu { margin: 0; }
+.arrivee-carte { gap: 8px; }
+.arrivee-emblem { width: 92px; height: auto; color: var(--emblem, currentColor); }
+.arrivee-accroche { font-size: 14px; opacity: .85; }
+.thread-kiff-card.is-dos { display: grid; place-items: center; min-height: 92px; }
+.thread-kiff-card.is-dos .carte-emblem { width: 76px; height: auto; }
+.arrivee-form { display: flex; flex-direction: column; gap: 8px; width: 100%; }
+.arrivee-form[hidden] { display: none; }
+.arrivee-form label { font-size: 13px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; opacity: .85; }
+.arrivee-form input { width: 100%; box-sizing: border-box; }
+.arrivee-aide { margin: 0; font-size: 13px; opacity: .85; }
+.arrivee-form .btn { margin: 4px 0 0; }
+.arrivee-age { margin: 0; font-size: 12px; opacity: .75; }
+.partie-alt { align-self: flex-start; margin-top: 2px; }
+.partie-alt[hidden] { display: none; }
+.overlay--partie.is-arrivee .partie-carte { display: none; }
+.chat-list.is-cartes > li.thread-regles { display: none; }
