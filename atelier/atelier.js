@@ -116,7 +116,30 @@
     const step = (n, label, of) => '<li><span class="fl">' + esc(label) + '</span><span class="fb"><i style="width:' + (v ? Math.max(2, Math.round(100 * n / Math.max(v, p, 1))) : 0) + '%"></i></span><span class="fv">' + fmt(n) + (of != null ? ' · ' + pct(n, of) : '') + '</span></li>';
     const ret = (k, label) => kpi(pct(d.retour[k][0], d.retour[k][1]), label, d.retour[k][1] ? 'sur ' + d.retour[k][1] + ' parties assez anciennes' : 'pas encore assez de recul');
     const partages = (c['partage:envoye'] || 0) + (c['partage:copie'] || 0);
-    box.innerHTML =
+    // Les comptes des 7 et 30 derniers jours (onglet « jours », depuis le 2 novembre 2026 pour tous les comptes)
+    const recent = (cle, n) => {
+      const depuis = new Date(Date.now() - n * 864e5).toISOString().slice(0, 10);
+      return ((stats && stats.jours) || []).filter((x) => x.type === cle && x.jour > depuis).reduce((a, x) => a + x.n, 0);
+    };
+    const somme = (pref) => Object.keys(c).filter((k) => k.startsWith(pref)).reduce((a, k) => a + c[k], 0);
+    const sommeR = (pref, n) => ((stats && stats.jours) || []).filter((x) => x.type.startsWith(pref) && x.jour > new Date(Date.now() - n * 864e5).toISOString().slice(0, 10)).reduce((a, x) => a + x.n, 0);
+    const nouveaux = somme('appareil:nouveau-'), viraux = nouveaux - (c['appareil:nouveau-web'] || 0);
+    const n30 = sommeR('appareil:nouveau-', 30), v30 = n30 - recent('appareil:nouveau-web', 30);
+    const payes = c['achat:paye'] || 0;
+    const diffusion =
+      '<h2 class="sec">Diffusion et conversion <span class="sec-note">téléphone par téléphone, depuis le 2 novembre 2026</span></h2><div class="kpis">' +
+        kpi(fmt(nouveaux), 'nouveaux téléphones', fmt(sommeR('appareil:nouveau-', 7)) + ' ces 7 jours, ' + fmt(n30) + ' ces 30 jours') +
+        kpi(pct(viraux, nouveaux), 'amenés par un·e joueur·se', fmt(c['appareil:nouveau-invite'] || 0) + ' par une invitation, ' + fmt((c['appareil:nouveau-partage'] || 0) + (c['appareil:nouveau-qr'] || 0)) + ' par le lien du jeu, ' + fmt(c['appareil:nouveau-image'] || 0) + ' par une image') +
+        kpi(nouveaux - viraux > 0 ? (viraux / (nouveaux - viraux)).toFixed(2).replace('.', ',') : '–', 'coefficient de bouche-à-oreille', 'nouveaux amenés par les joueur·ses pour un·e nouveau·elle venu·e seul·e ; ' + (n30 - v30 > 0 ? (v30 / (n30 - v30)).toFixed(2).replace('.', ',') : '–') + ' sur 30 jours') +
+        kpi(fmt((c['appareil:installe'] || 0)), 'téléphones avec l’appli installée', 'comptés à la première ouverture de l’appli, iPhone compris ; ' + fmt(c.installe || 0) + ' installations par le bouton du jeu (Android, depuis le début)') +
+        kpi(pct(sommeR('retour:j1', 30), n30), 'reviennent le lendemain', 'sur 30 jours, ' + fmt(sommeR('retour:j2-7', 30)) + ' retours entre J+2 et J+7') +
+        kpi(fmt(c['appareil:existant'] || 0), 'téléphones qui jouaient déjà', 'avant ce compte, à leur première ouverture depuis le 2 novembre') + '</div>' +
+      '<div class="kpis">' +
+        kpi(fmt(c['achat:vue'] || 0), 'écrans d’achat montrés', fmt(c['achat:clic'] || 0) + ' « Payer » touchés') +
+        kpi(fmt(payes), 'achats', fmt(c['achat:restaure'] || 0) + ' achats retrouvés (changement de téléphone)') +
+        kpi(pct(payes, nouveaux), 'des nouveaux téléphones achètent', pct(payes, c['achat:vue'] || 0) + ' des écrans d’achat') + '</div>' +
+      '<div class="charts">' + daily('appareil:nouveau-web', 'Nouveaux téléphones venus seuls, par jour') + daily('appareil:nouveau-invite', 'Nouveaux téléphones venus par une invitation, par jour') + '</div>';
+    box.innerHTML = diffusion +
       '<h2 class="sec">De l’ouverture au kiff kiff</h2>' +
       '<ul class="funnel">' + step(v, 'Ouvertures du jeu') + step(p, 'Parties lancées', v) + step(pk, 'Parties avec un kiff kiff', p) + '</ul>' +
       '<p class="note">Les ouvertures et les premiers kiff kiff sont comptés depuis le 18 octobre 2026 ; les parties, depuis le début.</p>' +

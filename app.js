@@ -2933,6 +2933,8 @@
   }
   /* « Tu kiffes ? » : partager le jeu, offrir un café, lire l’histoire du jeu */
   const APP_URL = 'https://kiff-kiff.fr/';
+  // Le lien du jeu partagé dit d’où il vient (?de=…) : le téléphone qui l’ouvre le compte une fois (appareil:nouveau-…)
+  const lienDe = (de) => APP_URL + '?de=' + de;
   const dealText = () => T('tukiffes.message');
   const ovDeal = $('#ov-deal');
   // Depuis la célébration, ou depuis le lien discret de l’accueil
@@ -2955,7 +2957,7 @@
     (mode === 'qui' ? $('#deal-close') : $('#deal-share')).focus({ preventScroll: true });
     // Le QR code du jeu : on le montre, l’autre le scanne, rien à recopier
     const qr = $('#deal-qr');
-    if (!qr.firstChild) loadScript('vendor/qrcode.js?v=1.4.4').then(() => { if (window.KiffDuo && window.KiffDuo.qrSvg) qr.innerHTML = window.KiffDuo.qrSvg(APP_URL); }).catch(() => {});
+    if (!qr.firstChild) loadScript('vendor/qrcode.js?v=1.4.4').then(() => { if (window.KiffDuo && window.KiffDuo.qrSvg) qr.innerHTML = window.KiffDuo.qrSvg(lienDe('qr')); }).catch(() => {});
   };
   $('#party-deal').addEventListener('click', openDeal);
   $('#home-deal').addEventListener('click', openDeal);
@@ -2969,7 +2971,7 @@
     const done = $('#deal-done');
     if (typeof navigator.share === 'function') {
       try {
-        await navigator.share({ title: 'Kiff Kiff', text: dealText(), url: APP_URL });
+        await navigator.share({ title: 'Kiff Kiff', text: dealText(), url: lienDe('partage') });
         report('partage', null, 'envoye');
         sSwitchOn(); haptic(15);
         done.textContent = T('tukiffes.envoye');
@@ -2979,11 +2981,11 @@
     }
     // Sans partage natif : on copie le message avec le lien
     try {
-      await navigator.clipboard.writeText(dealText() + ' ' + APP_URL);
+      await navigator.clipboard.writeText(dealText() + ' ' + lienDe('partage'));
       report('partage', null, 'copie');
       done.textContent = T('tukiffes.copie');
     } catch (e) {
-      done.textContent = dealText() + ' ' + APP_URL;
+      done.textContent = dealText() + ' ' + lienDe('partage');
     }
     done.hidden = false;
     sClick(); haptic(8);
@@ -3275,7 +3277,7 @@
     report('partage', null, 'format-' + partageFmt());
     report('carte', null, (partage && partage.from) || 'fete');
     if (navigator.canShare && navigator.canShare({ files: [file] })) {
-      const msg = /kiff-kiff\.fr/i.test(tagline()) ? tagline() : tagline() + ' ' + APP_URL;
+      const msg = /kiff-kiff\.fr/i.test(tagline()) ? tagline() : tagline() + ' ' + lienDe('image');
       try { await navigator.share({ files: [file], title: 'Kiff Kiff', text: msg }); closePartage(); } catch (e) { /* annulé */ }
       return;
     }
@@ -3290,7 +3292,7 @@
   $('#partage-lien').addEventListener('click', async () => {
     audio(); sClick(); haptic(8);
     let ok = false;
-    try { await navigator.clipboard.writeText(APP_URL); ok = true; } catch (e) { ok = false; }
+    try { await navigator.clipboard.writeText(lienDe('image')); ok = true; } catch (e) { ok = false; }
     report('partage', null, 'lien-copie');
     partageMot(ok ? T('partage.lien-ok') : T('duo.copie-impossible'));
   });
@@ -4903,6 +4905,31 @@
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') flushReports(); });
   window.addEventListener('pagehide', flushReports);
   const once = new Set(); // certains événements une seule fois par ouverture
+  /* La diffusion, téléphone par téléphone (2 novembre 2026), sans aucun identifiant : un drapeau sur ce téléphone suffit.
+     appareil:nouveau-… la toute première ouverture sur ce téléphone, et d’où il vient (lien d’invitation, lien partagé, image…) ;
+     appareil:existant un téléphone qui jouait déjà avant ce compte ; appareil:installe la première ouverture de l’appli installée ;
+     retour:j1… le premier passage de la journée, selon l’âge du téléphone dans le jeu (pour la fidélité). */
+  function compterAppareil(invite, installed) {
+    const now = Date.now();
+    let premier = load('premierJour', 0);
+    if (!premier) {
+      const deja = !!(load('names', null) || load('parties', null) || load('paires', null) || load('rulesSeen', null));
+      let de = '';
+      try { de = (new URLSearchParams(location.search).get('de') || '').replace(/[^a-z]/g, '').slice(0, 10); } catch (e) { de = ''; }
+      report('appareil', null, deja ? 'existant' : invite ? 'nouveau-invite' : de ? 'nouveau-' + de : 'nouveau-web');
+      premier = now;
+      save('premierJour', now);
+      save('retourJour', new Date().toDateString());
+    } else {
+      const auj = new Date().toDateString();
+      if (load('retourJour', '') !== auj) {
+        save('retourJour', auj);
+        const j = Math.floor((now - premier) / 864e5);
+        report('retour', null, j < 1 ? 'j0' : j === 1 ? 'j1' : j <= 7 ? 'j2-7' : j <= 30 ? 'j8-30' : 'j31-plus');
+      }
+    }
+    if (installed && !load('installeVu', false)) { save('installeVu', true); report('appareil', null, 'installe'); }
+  }
   const reportOnce = (type, detail) => { const k = type + ':' + (detail || ''); if (once.has(k)) return; once.add(k); report(type, null, detail); };
   function choiceLabels() {
     return [0, 1, 2].map((r) => {
@@ -5346,6 +5373,7 @@
     const inv = window.KiffDuo && window.KiffDuo.parse(location.hash);
     const installed = (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true;
     reportOnce('visite', inv ? (findGame(inv.room) ? 'reprise' : 'invitation') : (installed ? 'installee' : 'web'));
+    compterAppareil(inv && !findGame(inv.room), installed);
     let fromNotif = '';
     let fromKiff = '';
     try { fromNotif = new URLSearchParams(location.search).get('jouer') || ''; fromKiff = new URLSearchParams(location.search).get('kiff') || ''; } catch (e) { /* rien */ }

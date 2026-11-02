@@ -23,7 +23,7 @@
  * des parties à deux téléphones, chiffrée par les téléphones : illisible ici, même pour toi.
  * L’onglet « boite » est la boîte aux lettres de la discussion : un message chiffré y attend que
  * l’autre téléphone vienne le chercher, puis il est effacé (30 jours au plus). Illisible ici aussi.
- * L’onglet « journal » garde les 500 derniers comptes (date, type, variante), sans rien de personnel.
+ * L’onglet « journal » garde les 3000 derniers comptes (date, type, variante), sans rien de personnel.
  */
 /* Le mot de passe de l’atelier : dans les propriétés du script (« motdepasse »), jamais dans ce code.
    Dix essais ratés en dix minutes bloquent l’enregistrement pendant dix minutes. */
@@ -42,10 +42,13 @@ const ROUES = ['action', 'endroit', 'maniere'];
 // Les événements comptés (aucun identifiant, aucune phrase) ; « detail » précise une variante courte
 const TYPES = ['partie', 'envie', 'kiff', 'passe', 'visite', 'invitation', 'rejoint', 'mais', 'premier', 'piment', 'monte',
   'partage', 'cafe', 'installe', 'historique', 'notif',
-  'discussion', 'carte', 'installer', 'attente', 'brulant', 'complet', 'loupe', 'recherche'];
-const PAR_JOUR = ['visite', 'partie', 'envie', 'kiff', 'rejoint', 'discussion']; // aussi comptés jour par jour
+  'discussion', 'carte', 'installer', 'attente', 'brulant', 'complet', 'loupe', 'recherche',
+  // 2 novembre 2026 : un téléphone nouveau (et d’où il vient), l’appli installée (une fois par téléphone),
+  // le retour d’un téléphone (jour 1, semaine…), l’achat
+  'appareil', 'retour', 'achat'];
+const PAR_JOUR = TYPES; // tous les comptes le sont aussi jour par jour (depuis le 2 novembre 2026)
 const ENT_JOURNAL = ['quand', 'type', 'variante'];
-const JOURNAL_MAX = 500;
+const JOURNAL_MAX = 3000;
 const ENT_BOITE = ['partie', 'place', 'id', 'corps', 'quand'];
 const BOITE_JOURS = 30; // un message jamais venu chercher est effacé au bout de 30 jours
 const BOITE_MAX = 300; // par partie et par téléphone
@@ -74,11 +77,8 @@ function doPost(e) {
   let corps = {};
   try { corps = JSON.parse((e && e.postData && e.postData.contents) || '{}'); } catch (err) { return sortie({ ok: false, erreur: 'json' }); }
   if (corps.action === 'event') return sortie(noterEvenement(corps));
-  if (corps.action === 'events' && Array.isArray(corps.liste)) {
-    // Plusieurs comptes d’un coup (un seul appel par écran) : moins de requêtes, quotas tenus
-    corps.liste.slice(0, 30).forEach(function (ev) { if (ev && typeof ev === 'object') noterEvenement(ev); });
-    return sortie({ ok: true });
-  }
+  // Plusieurs comptes d’un coup (un seul appel par écran) : moins de requêtes, quotas tenus
+  if (corps.action === 'events' && Array.isArray(corps.liste)) return sortie(noterEvenements(corps.liste));
   if (corps.action === 'partie') return sortie(ecrirePartie(corps));
   if (corps.action === 'push') return sortie(envoyerNotification(corps));
   if (corps.action === 'rappel') return sortie(enregistrerRappel(corps));
@@ -232,64 +232,104 @@ function ecrireTextes(t) {
 }
 
 /* ---------- Les comptes envoyés par les téléphones ---------- */
-function noterEvenement(corps) {
-  const type = String(corps.type || '');
-  if (TYPES.indexOf(type) < 0) return { ok: false, erreur: 'type' };
+/* Les comptes, par lots (2 novembre 2026) : un seul verrou et une seule lecture de chaque onglet pour tout le lot.
+   Avant, chaque compte relisait les onglets et attendait le verrou à son tour : quand plusieurs téléphones
+   envoyaient en même temps, des comptes se perdaient (le verrou cède au bout de 15 s, sans rien dire). */
+function noterEvenement(corps) { return noterEvenements([corps]); }
+function noterEvenements(liste) {
+  const evs = (liste || []).filter(function (ev) {
+    return ev && typeof ev === 'object' && TYPES.indexOf(String(ev.type || '')) >= 0;
+  }).slice(0, 40);
+  if (!evs.length) return { ok: false, erreur: 'type' };
   const verrou = LockService.getScriptLock();
-  verrou.waitLock(15000);
+  if (!verrou.tryLock(28000)) return { ok: false, erreur: 'occupe' };
   try {
+    const maintenant = new Date();
+    const jour = Utilities.formatDate(maintenant, 'Europe/Paris', 'yyyy-MM-dd');
+    // Les totaux depuis le début
     const fc = feuille('compteurs', ENT_COMPTEURS);
     const vc = fc.getDataRange().getValues();
+    const ligneC = {};
+    for (let j = 1; j < vc.length; j++) if (vc[j][0] !== '') ligneC[vc[j][0]] = j;
+    const changes = {}, nouvelles = [];
     const plus = function (cle) {
-      let k = -1;
-      for (let j = 1; j < vc.length; j++) if (vc[j][0] === cle) { k = j; break; }
-      if (k < 0) { fc.appendRow([cle, 1]); vc.push([cle, 1]); }
-      else { vc[k][1] = (Number(vc[k][1]) || 0) + 1; fc.getRange(k + 1, 2).setValue(vc[k][1]); }
+      if (ligneC[cle] == null) { ligneC[cle] = vc.length; vc.push([cle, 0]); nouvelles.push(cle); }
+      const k = ligneC[cle];
+      vc[k][1] = (Number(vc[k][1]) || 0) + 1;
+      changes[k] = true;
     };
-    plus(type);
-    const detail = String(corps.detail || '');
-    if (detail && DETAIL.test(detail)) plus(type + ':' + detail);
-    // Le journal : les derniers comptes, dans l’ordre (rien de personnel : un type et sa variante)
+    // Jour par jour : tous les types (et leurs variantes), pour les courbes et les comptes de 7 et 30 jours
+    const fj = feuille('jours', ENT_JOURS);
+    const nj = fj.getLastRow();
+    const debut = Math.max(2, nj - 400);
+    const vj = nj >= 2 ? fj.getRange(debut, 1, nj - debut + 1, 3).getValues() : [];
+    const ligneJ = {};
+    vj.forEach(function (l, i) {
+      const d = l[0] instanceof Date ? Utilities.formatDate(l[0], 'Europe/Paris', 'yyyy-MM-dd') : String(l[0]).replace(/^'/, '');
+      if (d === jour) ligneJ[l[1]] = i;
+    });
+    const parJour = {};
+    const journal = [];
+    const choixLot = [];
+    evs.forEach(function (ev) {
+      const type = String(ev.type);
+      const detail = String(ev.detail || '');
+      const variante = detail && DETAIL.test(detail) ? detail : '';
+      plus(type);
+      if (variante) plus(type + ':' + variante);
+      parJour[type] = (parJour[type] || 0) + 1;
+      if (variante) parJour[type + ':' + variante] = (parJour[type + ':' + variante] || 0) + 1;
+      journal.push([maintenant, type, variante]);
+      if ((type === 'envie' || type === 'kiff') && Array.isArray(ev.choix)) choixLot.push({ type: type, choix: ev.choix });
+    });
+    // Écrire les totaux : les lignes changées, puis les nouvelles
+    Object.keys(changes).forEach(function (k) {
+      k = Number(k);
+      if (nouvelles.indexOf(vc[k][0]) >= 0) return;
+      fc.getRange(k + 1, 2).setValue(vc[k][1]);
+    });
+    if (nouvelles.length) fc.getRange(fc.getLastRow() + 1, 1, nouvelles.length, 2).setValues(nouvelles.map(function (c) { return [c, vc[ligneC[c]][1]]; }));
+    // Écrire les comptes du jour
+    const ajouts = [];
+    Object.keys(parJour).forEach(function (t) {
+      if (ligneJ[t] != null) {
+        const i = ligneJ[t];
+        fj.getRange(debut + i, 3).setValue((Number(vj[i][2]) || 0) + parJour[t]);
+      } else ajouts.push(["'" + jour, t, parJour[t]]);
+    });
+    if (ajouts.length) fj.getRange(fj.getLastRow() + 1, 1, ajouts.length, 3).setValues(ajouts);
+    // Le journal des derniers comptes
     const fl = feuille('journal', ENT_JOURNAL);
-    fl.appendRow([new Date(), type, DETAIL.test(detail) ? detail : '']);
+    fl.getRange(fl.getLastRow() + 1, 1, journal.length, 3).setValues(journal);
     const nl = fl.getLastRow();
-    if (nl > JOURNAL_MAX + 50) fl.deleteRows(2, nl - 1 - JOURNAL_MAX);
-    if (PAR_JOUR.indexOf(type) >= 0) {
-      const fj = feuille('jours', ENT_JOURS);
-      const jour = Utilities.formatDate(new Date(), 'Europe/Paris', 'yyyy-MM-dd');
-      const vj = fj.getDataRange().getValues();
-      let n = -1;
-      for (let j = vj.length - 1; j >= 1 && j >= vj.length - 80; j--) {
-        const d = vj[j][0] instanceof Date ? Utilities.formatDate(vj[j][0], 'Europe/Paris', 'yyyy-MM-dd') : String(vj[j][0]);
-        if (d === jour && vj[j][1] === type) { n = j; break; }
-      }
-      if (n < 0) fj.appendRow(["'" + jour, type, 1]);
-      else fj.getRange(n + 1, 3).setValue((Number(vj[n][2]) || 0) + 1);
-    }
-
-    if ((type === 'envie' || type === 'kiff') && Array.isArray(corps.choix)) {
+    if (nl > JOURNAL_MAX + 200) fl.deleteRows(2, nl - 1 - JOURNAL_MAX);
+    // Les mots choisis et les mots des kiff kiff
+    if (choixLot.length) {
       const fx = feuille('choix', ENT_CHOIX);
       const vx = fx.getDataRange().getValues();
-      const col = type === 'kiff' ? 4 : 3;
-      corps.choix.slice(0, 3).forEach(function (mot, r) {
-        mot = String(mot || '').trim().slice(0, 80);
-        if (!mot) return;
-        const roue = ROUES[r];
-        let n = -1;
-        for (let j = 1; j < vx.length; j++) if (vx[j][0] === roue && vx[j][1] === mot) { n = j; break; }
-        if (n < 0) {
-          const ligne = [roue, mot, 0, 0];
-          ligne[col - 1] = 1;
-          fx.appendRow(ligne);
-          vx.push(ligne);
-        } else {
-          const v = (Number(vx[n][col - 1]) || 0) + 1;
-          fx.getRange(n + 1, col).setValue(v);
-          vx[n][col - 1] = v;
-        }
+      const ligneX = {};
+      for (let j = 1; j < vx.length; j++) ligneX[vx[j][0] + '|' + vx[j][1]] = j;
+      const touches = {}, neufs = [];
+      choixLot.forEach(function (c) {
+        const col = c.type === 'kiff' ? 3 : 2;
+        c.choix.slice(0, 3).forEach(function (mot, r) {
+          mot = String(mot || '').trim().slice(0, 80);
+          if (!mot) return;
+          const cle = ROUES[r] + '|' + mot;
+          if (ligneX[cle] == null) { ligneX[cle] = vx.length; vx.push([ROUES[r], mot, 0, 0]); neufs.push(ligneX[cle]); }
+          const k = ligneX[cle];
+          vx[k][col] = (Number(vx[k][col]) || 0) + 1;
+          touches[k] = true;
+        });
       });
+      Object.keys(touches).forEach(function (k) {
+        k = Number(k);
+        if (neufs.indexOf(k) >= 0) return;
+        fx.getRange(k + 1, 3, 1, 2).setValues([[vx[k][2], vx[k][3]]]);
+      });
+      if (neufs.length) fx.getRange(fx.getLastRow() + 1, 1, neufs.length, 4).setValues(neufs.map(function (k) { return vx[k]; }));
     }
-    return { ok: true };
+    return { ok: true, n: evs.length };
   } finally {
     verrou.releaseLock();
   }
