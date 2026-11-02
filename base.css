@@ -1849,3 +1849,14 @@ body.en-jeu #home .ic-back { display: block; }
 .lv-flash { margin: 0; font-size: 13px; opacity: .85; }
 .lv-flash[hidden] { display: none; }
 .chat-list.is-cartes > li.thread-note, .chat-list.is-cartes > li.thread-piment { display: none; }
+
+/* L’accueil (2 novembre 2026) : la pastille rose (du nouveau) sur l’avatar, et des stickers pour ce qui attend */
+.avatar { position: relative; }
+.pastille-rose { position: absolute; top: -2px; right: -2px; width: 14px; height: 14px; border-radius: 50%; background: var(--badge-bg, #D81B50);
+  box-shadow: 0 0 0 2.5px var(--avatar-gap, rgba(0, 0, 0, .35)), 0 0 10px color-mix(in srgb, var(--badge-bg, #D81B50) 70%, transparent); }
+.une-head .pastille-rose { width: 16px; height: 16px; top: 0; right: 0; }
+.etiquettes { display: flex; flex-direction: column; align-items: flex-end; gap: 5px; }
+.une-head-text .etiquettes { flex-direction: row; flex-wrap: wrap; align-items: center; margin-top: 6px; }
+.etiquette { display: inline-block; padding: 3px 8px; border-radius: 6px; font-family: var(--f-ui, system-ui, sans-serif); font-size: 11.5px; font-weight: 800; line-height: 1.2; letter-spacing: .01em; white-space: nowrap; transform: rotate(-2deg); }
+.etiquette.is-tour, .etiquette.is-kiff { background: var(--badge-bg, #D81B50); color: var(--badge-fg, #fff); box-shadow: 0 2px 0 color-mix(in srgb, #000 25%, transparent); }
+.etiquette.is-ecrit { background: transparent; color: inherit; box-shadow: inset 0 0 0 1.5px var(--badge-bg, #D81B50); transform: rotate(1.5deg); }

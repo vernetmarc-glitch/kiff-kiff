@@ -5860,6 +5860,17 @@
     });
     return items;
   }
+  /* Les stickers de l’accueil (2 novembre 2026) : « À toi de jouer », « Lou t’a écrit » (et combien), « Kiff kiff ! » ;
+     la pastille rose dit qu’il y a du nouveau depuis ma dernière visite de la partie */
+  function stickersHtml(it) {
+    if (it.kind !== 'duo') return '';
+    let h = '';
+    if (it.freshKiff) h += '<span class="etiquette is-kiff">' + esc(T('accueil.sticker-kiff')) + '</span>';
+    else if (it.state.me && !it.lobby) h += '<span class="etiquette is-tour">' + esc(T('accueil.sticker-tour')) + '</span>';
+    if (it.nu) h += '<span class="etiquette is-ecrit">' + esc(T('accueil.sticker-ecrit', { prénom: it.B })) + (it.nu > 1 ? ' · ' + it.nu : '') + '</span>';
+    return h ? '<span class="etiquettes">' + h + '</span>' : '';
+  }
+  const pastille = (it) => (it.news ? '<span class="pastille-rose" aria-label="' + esc(T('accueil.du-nouveau')) + '"></span>' : '');
   function renderHome() {
     renderReprise();
     const items = homeItems();
@@ -5886,10 +5897,10 @@
       : top.state.go === 'tourner' ? T('partie.tourner') : top.state.go === 'reprendre' ? T('partie.reprendre')
       : top.nu ? T('accueil.lire-messages') : T('accueil.ouvrir');
     const line = top.freshKiff ? T('parties.kiff-neuf') : top.state.line || '';
-    une.innerHTML = '<div class="une-head"><span class="avatar' + (top.news ? ' is-new' : '') + '" aria-hidden="true">' + esc(initial(B || top.title)) + '</span>' +
-      '<span class="une-head-text"><span class="une-kicker">' + esc(kick) + '</span><span class="une-name">' + esc(isDuo && !top.lobby ? T('jeu.avec', { prénom: B }) : top.title) + '</span></span>' +
+    une.innerHTML = '<div class="une-head"><span class="avatar" aria-hidden="true">' + esc(initial(B || top.title)) + pastille(top) + '</span>' +
+      '<span class="une-head-text"><span class="une-kicker">' + esc(kick) + '</span><span class="une-name">' + esc(isDuo && !top.lobby ? T('jeu.avec', { prénom: B }) : top.title) + '</span>' + stickersHtml(top) + '</span>' +
       '<button class="home-del une-del" type="button" data-del="' + esc(homeId(top)) + '" aria-label="' + esc(T('accueil.supprimer') + ' : ' + top.title) + '"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-supprimer"/></svg><span>' + esc(T('accueil.supprimer')) + '</span></button>' +
-      (top.nu ? '<span class="badge badge--row" aria-label="' + top.nu + ' message' + (top.nu > 1 ? 's' : '') + ' non lu' + (top.nu > 1 ? 's' : '') + '">' + top.nu + '</span>' : '') + '</div>' +
+      '</div>' +
       (line ? '<p class="une-line">' + esc(line) + '</p>' : '') +
       (top.msgLine ? '<p class="une-msg">' + esc(top.msgLine) + '</p>' : '') +
       '<button class="btn une-go" type="button" data-home="' + esc(homeId(top)) + '" data-go="' + esc(top.state.go || '') + '"' + (isDuo && !['tourner', 'lire', 'relire', 'reprendre'].includes(top.state.go) ? ' data-partie="1"' : '') + '>' + esc(goLabel) + '</button>';
@@ -5903,15 +5914,14 @@
     list.innerHTML = rest.map((it) => {
       const isD = it.kind === 'duo';
       const id = homeId(it);
-      const st = it.state.me ? it.state.line : (it.msgLine || it.state.line);
+      const st = it.state.me || it.freshKiff ? (it.freshKiff ? T('parties.kiff-neuf') : it.state.line) : (it.msgLine || it.state.line);
       // Glisser la ligne vers la gauche (ou toucher la corbeille au-dessus de la liste) montre « Supprimer »
       return '<li class="home-game' + (it.news ? ' is-new' : '') + (homeOpen === id ? ' is-open' : '') + '" data-id="' + esc(id) + '">' +
         '<button class="home-del" type="button" data-del="' + esc(id) + '" tabindex="-1"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-supprimer"/></svg><span>' + esc(T('accueil.supprimer')) + '</span></button>' +
         '<button class="home-game-btn" type="button" data-home="' + esc(id) + '"' + (isD ? ' data-partie="1"' : '') + '>' +
-        '<span class="avatar' + (it.news ? ' is-new' : '') + '" aria-hidden="true">' + esc(initial(it.B || it.title)) + '</span>' +
+        '<span class="avatar" aria-hidden="true">' + esc(initial(it.B || it.title)) + pastille(it) + '</span>' +
         '<span class="home-game-text"><span class="home-game-name">' + esc(it.title) + '</span><span class="home-game-line' + (it.state.me ? ' is-me' : '') + '">' + esc(st) + '</span></span>' +
-        '<span class="home-game-side"><span class="home-game-time">' + esc(it.t > 1 ? agoText(it.t) : '') + '</span>' +
-        (it.nu ? '<span class="badge badge--row">' + it.nu + '<span class="sr-only"> non lus</span></span>' : '') + '</span></button></li>';
+        '<span class="home-game-side"><span class="home-game-time">' + esc(it.t > 1 ? agoText(it.t) : '') + '</span>' + stickersHtml(it) + '</span></button></li>';
     }).join('');
   }
   // Toucher une partie de la liste : sa conversation, tout de suite (28 octobre 2026) ; le jeu seulement par le bouton de la une quand l’action y est (tourner, lire, relire, reprendre)

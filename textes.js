@@ -50,7 +50,10 @@ window.KIFF_TEXTES = [
     ["suppr.oui", "Supprimer", "Le bouton qui supprime"],
     ["suppr.non", "Annuler", "Le lien qui referme la fenêtre"],
     ["accueil.supprimee", "Partie supprimée", "Le mot bref après avoir supprimé une partie"],
-    ["accueil.lire-messages", "Lire ses messages", "Le bouton de la une, quand des messages attendent"]
+    ["accueil.lire-messages", "Lire ses messages", "Le bouton de la une, quand des messages attendent"],
+    ["accueil.sticker-tour", "À toi de jouer", "Sticker d’une partie, à l’accueil : c’est à toi"],
+    ["accueil.sticker-ecrit", "{prénom} t’a écrit", "Sticker d’une partie, à l’accueil : des messages pas encore lus (suivi de leur nombre s’il y en a plusieurs)"],
+    ["accueil.sticker-kiff", "Kiff kiff !", "Sticker d’une partie, à l’accueil : un kiff kiff pas encore fêté"]
   ] },
   { id: "menu", nom: "Le menu de l’accueil", textes: [
     ["menu.ambiance", "Ambiance et son", "Menu"],
