@@ -104,6 +104,7 @@
      À deux téléphones, il suffit que l’un des deux ait le jeu complet. */
   const OFFRE = window.KIFF_OFFRE || 'tout';
   let openComplet = () => {};
+  let openAchat = () => {};
   function isComplet() {
     if (OFFRE === 'tout') return true;
     // Offert par l’autre : seulement dans la partie avec cette personne (jamais sur un téléphone seul, ni dans une autre partie)
@@ -5254,6 +5255,9 @@
       if (ail) { $('#complet-offert').textContent = T('complet.offert-ailleurs', { prénom: ail, autre: nameOf(other(duo.seat)) }); report('complet', null, 'offert-ailleurs'); }
       $('#complet-liste').innerHTML = TL('complet.liste').map((x) => '<li><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>' + esc(x) + '</span></li>').join('');
       showHotEnvies();
+      $('#complet-oui').textContent = T(OFFRE === 'payant' ? 'complet.oui-payant' : 'complet.oui');
+      $('#complet-deja').hidden = OFFRE !== 'payant';
+      if (OFFRE === 'payant') report('achat', null, 'vue');
       completAt = Date.now();
       show(ovComplet);
       report('complet', null, 'vue-' + why);
@@ -5290,6 +5294,7 @@
     }
     const closeComplet = () => { hide(ovComplet); clearInterval(hotT); if (completFrom && completFrom.focus) completFrom.focus({ preventScroll: true }); };
     $('#complet-oui').addEventListener('click', () => {
+      if (OFFRE === 'payant') { audio(); sClick(); haptic(12); acheter(); return; }
       audio(); sSwitchOn(); haptic(20);
       save('complet', true);
       report('complet', null, 'debloque');
@@ -5300,6 +5305,92 @@
       flashHint(T('complet.merci'), 3000);
       openGratos();
     });
+    /* Tout Kiff Kiff à 3 € (2 novembre 2026) : la page de paiement de Stancer, puis le retour ici (?achat=…).
+       Le script vérifie le paiement auprès de Stancer et rend un code d’achat ; le lien #cle=… rouvre Tout Kiff Kiff ailleurs.
+       Aucune donnée de carte ni nom ne passe par le jeu ou le script. */
+    const ovAchat = $('#ov-achat');
+    const lienAchat = (code) => APP_URL + '#cle=' + code;
+    const apiAchat = (corps) => fetch(API, { method: 'POST', body: JSON.stringify(corps) }).then((r) => r.json());
+    function motAchat(t) { const m = $('#achat-mot'); m.textContent = t; m.hidden = !t; }
+    let achatEnvoi = false;
+    function acheter() {
+      if (!API || achatEnvoi) return;
+      achatEnvoi = true;
+      report('achat', null, 'clic');
+      flashHint(T('achat.ouvre'), 4000);
+      apiAchat({ action: 'achat' }).then((j) => {
+        achatEnvoi = false;
+        if (!j || !j.ok || !/^https:\/\/payment\.stancer\.com\//.test(j.url || '')) throw new Error('achat');
+        save('achatEnCours', { id: j.id, t: Date.now() });
+        location.href = j.url;
+      }).catch(() => { achatEnvoi = false; note(T('complet.titre'), T('achat.erreur')); });
+    }
+    function achatFait(code, retrouve) {
+      save('complet', true);
+      save('achatCode', code);
+      save('achatEnCours', null);
+      newDraw(); relist(); renderReels(); renderLevel(); renderTon(); render();
+      if (duo && duo.stage === 'game') sync();
+      showAchat(retrouve ? 'retrouve' : 'paye');
+    }
+    function showAchat(mode) {
+      const code = load('achatCode', '');
+      $('#achat-titre').textContent = T(mode === 'retrouver' ? 'achat.retrouver-titre' : mode === 'retrouve' ? 'achat.retrouve' : 'achat.titre');
+      $('#achat-texte').textContent = T(mode === 'retrouver' ? 'achat.retrouver-texte' : 'achat.texte');
+      $('#achat-code').hidden = mode === 'retrouver' || !code;
+      $('#achat-code').textContent = code;
+      $('#achat-copier').hidden = mode === 'retrouver' || !code;
+      $('#achat-form').hidden = mode !== 'retrouver';
+      $('#achat-cle').value = '';
+      motAchat('');
+      hide(ovComplet);
+      show(ovAchat);
+      if (mode === 'retrouver') setTimeout(() => $('#achat-cle').focus(), 60);
+    }
+    // Au retour de la page de paiement (ou en revenant à l’appli) : le paiement est-il passé ?
+    function verifierAchat(id) {
+      if (!API || !/^[a-f0-9]{24}$/.test(id || '')) return;
+      apiAchat({ action: 'achat-verif', id }).then((j) => {
+        if (!j || !j.ok) return;
+        if (j.paye && j.code) { report('achat', null, 'paye'); achatFait(j.code, false); return; }
+        // Pas encore : on réessaiera au prochain retour, une heure au plus
+        const en = load('achatEnCours', null);
+        if (en && Date.now() - (en.t || 0) > 3600000) save('achatEnCours', null);
+        if (j.etat && j.etat !== 'require_payment_method') flashHint(T('achat.pas-paye'), 3000);
+      }).catch(() => {});
+    }
+    function retrouverAchat(code) {
+      code = String(code || '').trim().replace(/^.*#cle=/, '').toLowerCase();
+      if (!API || !/^[a-f0-9]{24}-[a-f0-9]{12}$/.test(code)) { motAchat(T('achat.code-faux')); return; }
+      apiAchat({ action: 'achat-cle', code }).then((j) => {
+        if (j && j.ok) { report('achat', null, 'restaure'); achatFait(code, true); }
+        else motAchat(T('achat.code-faux'));
+      }).catch(() => motAchat(T('achat.erreur')));
+    }
+    (function retourAchat() {
+      const q = new URLSearchParams(location.search);
+      const id = q.get('achat');
+      const cle = /#cle=([a-f0-9-]{37})/i.exec(location.hash);
+      if (id || cle) { try { history.replaceState(null, '', location.pathname); } catch (e) { /* rien */ } }
+      if (cle && !load('complet', false)) { retrouverAchat(cle[1]); return; }
+      if (id) { flashHint(T('achat.verif'), 3000); verifierAchat(id); return; }
+      const en = load('achatEnCours', null);
+      if (en && en.id) verifierAchat(en.id);
+    })();
+    document.addEventListener('visibilitychange', () => {
+      const en = load('achatEnCours', null);
+      if (document.visibilityState === 'visible' && en && en.id && !load('complet', false)) verifierAchat(en.id);
+    });
+    $('#achat-form').addEventListener('submit', (e) => { e.preventDefault(); audio(); retrouverAchat($('#achat-cle').value); });
+    $('#achat-copier').addEventListener('click', () => {
+      audio();
+      const c = load('achatCode', '');
+      navigator.clipboard.writeText(lienAchat(c)).then(() => motAchat(T('achat.copie'))).catch(() => motAchat(lienAchat(c)));
+    });
+    $('#achat-ok').addEventListener('click', () => { audio(); hide(ovAchat); });
+    ovAchat.addEventListener('click', (e) => { if (e.target === ovAchat) hide(ovAchat); });
+    $('#complet-deja').addEventListener('click', () => { audio(); sClick(); showAchat('retrouver'); });
+    openAchat = () => { if (load('achatCode', '')) showAchat('paye'); else openComplet('menu'); };
     /* Après « Tout débloquer » : c’est gratuit pour l’instant ; combien le paieriez-vous (un compte anonyme par montant) ;
        un retour ou une idée (par mail, comme « Qui est là ? » : aucun texte libre ne part sur un serveur) */
     const ovGratos = $('#ov-gratos');
@@ -6134,13 +6225,15 @@
   setInterval(homeFresh, 30000);
   // Le menu
   const ovMenu2 = $('#ov-menu');
-  $('#home-menu').addEventListener('click', () => { audio(); sClick(); haptic(8); show(ovMenu2); $('#menu-close').focus({ preventScroll: true }); });
+  $('#home-menu').addEventListener('click', () => {
+    if (OFFRE === 'payant') $('#menu-complet-sous').textContent = T(load('achatCode', '') ? 'complet.paye-sous' : 'complet.payant-sous');
+    audio(); sClick(); haptic(8); show(ovMenu2); $('#menu-close').focus({ preventScroll: true }); });
   $('#menu-close').addEventListener('click', () => { audio(); hide(ovMenu2); });
   ovMenu2.addEventListener('click', (e) => { if (e.target === ovMenu2) hide(ovMenu2); });
   // Un choix du menu le referme ; la fenêtre choisie s’ouvre à sa place
   $('#ov-menu .menu-list').addEventListener('click', (e) => { if (e.target.closest('button') && !e.target.closest('#menu-avertir')) hide(ovMenu2); }, true);
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !ovMenu2.hidden) hide(ovMenu2); });
-  $('#menu-complet').addEventListener('click', () => { audio(); openComplet('menu'); });
+  $('#menu-complet').addEventListener('click', () => { audio(); if (OFFRE === 'payant' && load('complet', false)) openAchat(); else openComplet('menu'); });
 
   const closeGames = () => { hide(ovGames); $('#games-open').focus({ preventScroll: true }); };
   $('#games-close').addEventListener('click', () => { audio(); closeGames(); });

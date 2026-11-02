@@ -386,7 +386,7 @@
       <button class="icon-btn" id="home-who" type="button" aria-haspopup="dialog"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-qui"/></svg><span class="icon-label"><span data-t="accueil.quiestla">Qui est là&nbsp;?</span><span class="sr-only"> L’histoire du jeu, un café, un retour</span></span><span class="menu-sub" data-t="menu.quiestla-sous">L’histoire du jeu, un café, un mot à Marc</span></button>
       <button class="icon-btn menu-avertir" id="menu-avertir" type="button" aria-pressed="false" hidden><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-avertir"/></svg><span class="icon-label"><span data-t="menu.avertir">Avertissements</span></span><span class="menu-sub" id="menu-avertir-sub" data-t="menu.avertir-sous">Quand c’est ton tour, dans toutes tes parties</span><span class="menu-toggle" aria-hidden="true"></span></button>
       <button class="icon-btn" id="menu-retrouver" type="button" aria-haspopup="dialog"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-lien"/></svg><span class="icon-label"><span data-t="menu.retrouver">Retrouver une partie</span></span><span class="menu-sub" data-t="menu.retrouver-sous">Coller le lien reçu, ou celui copié dans le navigateur</span></button>
-      <button class="icon-btn" id="menu-complet" type="button"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-etoiles"/></svg><span class="icon-label"><span data-t="menu.complet">Tout Kiff Kiff</span></span><span class="menu-sub" data-t="complet.gratuit">Pour l’instant, tout est gratuit.</span></button>
+      <button class="icon-btn" id="menu-complet" type="button"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-etoiles"/></svg><span class="icon-label"><span data-t="menu.complet">Tout Kiff Kiff</span></span><span class="menu-sub" id="menu-complet-sous" data-t="complet.gratuit">Pour l’instant, tout est gratuit.</span></button>
     </nav>
   </div>
 </div>
@@ -900,6 +900,7 @@ Toutes les réponses sont bonnes&nbsp;!</p>
     <div class="stack">
       <button class="btn" id="complet-oui" type="button" data-t="complet.oui">Tout débloquer</button>
       <button class="link-btn" id="complet-non" type="button" data-t="complet.non">Plus tard</button>
+      <button class="link-btn" id="complet-deja" type="button" hidden data-t="complet.deja">Déjà acheté ? Entre ton code</button>
     </div>
   </div>
 </div>
@@ -919,6 +920,22 @@ Toutes les réponses sont bonnes&nbsp;!</p>
     <button class="link-btn" id="gratos-ok" type="button" data-t="gratos.jouer">Jouer</button>
   </div>
 </div>
+<!-- Tout Kiff Kiff acheté : le code d’achat (2 novembre 2026) ; ou le retrouver sur un autre téléphone -->
+<div class="overlay overlay--edit overlay--skins" id="ov-achat" hidden role="dialog" aria-modal="true" aria-labelledby="achat-titre">
+  <div class="sheet sheet--edit sheet--skins sheet--choice sheet--gratos">
+    <h2 class="edit-label" id="achat-titre"></h2>
+    <p class="duo-text" id="achat-texte"></p>
+    <p class="achat-code" id="achat-code" hidden></p>
+    <form class="gratos-prix achat-form" id="achat-form" hidden novalidate>
+      <label class="sr-only" for="achat-cle" data-t="achat.retrouver-texte">Colle ton code d’achat, ou le lien de ton achat.</label>
+      <input id="achat-cle" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="200">
+      <button class="btn" type="submit" data-t="achat.valider">Retrouver</button>
+    </form>
+    <p class="gratos-merci" id="achat-mot" role="status" hidden></p>
+    <button class="btn btn--line" id="achat-copier" type="button" hidden data-t="achat.copier">Copier le lien de mon achat</button>
+    <button class="link-btn" id="achat-ok" type="button" data-t="achat.jouer">Jouer</button>
+  </div>
+</div>
 <!--/APP-->
 <!-- Les premiers gestes : trois bulles sur l’écran de jeu, à la première envie de quelqu’un -->
 <div class="coach" id="coach" hidden role="dialog" aria-modal="true" aria-labelledby="coach-text">
@@ -932,7 +949,7 @@ Toutes les réponses sont bonnes&nbsp;!</p>
 </div>
 
 <script src="data.js?v=64"></script>
-<script src="textes.js?v=43"></script>
+<script src="textes.js?v=44"></script>
 <script src="semantique.js?v=1"></script>
 <script src="config.js?v=63"></script>
 <script src="duo.js?v=64"></script>

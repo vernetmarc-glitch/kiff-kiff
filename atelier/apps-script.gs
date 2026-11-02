@@ -84,6 +84,10 @@ function doPost(e) {
   if (corps.action === 'rappel') return sortie(enregistrerRappel(corps));
   if (corps.action === 'boite') return sortie(poserBoite(corps));
   if (corps.action === 'boite-lu') return sortie(viderBoite(corps));
+  // Tout Kiff Kiff, 3 € (2 novembre 2026) : la page de paiement de Stancer, la vérification au retour, le code d’achat
+  if (corps.action === 'achat') return sortie(creerAchat(corps));
+  if (corps.action === 'achat-verif') return sortie(verifierAchat(corps));
+  if (corps.action === 'achat-cle') return sortie(retrouverAchat(corps));
   if (corps.action === 'check' || corps.action === 'save' || corps.action === 'textes') {
     const mdp = motDePasseOk(corps.motDePasse);
     if (mdp !== 'ok') return sortie({ ok: false, erreur: mdp === 'non' ? 'mot de passe' : mdp });
@@ -860,3 +864,80 @@ function octets(x) { const h = x.toString(16).padStart(64, '0'); const out = [];
 function texteOctets(t) { return Utilities.newBlob(t).getBytes().map(function (b) { return b & 255; }); }
 function b64u(octs) { return Utilities.base64EncodeWebSafe(signes(octs)).replace(/=+$/, ''); }
 function hex(octs) { return octs.map(function (b) { return ((b & 255) + 256).toString(16).slice(1); }).join(''); }
+
+
+/* ---------- Tout Kiff Kiff, 3 € (2 novembre 2026) ----------
+   Le paiement passe par la page de paiement de Stancer : ni carte, ni nom, ni adresse ne passent par ce script.
+   La clé secrète Stancer vit seulement dans les propriétés du script (STANCER_SECRET, sprod_… ou stest_…).
+   L’onglet « achats » garde, pour chaque achat : un numéro tiré au hasard, l’intention de paiement Stancer, la date, l’état.
+   Le code d’achat (numéro + signature) se vérifie sans rien garder d’autre : il rouvre Tout Kiff Kiff sur un autre téléphone. */
+const ENT_ACHATS = ['achat', 'stancer', 'date', 'etat', 'paye_le', 'restaure'];
+const PRIX_CENTIMES = 300;
+const RETOUR_ACHAT = 'https://kiff-kiff.fr/';
+function stancer(methode, chemin, corps) {
+  const cle = PropertiesService.getScriptProperties().getProperty('STANCER_SECRET') || '';
+  if (!/^s(test|prod)_/.test(cle)) return { erreur: 'cle' };
+  const opts = { method: methode, muteHttpExceptions: true, headers: { Authorization: 'Basic ' + Utilities.base64Encode(cle + ':') } };
+  if (corps) { opts.contentType = 'application/json'; opts.payload = JSON.stringify(corps); }
+  const r = UrlFetchApp.fetch('https://api.stancer.com' + chemin, opts);
+  let j = {};
+  try { j = JSON.parse(r.getContentText() || '{}'); } catch (err) { j = {}; }
+  if (r.getResponseCode() >= 300) return { erreur: 'stancer-' + r.getResponseCode(), detail: j && j.error ? String(j.error.message || j.error.type || '') : '' };
+  return j;
+}
+function selAchat() {
+  const props = PropertiesService.getScriptProperties();
+  let sel = props.getProperty('achat_sel');
+  if (!sel) { sel = Utilities.getUuid() + Utilities.getUuid(); props.setProperty('achat_sel', sel); }
+  return sel;
+}
+function signerAchat(id) { return hex(hmac(texteOctets(selAchat()), texteOctets(id))).slice(0, 12); }
+const idAchatOk = (id) => /^[a-f0-9]{24}$/.test(String(id || ''));
+function ligneAchat(f, id) {
+  const ids = f.getRange(1, 1, Math.max(1, f.getLastRow()), 1).getValues();
+  for (let i = ids.length - 1; i >= 1; i--) if (ids[i][0] === id) return i + 1;
+  return 0;
+}
+function creerAchat() {
+  const id = Utilities.getUuid().replace(/-/g, '').slice(0, 24);
+  const pi = stancer('post', '/v2/payment_intents/', {
+    amount: PRIX_CENTIMES, currency: 'eur', description: 'Kiff Kiff - Tout Kiff Kiff',
+    order_id: id, unique_id: id, methods_allowed: ['card'], capture: true,
+    return_url: RETOUR_ACHAT + '?achat=' + id
+  });
+  if (pi.erreur || !pi.id || !pi.url) return { ok: false, erreur: pi.erreur || 'stancer' };
+  feuille('achats', ENT_ACHATS).appendRow([id, pi.id, new Date(), 'cree', '', 0]);
+  return { ok: true, id: id, url: pi.url };
+}
+function verifierAchat(corps) {
+  const id = String(corps.id || '');
+  if (!idAchatOk(id)) return { ok: false, erreur: 'achat' };
+  const f = feuille('achats', ENT_ACHATS);
+  const n = ligneAchat(f, id);
+  if (!n) return { ok: false, erreur: 'achat' };
+  const l = f.getRange(n, 1, 1, ENT_ACHATS.length).getValues()[0];
+  if (l[3] === 'paye') return { ok: true, paye: true, code: id + '-' + signerAchat(id) };
+  let pi = stancer('get', '/v2/payment_intents/' + l[1]);
+  if (pi.erreur) return { ok: false, erreur: pi.erreur };
+  // Autorisé seulement : on encaisse, puis on relit
+  if (pi.status === 'authorized') { stancer('post', '/v2/payment_intents/' + l[1] + '/capture'); pi = stancer('get', '/v2/payment_intents/' + l[1]); }
+  const paye = pi.status === 'captured' || pi.status === 'processing';
+  if (!paye) { f.getRange(n, 4).setValue(String(pi.status || 'inconnu')); return { ok: true, paye: false, etat: String(pi.status || '') }; }
+  f.getRange(n, 4, 1, 2).setValues([['paye', new Date()]]);
+  return { ok: true, paye: true, code: id + '-' + signerAchat(id) };
+}
+function retrouverAchat(corps) {
+  const m = /^([a-f0-9]{24})-([a-f0-9]{12})$/.exec(String(corps.code || '').trim().toLowerCase());
+  if (!m || signerAchat(m[1]) !== m[2]) return { ok: false, erreur: 'code' };
+  const f = feuille('achats', ENT_ACHATS);
+  const n = ligneAchat(f, m[1]);
+  if (!n || f.getRange(n, 4).getValue() !== 'paye') return { ok: false, erreur: 'code' };
+  const c = f.getRange(n, 6);
+  c.setValue((+c.getValue() || 0) + 1);
+  return { ok: true };
+}
+/* À lancer une fois depuis l’éditeur, après avoir mis STANCER_SECRET : vérifie la clé (une intention de 3 € créée, jamais payée) */
+function testerStancer() {
+  const r = creerAchat();
+  Logger.log(r.ok ? 'La clé Stancer marche. Page de paiement de test : ' + r.url : 'Ça ne marche pas : ' + r.erreur);
+}
