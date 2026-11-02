@@ -39,7 +39,7 @@ async def create(pg, name='Marc', other=''):
     if other: await pg.fill('#name1', other)
     await pg.click('#start-go'); await pg.wait_for_timeout(700)
     await maybe(pg, 'Compris')
-    await click(pg, 'Inviter l’autre téléphone')
+    await maybe(pg, 'Inviter l’autre téléphone')  # l’écran du piment a disparu le 2 novembre 2026
     await click(pg, 'Sans envie')
     await pg.wait_for_timeout(800)
     return pg.url

@@ -920,6 +920,20 @@
   /* Deux téléphones : le piment se règle par celui ou celle qui compose ; s’il monte,
      l’autre l’accepte avant de voir l’envie. S’il baisse, c’est accepté d’office. */
   const ovHot = $('#ov-hot');
+  /* Le piment dans le fil (2 novembre 2026) : S.lvLog garde le piment de départ et chaque changement accepté
+     ({ d: date, lv: niveaux, k: 'debut' | 'change' }) ; partagé à deux téléphones. */
+  const lvActuel = () => parseLevels(S.lvOk || S.levels);
+  function lvDebut() { S.lvLog = [{ d: Date.now(), lv: lvActuel(), k: 'debut' }]; }
+  function noteLv() {
+    if (!enJeu()) return;
+    const log = Array.isArray(S.lvLog) ? S.lvLog : (S.lvLog = []);
+    const last = log[log.length - 1];
+    const lv = lvActuel();
+    if (last && last.lv.join() === lv.join()) return;
+    log.push({ d: Date.now(), lv, k: log.length ? 'change' : 'debut' });
+    if (log.length > 30) log.splice(1, log.length - 30);
+    setTimeout(() => { renderChat(true); if (!duo && !ovPartie.hidden) renderIciTop(); }, 0);
+  }
   const hotter = () => !!duo && S.levels.some((n) => !(S.lvOk || S.levels).includes(n));
   let lowered = '';
   // ouvrir : le geste du joueur (« Lire son envie ») ; sans lui, on remet seulement d’aplomb ce qui est déjà ouvert
@@ -936,6 +950,7 @@
     if (want === 'offer' && S.lvOk && S.levels.join() !== S.lvOk.join()) {
       lowered = T('montee.baisse', { prénom: nameOf(S.proposer), piment: levelNames() });
       S.lvOk = S.levels.slice();
+      noteLv();
     }
     if (want && (offerKind !== want || el.ovOffer.hidden)) showOffer(want);
     else if (!want && offerKind) hideOffer();
@@ -956,6 +971,7 @@
     audio(); sClick(); haptic(8);
     report('monte', null, 'oui');
     S.lvOk = S.levels.slice();
+    noteLv();
     hide(ovHot);
     sync();
     showOffer('offer');
@@ -2362,7 +2378,8 @@
   }
   /* Installer, au bon moment (27 octobre 2026) : après avoir envoyé une envie, on attend la réponse de l’autre.
      Une carte au bout de la conversation dit à quoi ça sert (être prévenu·e de sa réponse), tant qu’on ne l’a ni faite ni écartée. */
-  const installWanted = () => !!duo && duo.stage === 'game' && ['review', 'adjust', 'reconfirm'].includes(S.phase) && !myTurn()
+  // Dès qu’une envie a été proposée ou reçue dans la partie (2 novembre 2026 ; avant : seulement après avoir envoyé la sienne)
+  const installWanted = () => !!duo && duo.stage === 'game' && ((S.kiffs || []).length > 0 || ['review', 'adjust', 'reconfirm'].includes(S.phase))
     && installer.can() && !load('installAsked', false) && !load('installCarteNon', false);
   // L’appli est installée sur ce téléphone, mais on joue dans le navigateur : copier ses parties pour l’y retrouver
   const appCardWanted = () => !!duo && duo.stage === 'game' && !isStandalone() && (appHere || !!load('installAsked', false)) && !installWanted()
@@ -2399,6 +2416,7 @@
     if (b) b.m.forEach((m) => items.push({ d: m.d, m }));
     const pe = pendingEnvie();
     if (pe) items.push({ d: pe.d, e: pe });
+    lvFil(pe).forEach((x) => items.push(x));
     // L’autre a Tout Kiff Kiff : il ou elle vous l’offre (un seul téléphone suffit) ; une carte, à l’heure où on l’a vu
     if (duo && duo.info && S.cpOther && !load('complet', false) && OFFRE !== 'tout') {
       const vu = load('offertVu', {}) || {};
@@ -2417,6 +2435,7 @@
       if (dl !== day) { day = dl; html += '<li class="chat-day"><span>' + esc(dl) + '</span></li>'; }
       if (it.k) { html += threadKiffHtml(it.k, b); return; }
       if (it.e) { html += threadEnvieHtml(it.e, B); return; }
+      if (it.lv) { html += pimentFilHtml(it, B); return; }
       if (it.o) { html += '<li class="thread-kiff thread-offert"><span class="thread-kiff-kicker">' + esc(T('partie.offert-kicker')) + '</span><p class="thread-offert-text">' + esc(T('partie.offert', { prénom: B })) + '</p></li>'; return; }
       const m = it.m, mine = m.s === duo.seat;
       if (m.x) { html += '<li class="chat-msg chat-msg--gone' + (mine ? ' is-mine' : '') + '">' + esc(T('chat.supprime')) + '</li>'; return; }
@@ -2449,6 +2468,51 @@
     lastOthersN = othersN;
     renderDown();
     markRead();
+  }
+  /* Le piment dans le fil (2 novembre 2026) : le piment de départ, chaque changement (une note), et à deux téléphones
+     le piment débloqué (une invitation à le régler) puis la montée proposée : deux cartes passagères, qui laissent la note */
+  const lvNoms = (lv) => parseLevels(lv).map((n) => D.niveaux[n - 1].nom).join(' + ');
+  const lvPuces = (lv) => parseLevels(lv).map((n) => '<span class="lv-puce"><span class="pgroup pgroup--' + n + ' is-on">' + CHILI.repeat(n) + '</span>' + esc(D.niveaux[n - 1].nom) + '</span>').join('');
+  function lvFil(pe) {
+    const out = [];
+    const log = Array.isArray(S.lvLog) ? S.lvLog : [];
+    log.forEach((x, i) => out.push({ d: x.d || 0, lv: x.k === 'debut' || i === 0 ? 'debut' : 'change', x }));
+    if (!duo || !duo.info || duo.stage !== 'game') return out;
+    const ok = lvActuel(), max = Math.max(...ok);
+    // La montée proposée : chez qui la propose, et chez qui dira oui ou non avant de lire l’envie
+    if (hotter()) {
+      out.push({ d: pe ? pe.d + 1 : Date.now(), lv: 'monte', ajout: S.levels.filter((n) => !ok.includes(n)) });
+      return out;
+    }
+    // Un piment débloqué, pas encore choisi : l’invitation à le régler, à l’heure du kiff kiff qui l’a débloqué
+    const u = unlocked();
+    if (S.prog && u > max) {
+      const k = S.kiffs || [];
+      let d = 0;
+      for (let i = k.length - 1; i >= 0; i--) if (unlockedIn(k.slice(0, i + 1)) > unlockedIn(k.slice(0, i))) { d = (k[i].d || 0) + 1; break; }
+      out.push({ d: d || Date.now(), lv: 'debloque', n: u });
+    }
+    return out;
+  }
+  function pimentFilHtml(it, B) {
+    const regler = (t) => '<button class="btn btn--line lv-regler" type="button" data-lv="regler"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3.5v17M12 3.5v17M18 3.5v17"/><circle cx="6" cy="16.5" r="2.6" fill="currentColor"/><circle cx="12" cy="7.5" r="2.6" fill="currentColor"/><circle cx="18" cy="12" r="2.6" fill="currentColor"/></svg>' + esc(t) + '</button>';
+    if (it.lv === 'debut') {
+      // À distance, on commence en Tendre et le piment monte en jouant : une note ; sur un téléphone, le réglage
+      if (duo) return '<li class="thread-note">' + esc(S.prog && it.x.lv.join() === '1' ? T('depart.texte-distance') : T('fil.piment-debut', { piment: lvNoms(it.x.lv) })) + '</li>';
+      return '<li class="thread-piment"><div class="lv-carte"><span class="thread-kiff-kicker">' + esc(T('fil.piment-titre')) + '</span>' +
+        '<span class="lv-puces">' + lvPuces(it.x.lv) + '</span>' + regler(T('fil.piment-regler')) + '</div></li>';
+    }
+    if (it.lv === 'change') return '<li class="thread-note thread-note--lv">' + esc(T('fil.piment-change', { piment: lvNoms(it.x.lv) })) + '</li>';
+    if (it.lv === 'monte') {
+      const niv = it.ajout.map((n) => D.niveaux[n - 1].nom).join(' et ');
+      const moi = S.proposer === duo.seat;
+      return '<li class="thread-piment is-passager"><div class="lv-carte"><span class="lv-puces">' + lvPuces(it.ajout) + '</span><p class="lv-texte">' +
+        esc(moi ? T('fil.piment-propose', { niveaux: niv, prénom: B }) : T('fil.piment-propose-autre', { niveaux: niv, prénom: B })) + '</p></div></li>';
+    }
+    // debloque
+    return '<li class="thread-piment is-passager"><div class="lv-carte"><span class="thread-kiff-kicker">' + esc(T('fil.piment-debloque-titre')) + '</span>' +
+      '<span class="lv-puces">' + lvPuces([it.n]) + '</span><p class="lv-texte">' + esc(T('fil.piment-debloque', { niveau: D.niveaux[it.n - 1].nom })) + '</p>' +
+      regler(T('fil.piment-monter')) + '<p class="lv-flash" hidden></p></div></li>';
   }
   // Le bouton « ↓ » : revenir au bas du fil, avec le nombre de nouveaux messages arrivés plus bas
   let newBelow = 0, lastOthersN = -1;
@@ -2675,6 +2739,16 @@
     if (av) {
       if (av.dataset.avertir === 'oui') { report('notif', null, 'carte'); toggleNotif(av).then(() => renderChat()); return; }
       audio(); save('avertirCarteNon', true); report('notif', null, 'carte-plus-tard'); renderChat(); return;
+    }
+    // Le piment : on le règle quand on compose (à deux téléphones), à tout moment sur un téléphone
+    const lvb = e.target.closest('[data-lv="regler"]');
+    if (lvb) {
+      audio();
+      if (S.phase === 'compose' && myTurn()) { sClick(); haptic(8); $('#piment-open').click(); return; }
+      sNope(); haptic(20);
+      const f = lvb.parentElement.querySelector('.lv-flash');
+      if (f) { f.textContent = T('fil.piment-plus-tard'); f.hidden = false; clearTimeout(f._t); f._t = setTimeout(() => { f.hidden = true; }, 3000); }
+      return;
     }
     // L’invitation : envoyer le lien, le copier, annuler la partie
     const iv = e.target.closest('[data-inv]');
@@ -3748,6 +3822,7 @@
       original: S.original ? { keys: keys(S.original.idx), custom: S.original.custom.slice(), dir: S.original.dir } : null,
       bottom: !!S.bottom, pass: S.pass || null,
       lvOk: (S.lvOk || S.levels).slice(),
+      lvLog: Array.isArray(S.lvLog) ? S.lvLog.slice(-30) : null,
       kiff: S.kiff || null,
       kiffs: (S.kiffs || []).slice(-60),
       t0: S.t0 || null,
@@ -3955,12 +4030,15 @@
     S.pass = st.pass || null;
     if (nonRecu) { const ph = nonRecu; nonRecu = ''; setTimeout(() => feteNon('recu', ph), 0); }
     S.lvOk = parseLevels(st.lvOk || st.levels);
+    const lvSig = JSON.stringify(S.lvLog || null) + (hotter() ? 1 : 0);
+    if (Array.isArray(st.lvLog)) S.lvLog = st.lvLog.filter((x) => x && Array.isArray(x.lv));
     S.kiff = st.kiff || null;
     S.kiffs = Array.isArray(st.kiffs) ? st.kiffs.slice(-60) : [];
     S.t0 = st.t0 || S.t0 || null;
     S.rencontre = !!st.rencontre;
     renderKiffs();
     rememberGame(st);
+    if (JSON.stringify(S.lvLog || null) + (hotter() ? 1 : 0) !== lvSig) setTimeout(() => renderChat(), 0); // le piment a bougé : le fil le dit
 
     const missed = !!S.kiff && S.phase !== 'celebrate' && S.kiff.n > kiffSeen(duo.info.room);
     if (S.phase === 'celebrate' && prev.phase !== 'celebrate') celebrate();
@@ -4173,7 +4251,7 @@
     else if (typingKid) pres = T('chat.ecrit');
     else if (away) pres = T('jeu.absent');
     // … et le piment de la partie
-    if (duo.online !== false && !duo.updating && !presenceFlash && S.levels && S.levels.length) pres += ' · ' + D.niveaux[Math.max(...S.levels) - 1].nom;
+    if (duo.online !== false && !duo.updating && !presenceFlash && S.levels && S.levels.length) pres += ' · ' + D.niveaux[Math.max(...lvActuel()) - 1].nom; // le piment accepté par les deux
     $('#wait-presence').classList.toggle('is-typing', !!typingKid);
     $('#wait-name').textContent = T('jeu.avec', { prénom: B });
     $('#wait-presence-text').textContent = pres;
@@ -4282,6 +4360,7 @@
     S.kiff = null; S.kiffs = keep.kiffs;
     setLevels(keep.levels, { silent: true, remote: true });
     S.lvOk = keep.levels.slice();
+    lvDebut();
     S.mine = keep.mine; S.seen = keep.seen;
     S.cont = true;
     S.t0 = keep.t0 || Date.now();
@@ -4321,6 +4400,7 @@
     setLevels([1], { silent: true, remote: true });
     S.lvOk = [1];
     S.t0 = Date.now();
+    lvDebut();
     pushState();
     rememberGame({ phase: 'lobby', names: [name, prov] });
     report('invitation', null, 'progressif');
@@ -4394,6 +4474,7 @@
       if (text) html += '<li class="thread-kiff thread-envie"><button class="thread-kiff-btn" type="button" disabled><span class="thread-kiff-kicker">' + esc(T('partie.envie-glissee')) + '</span>' +
         '<span class="party-sentence thread-kiff-card"><span class="thread-kiff-text">' + esc(text) + '</span></span></button></li>';
     }
+    if (S.prog) html += '<li class="thread-note">' + esc(T('depart.texte-distance')) + '</li>';
     const url = window.KiffDuo.link(duo.info);
     html += '<li class="thread-invite"><div class="invite-card">' +
       '<span class="thread-kiff-kicker">' + esc(T('partie.invite-kicker')) + '</span>' +
@@ -5254,6 +5335,7 @@
     });
     const closePiment = () => {
       hide(ovPiment);
+      if (!duo && rouesAvant && rouesSig() !== rouesAvant) noteLv();
       // Le réglage a changé : les roues tournent sur leur nouveau tirage, et on dit ce qu’elles tirent
       if (rouesAvant && rouesSig() !== rouesAvant && S.phase === 'compose' && myTurn()) {
         setTimeout(() => shuffle(false), 120);
@@ -5350,7 +5432,8 @@
       const first = nw.length > 0 && (where === 'here' || !load('rulesSeen', false));
       $('#principe-kicker').hidden = !(first && where === 'here');
       $('#principe-kicker').textContent = T('principe.kicker', { prénom: nameOf(0), autre: nameOf(1) });
-      goStep(!load('rulesSeen', false) || first ? 2 : 3);
+      if (!load('rulesSeen', false) || first) goStep(2);
+      else $('#piment-go').click();
     };
     document.querySelectorAll('.where-btn').forEach((b) => b.addEventListener('click', () => {
       audio();
@@ -5363,7 +5446,8 @@
       if (e.key === 'Enter') { e.preventDefault(); $('#name1').focus(); }
     });
     $('#start-form').addEventListener('submit', (e) => { e.preventDefault(); audio(); toRules(); });
-    $('#rules-ok').addEventListener('click', () => { audio(); sClick(); haptic(8); save('rulesSeen', true); goStep(3); });
+    // Après le principe, droit au fil : le piment se règle dans le fil (2 novembre 2026 ; avant : l’écran « Quels piments ? »)
+    $('#rules-ok').addEventListener('click', () => { audio(); sClick(); haptic(8); save('rulesSeen', true); $('#piment-go').click(); });
     // Mode rencontre : on commence en Tendre, l’invitation le dit
     $('#rencontre').addEventListener('change', (e) => {
       audio();
@@ -5496,6 +5580,7 @@
     report('partie', null, 'un');
     report('piment', null, S.levels.join(''));
     S.t0 = Date.now();
+    lvDebut();
     save('iciT', Date.now());
     hide(el.ovStart);
     S.kiff = null;
@@ -5558,6 +5643,7 @@
     S.started = true;
     S.mustRestart = false;
     S.proposer = it.p;
+    lvDebut();
     S.phase = 'compose';
     render();
     tient = -1; nouvelle = null; choix = null;
