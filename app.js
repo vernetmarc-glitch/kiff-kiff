@@ -5116,10 +5116,13 @@
   });
   /* Les textes changés dans l’atelier : gardés pour les prochaines ouvertures du jeu (config.js les pose avant tout) */
   function receiveTexts(tx, version) {
-    if (version && version === window.KIFF_TEXTES_VERSION) return;
     const base = window.KIFF_TX_BASE || {};
     const clean = {};
     Object.keys(tx).forEach((k) => { if (Object.prototype.hasOwnProperty.call(base, k) && typeof tx[k] === 'string') clean[k] = tx[k].slice(0, 3000); });
+    // Même version et mêmes textes : rien à faire. On compare aussi les textes eux-mêmes (2 novembre 2026) : la feuille retrouvée
+    // le 2 novembre gardait le même numéro de version que la feuille vide d’avant, et les téléphones gardaient les textes vides.
+    const deja = load('textes', null);
+    if (version && version === window.KIFF_TEXTES_VERSION && deja && JSON.stringify(deja.textes || {}) === JSON.stringify(clean)) return;
     save('textes', { api: API, version, textes: clean });
     const notif = {};
     Object.keys(base).filter((k) => k.startsWith('notifs.')).forEach((k) => { notif[k] = typo(k in clean ? clean[k] : base[k]); });
