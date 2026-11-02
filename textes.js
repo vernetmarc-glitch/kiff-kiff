@@ -88,7 +88,7 @@ window.KIFF_TEXTES = [
     ["principe.kicker", "{prénom} et {autre} · première partie", "Au-dessus du titre, quand quelqu’un découvre le jeu sur ce téléphone"],
     ["principe.intro", "", "Sous le titre (vide : rien ne s’affiche)"],
     ["principe.1", "{prénom} compose une envie avec trois roues.", "Premier geste ; {prénom} : qui commence"],
-    ["principe.1-sous", "", "Sous le premier geste, en petit (vide : rien ne s’affiche)"],
+    ["principe.1-sous", "Chacun·e son tour : une envie à donner, puis une à recevoir.", "Sous le premier geste, en petit (vide : rien ne s’affiche)"],
     ["principe.2", "{prénom} répond « J’ai envie aussi », « Oui, mais… » ou « Non ».", "Deuxième geste ; {prénom} : qui répond"],
     ["principe.2-sous", "", "Sous le deuxième geste, en petit (vide : rien ne s’affiche)"],
     ["principe.3", "Deux « j’ai envie » : kiff kiff !", "Troisième geste"],
@@ -108,7 +108,7 @@ window.KIFF_TEXTES = [
     ["depart.go-distance", "Inviter l’autre téléphone", "Bouton, à distance"]
   ] },
   { id: "jeu", nom: "L’écran de jeu", textes: [
-    ["jeu.titre", "J’ai envie…", "Au-dessus des roues"],
+    ["jeu.titre", "J’ai envie…", "Au-dessus des roues ; le jeu y ajoute « de te… » ou « que tu me… » selon le tour"],
     ["partie.maj", "mise à jour…", "Sous « Avec … », le temps que la partie, ouverte depuis le téléphone, se mette à jour"],
     ["partie.a-toi", "À toi", "En tête de la partie, quand c’est ton tour"],
     ["partie.proposer", "À toi de proposer une envie.", "En tête de la partie, ton tour de proposer"],
@@ -147,7 +147,7 @@ window.KIFF_TEXTES = [
     ["jeu.present", "est là", "Sous « Avec … », quand l’autre a l’appli ouverte"],
     ["jeu.absent", "pas connecté·e", "Sous « Avec … », quand l’autre n’a pas l’appli ouverte"],
     ["jeu.annuler", "annuler", "Sur la roue changée, pendant « Oui, mais… »"],
-    ["jeu.hasard", "Hasard", "Le dé, à côté de « que tu me / de te »"],
+    ["jeu.hasard", "Hasard", "Le dé, à côté de « de te / que tu me »"],
     ["jeu.vide-0", "écris ton action", "Dans la roue des actions, sur la case à écrire soi-même"],
     ["jeu.vide-1", "écris ton endroit", "Dans la roue des endroits, sur la case à écrire"],
     ["jeu.vide-2", "écris ta manière", "Dans la roue des manières, sur la case à écrire"],
@@ -158,7 +158,7 @@ window.KIFF_TEXTES = [
     ["jeu.une-seule", "Une seule modification par tour. Reviens à l’envie de {prénom} pour changer celle-ci.", "Consigne, un instant, quand on touche une deuxième roue pendant « Oui, mais… »"],
     ["jeu.consigne", "{prénom}, à toi : glisse ou touche les roues.", "La consigne en haut, quand on compose (le prénom est en gras)"],
     ["jeu.nouveaux-mots", "Nouveaux mots dans les roues", "La consigne, 3 secondes, quand un nouveau tour tire de nouveaux mots"],
-    ["jeu.consigne-mais", "{prénom}, change une seule chose : une roue, ou « que tu me / de te ». Les choix de {autre} sont surlignés.", "La consigne pendant « Oui, mais… »"],
+    ["jeu.consigne-mais", "{prénom}, change une seule chose : une des trois roues. Les choix de {autre} sont surlignés.", "La consigne pendant « Oui, mais… »"],
     ["jeu.change", "Tu as changé {chose}.", "La consigne après le changement, pendant « Oui, mais… »"],
     ["jeu.revenir", "Revenir à l’envie de {prénom}", "Le lien juste après « Tu as changé… »"],
     ["jeu.proposer", "Proposer à {prénom}", "Le bouton en bas, quand on compose"],
@@ -168,8 +168,11 @@ window.KIFF_TEXTES = [
     ["jeu.passe", "On passe", "En bas, à gauche du bouton principal"],
     ["jeu.sans-envie", "Sans envie", "En bas, à gauche, quand on compose l’envie de l’invitation"],
     ["jeu.ecris", "Écris {roue} ou choisis une autre case.", "Consigne, un instant, quand on propose avec une case à écrire restée vide"],
-    ["jeu.une-seule-sens", "Une seule modification par tour. Reviens à l’envie de {prénom} pour changer le sens.", "Consigne, un instant, quand on touche « que tu me / de te » après avoir changé une roue"],
-    ["jeu.sens-libre", "Avec une action écrite à la main, le sens ne peut pas changer.", "Consigne, un instant, quand on change le sens d’une action écrite à la main"]
+    ["jeu.sens-regle", "Chacun·e son tour : une envie à donner, puis une à recevoir.", "Consigne, un instant, quand on touche « de te / que tu me »"],
+    ["jeu.sens-donner", "Cette envie donne.", "Lecture à voix haute : le sens « de te »"],
+    ["jeu.sens-recevoir", "Cette envie reçoit.", "Lecture à voix haute : le sens « que tu me »"],
+    ["jeu.tour-donner", "donner", "En petit sous le titre des roues : le tour, côté « de te »"],
+    ["jeu.tour-recevoir", "recevoir", "En petit sous le titre des roues : le tour, côté « que tu me »"]
   ] },
   { id: "roues", nom: "Dans les roues : piment et ton", textes: [
     ["roues.niveau-1", "Tendre", "Nom du premier niveau de piment (partout dans le jeu)"],
@@ -231,7 +234,7 @@ window.KIFF_TEXTES = [
   ] },
   { id: "mais", nom: "Oui, mais…", textes: [
     ["mais.titre", "Une seule modification", "Titre de la petite fenêtre après « Oui, mais… »"],
-    ["mais.texte", "Tu peux changer une seule chose : une roue, ou « que tu me / de te ». Choisis-la bien.", "Texte"],
+    ["mais.texte", "Tu peux changer une seule chose : une des trois roues. Choisis-la bien.", "Texte"],
     ["mais.retour", "Retour", "Lien à gauche"],
     ["mais.ok", "Compris", "Bouton"]
   ] },
@@ -446,7 +449,7 @@ window.KIFF_TEXTES = [
     ["invite.accroche", "Trois roues pour se proposer des envies, et savourer celles que vous partagez.", "Premier écran, sous la phrase d’invitation"],
     ["invite.comment", "Comment on joue ?", "Bouton du premier écran"],
     ["invite.principe", "Le principe", "Titre du deuxième écran"],
-    ["invite.regle-1", "**Tu commences** : trois roues, « J’ai envie que tu me… ».", "Deuxième écran, première règle (**…** : en gras)"],
+    ["invite.regle-1", "**Tu commences** : trois roues, « J’ai envie de te… ». Puis chacun·e son tour : donner, puis recevoir.", "Deuxième écran, première règle (**…** : en gras)"],
     ["invite.regle-2", "{prénom} répond « J’ai envie aussi », ou « Oui, mais… » en changeant une chose.", "Deuxième écran, deuxième règle"],
     ["invite.regle-1-envie", "{prénom} t’a glissé une envie : tu la découvres juste après.", "Première règle, quand l’invitation contient une envie"],
     ["invite.regle-2-envie", "Tu réponds « J’ai envie aussi », ou « Oui, mais… » en changeant une chose. Puis chacun·e son tour.", "Deuxième règle, quand l’invitation contient une envie"],
@@ -581,7 +584,7 @@ window.KIFF_TEXTES = [
   ] },
   { id: "gestes", nom: "Les premiers gestes", textes: [
     ["gestes.roues", "Glisse chaque roue vers le haut ou le bas : le mot du milieu fait la phrase. La loupe cherche un mot, ou l’écrit.", "Première bulle, sur les roues, à la première envie de quelqu’un"],
-    ["gestes.reglages", "« que tu me » ou « de te » : qui fait l’action. Le dé tire une phrase au hasard.", "Deuxième bulle, sur la ligne du dé"],
+    ["gestes.reglages", "Chacun·e son tour : une envie à donner (« de te »), puis une à recevoir (« que tu me »). Les curseurs règlent le piment, le dé tire une phrase au hasard.", "Deuxième bulle, sur la ligne du dé"],
     ["gestes.proposer", "La phrase te plaît ? Propose-la. {prénom} répondra « J’ai envie aussi », « Oui, mais… » ou « Non ».", "Troisième bulle, sur « Proposer »"],
     ["gestes.compte", "{nombre} sur 3", "En haut de chaque bulle"],
     ["gestes.passer", "Je connais", "Lien : ne plus montrer les bulles"],

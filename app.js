@@ -713,25 +713,60 @@
     if (!S.original) return [];
     return [0, 1, 2].filter((r) => reelValue(r) !== reelValue(r, S.original.idx, S.original.custom));
   }
-  // La réponse ne change qu’une chose : une roue, ou le sens « que tu me / de te »
+  // La réponse ne change qu’une chose : une roue (le sens « de te / que tu me » suit le tour, 2 novembre 2026)
   function changes() {
-    const ch = changedReels();
-    if (S.original && S.dir !== S.original.dir) ch.push('dir');
-    return ch;
+    return changedReels();
   }
   const CHANGE_NAMES = { get 0() { return T('jeu.nom-0'); }, get 1() { return T('jeu.nom-1'); }, get 2() { return T('jeu.nom-2'); }, get dir() { return T('jeu.nom-sens'); } };
 
   /* ---------- Rendu ---------- */
-  function renderDir() {
-    const a0 = reels[0] ? reels[0].index : S.idx[0];
-    el.dir.dataset.dir = S.dir;
-    el.dir.querySelectorAll('button[data-dir]').forEach((b) => {
-      const d = b.dataset.dir;
-      b.textContent = dirForm(d, actionForm(a0, d));
-      b.setAttribute('aria-pressed', d === S.dir ? 'true' : 'false');
-      b.classList.toggle('is-original', S.phase === 'adjust' && !!S.original && S.original.dir === d);
-    });
+  /* Chacun·e son tour, une envie à donner (« de te »), puis une à recevoir (« que tu me ») : 2 novembre 2026.
+     Le sens ne se choisit plus : il suit le tour. Un tour complet, c’est quatre kiff kiff (chacun·e donne et reçoit).
+     Tout se lit dans les kiff kiff (sn : le sens) ; après un non, la même personne garde le même sens. */
+  const avecSens = () => (S.kiffs || []).filter((k) => k && (k.sn === 'te' || k.sn === 'me') && (k.s === 0 || k.s === 1));
+  const nSens = (seat, d, ks) => (ks || avecSens()).filter((k) => k.s === seat && k.sn === d).length;
+  // Les tours complets déjà joués, puis ce qui est fait dans le tour en cours
+  function tourSens() {
+    const ks = avecSens();
+    const faits = Math.min(nSens(0, 'te', ks), nSens(0, 'me', ks), nSens(1, 'te', ks), nSens(1, 'me', ks));
+    const fait = (seat, d) => nSens(seat, d, ks) > faits;
+    // l’ordre des points : qui a eu le premier kiff kiff (sinon qui a la main)
+    const a = ks.length ? ks[0].s : S.proposer;
+    return { faits, fait, ordre: [a, other(a)] };
   }
+  // Le sens de la prochaine envie de seat : donner d’abord, recevoir ensuite
+  function sensDe(seat) {
+    const t = tourSens();
+    return t.fait(seat, 'te') && !t.fait(seat, 'me') ? 'me' : 'te';
+  }
+  function renderDir() {
+    if (S.phase === 'compose') S.dir = S.gifting ? 'te' : sensDe(S.proposer);
+    // Le titre dit le sens : « J’ai envie de te… » ou « J’ai envie que tu me… », sur une ligne
+    const titre = T('jeu.titre').replace(/[….\s]+$/u, '') + ' ' + dirForm(S.dir, '') + '…';
+    const h = $('#sw-titre');
+    if (h.textContent !== titre) { h.textContent = titre; h.setAttribute('data-ink', titre); fitTitre(); }
+    // Le tour, en petit : donner puis recevoir, une initiale par personne
+    const t = tourSens();
+    el.dir.dataset.dir = S.dir;
+    const enCours = S.phase === 'compose' || S.phase === 'review' || S.phase === 'adjust' || S.phase === 'reconfirm';
+    const groupe = (d) => '<span class="tour-g' + (d === S.dir ? ' is-on' : '') + '"><span class="tour-mot">' + esc(T(d === 'te' ? 'jeu.tour-donner' : 'jeu.tour-recevoir')) + '</span>' +
+      t.ordre.map((seat) => {
+        const ici = enCours && d === S.dir && seat === S.proposer, fait = !ici && t.fait(seat, d);
+        return '<i class="sens-pt' + (fait ? ' is-fait' : '') + (ici ? ' is-ici' : '') + '">' + esc((nameOf(seat) || '?').trim().charAt(0).toUpperCase()) + '</i>';
+      }).join('') + '</span>';
+    el.dir.innerHTML = groupe('te') + groupe('me');
+    el.dir.setAttribute('aria-label', T('jeu.sens-regle') + ' ' + (S.dir === 'te' ? T('jeu.sens-donner') : T('jeu.sens-recevoir')));
+  }
+  // Un titre plus long (« J’ai envie que tu me… ») rapetisse pour tenir sur une ligne
+  function fitTitre() {
+    const h = $('#sw-titre'), box = $('#sw-top');
+    h.style.fontSize = '';
+    if (!box.clientWidth) return;
+    const cs = getComputedStyle(box), dispo = box.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight) - 4;
+    const w = h.scrollWidth;
+    if (w > dispo) h.style.fontSize = (parseFloat(getComputedStyle(h).fontSize) * dispo / w).toFixed(1) + 'px';
+  }
+  window.addEventListener('resize', () => { const h = $('#sw-titre'); if (h) fitTitre(); });
 
   let hintFlashT = 0;
   let hintFlash = '';
@@ -784,11 +819,7 @@
     // « On passe » vit en bas, à gauche du bouton principal ; #pass garde seulement son action
     el.actAlt.textContent = S.gifting && ph === 'compose' ? T('jeu.sans-envie') : T('jeu.passe');
 
-    // « que tu me / de te » : à la composition, ou comme unique changement de l’ajustement
-    const dirFree = ph === 'compose' || (ph === 'adjust' && (!ch.length || ch.includes('dir')));
-    el.dir.classList.toggle('is-locked', !dirFree);
-    el.dir.classList.toggle('is-changed', ph === 'adjust' && ch.includes('dir'));
-    el.dir.parentElement.classList.toggle('is-changed', ph === 'adjust' && ch.includes('dir'));
+    // « de te / que tu me » : le sens suit le tour, il ne se choisit pas (2 novembre 2026)
     el.dice.hidden = ph !== 'compose';
 
     reels.forEach((rl) => {
@@ -986,6 +1017,7 @@
     const turned = S.proposer !== proposer;
     S.proposer = proposer;
     S.phase = 'compose';
+    S.dir = S.gifting ? 'te' : sensDe(proposer);
     S.original = null;
     S.bottom = false;
     hideOffer();
@@ -1112,7 +1144,7 @@
     save('paires', Object.fromEntries(keep.map((k) => [k, all[k]])));
   }
   function shuffle(includeDir, best, announce) {
-    if (includeDir) { S.dir = Math.random() < 0.5 ? 'me' : 'te'; }
+    if (S.phase === 'compose') S.dir = S.gifting ? 'te' : sensDe(S.proposer); // le sens suit le tour
     newDraw(); relist(); renderReels(); // de nouveaux mots dans les roues
     S.draw.forEach((d) => { if (d) addFound(d.keys); });
     pulse();
@@ -1251,7 +1283,6 @@
   /* Revenir à l’envie d’origine, pour éventuellement changer autre chose */
   function resetAdjust() {
     if (S.phase !== 'adjust' || !S.original) return;
-    S.dir = S.original.dir;
     S.custom = S.original.custom.slice();
     reels.forEach((rl, r) => {
       if (rl.index !== S.original.idx[r]) rl.animateTo(Math.round(rl.p) + shortest(rl.index, S.original.idx[r], rl.n), 380, ease.outBack);
@@ -1268,21 +1299,10 @@
   }
 
   el.dir.addEventListener('click', (e) => {
-    const b = e.target.closest('button[data-dir]'); if (!b) return;
     audio();
-    if (!myTurn()) return;
-    const A = nameOf(S.proposer);
-    if (S.phase === 'adjust') {
-      const ch = changes();
-      if (ch.length && !ch.includes('dir')) { sNope(); haptic(20); flashHint(T('jeu.une-seule-sens', { prénom: A })); return; }
-      if (isFree(0, S.idx[0])) { sNope(); haptic(20); flashHint(T('jeu.sens-libre')); return; }
-    } else if (S.phase !== 'compose') { sNope(); haptic(20); return; }
-    if (S.dir === b.dataset.dir) return;
-    S.dir = b.dataset.dir;
-    sClick(); haptic(8);
-    renderReels();
-    render();
-    sync();
+    // Le sens suit le tour : le toucher rappelle la règle
+    haptic(8);
+    flashHint(T('jeu.sens-regle'), 4200);
   });
 
   el.dice.addEventListener('click', () => {
@@ -1818,7 +1838,7 @@
   function pushKiff() {
     // s : qui l’a proposée (sa place) ; lv : le piment accepté à ce moment-là (pour débloquer le suivant)
     // v : 0 à vivre, 1 vécue (sans v : une envie d’avant, vécue)
-    S.kiffs = (S.kiffs || []).concat({ t: sentence(), w: nameOf(S.proposer), d: Date.now(), s: S.proposer, lv: Math.max(...(S.lvOk || S.levels)), v: 0 }).slice(-60);
+    S.kiffs = (S.kiffs || []).concat({ t: sentence(), w: nameOf(S.proposer), d: Date.now(), s: S.proposer, lv: Math.max(...(S.lvOk || S.levels)), v: 0, sn: S.dir }).slice(-60);
     if (S.kiffs.length === 1) {
       const min = S.t0 ? (Date.now() - S.t0) / 60000 : -1;
       report('premier', null, min < 0 ? 'inconnu' : min < 5 ? 'moins-5' : min < 15 ? '5-15' : min < 60 ? '15-60' : min < 1440 ? '1h-1j' : 'plus-1j');
@@ -3431,7 +3451,9 @@
   function renderLevel() {
     const b = $('#piment-open');
     if (b) {
-      b.innerHTML = '<svg class="roues-chili" viewBox="0 0 24 24" aria-hidden="true"><use href="#chili"/></svg><svg class="ic roues-barjot" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-barjot"/></svg>';
+      // Trois curseurs, un par piment (2 novembre 2026) : le bouton levé quand le piment est dans les roues
+      const knob = (x, n) => '<circle class="curseur-bouton' + (S.levels.includes(n) ? ' is-on' : '') + '" cx="' + x + '" cy="' + (S.levels.includes(n) ? 7.5 : 16.5) + '" r="2.9"/>';
+      b.innerHTML = '<svg class="ic roues-curseurs" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3.5v17M12 3.5v17M18 3.5v17"/>' + knob(6, 1) + knob(12, 2) + knob(18, 3) + '</svg>';
       b.setAttribute('aria-label', 'Dans les roues : ' + dot(levelNames() + ', ' + (TON_TXT[S.ton] || TON_TXT.m)) + ' Changer');
     }
     const u = unlocked();
