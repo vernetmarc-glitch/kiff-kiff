@@ -3921,12 +3921,57 @@
       seen: inGame || S.cont ? S.seen.map((l) => l.slice(-SEEN_MAX)) : [[], [], []]
     };
   }
+  /* La synchronisation (2 novembre 2026, après une partie bloquée : l’envie d’Anne jamais arrivée chez Marc).
+     Chaque état porte deux nombres : seq (chaque envoi) et coup (chaque vrai pas de la partie : une envie proposée, une réponse,
+     un tour). Entre deux états, le plus avancé dans la partie gagne toujours (coup), puis le plus récent (seq). Ainsi, un simple
+     réglage envoyé par un téléphone resté en arrière (un avertissement, une envie vécue) ne peut plus effacer l’envie de l’autre.
+     Et un téléphone qui reçoit un état en retard sur le sien renvoie le sien : les deux finissent toujours d’accord. */
+  const turnSig = (st) => [st.phase, st.proposer, (st.kiffs || []).length, st.kiff ? st.kiff.n || 0 : 0, st.pass ? st.pass.n || 0 : 0,
+    st.original ? (st.original.keys || []).join(',') + '/' + (st.original.custom || []).join(',') : '',
+    st.phase === 'compose' ? '' : (st.keys || []).join(',') + '/' + (st.custom || []).join(',')].join('|');
+  // Où en est la partie : les kiff kiff, les non, puis l’étape du tour (proposer, lire, ajuster, relire, fêter)
+  // (la fête vient juste après le kiff kiff compté, avant le tour suivant ; un non compte un pas de plus)
+  const PHASE_RANG = { celebrate: 0, compose: 1, review: 2, adjust: 3, reconfirm: 4 };
+  const avancement = (st) => (st.kiffs || []).length * 1000 + (st.pass ? st.pass.n || 0 : 0) * 10 + (PHASE_RANG[st.phase] || 0);
+  let repairT = 0;
+  function repairSoon() {
+    clearTimeout(repairT);
+    repairT = setTimeout(() => { if (duo && duo.stage === 'game') pushState(); }, 1500);
+  }
+  // Un état pas arrivé dans la feuille : gardé sur ce téléphone, renvoyé dès que possible (même après avoir fermé l’appli)
+  function aRenvoyer(room, st) {
+    const all = load('aRenvoyer', {}) || {};
+    if (st) all[room] = { st, t: Date.now() }; else delete all[room];
+    save('aRenvoyer', all);
+  }
+  function renvoyerEtats() {
+    if (!window.KiffDuo || !KiffDuoOk()) return;
+    const all = load('aRenvoyer', {}) || {};
+    Object.keys(all).forEach((room) => {
+      const g = findGame(room), x = all[room];
+      if (!g || !x || !x.st) { aRenvoyer(room, null); return; }
+      window.KiffDuo.storeSave({ room, key: g.key, broker: g.broker }, x.st).then((res) => {
+        if (res) aRenvoyer(room, null);
+        if (res === 'ancien' && duo && duo.info && duo.info.room === room) relireFeuille();
+      });
+    });
+  }
+  // La feuille a un état plus récent que celui qu’on vient d’envoyer : on le lit (s’il est en retard sur le nôtre, on renvoie le nôtre)
+  function relireFeuille() {
+    if (!duo || !duo.info || !window.KiffDuo) return;
+    const info = duo.info;
+    window.KiffDuo.storeLoad([info]).then((m) => { const st = m[info.room]; if (st && duo && duo.info === info) onRemoteState(st); });
+  }
   function pushState(extra) {
     if (!duo) return;
     // Pas encore reconnecté (la partie vient de s’ouvrir depuis le téléphone) : l’envoi partira à la connexion
     if (!duo.conn) { if (duo.stage === 'game') duo.pending = Object.assign(duo.pending || {}, extra || {}); return; }
     const st = Object.assign(snapshot(), extra || {});
     if (st.wheels) S.shared = st.wheels;
+    const sig = turnSig(st);
+    if (duo.lastSig != null && sig !== duo.lastSig) duo.coup = (duo.coup || 0) + 1;
+    duo.lastSig = sig;
+    st.coup = duo.coup || 0;
     duo.seq += 1;
     st.seq = duo.seq;
     st.by = duo.id;
@@ -3988,8 +4033,23 @@
   /* L’autre téléphone a changé l’état de la partie */
   function onRemoteState(st) {
     if (!duo || !st || st.v !== 1) return;
-    if (st.seq < duo.seq || (st.seq === duo.seq && String(st.by) <= String(duo.lastBy))) return;
-    duo.seq = st.seq;
+    const rc = st.coup || 0, mc = duo.coup || 0;
+    let plusRecent = st.seq > duo.seq || (st.seq === duo.seq && String(st.by) > String(duo.lastBy));
+    // Deux états d’avant les coups (parties commencées avant le 2 novembre 2026) : le plus avancé dans la partie gagne
+    // (une envie envoyée l’emporte sur « à toi de proposer »), pour débloquer les parties déjà coincées
+    if (!rc && !mc && duo.stage === 'game' && st.by !== duo.id) {
+      const pa = avancement(st), pm = avancement(snapshot());
+      if (pa !== pm) plusRecent = pa > pm;
+    }
+    const neuf = rc > mc || (rc === mc && plusRecent);
+    duo.seq = Math.max(duo.seq || 0, st.seq || 0); // le prochain envoi passera devant, dans la feuille comme sur le relais
+    if (!neuf) {
+      // Un état en retard sur le nôtre, ou différent à égalité (l’autre téléphone, ou la feuille, n’a pas eu notre dernier coup) :
+      // on renvoie le nôtre, et les deux téléphones finissent d’accord
+      if (duo.stage === 'game' && st.by !== duo.id && (rc < mc || turnSig(st) !== duo.lastSig)) repairSoon();
+      return;
+    }
+    duo.coup = rc;
     duo.lastBy = st.by;
     clearTimeout(duo.findT);
     if (Array.isArray(st.push)) {
@@ -4045,6 +4105,7 @@
   }
 
   function applyGame(st, opts) {
+    if (duo) { duo.coup = Math.max(duo.coup || 0, st.coup || 0); setTimeout(() => { if (duo) duo.lastSig = turnSig(snapshot()); }, 0); }
     const prev = { phase: S.phase, proposer: S.proposer };
     const cle0 = tourCle();
     // L’envie en cours, avant la mise à jour : si l’autre y dit non, c’est elle qui se retourne
@@ -4165,7 +4226,9 @@
     const was = ov.hidden;
     show(ov);
     const cle = tourCle() + (choix ? ':' + choix.kind : '');
-    if (was) partieShown();
+    // La page était déjà là (l’invitation, l’arrivée) et la partie commence : la barre des messages arrive avec elle
+    if (!was && $('#chat-bar').hidden && canChat()) partieShown();
+    else if (was) partieShown();
     else if (cle !== filCle) renderChat(true);
     filCle = cle;
     renderDuoStatus();
@@ -4363,6 +4426,14 @@
 
   const duoHandlers = {
     state: (st) => onRemoteState(st),
+    // La feuille a-t-elle bien reçu l’état ? Sinon il repart plus tard ; si elle en a un plus récent, on le relit
+    stored: (res, st) => {
+      if (!duo || !duo.info) return;
+      const room = duo.info.room;
+      if (!res) aRenvoyer(room, st);
+      else { const x = (load('aRenvoyer', {}) || {})[room]; if (x && x.st && (x.st.seq || 0) <= (st.seq || 0)) aRenvoyer(room, null); }
+      if (res === 'ancien') relireFeuille();
+    },
     presence: (seat, on) => {
       if (!duo) return;
       duo.partnerOn = on;
@@ -6342,6 +6413,7 @@
     if (document.visibilityState !== 'visible' || !enJeu() || !el.ovStart.hidden) return;
     gamesT = 0;
     try { await refreshGames(); await peekBoxes(); } catch (e) { /* hors connexion */ }
+    renvoyerEtats();
     if (duo && duo.info && duo.stage === 'game' && window.KiffDuo) {
       const d = duo;
       window.KiffDuo.storeLoad([d.info]).then((m) => { if (duo === d && m[d.info.room]) onRemoteState(m[d.info.room]); }).catch(() => {});
@@ -6349,6 +6421,13 @@
     nouveauAilleurs();
   }
   setInterval(veilleAilleurs, 60000);
+  // La partie ouverte : toutes les 20 secondes, la feuille (au cas où le relais aurait manqué un coup) et les états à renvoyer
+  setInterval(() => {
+    if (document.visibilityState !== 'visible') return;
+    renvoyerEtats();
+    if (duo && duo.info && duo.stage === 'game' && window.KiffDuo) relireFeuille();
+  }, 20000);
+  window.addEventListener('online', () => setTimeout(() => { renvoyerEtats(); relireFeuille(); }, 1500));
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') setTimeout(veilleAilleurs, 1500); });
   async function peekBoxes() {
     if (!window.KiffDuo || !window.KiffDuo.boxLoad) return;

@@ -58,7 +58,7 @@ const ENT_MOTS = ['roue', 'niveau', 'que tu me', 'de te', 'avec à', 'ordre', 'd
 const ENT_TEXTES = ['clé', 'texte']; // seulement les textes changés dans l’atelier ; les autres restent ceux du jeu
 const ENT_COMPTEURS = ['compteur', 'valeur'];
 const ENT_CHOIX = ['roue', 'mot', 'envies', 'kiffs'];
-const ENT_PARTIES = ['partie', 'etat', 'seq', 'maj', 'cree'];
+const ENT_PARTIES = ['partie', 'etat', 'seq', 'maj', 'cree', 'coup'];
 const GARDER_JOURS = 120; // une partie sans nouvelle depuis si longtemps est effacée
 const ENT_RAPPELS = ['partie', 'seq', 'adresse', 'corps', 'quand'];
 const RAPPEL_HEURES = 48; // un seul rappel, deux jours après un coup resté sans réponse
@@ -497,19 +497,29 @@ function ecrirePartie(c) {
   const id = String(c.partie || '');
   const etat = String(c.etat || '');
   const seq = Number(c.seq) || 0;
+  // Le coup : combien de vrais pas la partie a faits (2 novembre 2026). La feuille garde l’état le plus avancé dans la partie,
+  // puis le plus récent : un réglage envoyé par un téléphone resté en arrière n’efface plus le coup de l’autre.
+  const coup = Number(c.coup) || 0;
   if (!ID_PARTIE.test(id) || !etat || etat.length > 45000 || !/^[A-Za-z0-9_-]+$/.test(etat)) return { ok: false, erreur: 'partie' };
   const verrou = LockService.getScriptLock();
-  verrou.waitLock(15000);
+  // Occupé (les compteurs écrivent en même temps) : on le dit, le téléphone renverra l’état un peu plus tard
+  if (!verrou.tryLock(25000)) return { ok: false, erreur: 'occupe' };
   try {
     const f = feuille('parties', ENT_PARTIES);
     if (f.getRange(1, 5).getValue() !== 'cree') f.getRange(1, 5).setValue('cree').setFontWeight('bold');
+    if (f.getRange(1, 6).getValue() !== 'coup') f.getRange(1, 6).setValue('coup').setFontWeight('bold');
     const v = f.getDataRange().getValues();
     let k = -1;
     for (let j = 1; j < v.length; j++) if (String(v[j][0]) === id) { k = j; break; }
     // « k » devant : la feuille ne doit jamais prendre l’état pour un nombre ou une formule
-    if (k < 0) f.appendRow([id, 'k' + etat, seq, new Date(), new Date()]);
-    else if (seq > (Number(v[k][2]) || 0)) f.getRange(k + 1, 2, 1, 3).setValues([['k' + etat, seq, new Date()]]);
-    else return { ok: true, ancien: true };
+    if (k < 0) f.appendRow([id, 'k' + etat, seq, new Date(), new Date(), coup]);
+    else {
+      const coupGarde = Number(v[k][5]) || 0, seqGarde = Number(v[k][2]) || 0;
+      if (coup > coupGarde || (coup === coupGarde && seq > seqGarde)) {
+        f.getRange(k + 1, 2, 1, 3).setValues([['k' + etat, seq, new Date()]]);
+        f.getRange(k + 1, 6).setValue(coup);
+      } else return { ok: true, ancien: true };
+    }
     // De temps en temps, on efface les parties abandonnées depuis longtemps
     if (Math.random() < 0.03) {
       const limite = Date.now() - GARDER_JOURS * 864e5;

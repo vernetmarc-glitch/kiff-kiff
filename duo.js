@@ -75,13 +75,21 @@
     return keys.get(info.key);
   }
   const api = () => window.KIFF_API || '';
+  /* L’état de la partie, rangé dans la feuille (2 novembre 2026 : la feuille répond, et ce qui n’est pas arrivé repart).
+     Renvoie 'ok', 'ancien' (la feuille garde un état plus récent) ou '' (pas arrivé : à renvoyer).
+     Le coup (le nombre de coups joués) part en clair avec le numéro : la feuille garde l’état le plus avancé dans la partie. */
   async function storeSave(info, obj) {
-    if (!api() || !obj || !obj.seq) return;
+    if (!api() || !obj || !obj.seq) return 'ok';
+    const ctl = window.AbortController ? new AbortController() : null;
+    const t = setTimeout(() => ctl && ctl.abort(), 20000);
     try {
       const etat = b64u.enc(await seal(await keyOf(info), obj));
-      await fetch(api(), { method: 'POST', mode: 'no-cors', keepalive: etat.length < 60000,
-        body: JSON.stringify({ action: 'partie', partie: info.room, etat, seq: obj.seq }) });
-    } catch (e) { /* le relais a quand même reçu le coup */ }
+      const r = await fetch(api(), Object.assign({ method: 'POST', keepalive: etat.length < 60000,
+        body: JSON.stringify({ action: 'partie', partie: info.room, etat, seq: obj.seq, coup: obj.coup || 0 }) }, ctl ? { signal: ctl.signal } : {}));
+      const j = await r.json();
+      if (j && j.ok) return j.ancien ? 'ancien' : 'ok';
+      return '';
+    } catch (e) { return ''; } finally { clearTimeout(t); }
   }
   // infos : [{ broker, room, key }] → { room: état } (seulement les parties trouvées)
   async function storeLoad(infos, timeoutMs = 8000) {
@@ -204,7 +212,8 @@
       });
     }
     publishState(obj) {
-      storeSave(this.info, obj);
+      const sv = storeSave(this.info, obj);
+      if (this.on.stored) sv.then((res) => this.on.stored(res, obj)).catch(() => {});
       this.queue = this.queue.then(async () => {
         const data = await seal(this.key, obj);
         if (this.client) this.client.publish(this.base + 'state', data, { qos: 1, retain: true });

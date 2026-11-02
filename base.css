@@ -1851,7 +1851,7 @@ body.en-jeu #home .ic-back { display: block; }
 .chat-list.is-cartes > li.thread-note, .chat-list.is-cartes > li.thread-piment { display: none; }
 
 /* L’accueil (2 novembre 2026) : la pastille rose (du nouveau) sur l’avatar, et des stickers pour ce qui attend */
-.avatar { position: relative; }
+.home-game .avatar, .une-head .avatar { position: relative; } /* la pastille rose ; pas sur le médaillon des envies du fil, qui reste posé sur le coin */
 .pastille-rose { position: absolute; top: -2px; right: -2px; width: 14px; height: 14px; border-radius: 50%; background: var(--badge-bg, #D81B50);
   box-shadow: 0 0 0 2.5px var(--avatar-gap, rgba(0, 0, 0, .35)), 0 0 10px color-mix(in srgb, var(--badge-bg, #D81B50) 70%, transparent); }
 .une-head .pastille-rose { width: 16px; height: 16px; top: 0; right: 0; }
