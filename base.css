@@ -1822,7 +1822,7 @@ body.en-jeu #home .ic-back { display: block; }
 .tour-g { display: grid; grid-template-columns: auto auto; justify-content: center; gap: 4px 5px; opacity: .55; transition: opacity .3s; }
 .tour-g.is-on { opacity: 1; }
 .tour-mot { grid-column: 1 / -1; text-align: center; font-family: var(--f-ui, system-ui, sans-serif); font-size: 11.5px; font-weight: 700; line-height: 1; letter-spacing: .05em; text-transform: uppercase; }
-.sens-pt { display: block; width: 17px; height: 17px; border-radius: 50%; font: 800 9.5px/17px var(--f-ui, system-ui, sans-serif); font-style: normal; letter-spacing: 0; text-align: center; text-transform: uppercase;
+.sens-pt { display: block; box-sizing: border-box; min-width: 17px; height: 17px; padding: 0 3px; border-radius: 999px; font: 800 9.5px/17px var(--f-ui, system-ui, sans-serif); font-style: normal; letter-spacing: 0; text-align: center;
   box-shadow: inset 0 0 0 1.3px currentColor; }
 .sens-pt.is-fait { background: currentColor; }
 .sens-pt.is-fait::first-letter { color: transparent; }
@@ -1906,3 +1906,34 @@ body.en-jeu #home .ic-back { display: block; }
 .partie-alt[hidden] { display: none; }
 .overlay--partie.is-arrivee .partie-carte { display: none; }
 .chat-list.is-cartes > li.thread-regles { display: none; }
+
+/* La page des roues (2 novembre 2026) : en haut, une barre discrète (le tour, le réglage du piment, le dé) ;
+   puis « J’ai envie de te… » juste au-dessus des roues, pour que la phrase se lise d’un trait */
+.press-row.barre-roues { display: flex; align-items: center; gap: 8px; min-height: 44px; margin: 0; }
+.press-row.barre-roues > .tour { flex: 1; min-width: 0; }
+.press-row.barre-roues > .piment-btn, .press-row.barre-roues > .sticker--dice { flex: none; width: 44px; height: 44px; min-width: 0; padding: 0; gap: 0; justify-content: center; border-radius: 50%; }
+.press-row.barre-roues > .sticker--dice svg { width: 25px; height: 25px; }
+.press-row.barre-roues > .sticker--dice span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.press-row.barre-roues > .piment-btn .roues-curseurs { width: 22px; height: 22px; }
+#sw-top { margin-bottom: -2px; }
+/* « de te » / « que tu me » : une marque de surligneur qui passe en arrivant sur les roues, puis reste en douceur */
+.sens-mots { position: relative; z-index: 0; padding: 0 .08em; border-radius: .12em;
+  background: linear-gradient(transparent 58%, var(--sens-marque, color-mix(in srgb, var(--badge-bg, #D81B50) 30%, transparent)) 58%) no-repeat 0 0 / 100% 100%; }
+.sens-mots.is-flash { animation: sens-marque 2.4s cubic-bezier(.3, .7, .3, 1); }
+.sens-mots.is-fort { animation: sens-marque-fort 2.4s cubic-bezier(.3, .7, .3, 1); }
+@keyframes sens-marque {
+  0% { background-size: 0 100%; transform: none; }
+  30% { background-size: 100% 100%; background-image: linear-gradient(transparent 20%, var(--sens-vif, color-mix(in srgb, var(--badge-bg, #D81B50) 60%, transparent)) 20%); transform: scale(1.03); }
+  55% { transform: none; }
+  100% { background-size: 100% 100%; }
+}
+@keyframes sens-marque-fort {
+  0% { background-size: 0 100%; transform: none; }
+  25% { background-size: 100% 100%; background-image: linear-gradient(transparent 10%, var(--sens-vif, color-mix(in srgb, var(--badge-bg, #D81B50) 70%, transparent)) 10%); transform: scale(1.06); }
+  45% { transform: scale(1); }
+  100% { background-size: 100% 100%; }
+}
+.sens-mots { display: inline-block; transform-origin: 50% 70%; }
+.tour.is-flash .tour-g.is-on { animation: tour-vu 1.2s ease-out 2; }
+@keyframes tour-vu { 50% { opacity: .55; } }
+@media (prefers-reduced-motion: reduce) { .sens-mots.is-flash, .sens-mots.is-fort, .tour.is-flash .tour-g.is-on { animation: none; } }

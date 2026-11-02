@@ -724,6 +724,31 @@
   const CHANGE_NAMES = { get 0() { return T('jeu.nom-0'); }, get 1() { return T('jeu.nom-1'); }, get 2() { return T('jeu.nom-2'); }, get dir() { return T('jeu.nom-sens'); } };
 
   /* ---------- Rendu ---------- */
+  // L’initiale de chacun·e ; deux prénoms qui commencent pareil (Marc, Marie) prennent une deuxième lettre : Mc, Mi
+  function initiales(seat) {
+    const a = (nameOf(seat) || '?').trim(), b = (nameOf(other(seat)) || '').trim();
+    const A = a.charAt(0).toUpperCase();
+    if (!b || A !== b.charAt(0).toUpperCase()) return A;
+    let k = 1;
+    while (k < a.length && a.charAt(k).toLowerCase() === b.charAt(k).toLowerCase()) k++;
+    return k < a.length ? A + a.charAt(k).toLowerCase() : String(seat + 1);
+  }
+  /* « de te » ou « que tu me » brille un instant en arrivant sur les roues ; plus fort quand on reçoit (la deuxième moitié du tour) */
+  let sensVu = '';
+  function flashSens(force) {
+    const m = document.querySelector('#sw-titre .sens-mots');
+    if (!m || S.phase !== 'compose') return;
+    const cle = S.proposer + ':' + S.dir + ':' + (S.kiffs || []).length;
+    if (!force && cle === sensVu) return;
+    sensVu = cle;
+    const tour = el.dir;
+    [m, tour].forEach((x) => { x.classList.remove('is-flash', 'is-fort'); void x.offsetWidth; });
+    const fort = S.dir === 'me';
+    m.classList.add('is-flash'); tour.classList.add('is-flash');
+    if (fort) { m.classList.add('is-fort'); tour.classList.add('is-fort'); }
+    clearTimeout(flashSens.t);
+    flashSens.t = setTimeout(() => [m, tour].forEach((x) => x.classList.remove('is-flash', 'is-fort')), 2600);
+  }
   /* Chacun·e son tour, une envie à donner (« de te »), puis une à recevoir (« que tu me ») : 2 novembre 2026.
      Le sens ne se choisit plus : il suit le tour. Un tour complet, c’est quatre kiff kiff (chacun·e donne et reçoit).
      Tout se lit dans les kiff kiff (sn : le sens) ; après un non, la même personne garde le même sens. */
@@ -746,9 +771,11 @@
   function renderDir() {
     if (S.phase === 'compose') S.dir = S.gifting ? 'te' : sensDe(S.proposer);
     // Le titre dit le sens : « J’ai envie de te… » ou « J’ai envie que tu me… », sur une ligne
-    const titre = T('jeu.titre').replace(/[….\s]+$/u, '') + ' ' + dirForm(S.dir, '') + '…';
+    const debut = T('jeu.titre').replace(/[….\s]+$/u, ''), sens = dirForm(S.dir, '');
+    const titre = debut + ' ' + sens + '…';
     const h = $('#sw-titre');
-    if (h.textContent !== titre) { h.textContent = titre; h.setAttribute('data-ink', titre); fitTitre(); }
+    // « de te » / « que tu me » dans une marque, que le jeu fait briller en arrivant sur les roues (flashSens)
+    if (h.textContent !== titre) { h.innerHTML = esc(debut) + ' <span class="sens-mots">' + esc(sens) + '</span>…'; h.setAttribute('data-ink', titre); fitTitre(); }
     // Le tour, en petit : donner puis recevoir, une initiale par personne
     const t = tourSens();
     el.dir.dataset.dir = S.dir;
@@ -756,7 +783,7 @@
     const groupe = (d) => '<span class="tour-g' + (d === S.dir ? ' is-on' : '') + '"><span class="tour-mot">' + esc(T(d === 'te' ? 'jeu.tour-donner' : 'jeu.tour-recevoir')) + '</span>' +
       t.ordre.map((seat) => {
         const ici = enCours && d === S.dir && seat === S.proposer, fait = !ici && t.fait(seat, d);
-        return '<i class="sens-pt' + (fait ? ' is-fait' : '') + (ici ? ' is-ici' : '') + '">' + esc((nameOf(seat) || '?').trim().charAt(0).toUpperCase()) + '</i>';
+        return '<i class="sens-pt' + (fait ? ' is-fait' : '') + (ici ? ' is-ici' : '') + '">' + esc(initiales(seat)) + '</i>';
       }).join('') + '</span>';
     el.dir.innerHTML = groupe('te') + groupe('me');
     el.dir.setAttribute('aria-label', T('jeu.sens-regle') + ' ' + (S.dir === 'te' ? T('jeu.sens-donner') : T('jeu.sens-recevoir')));
@@ -4998,6 +5025,7 @@
     }
     // Les roues (composer, ou reprendre son « Oui, mais… »)
     roues = true; closePartie();
+    setTimeout(() => flashSens(), 350);
     if (rouesThen) { const f = rouesThen; rouesThen = null; f(); }
   });
   // Le second geste de la carte d’action (un lien) : refuser la montée du piment, « Sans envie », « Pas maintenant »…

@@ -30,10 +30,10 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,62..125,100..900;1,62..125,100..900&family=Bagel+Fat+One&family=Abril+Fatface&family=Merriweather:ital,opsz,wght@0,18..144,400..900;1,18..144,400..900&family=Baskervville:ital,wght@0,400..700;1,400..700&family=Jost:wght@300..700&family=Great+Vibes&family=Cinzel:wght@400..900&family=Syne:wght@600..800&family=Manrope:wght@400..800&family=Anton&family=Courier+Prime:wght@400;700&display=swap">
-<link rel="stylesheet" href="base.css?v=140">
+<link rel="stylesheet" href="base.css?v=142">
 <link rel="stylesheet" href="skins/arty.css?v=72" data-skin-sheet="arty">
-<link rel="stylesheet" href="skins/pomme.css?v=76" data-skin-sheet="pomme">
-<link rel="stylesheet" href="skins/redcorner.css?v=76" data-skin-sheet="redcorner">
+<link rel="stylesheet" href="skins/pomme.css?v=77" data-skin-sheet="pomme">
+<link rel="stylesheet" href="skins/redcorner.css?v=77" data-skin-sheet="redcorner">
 <link rel="stylesheet" href="skins/minuit.css?v=68" data-skin-sheet="minuit">
 <link rel="stylesheet" href="skins/classex.css?v=73" data-skin-sheet="classex">
 <script>
@@ -169,19 +169,20 @@
   <p class="hint" id="hint" aria-live="polite"></p>
   <p class="duo-status" id="duo-status" hidden></p>
 
+  <!-- Au-dessus de la phrase (2 novembre 2026) : le tour, le réglage du piment, le dé ; la phrase commence juste au-dessus des roues -->
+  <div class="press-row barre-roues">
+    <button class="tour" id="dir" type="button" data-dir="te"></button>
+    <button class="sticker piment-btn" id="piment-open" type="button" aria-haspopup="dialog"></button>
+    <button class="sticker sticker--dice" id="dice" type="button" aria-label="Au hasard">
+      <svg class="die" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path d="M2.5 6.5l4-4h12.2a2.8 2.8 0 0 1 2.8 2.8V17.5l-4 4V9.3a2.8 2.8 0 0 0-2.8-2.8z" fill="currentColor" fill-opacity=".35"/><path d="M5.3 6.5h9.4a2.8 2.8 0 0 1 2.8 2.8v9.4a2.8 2.8 0 0 1-2.8 2.8H5.3a2.8 2.8 0 0 1-2.8-2.8V9.3a2.8 2.8 0 0 1 2.8-2.8zM3.4 7.6l3.5-3.5c.5-.5 1.2-.8 2-.8h9.8a2.8 2.8 0 0 1 2.8 2.8V15.9c0 .8-.3 1.5-.8 2l-3.4 3.4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><g fill="currentColor"><circle cx="6.4" cy="10.4" r="1.45"/><circle cx="13.6" cy="10.4" r="1.45"/><circle cx="10" cy="14" r="1.45"/><circle cx="6.4" cy="17.6" r="1.45"/><circle cx="13.6" cy="17.6" r="1.45"/></g></svg>
+      <span data-t="jeu.hasard">Hasard</span>
+    </button>
+  </div>
   <p class="switch switch--top is-static" id="sw-top" aria-checked="true">
     <span class="sw-text"><span class="sw-label ink" id="sw-titre" data-ink="J’ai envie…">J’ai envie…</span><span class="sw-owner" id="owner-top"></span></span>
   </p>
 
   <section class="press" id="cabinet" aria-label="La phrase">
-    <div class="press-row">
-      <button class="tour" id="dir" type="button" data-dir="te"></button>
-      <button class="sticker piment-btn" id="piment-open" type="button" aria-haspopup="dialog"></button>
-      <button class="sticker sticker--dice" id="dice" type="button" aria-label="Au hasard">
-        <svg class="die" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path d="M2.5 6.5l4-4h12.2a2.8 2.8 0 0 1 2.8 2.8V17.5l-4 4V9.3a2.8 2.8 0 0 0-2.8-2.8z" fill="currentColor" fill-opacity=".35"/><path d="M5.3 6.5h9.4a2.8 2.8 0 0 1 2.8 2.8v9.4a2.8 2.8 0 0 1-2.8 2.8H5.3a2.8 2.8 0 0 1-2.8-2.8V9.3a2.8 2.8 0 0 1 2.8-2.8zM3.4 7.6l3.5-3.5c.5-.5 1.2-.8 2-.8h9.8a2.8 2.8 0 0 1 2.8 2.8V15.9c0 .8-.3 1.5-.8 2l-3.4 3.4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><g fill="currentColor"><circle cx="6.4" cy="10.4" r="1.45"/><circle cx="13.6" cy="10.4" r="1.45"/><circle cx="10" cy="14" r="1.45"/><circle cx="6.4" cy="17.6" r="1.45"/><circle cx="13.6" cy="17.6" r="1.45"/></g></svg>
-        <span data-t="jeu.hasard">Hasard</span>
-      </button>
-    </div>
     <div class="strips">
       <div class="reel strip strip--pink" data-reel="0" tabindex="0" role="spinbutton" aria-label="Action"><div class="reel-strip"></div><span class="reel-shade" aria-hidden="true"></span><button class="reel-loupe" type="button" tabindex="-1" aria-label="Chercher ou écrire une action"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-loupe-crayon"/></svg></button><button class="stamp" type="button" tabindex="-1" aria-label="Annuler ce changement"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 12a7.5 7.5 0 1 0 2.4-5.5" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/><path d="M4 3.8v4.6h4.6" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="stamp-txt" data-t="jeu.annuler">annuler</span></button></div>
       <div class="reel strip strip--blue" data-reel="1" tabindex="0" role="spinbutton" aria-label="Endroit"><div class="reel-strip"></div><span class="reel-shade" aria-hidden="true"></span><button class="reel-loupe" type="button" tabindex="-1" aria-label="Chercher ou écrire un endroit"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-loupe-crayon"/></svg></button><button class="stamp" type="button" tabindex="-1" aria-label="Annuler ce changement"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 12a7.5 7.5 0 1 0 2.4-5.5" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/><path d="M4 3.8v4.6h4.6" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="stamp-txt" data-t="jeu.annuler">annuler</span></button></div>
@@ -963,7 +964,7 @@ Toutes les réponses sont bonnes&nbsp;!</p>
 <script src="config.js?v=63"></script>
 <script src="duo.js?v=64"></script>
 <script src="push.js?v=65"></script>
-<script src="app.js?v=164"></script>
+<script src="app.js?v=165"></script>
 <!-- iPhone, appli installée : deux bandes d’une couleur unie en haut et en bas de l’écran (voir base.css) -->
 <div class="edge edge--haut" aria-hidden="true"></div><div class="edge edge--bas" aria-hidden="true"></div>
 </body>

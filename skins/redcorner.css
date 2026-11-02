@@ -656,3 +656,5 @@ body:has(#ov-menu:not([hidden])) .deco-candles { display: none; }
 .sheet--kiffs .kiff-title, .sheet--envie .kiff-title.envie-kicker { font-family: var(--f-title); font-weight: 700; font-size: 21px !important; letter-spacing: .06em; font-variant: small-caps; text-transform: none;
   background: var(--foil); -webkit-background-clip: text; background-clip: text; color: transparent; }
 :root { --toggle-on: var(--foil); --toggle-knob: var(--velvet-lo); --partage-on: var(--gold-hi); }
+/* « de te » / « que tu me » : une marque de feuille d’or (2 novembre 2026) */
+.sens-mots { --sens-marque: rgba(232, 190, 110, .30); --sens-vif: rgba(245, 205, 125, .78); }
