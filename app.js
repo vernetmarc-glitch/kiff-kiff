@@ -5124,9 +5124,20 @@
     const notif = {};
     Object.keys(base).filter((k) => k.startsWith('notifs.')).forEach((k) => { notif[k] = typo(k in clean ? clean[k] : base[k]); });
     shareNotifTexts(notif);
-    // Tout de suite pour ce qui s’écrit au moment de s’afficher (la vitrine Tout Kiff Kiff, les titres des fenêtres, les lignes d’état…) ;
-    // les textes posés dans la page suivent à la prochaine ouverture (27 octobre 2026)
+    // Tout de suite pour ce qui s’écrit au moment de s’afficher (la vitrine Tout Kiff Kiff, les titres des fenêtres, les lignes d’état…)
+    const avant = Object.assign({}, TX);
     Object.keys(base).forEach((k) => { TX[k] = k in clean ? clean[k] : base[k]; });
+    // Et, depuis le 2 novembre 2026, les textes posés dans la page qui montrent encore l’ancien texte tel quel (ceux que le jeu
+    // n’a pas réécrits) : « Ton » devient « ..et le mood ? » sans attendre la prochaine ouverture du jeu
+    const nu = (x) => tidy(typo(String(x == null ? '' : x))).replace(/\*\*/g, '').replace(/\s/g, '');
+    document.querySelectorAll('[data-t]').forEach((n) => {
+      const k = n.dataset.t;
+      if (avant[k] !== TX[k] && avant[k] != null && n.textContent.replace(/\s/g, '') === nu(avant[k])) fillT(n, k);
+    });
+    document.querySelectorAll('[data-t-ph]').forEach((n) => {
+      const k = n.dataset.tPh;
+      if (avant[k] !== TX[k] && avant[k] != null && n.placeholder.replace(/\s/g, '') === nu(avant[k])) n.placeholder = T(k);
+    });
     // Personne ne joue encore (l’accueil, rien d’écrit) : on recharge pour montrer les nouveaux textes tout de suite.
     // Sinon, ils arrivent à la prochaine ouverture du jeu.
     const ae = document.activeElement;
