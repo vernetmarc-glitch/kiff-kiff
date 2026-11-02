@@ -3977,6 +3977,7 @@
     renderAction(waiting);
     if (!duo) renderIciTop();
     document.body.classList.add('en-jeu');
+    nouveauAilleurs();
     const was = ov.hidden;
     show(ov);
     const cle = tourCle() + (choix ? ':' + choix.kind : '');
@@ -5917,6 +5918,29 @@
     list.addEventListener('click', (e) => { const li = e.target.closest('.home-game'); if (li && li.dataset.swiped) { e.stopPropagation(); e.preventDefault(); } }, true);
   })();
   // Les messages qui attendent dans la boîte aux lettres : comptés à l’accueil, sans les marquer lus
+  /* Du nouveau dans une autre partie, pendant qu’on joue (2 novembre 2026) : une pastille sur le bouton Accueil du fil.
+     Toutes les minutes, l’appli à l’écran relit les autres parties (et l’étape de celle-ci, si le relais a manqué un coup). */
+  function nouveauAilleurs() {
+    const host = $('#wait-home');
+    if (!host) return;
+    let b = $('#ailleurs-n');
+    if (!b) { b = document.createElement('span'); b.className = 'badge badge--chat'; b.id = 'ailleurs-n'; b.setAttribute('aria-hidden', 'true'); host.appendChild(b); }
+    const n = enJeu() ? homeItems().filter((it) => it.news).length : 0;
+    b.hidden = !n; b.textContent = n || '';
+    host.setAttribute('aria-label', 'Accueil' + (n ? ' · ' + n + ' partie' + (n > 1 ? 's' : '') + ' avec du nouveau' : ''));
+  }
+  async function veilleAilleurs() {
+    if (document.visibilityState !== 'visible' || !enJeu() || !el.ovStart.hidden) return;
+    gamesT = 0;
+    try { await refreshGames(); await peekBoxes(); } catch (e) { /* hors connexion */ }
+    if (duo && duo.info && duo.stage === 'game' && window.KiffDuo) {
+      const d = duo;
+      window.KiffDuo.storeLoad([d.info]).then((m) => { if (duo === d && m[d.info.room]) onRemoteState(m[d.info.room]); }).catch(() => {});
+    }
+    nouveauAilleurs();
+  }
+  setInterval(veilleAilleurs, 60000);
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') setTimeout(veilleAilleurs, 1500); });
   async function peekBoxes() {
     if (!window.KiffDuo || !window.KiffDuo.boxLoad) return;
     const list = games().slice(0, 6);

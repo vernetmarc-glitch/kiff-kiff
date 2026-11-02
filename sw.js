@@ -76,7 +76,10 @@ self.addEventListener('push', (e) => {
     // Kiff Kiff déjà à l’écran : pas d’avertissement, l’appli montre déjà la nouvelle (sauf iPhone, qui l’exige)
     const ios = /iphone|ipad|ipod/i.test(self.navigator.userAgent);
     const wins = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
-    if (!ios && wins.some((c) => c.visibilityState === 'visible' && c.focused)) return;
+    // Kiff Kiff à l’écran sur cette partie : elle montre déjà la nouvelle. Sur l’accueil aussi (il se met à jour).
+    // Dans une autre partie : on avertit quand même (2 novembre 2026). L’adresse d’une partie contient « #duo=<relais><partie>. ».
+    const ici = (c) => { const u = String(c.url || ''); return !/#duo=/.test(u) || (room && u.indexOf(room + '.') >= 0); };
+    if (!ios && wins.some((c) => c.visibilityState === 'visible' && c.focused && ici(c))) return;
     const nom = typeof m.n === 'string' ? m.n.replace(/[\u0000-\u001f<>]/g, '').trim().slice(0, 30) : '';
     if (!wins.some((c) => c.visibilityState === 'visible')) await badgeUp();
     return self.registration.showNotification('Kiff Kiff', {

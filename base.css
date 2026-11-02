@@ -1809,3 +1809,6 @@ body.en-jeu #home .ic-back { display: block; }
 }
 /* Sous les trois réponses (29 octobre 2026) : toutes les réponses sont bonnes */
 .offer-toutes { margin: 14px 0 0; text-align: center; font-size: 15px; line-height: 1.4; opacity: .85; white-space: pre-line; }
+/* Du nouveau dans une autre partie : la pastille sur le bouton Accueil du fil (2 novembre 2026) */
+#wait-home { position: relative; }
+#wait-home .badge--chat { left: auto; right: -6px; top: -6px; }

@@ -106,10 +106,96 @@ function classeurDonnees() {
   if (actif) return actif;
   const props = PropertiesService.getScriptProperties();
   const id = props.getProperty('feuille');
-  if (id) { try { return SpreadsheetApp.openById(id); } catch (err) { /* feuille supprimée : on en recrée une */ } }
+  if (id) { try { return SpreadsheetApp.openById(id); } catch (err) { /* feuille introuvable : on la cherche ci-dessous */ } }
+  // Le 29 octobre 2026, le script avait perdu l’adresse de sa feuille et en avait créé une neuve, vide : les statistiques
+  // et les mots de l’atelier semblaient effacés. Désormais, il reprend d’abord la plus ancienne feuille « Kiff Kiff — données ».
+  const ancienne = plusAncienneFeuille();
+  if (ancienne) { props.setProperty('feuille', ancienne.getId()); return ancienne; }
   const neuf = SpreadsheetApp.create('Kiff Kiff — données');
   props.setProperty('feuille', neuf.getId());
   return neuf;
+}
+function plusAncienneFeuille(sauf) {
+  const it = DriveApp.getFilesByName('Kiff Kiff — données');
+  let meilleure = null;
+  while (it.hasNext()) {
+    const f = it.next();
+    if (f.isTrashed() || f.getMimeType() !== MimeType.GOOGLE_SHEETS || f.getId() === sauf) continue;
+    if (!meilleure || f.getDateCreated() < meilleure.getDateCreated()) meilleure = f;
+  }
+  return meilleure ? SpreadsheetApp.openById(meilleure.getId()) : null;
+}
+
+/* À lancer une fois depuis l’éditeur (2 novembre 2026) : rapatrie dans la plus ancienne feuille « Kiff Kiff — données »
+   tout ce que la feuille neuve du 29 octobre a reçu depuis (comptes, jours, mots choisis, journal, parties, messages en attente,
+   rappels, textes changés dans l’atelier), puis le script reprend l’ancienne feuille. La feuille neuve reste intacte (copie de sûreté). */
+function recupererAncienneFeuille() {
+  const props = PropertiesService.getScriptProperties();
+  const neuve = SpreadsheetApp.openById(props.getProperty('feuille'));
+  const ancienne = plusAncienneFeuille(neuve.getId());
+  if (!ancienne) { Logger.log('Pas d’autre feuille « Kiff Kiff — données » : rien à faire.'); return; }
+  const lire = function (c, nom) { const f = c.getSheetByName(nom); return f ? f.getDataRange().getValues().slice(1) : []; };
+  const cible = function (nom, ent) { let f = ancienne.getSheetByName(nom); if (!f) { f = ancienne.insertSheet(nom); f.getRange(1, 1, 1, ent.length).setValues([ent]); } return f; };
+  // Les totaux : additionnés
+  const fc = cible('compteurs', ENT_COMPTEURS);
+  const vc = fc.getDataRange().getValues();
+  const idx = {}; for (let j = 1; j < vc.length; j++) idx[vc[j][0]] = j;
+  lire(neuve, 'compteurs').forEach(function (l) {
+    if (!l[0]) return;
+    if (idx[l[0]] == null) { idx[l[0]] = vc.length; vc.push([l[0], 0]); }
+    vc[idx[l[0]]][1] = (Number(vc[idx[l[0]]][1]) || 0) + (Number(l[1]) || 0);
+  });
+  fc.getRange(1, 1, vc.length, 2).setValues(vc.map(function (l) { return [l[0], l[1]]; }));
+  // Jour par jour : additionnés pour un même jour et un même compte
+  const fj = cible('jours', ENT_JOURS);
+  const vj = fj.getDataRange().getValues();
+  const jour = function (v) { return v instanceof Date ? Utilities.formatDate(v, 'Europe/Paris', 'yyyy-MM-dd') : String(v).replace(/^'/, ''); };
+  const ij = {}; for (let j = 1; j < vj.length; j++) ij[jour(vj[j][0]) + '|' + vj[j][1]] = j;
+  lire(neuve, 'jours').forEach(function (l) {
+    const k = jour(l[0]) + '|' + l[1];
+    if (ij[k] == null) { ij[k] = vj.length; vj.push(["'" + jour(l[0]), l[1], 0]); }
+    vj[ij[k]][2] = (Number(vj[ij[k]][2]) || 0) + (Number(l[2]) || 0);
+  });
+  fj.getRange(1, 1, vj.length, 3).setValues(vj.map(function (l, i) { return i ? ["'" + jour(l[0]), l[1], l[2]] : l; }));
+  // Les mots choisis : additionnés
+  const fx = cible('choix', ENT_CHOIX);
+  const vx = fx.getDataRange().getValues();
+  const ix = {}; for (let j = 1; j < vx.length; j++) ix[vx[j][0] + '|' + vx[j][1]] = j;
+  lire(neuve, 'choix').forEach(function (l) {
+    const k = l[0] + '|' + l[1];
+    if (ix[k] == null) { ix[k] = vx.length; vx.push([l[0], l[1], 0, 0]); }
+    vx[ix[k]][2] = (Number(vx[ix[k]][2]) || 0) + (Number(l[2]) || 0);
+    vx[ix[k]][3] = (Number(vx[ix[k]][3]) || 0) + (Number(l[3]) || 0);
+  });
+  fx.getRange(1, 1, vx.length, 4).setValues(vx);
+  // Les parties : la version la plus récente de chacune
+  const fp = cible('parties', ENT_PARTIES);
+  const vp = fp.getDataRange().getValues();
+  const ip = {}; for (let j = 1; j < vp.length; j++) ip[vp[j][0]] = j;
+  lire(neuve, 'parties').forEach(function (l) {
+    if (!l[0]) return;
+    if (ip[l[0]] == null) { ip[l[0]] = vp.length; vp.push(l.slice(0, 5)); }
+    else if ((Number(l[2]) || 0) >= (Number(vp[ip[l[0]]][2]) || 0)) vp[ip[l[0]]] = l.slice(0, 5);
+  });
+  fp.getRange(1, 1, vp.length, 5).setValues(vp.map(function (l) { while (l.length < 5) l.push(''); return l.slice(0, 5); }));
+  // Le journal, les messages en attente, les rappels : ajoutés à la suite
+  [['journal', ENT_JOURNAL], ['boite', ENT_BOITE], ['rappels', ENT_RAPPELS]].forEach(function (x) {
+    const rows = lire(neuve, x[0]).filter(function (l) { return l[0] !== ''; });
+    if (!rows.length) return;
+    const f = cible(x[0], x[1]);
+    f.getRange(f.getLastRow() + 1, 1, rows.length, x[1].length).setValues(rows.map(function (l) { return l.slice(0, x[1].length); }));
+  });
+  // Les textes changés dans l’atelier depuis : ils remplacent ceux d’avant, clé par clé
+  const ft = cible('textes', ENT_TEXTES);
+  const vt = ft.getDataRange().getValues();
+  const it = {}; for (let j = 1; j < vt.length; j++) it[vt[j][0]] = j;
+  lire(neuve, 'textes').forEach(function (l) {
+    if (!l[0]) return;
+    if (it[l[0]] == null) { it[l[0]] = vt.length; vt.push([l[0], l[1]]); } else vt[it[l[0]]][1] = l[1];
+  });
+  ft.getRange(1, 1, vt.length, 2).setValues(vt);
+  props.setProperty('feuille', ancienne.getId());
+  Logger.log('C’est fait : le script reprend la feuille ' + ancienne.getUrl() + ' (la feuille neuve reste intacte : ' + neuve.getUrl() + ').');
 }
 
 /* À lancer une fois depuis l’éditeur (bouton Exécuter) pour donner les autorisations
