@@ -2388,18 +2388,25 @@
   // Un kiff kiff dans le fil : sa carte, touchée elle s’ouvre en plein écran
   // Qui a proposé l’envie : sa place (k.s), sinon son prénom (k.w) pour les plus anciennes
   function authorOf(k) {
-    if (!duo) return k && k.w ? { mine: false, name: k.w, ici: true } : null;
-    const seat = k.s === 0 || k.s === 1 ? k.s : (k.w && k.w === nameOf(duo.seat) ? duo.seat : k.w && k.w === nameOf(other(duo.seat)) ? other(duo.seat) : -1);
-    if (seat < 0) return null;
-    return { mine: seat === duo.seat, name: nameOf(seat) };
+    if (!k) return null;
+    const ref = duo ? duo.seat : 0;
+    const seat = k.s === 0 || k.s === 1 ? k.s : (k.w && k.w === nameOf(ref) ? ref : k.w && k.w === nameOf(other(ref)) ? other(ref) : -1);
+    if (seat < 0) return k.w && !duo ? { mine: false, name: k.w, ici: true } : null;
+    return auteur(seat);
   }
-  const authorBadge = (a) => (a ? '<span class="avatar thread-author" aria-hidden="true">' + esc(initial(a.name)) + '</span>' : '');
+  /* L’auteur d’une envie : en partie à distance, toi à droite ; sur un téléphone, chacun·e son côté, dans l’ordre des prénoms (2 novembre 2026) */
+  function auteur(seat) {
+    return duo ? { mine: seat === duo.seat, name: nameOf(seat), seat, droite: seat === duo.seat }
+      : { mine: false, name: nameOf(seat), seat, droite: seat === 1, ici: true };
+  }
+  function cote(a) { return a ? (a.droite ? ' is-mine' : ' is-theirs') : ''; }
+  const authorBadge = (a) => (a ? '<span class="avatar thread-author" aria-hidden="true">' + esc(a.seat === 0 || a.seat === 1 ? initiales(a.seat) : initial(a.name)) + '</span>' : '');
   function threadKiffHtml(k, b) {
     const kid = kidOf(k), kr = b ? (b.kr[kid] || {}) : {};
     const r = reactsHtml(kr);
     const a = authorOf(k), etat = k.v === 0 ? T('kiff.a-vivre') : T('kiff.vecue');
     const kick = !a ? T('partie.kiff-kicker', { etat }) : a.mine ? T('partie.kiff-kicker-toi', { etat }) : T('partie.kiff-kicker-de', { prénom: a.name, etat });
-    return '<li class="thread-kiff' + (k.v !== 0 ? ' is-done' : '') + (a ? (a.mine ? ' is-mine' : ' is-theirs') : '') + '" data-kid="' + esc(kid) + '"><button class="thread-kiff-btn" type="button" data-envie="' + esc(kid) + '">' +
+    return '<li class="thread-kiff' + (k.v !== 0 ? ' is-done' : '') + cote(a) + '" data-kid="' + esc(kid) + '"><button class="thread-kiff-btn" type="button" data-envie="' + esc(kid) + '">' +
       '<span class="thread-kiff-kicker">' + esc(kick) + '</span>' +
       '<span class="party-sentence thread-kiff-card">' + authorBadge(a) + '<span class="thread-kiff-text">' + esc(k.t || '') + '</span>' +
       (r ? '<span class="thread-kiff-reacts">' + r + '</span>' : '') + '</span></button></li>';
@@ -2439,11 +2446,11 @@
       : e.adj ? (e.mine ? T('partie.envie-ajustee-par', { prénom: B }) : T('partie.envie-ajustee-toi'))
       : e.mine ? T('partie.envie-toi') : T('partie.envie-de', { prénom: B });
     const go = myTurn() && !$('#wait-go').hidden && actionGo === 'offre';
-    const a = { mine: e.mine, name: duo ? (e.mine ? nameOf(duo.seat) : B) : P };
-    if (e.cachee) return '<li class="thread-kiff thread-envie is-cachee' + (a.mine ? ' is-mine' : ' is-theirs') + '"><button class="thread-kiff-btn" type="button"' + (go ? ' data-envie-go="1"' : ' disabled') + '>' +
+    const a = auteur(S.proposer);
+    if (e.cachee) return '<li class="thread-kiff thread-envie is-cachee' + cote(a) + '"><button class="thread-kiff-btn" type="button"' + (go ? ' data-envie-go="1"' : ' disabled') + '>' +
       '<span class="thread-kiff-kicker">' + esc(kick) + '</span>' +
       '<span class="party-sentence thread-kiff-card thread-envie-dos">' + CARTE_DOS + '<span class="sr-only">' + esc(T('partie.lire')) + '</span></span></button></li>';
-    return '<li class="thread-kiff thread-envie' + (a.mine ? ' is-mine' : ' is-theirs') + '"><button class="thread-kiff-btn" type="button"' + (go ? ' data-envie-go="1"' : ' disabled') + '>' +
+    return '<li class="thread-kiff thread-envie' + cote(a) + '"><button class="thread-kiff-btn" type="button"' + (go ? ' data-envie-go="1"' : ' disabled') + '>' +
       '<span class="thread-kiff-kicker">' + esc(kick) + '</span>' +
       '<span class="party-sentence thread-kiff-card">' + authorBadge(a) + '<span class="thread-kiff-text">' + esc(e.text) + '</span></span></button></li>';
   }
