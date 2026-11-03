@@ -5253,8 +5253,8 @@
     const me = (S.names[0] || '').trim();
     if (S.gift) return me ? T('duo.message-envie', { prénom: me }) : T('duo.message-envie-anonyme');
     if (!S.rencontre) return me ? T('duo.message', { prénom: me }) : T('duo.message-anonyme');
-    const lead = S.rencontre ? (me ? me + ' te propose un jeu avant de vous voir : ' : 'On joue avant de se voir ? ') : (me ? me + ' t’invite à jouer à Kiff Kiff : ' : 'On joue à Kiff Kiff ? ');
-    return lead + (/\? $/.test(lead) ? 'Quand' : 'quand') + ' vos envies se rejoignent, c’est kiff kiff. Ouvre ce lien sur ton téléphone.';
+    // Le mode rencontre, à la première personne aussi (3 novembre 2026)
+    return 'On joue avant de se voir ? L’un·e propose une envie, l’autre répond oui, oui mais, ou non. Rien ne s’affiche sans nos deux oui. Ouvre ce lien sur ton téléphone :';
   }
   $('#duo-copy').addEventListener('click', async () => {
     const url = duo && duo.info ? window.KiffDuo.link(duo.info) : '';
