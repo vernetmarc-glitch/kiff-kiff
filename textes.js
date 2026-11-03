@@ -153,6 +153,8 @@ window.KIFF_TEXTES = [
     ["fil.piment-ouvre", "Des envies plus chaudes dans les roues, si vous en avez envie tous·tes les deux.", "Le texte de cette carte"],
     ["fil.piment-on-monte", "On monte", "Bouton de cette carte : le piment rejoint les roues"],
     ["fil.piment-on-reste", "On reste en {piment}", "Lien de cette carte : la carte s’en va ({piment} : le piment actuel)"],
+    ["fil.brulant-ouvre", "Les envies les plus chaudes sont prêtes. Elles vous attendent dans le réglage du piment, quand vous en aurez envie tous·tes les deux.", "Dans le fil : la carte quand Brûlant se débloque (sur un téléphone comme à distance)"],
+    ["fil.brulant-compris", "Compris", "Bouton principal de cette carte : elle s’en va (le réglage reste en lien dessous)"],
     ["fil.piment-debloque-titre", "Piment débloqué", "Dans le fil, à distance : la carte quand un piment se débloque"],
     ["fil.piment-debloque", "Il monte si vous en avez envie tous·tes les deux.", "Le texte de cette carte, sous le piment débloqué ({niveau} : son nom)"],
     ["fil.piment-monter", "Régler le piment", "Bouton de cette carte"],

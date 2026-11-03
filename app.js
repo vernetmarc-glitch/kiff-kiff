@@ -2585,7 +2585,8 @@
     }
     // Un piment débloqué, pas encore choisi : l’invitation à le régler, à l’heure du kiff kiff qui l’a débloqué
     const u = unlocked();
-    if (S.prog && u > max) out.push({ d: quand(), lv: 'debloque', n: u });
+    const vu = (load('lvVu', {}) || {})[duo.info.room] || 0; // Brûlant débloqué, « Compris » sur ce téléphone
+    if (S.prog && u > max && u > vu) out.push({ d: quand(), lv: 'debloque', n: u });
     return out;
   }
   function pimentFilHtml(it, B) {
@@ -2604,6 +2605,14 @@
       const moi = S.proposer === duo.seat;
       return '<li class="thread-piment is-passager"><div class="lv-carte"><span class="lv-puces">' + lvPuces(it.ajout) + '</span><p class="lv-texte">' +
         esc(moi ? T('fil.piment-propose', { niveaux: niv, prénom: B }) : T('fil.piment-propose-autre', { niveaux: niv, prénom: B })) + '</p></div></li>';
+    }
+    // Brûlant débloqué (3 novembre 2026, à la demande de Marc) : on ne pousse pas à l’activer.
+    // « Compris » d’abord (la carte s’en va), et en lien discret le réglage, où Brûlant se coche (à deux)
+    if (it.n === 3 && (it.lv === 'ouvre' || it.lv === 'debloque')) {
+      return '<li class="thread-piment is-passager"><div class="lv-carte"><span class="thread-kiff-kicker">' + esc(T('fil.piment-ouvre-titre', { niveau: D.niveaux[2].nom })) + '</span>' +
+        '<span class="lv-puces">' + lvPuces([3]) + '</span><p class="lv-texte">' + esc(T('fil.brulant-ouvre')) + '</p>' +
+        '<button class="btn lv-regler" type="button" data-lv="vu" data-n="3">' + esc(T('fil.brulant-compris')) + '</button>' +
+        '<button class="link-btn lv-rester" type="button" data-lv="regler">' + esc(T('fil.piment-monter')) + '</button><p class="lv-flash" hidden></p></div></li>';
     }
     if (it.lv === 'ouvre') {
       // Sur un téléphone : vous êtes là tous·tes les deux, on monte d’un geste (Brûlant demande encore votre accord à deux)
@@ -2845,6 +2854,17 @@
       audio(); save('avertirCarteNon', true); report('notif', null, 'carte-plus-tard'); renderChat(); return;
     }
     // Sur un téléphone, le piment débloqué : on monte, ou on reste où on est (la carte s’en va)
+    // Brûlant débloqué : « Compris », la carte s’en va (sur un téléphone : pour la partie ; à distance : sur ce téléphone)
+    const lvv = e.target.closest('[data-lv="vu"]');
+    if (lvv) {
+      audio(); sClick(); haptic(8);
+      const n = +lvv.dataset.n;
+      if (duo && duo.info) { const vu = load('lvVu', {}) || {}; vu[duo.info.room] = n; save('lvVu', vu); }
+      else { S.lvNon = n; savePair(); }
+      report('piment', null, 'vu-' + n);
+      renderChat();
+      return;
+    }
     const lvo = e.target.closest('[data-lv="monter"], [data-lv="rester"]');
     if (lvo && !duo) {
       audio();
