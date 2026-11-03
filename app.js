@@ -105,7 +105,6 @@
   const OFFRE = window.KIFF_OFFRE || 'tout';
   let openComplet = () => {};
   let monterPiment = () => {}; // sur un téléphone : « On monte » dans la carte du piment débloqué
-  let ouvrirJoueurs = () => {}; // « Qui joue ? » à distance, le prénom de l’autre déjà écrit (le lien perso)
   let openAchat = () => {};
   function isComplet() {
     if (OFFRE === 'tout') return true;
@@ -4751,7 +4750,6 @@
     rememberGame({ phase: 'lobby', names: [name, prov] });
     report('invitation', null, 'progressif');
     askGift();
-    if (moiCible) moiEnvoyer(); // ouverte par le lien de quelqu’un : il ou elle la reçoit
   }
   /* Une envie dans l’invitation : l’autre la découvrira après le principe du jeu, si iel le veut */
   // Dans la carte d’action de la conversation (2 novembre 2026 ; avant : une fenêtre)
@@ -4835,7 +4833,6 @@
         '<span class="party-sentence thread-kiff-card"><span class="thread-kiff-text">' + esc(text) + '</span></span></button></li>';
     }
     if (S.regles) html += reglesHtml('cree');
-    if (S.moiA) html += '<li class="thread-note">' + esc(T('moi.envoye', { prénom: S.moiA })) + '</li>';
     if (giftAsk) { if (installWanted()) html += installCardHtml(nameOf(1)); else if (avertirWanted()) html += avertirCardHtml(nameOf(1)); return html; }
     const url = window.KiffDuo.link(duo.info);
     html += '<li class="thread-invite"><div class="invite-card">' +
@@ -5978,7 +5975,7 @@
     };
     /* Accueil en quatre écrans : accueil → joueurs → principe → piment → la partie commence */
     // Une nouvelle partie ne touche pas aux autres : celle qui était ouverte attend dans la liste
-    $('#welcome-go').addEventListener('click', () => { audio(); sClick(); haptic(8); if (duo) parkDuo(); brulantOk = false; moiCible = null; $('#moi-kicker').hidden = true; setWhere('duo'); goStep(1); });
+    $('#welcome-go').addEventListener('click', () => { audio(); sClick(); haptic(8); if (duo) parkDuo(); brulantOk = false; setWhere('duo'); goStep(1); });
     // L’autre joue sur ce téléphone (on écrit son prénom) ou sur le sien (on l’invitera)
     const setWhere = (w) => {
       where = w;
@@ -5989,7 +5986,6 @@
       $('#where-bascule').textContent = T(w === 'here' ? 'joueurs.vers-distance' : 'joueurs.vers-ici');
       renderFirst();
     };
-    ouvrirJoueurs = (autre) => { setWhere('duo'); $('#name1').value = autre || ''; goStep(1); };
     // Deux téléphones par défaut (3 novembre 2026) ; un petit lien pour jouer côte à côte
     $('#where-bascule').addEventListener('click', () => { audio(); sClick(); haptic(8); setWhere(where === 'here' ? 'duo' : 'here'); report('partie', null, where === 'here' ? 'vers-ici' : 'vers-distance'); });
     // Qui découvre le jeu sur ce téléphone : une ligne le dit, et le principe lui sera montré
@@ -6107,9 +6103,7 @@
       if (rel) { relanceOuverte(rel); const u = new URL(location.href); u.searchParams.delete('relance'); history.replaceState(null, '', u.pathname + u.search + u.hash); }
     } catch (e) { /* rien */ }
     if (fromNotif) { try { const u = new URL(location.href); u.searchParams.delete('jouer'); u.searchParams.delete('kiff'); history.replaceState(null, '', u.pathname + u.search + u.hash); } catch (e) { /* rien */ } }
-    const moiM = !inv && MOI_RE.exec(location.hash || '');
     if (inv) askAppFirst(inv);
-    else if (moiM) startMoi(moiM);
     else if (fromNotif && findGame(fromNotif)) { report('notif', null, fromKiff ? 'ouverte-message' : 'ouverte'); pendingKiff = /^\d{6,16}$/.test(fromKiff) ? fromKiff : ''; openGame(fromNotif); }
     else { renderGames(); refreshGames(); }
     refreshPush();
@@ -6498,7 +6492,6 @@
   const pastille = (it) => (it.news ? '<span class="pastille-rose" aria-label="' + esc(T('accueil.du-nouveau')) + '"></span>' : '');
   function renderHome() {
     renderReprise();
-    renderMoiDemandes();
     const items = homeItems();
     const has = items.length > 0;
     $('#welcome').classList.toggle('has-games', has);
@@ -6713,8 +6706,7 @@
     if (!el.ovStart.hidden) renderHome();
   }
   // L’accueil reste à jour : en revenant dans l’appli, puis toutes les 30 secondes tant qu’il est à l’écran
-  const homeFresh = () => { if (!el.ovStart.hidden && document.visibilityState === 'visible' && ($('#steps').dataset.step || '0') === '0') { gamesT = 0; refreshGames(); peekBoxes(); moiRelever(); } };
-  setTimeout(() => { moiRelever(); moiPublier(); }, 1200);
+  const homeFresh = () => { if (!el.ovStart.hidden && document.visibilityState === 'visible' && ($('#steps').dataset.step || '0') === '0') { gamesT = 0; refreshGames(); peekBoxes(); } };
   document.addEventListener('visibilitychange', homeFresh);
   /* La pastille sur l’icône de l’appli (27 octobre 2026) : en ouvrant l’appli, les avertissements reçus partent
      du centre de notifications et la pastille s’efface (sur iPhone, ils la laissaient alors que tout était lu).
@@ -6946,170 +6938,6 @@
      (copier le lien, puis menu › Retrouver une partie dans l’appli), ou de jouer ici. Une partie déjà connue de ce
      navigateur s’ouvre directement. */
   let appInv = null;
-  /* ---------- Ton lien Kiff Kiff (3 novembre 2026) ----------
-     Un lien et un QR code fixes, pour un profil de rencontre : #moi=<relais><boîte>.<clé>.<prénom>.
-     Qui l’ouvre écrit son prénom et lance une partie à distance (il ou elle invite) ; le lien de cette partie part,
-     chiffré avec la clé du lien, dans la boîte aux lettres de la feuille, et son propriétaire est averti.
-     Le téléphone du propriétaire relève sa boîte et montre « Jade veut jouer avec toi » à l’accueil. */
-  const MOI_RE = /moi=([a-z])([a-z2-9]{12})\.([A-Za-z0-9_-]{22})(?:\.([^&#]{1,80}))?/;
-  const moiInfo = () => { const m = load('moi', null); return m && /^[a-z2-9]{12}$/.test(m.room || '') && m.key && m.broker ? m : null; };
-  function moiNouveau() {
-    const A = 'abcdefghijkmnpqrstuvwxyz23456789';
-    const r = crypto.getRandomValues(new Uint8Array(12)), k = crypto.getRandomValues(new Uint8Array(16));
-    const key = btoa(String.fromCharCode(...k)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-    const info = { broker: 'h', room: Array.from(r, (x) => A[x % 32]).join(''), key };
-    save('moi', info); save('moiPub', 0);
-    return info;
-  }
-  const moiNom = () => String(load('moiNom', '') || load('duoName', '') || (load('names', ['', '']) || [''])[0] || '').trim().slice(0, 20);
-  function moiLien(info) {
-    const base = /kiff-kiff\.fr$/.test(location.hostname) ? 'https://kiff-kiff.fr/' : location.origin + location.pathname;
-    const n = moiNom();
-    return base + '#moi=' + info.broker + info.room + '.' + info.key + (n ? '.' + encodeURIComponent(n) : '');
-  }
-  // Le prénom et l’adresse d’avertissement du propriétaire, rangés chiffrés dans la feuille (sous la clé du lien)
-  async function moiPublier(force) {
-    const info = moiInfo();
-    if (!info || !window.KiffDuo || !window.KiffDuo.storeSave) return;
-    if (!force && Date.now() - (load('moiPub', 0) || 0) < 24 * 3600e3) return;
-    const sub = pushStatus === 'on' ? (pushMine || (KP ? await KP.current() : null)) : null;
-    const r = await window.KiffDuo.storeSave(info, { seq: Math.floor(Date.now() / 1000), n: moiNom(), sub: sub || null });
-    if (r) save('moiPub', Date.now());
-  }
-  // Les demandes reçues par le lien : relevées dans la boîte, gardées sur ce téléphone, effacées de la feuille
-  async function moiRelever() {
-    const info = moiInfo();
-    if (!info || !window.KiffDuo || !window.KiffDuo.boxLoad) return;
-    const got = await window.KiffDuo.boxLoad(info, 0);
-    if (!got.length) return;
-    const list = load('moiDemandes', []) || [];
-    got.forEach((x) => {
-      const o = x.obj;
-      if (!o || o.k !== 'moi' || typeof o.lien !== 'string' || !window.KiffDuo.parse(o.lien)) return;
-      if (list.some((d) => d.id === x.id)) return;
-      list.push({ id: x.id, n: String(o.n || '').slice(0, 20), lien: o.lien.slice(0, 300), d: +o.d || Date.now() });
-    });
-    save('moiDemandes', list.slice(-20));
-    window.KiffDuo.boxAck(info, 0, got.map((x) => x.id));
-    report('moi', null, 'recue');
-    if (!el.ovStart.hidden) renderHome();
-  }
-  function renderMoiDemandes() {
-    const box = $('#home-moi');
-    const list = (load('moiDemandes', []) || []).filter((d) => !findGame((window.KiffDuo.parse(d.lien) || {}).room || ''));
-    box.hidden = !list.length;
-    box.innerHTML = list.slice().reverse().map((d) => '<div class="moi-carte"><span class="moi-carte-kicker">' + esc(T('moi.carte-kicker')) + '</span>' +
-      '<p class="moi-carte-texte">' + TH('moi.carte', { prénom: { html: '<b>' + esc(d.n || '…') + '</b>' } }) + '</p>' +
-      '<button class="btn" type="button" data-moi-go="' + esc(d.id) + '">' + esc(T('moi.rejoindre')) + '</button>' +
-      '<button class="link-btn" type="button" data-moi-non="' + esc(d.id) + '">' + esc(T('moi.ignorer')) + '</button></div>').join('');
-  }
-  $('#home-moi').addEventListener('click', (e) => {
-    const go = e.target.closest('[data-moi-go]'), non = e.target.closest('[data-moi-non]');
-    if (!go && !non) return;
-    audio(); sClick(); haptic(8);
-    const id = (go || non).dataset[go ? 'moiGo' : 'moiNon'];
-    const list = load('moiDemandes', []) || [];
-    const d = list.find((x) => x.id === id);
-    save('moiDemandes', list.filter((x) => x.id !== id));
-    report('moi', null, go ? 'rejoint' : 'ignore');
-    if (go && d) {
-      const inv = window.KiffDuo.parse(d.lien);
-      if (inv) { try { history.replaceState(null, '', window.KiffDuo.link(inv)); } catch (err) { /* rien */ } startJoin(inv); return; }
-    }
-    renderHome();
-  });
-  // La feuille du propriétaire
-  const ovMoi = $('#ov-moi');
-  function renderMoi() {
-    const info = moiInfo() || moiNouveau();
-    const url = moiLien(info);
-    $('#moi-qr').innerHTML = window.KiffDuo && window.KiffDuo.qrSvg ? window.KiffDuo.qrSvg(url) : '';
-    $('#moi-lien').textContent = url.replace(/^https?:\/\//, '').replace(/(#moi=.{10}).*/, '$1…');
-    $('#moi-avertir').hidden = pushStatus === 'on';
-    $('#moi-partager').hidden = typeof navigator.share !== 'function';
-  }
-  function openMoi() {
-    $('#moi-nom').value = moiNom();
-    renderMoi();
-    // Le QR code vient d’une petite bibliothèque chargée à la demande
-    if (typeof window.qrcode !== 'function' && typeof loadDuoLibs === 'function') loadDuoLibs().then(renderMoi).catch(() => {});
-    $('#moi-done').hidden = true;
-    show(ovMoi);
-    report('moi', null, 'ouvert');
-    moiPublier(true);
-  }
-  const moiDone = (t) => { const d = $('#moi-done'); d.textContent = t; d.hidden = false; clearTimeout(d._t); d._t = setTimeout(() => { d.hidden = true; }, 3000); };
-  $('#menu-moi').addEventListener('click', () => { audio(); sClick(); haptic(8); openMoi(); });
-  $('#moi-close').addEventListener('click', () => { audio(); hide(ovMoi); });
-  ovMoi.addEventListener('click', (e) => { if (e.target === ovMoi) hide(ovMoi); });
-  $('#moi-nom').addEventListener('change', () => { save('moiNom', $('#moi-nom').value.replace(/\s+/g, ' ').trim().slice(0, 20)); renderMoi(); moiPublier(true); });
-  $('#moi-partager').addEventListener('click', () => {
-    audio(); sClick(); haptic(8);
-    const info = moiInfo(); if (!info) return;
-    navigator.share({ title: 'Kiff Kiff', text: T('moi.partage-texte'), url: moiLien(info) }).then(() => report('moi', null, 'partage')).catch(() => {});
-  });
-  $('#moi-copier').addEventListener('click', () => {
-    audio(); sClick(); haptic(8);
-    const info = moiInfo(); if (!info || !navigator.clipboard) return;
-    navigator.clipboard.writeText(moiLien(info)).then(() => { moiDone(T('moi.copie')); report('moi', null, 'copie'); }).catch(() => {});
-  });
-  // Une image du QR code (avec le nom du jeu), à glisser dans une photo de profil
-  $('#moi-image').addEventListener('click', () => {
-    audio(); sClick(); haptic(8);
-    const svg = $('#moi-qr svg'); if (!svg) return;
-    const img = new Image();
-    img.onload = () => {
-      const c = document.createElement('canvas'); c.width = 600; c.height = 690;
-      const g = c.getContext('2d');
-      g.fillStyle = '#fff'; g.fillRect(0, 0, 600, 690);
-      g.drawImage(img, 40, 40, 520, 520);
-      g.fillStyle = '#111'; g.font = '600 40px Georgia, serif'; g.textAlign = 'center';
-      g.fillText('Kiff Kiff', 300, 620);
-      g.font = '24px sans-serif'; g.fillText(moiNom() ? 'Joue avec ' + moiNom() : 'Joue avec moi', 300, 660);
-      c.toBlob((b) => {
-        if (!b) return;
-        const f = new File([b], 'kiff-kiff-qr.png', { type: 'image/png' });
-        if (navigator.canShare && navigator.canShare({ files: [f] })) { navigator.share({ files: [f] }).catch(() => {}); }
-        else { const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = 'kiff-kiff-qr.png'; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 5000); }
-        report('moi', null, 'image');
-      }, 'image/png');
-    };
-    img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(new XMLSerializer().serializeToString(svg));
-  });
-  $('#moi-changer').addEventListener('click', () => { audio(); sClick(); haptic(8); moiNouveau(); renderMoi(); moiPublier(true); moiDone(T('moi.change')); report('moi', null, 'change'); });
-
-  // Qui ouvre le lien de quelqu’un : « Qui joue ? », son prénom à écrire, celui de l’autre déjà là, à distance
-  let moiCible = null;
-  function startMoi(m) {
-    const info = { broker: m[1], room: m[2], key: m[3] };
-    const nom = (() => { try { return decodeURIComponent(m[4] || '').replace(/[\u0000-\u001f<>]/g, '').trim().slice(0, 20); } catch (e) { return ''; } })();
-    try { history.replaceState(null, '', location.pathname + location.search); } catch (e) { /* rien */ }
-    const mine = moiInfo();
-    if (mine && mine.room === info.room) { openMoi(); return; } // son propre lien
-    moiCible = { info, nom };
-    report('moi', null, 'visite');
-    if (duo) parkDuo();
-    $('#moi-kicker').textContent = T('moi.kicker', { prénom: nom || T('principe.autre') });
-    $('#moi-kicker').hidden = false;
-    ouvrirJoueurs(nom);
-    setTimeout(() => $('#name0').focus(), 300);
-  }
-  // Une fois la partie créée : son lien part dans la boîte du propriétaire, qui est averti
-  async function moiEnvoyer() {
-    const c = moiCible; moiCible = null;
-    $('#moi-kicker').hidden = true;
-    if (!c || !duo || !duo.info || !window.KiffDuo.boxSend) return;
-    const lien = window.KiffDuo.link(duo.info);
-    const ok = await window.KiffDuo.boxSend(c.info, 0, { ev: window.KiffDuo.newId(), k: 'moi', lien, n: nameOf(0), d: Date.now() }, null);
-    S.moiA = c.nom || nameOf(1);
-    report('moi', null, ok ? 'envoi' : 'envoi-echec');
-    try {
-      const got = await window.KiffDuo.storeLoad([c.info]);
-      const st = got[c.info.room];
-      if (st && st.sub && KP) KP.send(st.sub, { k: 'moi', n: String(nameOf(0) || '').slice(0, 30) });
-    } catch (e) { /* l’accueil du propriétaire le montrera */ }
-    renderChat();
-  }
   async function askAppFirst(inv) {
     if (isStandalone() || findGame(inv.room)) { startJoin(inv); return; }
     await Promise.race([appCheck, new Promise((r) => setTimeout(r, 600))]);

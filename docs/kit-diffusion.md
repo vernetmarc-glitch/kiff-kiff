@@ -36,7 +36,7 @@ Hashtags (à alterner, jamais plus de cinq) : #sexpositive #consentement #couple
 
 - **Instagram, TikTok** : « Le jeu qui fait sauter la timidité 🔥 Trois roues, deux “j’ai envie”, zéro malentendu. 18+ · Lien ⬇️ »
 - **Bluesky** : « Kiff Kiff, un jeu à deux pour se proposer des envies. Sex-positif, joueur, et vraiment coquin. Par Marc, humain aléatoire mais néanmoins varié. 18+ »
-- **Profil de rencontre** (avec ton lien Kiff Kiff, menu > « Ton lien Kiff Kiff ») : « On commence par une partie de Kiff Kiff ? Tu proposes, je réponds oui, oui mais, ou non. »
+- **Dans la conversation, une fois le contact établi** (jamais dans un profil public) : « On commence par une partie de Kiff Kiff ? L’un·e propose une envie, l’autre répond oui, oui mais, ou non. Rien ne s’affiche sans nos deux oui. », puis le lien d’une partie (Nouvelle partie, chacun·e sur son téléphone, « Copier le lien »). Si l’appli de rencontre bloque les liens, après l’échange de numéros.
 
 ## Reddit : la règle et un exemple
 

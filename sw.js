@@ -61,8 +61,6 @@ function avis(m, t, nom) {
     if (m.ph === 'celebrate') return y('notifs.rappel-kiff', 'Votre kiff kiff n’attend plus que vous.', 'notifs.rappel-kiff-nom', 'Votre kiff kiff avec {prénom} n’attend plus que vous.');
     return y('notifs.rappel-tour', 'Les roues t’attendent : à toi de jouer.', 'notifs.rappel-tour-nom', '{prénom} attend ton envie… à toi de jouer.');
   }
-  // Quelqu’un a ouvert ton lien Kiff Kiff (3 novembre 2026)
-  if (m.k === 'moi') return y('notifs.moi', 'Quelqu’un veut jouer avec toi, via ton lien.', 'notifs.moi-nom', '{prénom} veut jouer avec toi, via ton lien.');
   if (m.k === 'message') return y('notifs.message', 'Un message t’attend.', 'notifs.message-nom', '{prénom} t’a écrit.');
   if (m.k === 'kiff') return y('notifs.kiff', 'Un kiff kiff vous attend !', 'notifs.kiff-nom', 'Kiff kiff avec {prénom} !');
   if (m.k === 'arrivee') return y('notifs.arrivee', 'Ton invitation est acceptée : la partie commence.', 'notifs.arrivee-nom', '{prénom} a rejoint la partie : elle commence.');
