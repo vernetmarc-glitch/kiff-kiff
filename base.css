@@ -1452,6 +1452,7 @@ body:has(#ov-deal:not([hidden])) .deco-candles { display: none; }
 /* L’accueil n’a pas de points : ils montrent seulement les écrans d’une nouvelle partie (Qui joue ?, le principe, les piments) */
 #step-dots[data-step="0"] { display: none; }
 #step-dots i:first-child { display: none; }
+#step-dots i:last-child { display: none; } /* plus d’écran des piments (2 novembre 2026) : deux points, les prénoms et le principe */
 /* « Nouvelle partie » et la mention 18 ans calées tout en bas de l’écran : rien de la liste ne passe dessous.
    La page de l’accueil n’a plus de marge en bas ; la barre porte elle-même la marge (et la zone du geste de l’iPhone). */
 #ov-start:has(#steps[data-step="0"] .welcome.has-games) { padding-bottom: 0 !important; }
@@ -1848,6 +1849,9 @@ body.en-jeu #home .ic-back { display: block; }
 .lv-regler { min-height: 40px; padding: 0 16px; font-size: 15px; }
 .lv-regler .ic { width: 18px; height: 18px; margin-right: 7px; }
 .lv-flash { margin: 0; font-size: 13px; opacity: .85; }
+.lv-rester { padding: 2px 8px; font-size: 14px; opacity: .85; }
+#ov-piment .piment-tout { align-self: center; margin: -2px auto 0; padding: 6px 8px; font-size: 13px; line-height: 1.3; opacity: .7; }
+.piment-tout[hidden] { display: none; }
 .lv-flash[hidden] { display: none; }
 .chat-list.is-cartes > li.thread-note, .chat-list.is-cartes > li.thread-piment { display: none; }
 
