@@ -851,6 +851,7 @@
     el.actMain.classList.toggle('is-done', ph === 'adjust' && ch.length > 0);
     // « On passe » vit en bas, à gauche du bouton principal ; #pass garde seulement son action
     el.actAlt.textContent = S.gifting && ph === 'compose' ? T('jeu.sans-envie') : T('jeu.passe');
+    if (S.gifting && ph === 'compose') el.actAlt.hidden = true; // la première envie part avec l’invitation (3 novembre 2026)
 
     // « de te / que tu me » : le sens suit le tour, il ne se choisit pas (2 novembre 2026)
     el.dice.hidden = ph !== 'compose';
@@ -4248,7 +4249,11 @@
     if (duo.stage === 'game') { applyGame(st, {}); pushRefresh(); openPendingKiff(); if (kiffOpen) renderKiffCard(); return; }
     duo.remote = st;
     if (st.phase === 'lobby') {
-      if (duo.seat === 0) { S.gift = st.gift || null; S.prog = !!st.prog; showInvite(); }
+      if (duo.seat === 0) {
+        S.gift = st.gift || null; S.prog = !!st.prog;
+        // Une invitation encore sans envie (laissée en cours de route, ou d’avant le 3 novembre 2026) : la première envie d’abord
+        if (!S.gift && !st.cont && duo.stage !== 'gift') askGift(); else showInvite();
+      }
       else showJoin(st);
     } else if (duo.resume || duo.stage === 'invite') {
       const wasInvite = duo.stage === 'invite';
@@ -4809,13 +4814,13 @@
     ['#wait-pass', '#wait-go', '#wait-install', '#wait-nudge', '#wait-alt', '#partie-choix'].forEach((q) => { $(q).hidden = true; });
     $('#partie-carte').hidden = false;
     if (giftAsk) {
-      // « Une envie dans l’invitation ? » : Composer, ou Sans envie ; l’invitation apparaît ensuite dans le fil
+      // Qui invite propose en premier : sa première envie part avec l’invitation, l’autre n’a plus qu’à répondre
+      // (3 novembre 2026 ; avant : « Une envie dans l’invitation ? », avec « Sans envie », et l’autre commençait)
       $('#partie-action').classList.add('is-turn');
       $('#wait-title').textContent = T('duo.cadeau'); $('#wait-title').hidden = false;
-      $('#wait-kicker').textContent = T('duo.cadeau-texte');
-      actionGo = 'cadeau'; actionAlt = 'sans-envie';
+      $('#wait-kicker').textContent = T('duo.cadeau-texte', { prénom: (S.names[1] || '').trim() || T('installer.l-autre') });
+      actionGo = 'cadeau'; actionAlt = '';
       $('#wait-go').hidden = false; $('#wait-go').textContent = T('duo.composer');
-      $('#wait-alt').hidden = false; $('#wait-alt').textContent = T('jeu.sans-envie');
     } else $('#wait-title').hidden = true;
     const nb = $('#wait-notif');
     nb.hidden = true;
@@ -4941,9 +4946,10 @@
       if (!enPartie && !st.prog) pied = '<p class="regles-pied">' + TH('invite.piments', { prénom: A, piments: { html: parseLevels(st.levels).map(chip).join(' ') } }) + '</p>';
     } else {
       titre = T('principe.titre');
-      // Qui propose en premier : l’autre téléphone (son prénom une fois la partie rejointe), ou la deuxième personne sur un téléphone
-      l1 = TH('principe.1', { prénom: b(duo ? ((enPartie && nameOf(1)) || T('principe.autre')) : nameOf(1)) });
-      l2 = TH('principe.2', { prénom: b(nameOf(0)) });
+      // Qui a écrit son prénom en premier propose en premier (3 novembre 2026, décision de Marc : proposer engage,
+      // l’autre entre dans le jeu en répondant) ; l’autre répond, avec son prénom dès qu’on le connaît
+      l1 = TH('principe.1', { prénom: b(nameOf(0)) });
+      l2 = TH('principe.2', { prénom: b(duo ? ((S.names[1] || '').trim() || T('principe.autre')) : nameOf(1)) });
       l3 = esc(T('principe.3'));
       pied = '<p class="regles-pied">' + esc(T('principe.piment')) + '</p>';
     }
@@ -5029,7 +5035,7 @@
       return;
     }
     if (st.phase === 'lobby') {
-      // La partie commence : rouleaux au hasard, la personne invitée propose en premier
+      // Une invitation sans envie (d’avant le 3 novembre 2026) : la personne invitée propose en premier, comme avant
       const lv = parseLevels(st.levels);
       buildLists(lv);
       next.phase = 'compose';
@@ -6014,9 +6020,9 @@
       readNames();
       invName = where === 'duo' ? S.names[1] : '';
       if (where === 'duo') S.names[1] = '';
-      // La deuxième personne propose en premier
-      $('#rule-a').textContent = where === 'duo' ? T('principe.autre') : nameOf(1);
-      $('#rule-b').textContent = nameOf(0);
+      // Qui a écrit son prénom en premier propose en premier ; l’autre répond, avec le prénom qu’on vient d’écrire (3 novembre 2026)
+      $('#rule-a').textContent = nameOf(0);
+      $('#rule-b').textContent = where === 'duo' ? ((invName || '').trim() || T('principe.autre')) : nameOf(1);
       $('#piment-go').textContent = where === 'duo' ? T('depart.go-distance') : T('depart.go');
       // À distance, le piment se débloque en jouant : on le montre au lieu de le choisir
       const prog = where === 'duo';
@@ -6210,15 +6216,15 @@
     renderKiffs();
     S.started = true;
     S.mustRestart = false;
-    // La deuxième personne propose en premier : on lui passe le téléphone
-    S.proposer = 1;
+    // Qui a écrit son prénom en premier propose en premier : il ou elle a déjà le téléphone en main (3 novembre 2026 ; avant : la deuxième personne)
+    S.proposer = 0;
     S.phase = 'compose';
     render();
     save('rulesSeen', true);
     addKnown(S.names[0], S.names[1]);
     savePair(); // la partie rejoint la liste de l’accueil
     tient = -1; nouvelle = null; choix = null;
-    handoffNewTurn(1, T('passage.premier'), () => setTimeout(() => shuffle(false, true), 250));
+    handoffNewTurn(0, T('passage.premier'), () => setTimeout(() => shuffle(false, true), 250));
   }
   /* Les parties sur ce téléphone : chaque paire de prénoms garde sa partie (paires), on la retrouve à l’accueil */
   const capName = (n) => n.replace(/(^|[\s-])(\S)/g, (m, a, b) => a + b.toUpperCase());
