@@ -98,6 +98,7 @@ window.KIFF_TEXTES = [
     ["principe.3-sous", "", "Sous le troisième geste, en petit (vide : rien ne s’affiche)"],
     ["principe.piment", "On dit non quand on veut, sans se justifier.", "Sous les trois gestes"],
     ["principe.ok", "Compris", "Bouton"],
+    ["principe.plus", "En savoir plus ?", "Petit lien tout en bas du principe : ouvre « Kiff Kiff, l’histoire »"],
     ["principe.autre", "L’autre", "À la place du prénom dans la première règle, quand l’autre joue sur son téléphone"]
   ] },
   { id: "depart", nom: "Les piments du départ", textes: [
