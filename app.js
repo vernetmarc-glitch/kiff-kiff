@@ -2487,6 +2487,16 @@
       '<div class="invite-share"><button class="btn" type="button" data-avertir="oui"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-avertir"/></svg> ' + esc(T('avertir.carte-oui')) + '</button></div>' +
       '<button class="link-btn invite-cancel" type="button" data-avertir="non">' + esc(T('avertir.carte-non')) + '</button></div></li>';
   }
+  /* Les idées pour rejouer (3 novembre 2026) : proposées une fois, après deux kiff kiff, à qui peut recevoir des avertissements */
+  const relanceWanted = () => !!KP && !!KP.plan && !!window.KIFF_API && ['on', 'off'].includes(pushStatus) && load('relances', null) === null
+    && (S.kiffs || []).filter(Boolean).length >= 2 && enJeu();
+  function relanceCardHtml() {
+    return '<li class="thread-install"><div class="invite-card install-card">' +
+      '<span class="thread-kiff-kicker">' + esc(T('relance.carte-kicker')) + '</span>' +
+      '<p class="invite-text">' + esc(T('relance.carte')) + '</p>' +
+      '<div class="invite-share"><button class="btn" type="button" data-relance="oui">' + esc(T('relance.carte-oui')) + '</button></div>' +
+      '<button class="link-btn invite-cancel" type="button" data-relance="non">' + esc(T('relance.carte-non')) + '</button></div></li>';
+  }
   function renderChat(toEnd) {
     if (ovPartie.hidden) return;
     if (duo && (duo.stage === 'invite' || duo.stage === 'gift-ask') && duo.info) { $('#chat-list').innerHTML = inviteThreadHtml(); $('#chat-down').hidden = true; return; }
@@ -2498,6 +2508,10 @@
     const pe = pendingEnvie();
     if (pe) items.push({ d: pe.d, e: pe });
     lvFil(pe).forEach((x) => items.push(x));
+    // Version gratuite : après le 3e kiff kiff de la partie, une ligne vers toute la réserve (3 novembre 2026).
+    // La seule proposition que le jeu fait de lui-même dans une partie ; le reste vient d’un geste du joueur.
+    const kf = (S.kiffs || []).filter(Boolean);
+    if (OFFRE !== 'tout' && !isComplet() && kf.length >= 3) items.push({ d: (kf[2].d || 0) + 2, roues: true });
     if (S.regles) items.push({ d: (S.t0 || Date.now()) - 1, regles: S.regles });
     // L’envie glissée gardée pour plus tard : chez qui l’a glissée, une note, le temps du premier tour
     if (duo && duo.seat === 0 && S.pass && S.pass.why === 'cadeau' && !(S.kiffs || []).length) items.push({ d: (S.t0 || 0) + 1, note: T('nouvelles.commence-texte', { prénom: nameOf(1) }) });
@@ -2521,6 +2535,7 @@
       if (it.e) { html += threadEnvieHtml(it.e, B); return; }
       if (it.lv) { html += pimentFilHtml(it, B); return; }
       if (it.note) { html += '<li class="thread-note">' + esc(it.note) + '</li>'; return; }
+      if (it.roues) { html += '<li class="thread-note thread-note--offre">' + esc(T('fil.roues-gratuites', { gratuit: Math.max(...[0, 1, 2].map((r) => freePick(r, [1, 2]).length)) })) + ' <button class="ahoui" type="button" data-offre="roues">' + esc(T('fil.roues-reserve')) + '</button></li>'; return; }
       if (it.regles) { html += reglesHtml(it.regles === 'invite' ? 'invite' : 'cree', duo ? (duo.remote || { names: S.names, prog: S.prog, levels: S.levels }) : {}, true); return; }
       if (it.o) { html += '<li class="thread-kiff thread-offert"><span class="thread-kiff-kicker">' + esc(T('partie.offert-kicker')) + '</span><p class="thread-offert-text">' + esc(T('partie.offert', { prénom: B })) + '</p></li>'; return; }
       const m = it.m, mine = m.s === duo.seat;
@@ -2544,6 +2559,7 @@
     if (installWanted()) html += installCardHtml(B);
     else if (appCardWanted()) html += appCardHtml();
     else if (avertirWanted()) html += avertirCardHtml(B);
+    else if (relanceWanted()) html += relanceCardHtml();
     if (typingKid) html += '<li class="chat-typing" aria-label="' + esc(B + ' ' + T('chat.ecrit')) + '"><span></span><span></span><span></span></li>';
     const sc = $('#kiff-scroll');
     const atEnd = sc.scrollHeight - sc.scrollTop - sc.clientHeight < 80;
@@ -2843,6 +2859,15 @@
       if (av.dataset.avertir === 'oui') { report('notif', null, 'carte'); toggleNotif(av).then(() => renderChat()); return; }
       audio(); save('avertirCarteNon', true); report('notif', null, 'carte-plus-tard'); renderChat(); return;
     }
+    // Version gratuite : « Toute la réserve »
+    const of = e.target.closest('[data-offre]');
+    if (of) { openComplet(of.dataset.offre); return; }
+    // Les idées pour rejouer : oui (les avertissements d’abord, s’il le faut), ou non merci (la carte ne revient plus)
+    const rl = e.target.closest('[data-relance]');
+    if (rl) {
+      if (rl.dataset.relance === 'oui') { relancesOui(rl).then(() => renderChat()); return; }
+      audio(); sClick(); save('relances', false); report('relance', null, 'carte-non'); renderChat(); return;
+    }
     // Un piment débloqué : on monte, ou on reste où on est (la carte s’en va : pour la partie sur un téléphone,
     // sur ce téléphone à distance). À distance, on monte en proposant son envie : l’autre l’accepte avant de la lire.
     const lvo = e.target.closest('[data-lv="monter"], [data-lv="rester"]');
@@ -3099,6 +3124,7 @@
     if (!up) return;
     $('#party-unlock-chili').innerHTML = '<span class="pgroup pgroup--' + now + ' is-on">' + CHILI.repeat(now) + '</span>';
     // Brûlant atteint en version gratuite : c’est le moment de montrer Tout Kiff Kiff (la pastille l’ouvre)
+    if (now === 3) save('brulantVu', true); // pour la relance « Brûlant vous attend »
     const offre = now === 3 && !isComplet();
     box.dataset.complet = offre ? '1' : '';
     box.classList.toggle('is-offre', offre);
@@ -3832,7 +3858,79 @@
     renderDuoStatus();
     if (!ovPartie.hidden) renderChat(); // la carte « Être averti·e » suit l’état des avertissements
     pushRefresh();
+    planRelances();
   }
+  /* ---------- Les idées pour rejouer (3 novembre 2026) ----------
+     Pour qui les a acceptées : jusqu’à trois messages neutres (ils se voient sur l’écran verrouillé), à 19 h,
+     3, 7 et 14 jours après le dernier passage dans le jeu, puis plus rien. Ce téléphone les écrit et les chiffre
+     pour lui-même (le script ne les lit pas) ; chaque passage les repousse. */
+  const relancesOn = () => load('relances', null) === true;
+  function appareilId() {
+    let id = load('appareilId', '');
+    if (!/^[a-z0-9]{12,24}$/.test(id)) {
+      const a = 'abcdefghijklmnopqrstuvwxyz0123456789';
+      id = Array.from(crypto.getRandomValues(new Uint8Array(16)), (x) => a[x % 36]).join('');
+      save('appareilId', id);
+    }
+    return id;
+  }
+  function relanceListe() {
+    const a19 = (j) => { const d = new Date(); d.setDate(d.getDate() + j); d.setHours(19, 0, 0, 0); return d.getTime(); };
+    // À 3 jours : « Plus qu’un kiff kiff avant Pimenté… » quand la dernière partie en était là
+    let j3 = T('relance.j3');
+    if (S.prog && enJeu()) {
+      const k = (S.kiffs || []).filter(Boolean), u = unlocked();
+      const n = (min) => k.filter((x) => (x.lv || 1) >= min).length;
+      const reste = u === 1 ? LV_PAS - n(1) : u === 2 ? LV_PAS - n(2) : 0;
+      if (reste === 1) j3 = T('relance.j3-palier', { niveau: D.niveaux[u].nom });
+    }
+    // À 7 jours : Brûlant débloqué sans Tout Kiff Kiff, une fois ; sinon de nouveaux mots
+    const brulant = OFFRE !== 'tout' && !isComplet() && !load('relBrulantFait', false) && (!!load('brulantVu', false) || (S.prog && unlocked() === 3));
+    const m = (e, b) => ({ k: 'relance', e, b });
+    return [
+      { etape: 'j3', quand: a19(3), msg: m('j3', j3) },
+      { etape: brulant ? 'brulant' : 'j7', quand: a19(7), msg: m(brulant ? 'brulant' : 'j7', T(brulant ? 'relance.brulant' : 'relance.j7')) },
+      { etape: 'j14', quand: a19(14), msg: m('j14', T('relance.j14')) }
+    ];
+  }
+  let relanceSig = '', relanceT = 0;
+  async function planRelances(force) {
+    if (!KP || !KP.plan || !window.KIFF_API || !relancesOn() || pushStatus !== 'on') return;
+    const liste = relanceListe();
+    const sig = new Date().toDateString() + JSON.stringify(liste.map((x) => x.msg.b));
+    if (!force && sig === relanceSig && Date.now() - relanceT < 6 * 3600e3) return;
+    const sub = pushMine || await KP.current();
+    if (!sub) return;
+    relanceSig = sig; relanceT = Date.now();
+    KP.plan(sub, appareilId(), liste);
+  }
+  async function relancesOui(btn) {
+    if (!KP) return;
+    // Il faut les avertissements de ce téléphone : on les active d’abord (la demande du navigateur, pendant le toucher)
+    if (pushStatus !== 'on') await toggleNotif(btn);
+    else { audio(); sClick(); haptic(8); }
+    if (pushStatus !== 'on') return;
+    save('relances', true);
+    report('relance', null, 'oui');
+    planRelances(true);
+    flashPresence(T('relance.ok'));
+    renderMenuAvertir();
+  }
+  function relancesNon() {
+    audio(); sClick(); haptic(8);
+    save('relances', false);
+    if (KP && KP.plan) KP.plan(null, appareilId(), []);
+    report('relance', null, 'non');
+    flashPresence(T('relance.coupees'));
+    renderMenuAvertir();
+  }
+  // Ouvert depuis une relance : on le compte (et « Brûlant vous attend » ne repart plus)
+  function relanceOuverte(etape) {
+    if (!/^[a-z0-9]{1,10}$/.test(String(etape || ''))) return;
+    report('relance', null, 'ouvre-' + etape);
+    if (etape === 'brulant') save('relBrulantFait', true);
+  }
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') planRelances(); });
   // La partie n’a pas encore ma dernière adresse : on la lui donne (sans rien changer d’autre)
   function pushRefresh() {
     if (!duo || duo.stage !== 'game' || !KP) return;
@@ -4405,6 +4503,11 @@
     const b = $('#menu-avertir'); if (!b) return;
     b.hidden = !KP || !['on', 'off', 'install', 'blocked'].includes(pushStatus);
     b.setAttribute('aria-pressed', pushStatus === 'on' ? 'true' : 'false');
+    const r = $('#menu-relances');
+    if (r) {
+      r.hidden = !KP || !KP.plan || !window.KIFF_API || !['on', 'off', 'install', 'blocked'].includes(pushStatus);
+      r.setAttribute('aria-pressed', pushStatus === 'on' && relancesOn() ? 'true' : 'false');
+    }
   }
   /* Connexion : la mienne et celle de l’autre */
   function renderDuoStatus() {
@@ -5256,6 +5359,10 @@
   }
   $('#wait-notif').addEventListener('click', (e) => toggleNotif(e.currentTarget));
   $('#menu-avertir').addEventListener('click', async (e) => { await toggleNotif(e.currentTarget); renderMenuAvertir(); report('notif', null, 'menu'); });
+  $('#menu-relances').addEventListener('click', async (e) => {
+    if (pushStatus === 'on' && relancesOn()) relancesNon(); else await relancesOui(e.currentTarget);
+    renderMenuAvertir();
+  });
   $('#duo-notif').addEventListener('click', (e) => toggleNotif(e.currentTarget));
   document.addEventListener('visibilitychange', () => {
     const vis = document.visibilityState === 'visible';
@@ -5284,7 +5391,10 @@
     hide(ovGames);
     openGame(room);
   };
-  if ('serviceWorker' in navigator) navigator.serviceWorker.addEventListener('message', (e) => { if (e.data && e.data.kk === 'jouer') goToGame(e.data.r, e.data.kf); });
+  if ('serviceWorker' in navigator) navigator.serviceWorker.addEventListener('message', (e) => {
+    if (e.data && e.data.kk === 'jouer') goToGame(e.data.r, e.data.kf);
+    if (e.data && e.data.kk === 'relance') relanceOuverte(e.data.e);
+  });
   window.addEventListener('online', () => { if (duo && duo.conn) duo.conn.wake(); });
 
   /* ---------- Atelier en ligne : comptes anonymes et mots modifiés ---------- */
@@ -5568,7 +5678,7 @@
       if (isComplet() || !ovComplet.hidden) return;
       // Avant le premier kiff kiff (sur ce téléphone), Brûlant ne se vend pas : on commence plus tranquille
       if (why === 'brulant' && !everKiff()) { audio(); sClick(); report('complet', null, 'brulant-tot'); note(T('complet.tot-titre'), T('complet.tot-texte'), null, T('complet.tot-ok')); return; }
-      $('#complet-titre').textContent = T({ brulant: 'complet.titre-brulant', fete: 'complet.titre-brulant', recherche: 'complet.titre-recherche', ecrire: 'complet.titre-ecrire', ton: 'complet.titre-ton' }[why] || 'complet.titre');
+      $('#complet-titre').textContent = T({ brulant: 'complet.titre-brulant', fete: 'complet.titre-brulant', recherche: 'complet.titre-recherche', ecrire: 'complet.titre-ecrire', ton: 'complet.titre-ton', roues: 'complet.titre-roues' }[why] || 'complet.titre');
       audio(); sClick(); haptic(10);
       completFrom = document.activeElement;
       const total = SOURCE.reduce((n, l) => n + l.length, 0);
@@ -5577,6 +5687,14 @@
       const envies = 2 * SOURCE.reduce((n, l) => n * Math.max(1, l.length), 1);
       const enviesTxt = envies >= 2e6 ? T('complet.millions', { nombre: Math.floor(envies / 1e6) }) : envies.toLocaleString('fr-FR');
       $('#complet-texte').textContent = T('complet.texte', { gratuit: free, total, envies: enviesTxt });
+      // Ce qui a amené ici, en une ligne (3 novembre 2026) : les mots brûlants, ou les roues gratuites ; à distance, un achat pour deux
+      let pq = '';
+      if (why === 'brulant' || why === 'fete') pq = T('complet.pourquoi-brulant', { nombre: SOURCE.reduce((n, l) => n + l.filter((x) => (x.lvl || 1) === 3).length, 0) });
+      else if (why === 'roues') pq = T('complet.pourquoi-roues', { gratuit: Math.max(...[0, 1, 2].map((r) => freePick(r, [1, 2]).length)), total });
+      if (pq && duo) pq += ' ' + T('complet.pour-deux');
+      $('#complet-pourquoi').textContent = pq;
+      $('#complet-pourquoi').hidden = !pq;
+      $('#complet-texte').hidden = why === 'roues'; // la ligne des roues dit déjà les nombres
       // Offert ailleurs : la personne qui l’offrait, puis celle de cette partie (27 octobre 2026)
       const ail = offertAilleurs();
       $('#complet-offert').hidden = !ail;
@@ -5943,6 +6061,11 @@
     let fromNotif = '';
     let fromKiff = '';
     try { fromNotif = new URLSearchParams(location.search).get('jouer') || ''; fromKiff = new URLSearchParams(location.search).get('kiff') || ''; } catch (e) { /* rien */ }
+    // Ouvert depuis une idée pour rejouer (3 novembre 2026)
+    try {
+      const rel = new URLSearchParams(location.search).get('relance');
+      if (rel) { relanceOuverte(rel); const u = new URL(location.href); u.searchParams.delete('relance'); history.replaceState(null, '', u.pathname + u.search + u.hash); }
+    } catch (e) { /* rien */ }
     if (fromNotif) { try { const u = new URL(location.href); u.searchParams.delete('jouer'); u.searchParams.delete('kiff'); history.replaceState(null, '', u.pathname + u.search + u.hash); } catch (e) { /* rien */ } }
     if (inv) askAppFirst(inv);
     else if (fromNotif && findGame(fromNotif)) { report('notif', null, fromKiff ? 'ouverte-message' : 'ouverte'); pendingKiff = /^\d{6,16}$/.test(fromKiff) ? fromKiff : ''; openGame(fromNotif); }
@@ -6575,7 +6698,7 @@
   $('#menu-close').addEventListener('click', () => { audio(); hide(ovMenu2); });
   ovMenu2.addEventListener('click', (e) => { if (e.target === ovMenu2) hide(ovMenu2); });
   // Un choix du menu le referme ; la fenêtre choisie s’ouvre à sa place
-  $('#ov-menu .menu-list').addEventListener('click', (e) => { if (e.target.closest('button') && !e.target.closest('#menu-avertir')) hide(ovMenu2); }, true);
+  $('#ov-menu .menu-list').addEventListener('click', (e) => { if (e.target.closest('button') && !e.target.closest('#menu-avertir, #menu-relances')) hide(ovMenu2); }, true);
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !ovMenu2.hidden) hide(ovMenu2); });
   $('#menu-complet').addEventListener('click', () => { audio(); if (OFFRE === 'payant' && load('complet', false)) openAchat(); else openComplet('menu'); });
 

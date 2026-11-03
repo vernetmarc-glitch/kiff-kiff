@@ -167,7 +167,23 @@
     } catch (e) { return false; }
   }
 
+  /* Les idées pour rejouer (3 novembre 2026) : ce téléphone chiffre pour lui-même jusqu’à trois petits messages,
+     avec leur date ; le script les garde et les envoie à l’heure dite. Chaque passage dans le jeu les remplace :
+     tant qu’on joue, rien ne part. liste : [{ etape, quand (ms), msg }] ; une liste vide les annule. */
+  async function plan(sub, appareil, liste) {
+    if (!api() || !appareil) return false;
+    try {
+      const out = [];
+      if (sub && sub.e && sub.p && sub.a) {
+        for (const x of liste || []) out.push({ etape: x.etape, quand: x.quand, corps: b64u.enc(await encrypt(sub, x.msg)) });
+      }
+      await fetch(api(), { method: 'POST', mode: 'no-cors', keepalive: true,
+        body: JSON.stringify({ action: 'relances', appareil, adresse: sub && sub.e ? sub.e : '', liste: out }) });
+      return true;
+    } catch (e) { return false; }
+  }
+
   const sameSub = (a, b) => (!a && !b) || (!!a && !!b && a.e === b.e && a.p === b.p && a.a === b.a);
 
-  window.KiffPush = { status, current, enable, disable, send, remind, sameSub, ios, standalone, _encrypt: encrypt };
+  window.KiffPush = { status, current, enable, disable, send, remind, plan, sameSub, ios, standalone, _encrypt: encrypt };
 })();

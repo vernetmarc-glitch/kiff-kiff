@@ -1853,6 +1853,9 @@ body.en-jeu #home .ic-back { display: block; }
 .lv-regler { min-height: 40px; padding: 0 16px; font-size: 15px; }
 .lv-regler .ic { width: 18px; height: 18px; margin-right: 7px; }
 .lv-flash { margin: 0; font-size: 13px; opacity: .85; }
+.thread-note--offre .ahoui { font-size: 1em; }
+.complet-pourquoi { margin: -4px 0 0; font-size: 15.5px; font-weight: 700; line-height: 1.4; text-align: center; }
+.complet-pourquoi[hidden] { display: none; }
 .lv-rester { padding: 2px 8px; font-size: 14px; opacity: .85; }
 #ov-piment .piment-tout { align-self: center; margin: -2px auto 0; padding: 6px 8px; font-size: 13px; line-height: 1.3; opacity: .7; }
 .piment-tout[hidden] { display: none; }

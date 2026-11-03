@@ -10,8 +10,9 @@
  *   4. Déployer > Nouveau déploiement > type « Application Web »
  *        Exécuter en tant que : moi · Qui a accès : Tout le monde > Déployer > Autoriser l’accès.
  *   5. Copier l’adresse de l’application Web (elle finit par /exec).
- *   6. Une fois : choisir la fonction « installerRappels » et cliquer Exécuter (le rappel de deux jours
- *      passe toutes les heures ; Google demande l’autorisation de créer ce déclencheur).
+ *   6. Une fois : choisir la fonction « installerRappels » et cliquer Exécuter (le rappel d’un jour
+ *      et les idées pour rejouer passent toutes les heures ; Google demande l’autorisation de créer ce déclencheur).
+ *   Après chaque changement de ce fichier : Déployer > Gérer les déploiements > crayon > Version : Nouvelle version.
  *
  * Les onglets « mots », « textes », « compteurs », « choix » et « parties » se créent tout seuls.
  * Avant chaque enregistrement depuis l’atelier, la version d’avant est copiée dans « mots (avant) »
@@ -24,6 +25,9 @@
  * L’onglet « boite » est la boîte aux lettres de la discussion : un message chiffré y attend que
  * l’autre téléphone vienne le chercher, puis il est effacé (30 jours au plus). Illisible ici aussi.
  * L’onglet « journal » garde les 3000 derniers comptes (date, type, variante), sans rien de personnel.
+ * L’onglet « relances » (3 novembre 2026) garde les idées pour rejouer : un téléphone qui les a acceptées
+ * y dépose jusqu’à trois messages chiffrés pour lui-même, avec leur date. Illisibles ici ; chaque passage
+ * dans le jeu les remplace, et ils partent à l’heure dite si personne n’est revenu entre-temps.
  */
 /* Le mot de passe de l’atelier : dans les propriétés du script (« motdepasse »), jamais dans ce code.
    Dix essais ratés en dix minutes bloquent l’enregistrement pendant dix minutes. */
@@ -45,7 +49,9 @@ const TYPES = ['partie', 'envie', 'kiff', 'passe', 'visite', 'invitation', 'rejo
   'discussion', 'carte', 'installer', 'attente', 'brulant', 'complet', 'loupe', 'recherche', 'histoire',
   // 2 novembre 2026 : un téléphone nouveau (et d’où il vient), l’appli installée (une fois par téléphone),
   // le retour d’un téléphone (jour 1, semaine…), l’achat
-  'appareil', 'retour', 'achat'];
+  'appareil', 'retour', 'achat',
+  // 3 novembre 2026 : les idées pour rejouer (envoi-j3, ouvre-j3…)
+  'relance'];
 const PAR_JOUR = TYPES; // tous les comptes le sont aussi jour par jour (depuis le 2 novembre 2026)
 const ENT_JOURNAL = ['quand', 'type', 'variante'];
 const JOURNAL_MAX = 3000;
@@ -61,7 +67,10 @@ const ENT_CHOIX = ['roue', 'mot', 'envies', 'kiffs'];
 const ENT_PARTIES = ['partie', 'etat', 'seq', 'maj', 'cree', 'coup'];
 const GARDER_JOURS = 120; // une partie sans nouvelle depuis si longtemps est effacée
 const ENT_RAPPELS = ['partie', 'seq', 'adresse', 'corps', 'quand'];
-const RAPPEL_HEURES = 48; // un seul rappel, deux jours après un coup resté sans réponse
+const RAPPEL_HEURES = 24; // un seul rappel, un jour après un coup resté sans réponse (3 novembre 2026 ; avant : deux jours)
+const ENT_RELANCES = ['appareil', 'etape', 'adresse', 'corps', 'quand'];
+const RELANCES_MAX = 3;
+const ID_APPAREIL = /^[a-z0-9]{12,24}$/;
 
 function doGet(e) {
   const action = (e && e.parameter && e.parameter.action) || '';
@@ -82,6 +91,7 @@ function doPost(e) {
   if (corps.action === 'partie') return sortie(ecrirePartie(corps));
   if (corps.action === 'push') return sortie(envoyerNotification(corps));
   if (corps.action === 'rappel') return sortie(enregistrerRappel(corps));
+  if (corps.action === 'relances') return sortie(planifierRelances(corps));
   if (corps.action === 'boite') return sortie(poserBoite(corps));
   if (corps.action === 'boite-lu') return sortie(viderBoite(corps));
   // Tout Kiff Kiff, 3 € (2 novembre 2026) : la page de paiement de Stancer, la vérification au retour, le code d’achat
@@ -679,12 +689,61 @@ function enregistrerRappel(c) {
   try { installerRappels(); } catch (e) { /* l’installation se fait aussi à la main, une fois */ }
   return { ok: true };
 }
+/* Les idées pour rejouer : la liste de ce téléphone remplace la précédente (vide : il n’en veut plus) */
+function planifierRelances(c) {
+  const appareil = String(c.appareil || '');
+  if (!ID_APPAREIL.test(appareil)) return { ok: false, erreur: 'appareil' };
+  const liste = Array.isArray(c.liste) ? c.liste.slice(0, RELANCES_MAX) : [];
+  const adresse = String(c.adresse || '');
+  if (liste.length && (!PUSH_HOTES.test(adresse) || adresse.length > 1000)) return { ok: false, erreur: 'adresse' };
+  const now = Date.now();
+  const lignes = [];
+  for (const x of liste) {
+    const etape = String(x && x.etape || ''), corps = String(x && x.corps || ''), quand = Number(x && x.quand) || 0;
+    if (!/^[a-z0-9]{1,10}$/.test(etape) || quand < now || quand > now + 30 * 864e5) return { ok: false, erreur: 'etape' };
+    if (!corps || corps.length > 5000 || !/^[A-Za-z0-9_-]+$/.test(corps)) return { ok: false, erreur: 'corps' };
+    lignes.push([appareil, etape, adresse, 'k' + corps, new Date(quand)]);
+  }
+  const verrou = LockService.getScriptLock();
+  verrou.waitLock(15000);
+  try {
+    const f = feuille('relances', ENT_RELANCES);
+    const v = f.getDataRange().getValues();
+    for (let j = v.length - 1; j >= 1; j--) if (String(v[j][0]) === appareil) f.deleteRow(j + 1);
+    if (lignes.length) f.getRange(f.getLastRow() + 1, 1, lignes.length, ENT_RELANCES.length).setValues(lignes);
+  } finally {
+    verrou.releaseLock();
+  }
+  try { installerRappels(); } catch (e) { /* l’installation se fait aussi à la main, une fois */ }
+  return { ok: true };
+}
+// Les idées pour rejouer arrivées à l’heure : elles partent ; une adresse expirée efface tout ce téléphone
+function envoyerRelances_() {
+  const f = feuille('relances', ENT_RELANCES);
+  const v = f.getDataRange().getValues();
+  if (v.length < 2) return;
+  const now = Date.now();
+  const mort = {};
+  for (let j = v.length - 1; j >= 1; j--) {
+    const appareil = String(v[j][0]);
+    if (mort[appareil]) { f.deleteRow(j + 1); continue; }
+    const quand = v[j][4] instanceof Date ? v[j][4].getTime() : 0;
+    if (quand > now) continue;
+    f.deleteRow(j + 1);
+    try {
+      const r = envoyerNotification_({ adresse: String(v[j][2]), corps: String(v[j][3]).replace(/^k/, ''), urgence: 'normal' });
+      noterEvenement({ type: 'relance', detail: (r && r.ok ? 'envoi-' : 'echec-') + String(v[j][1]) });
+      if (r && (r.code === 404 || r.code === 410)) mort[appareil] = true;
+    } catch (e) { /* la prochaine fois */ }
+  }
+}
 // Toutes les heures : les rappels arrivés à échéance partent, si la partie attend toujours
 function envoyerRappels() {
   const verrou = LockService.getScriptLock();
   if (!verrou.tryLock(20000)) return;
   try {
     try { nettoyerBoite(); } catch (e) { /* la prochaine fois */ }
+    try { envoyerRelances_(); } catch (e) { /* la prochaine fois */ }
     const f = feuille('rappels', ENT_RAPPELS);
     const v = f.getDataRange().getValues();
     if (v.length < 2) return;

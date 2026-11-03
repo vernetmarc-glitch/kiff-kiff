@@ -79,6 +79,16 @@ self.addEventListener('push', (e) => {
     // Kiff Kiff à l’écran sur cette partie : elle montre déjà la nouvelle. Sur l’accueil aussi (il se met à jour).
     // Dans une autre partie : on avertit quand même (2 novembre 2026). L’adresse d’une partie contient « #duo=<relais><partie>. ».
     const ici = (c) => { const u = String(c.url || ''); return !/#duo=/.test(u) || (room && u.indexOf(room + '.') >= 0); };
+    // Une idée pour rejouer (3 novembre 2026) : écrite et chiffrée par ce téléphone pour lui-même, un texte neutre
+    if (m.k === 'relance') {
+      if (!ios && wins.some((c) => c.visibilityState === 'visible')) return;
+      const b = typeof m.b === 'string' ? m.b.replace(/[\u0000-\u001f<>]/g, '').trim().slice(0, 160) : '';
+      const etape = /^[a-z0-9]{1,10}$/.test(String(m.e || '')) ? String(m.e) : '';
+      return self.registration.showNotification('Kiff Kiff', {
+        body: b || 'Une envie à vous proposer ce soir ?', icon: 'icons/icon-192.png', badge: 'icons/badge-96.png',
+        tag: 'kk-relance', data: { rel: etape }
+      });
+    }
     if (!ios && wins.some((c) => c.visibilityState === 'visible' && c.focused && ici(c))) return;
     const nom = typeof m.n === 'string' ? m.n.replace(/[\u0000-\u001f<>]/g, '').trim().slice(0, 30) : '';
     if (!wins.some((c) => c.visibilityState === 'visible')) await badgeUp();
@@ -116,12 +126,13 @@ self.addEventListener('notificationclick', (e) => {
   e.waitUntil(badgeZero());
   const room = (e.notification.data && e.notification.data.r) || '';
   const kf = (e.notification.data && e.notification.data.kf) || '';
-  const url = new URL(room ? './?jouer=' + room + (kf ? '&kiff=' + kf : '') : './', self.registration.scope).href;
+  const rel = (e.notification.data && e.notification.data.rel) || '';
+  const url = new URL(room ? './?jouer=' + room + (kf ? '&kiff=' + kf : '') : (rel ? './?relance=' + rel : './'), self.registration.scope).href;
   e.waitUntil((async () => {
     const wins = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
     const w = wins.find((c) => new URL(c.url).origin === self.location.origin);
     if (w) {
-      w.postMessage({ kk: 'jouer', r: room, kf });
+      w.postMessage(rel ? { kk: 'relance', e: rel } : { kk: 'jouer', r: room, kf });
       return w.focus ? w.focus() : null;
     }
     return self.clients.openWindow(url);
