@@ -527,6 +527,7 @@ body:has(#ov-deal:not([hidden])) .deco-candles { display: none; }
 .step-sheet > .link-btn { align-self: center; }
 .step-back { font-size: 14px; opacity: .85; padding-top: 0; }
 .principe-plus { margin-top: 6px; padding: 6px 8px; font-size: 13px; opacity: .65; }
+.regles-carte .principe-plus { align-self: center; margin-top: 2px; }
 .welcome .poster-sub { text-wrap: balance; }
 .welcome > .btn { align-self: stretch; margin-top: 18px; }
 .welcome > .resume-link { margin-top: 0; }

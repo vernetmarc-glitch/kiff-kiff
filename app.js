@@ -2606,26 +2606,16 @@
       return '<li class="thread-piment is-passager"><div class="lv-carte"><span class="lv-puces">' + lvPuces(it.ajout) + '</span><p class="lv-texte">' +
         esc(moi ? T('fil.piment-propose', { niveaux: niv, prénom: B }) : T('fil.piment-propose-autre', { niveaux: niv, prénom: B })) + '</p></div></li>';
     }
-    // Brûlant débloqué (3 novembre 2026, à la demande de Marc) : on ne pousse pas à l’activer.
-    // « Compris » d’abord (la carte s’en va), et en lien discret le réglage, où Brûlant se coche (à deux)
-    if (it.n === 3 && (it.lv === 'ouvre' || it.lv === 'debloque')) {
-      return '<li class="thread-piment is-passager"><div class="lv-carte"><span class="thread-kiff-kicker">' + esc(T('fil.piment-ouvre-titre', { niveau: D.niveaux[2].nom })) + '</span>' +
-        '<span class="lv-puces">' + lvPuces([3]) + '</span><p class="lv-texte">' + esc(T('fil.brulant-ouvre')) + '</p>' +
-        '<button class="btn lv-regler" type="button" data-lv="vu" data-n="3">' + esc(T('fil.brulant-compris')) + '</button>' +
-        '<button class="link-btn lv-rester" type="button" data-lv="regler">' + esc(T('fil.piment-monter')) + '</button><p class="lv-flash" hidden></p></div></li>';
-    }
-    if (it.lv === 'ouvre') {
-      // Sur un téléphone : vous êtes là tous·tes les deux, on monte d’un geste (Brûlant demande encore votre accord à deux)
-      const nom = D.niveaux[it.n - 1].nom;
-      return '<li class="thread-piment is-passager"><div class="lv-carte"><span class="thread-kiff-kicker">' + esc(T('fil.piment-ouvre-titre', { niveau: nom })) + '</span>' +
-        '<span class="lv-puces">' + lvPuces([it.n]) + '</span><p class="lv-texte">' + esc(T('fil.piment-ouvre', { niveau: nom })) + '</p>' +
-        '<button class="btn lv-regler" type="button" data-lv="monter" data-n="' + it.n + '">' + esc(T('fil.piment-on-monte')) + '</button>' +
-        '<button class="link-btn lv-rester" type="button" data-lv="rester" data-n="' + it.n + '">' + esc(T('fil.piment-on-reste', { piment: lvNoms(S.levels) })) + '</button></div></li>';
-    }
-    // debloque
-    return '<li class="thread-piment is-passager"><div class="lv-carte"><span class="thread-kiff-kicker">' + esc(T('fil.piment-debloque-titre')) + '</span>' +
-      '<span class="lv-puces">' + lvPuces([it.n]) + '</span><p class="lv-texte">' + esc(T('fil.piment-debloque', { niveau: D.niveaux[it.n - 1].nom })) + '</p>' +
-      regler(T('fil.piment-monter')) + '<p class="lv-flash" hidden></p></div></li>';
+    // Un piment débloqué (3 novembre 2026) : la même carte sur un téléphone et à distance, « Pimenté débloqué ».
+    // Pimenté : « On monte » d’abord, c’est la suite naturelle. Brûlant : on informe sans pousser, « On reste » d’abord,
+    // et « On monte » passe par la feuille « Brûlant ? » (les propositions peuvent être bien cochonnes) : une double validation.
+    const n = it.n, nom = D.niveaux[n - 1].nom, brulant = n === 3;
+    const monte = (cls) => '<button class="' + cls + '" type="button" data-lv="monter" data-n="' + n + '">' + esc(T('fil.piment-on-monte')) + '</button>';
+    const reste = (cls) => '<button class="' + cls + '" type="button" data-lv="rester" data-n="' + n + '">' + esc(T('fil.piment-on-reste', { piment: D.niveaux[Math.max(...lvActuel()) - 1].nom })) + '</button>';
+    return '<li class="thread-piment is-passager"><div class="lv-carte"><span class="thread-kiff-kicker">' + esc(T('fil.piment-ouvre-titre', { niveau: nom })) + '</span>' +
+      '<span class="lv-puces">' + lvPuces([n]) + '</span><p class="lv-texte">' + esc(T(brulant ? 'fil.brulant-ouvre' : 'fil.piment-ouvre', { niveau: nom })) + '</p>' +
+      (brulant ? reste('btn lv-regler') + monte('link-btn lv-rester') : monte('btn lv-regler') + reste('link-btn lv-rester')) +
+      '<p class="lv-flash" hidden></p></div></li>';
   }
   // Le bouton « ↓ » : revenir au bas du fil, avec le nombre de nouveaux messages arrivés plus bas
   let newBelow = 0, lastOthersN = -1;
@@ -2853,25 +2843,26 @@
       if (av.dataset.avertir === 'oui') { report('notif', null, 'carte'); toggleNotif(av).then(() => renderChat()); return; }
       audio(); save('avertirCarteNon', true); report('notif', null, 'carte-plus-tard'); renderChat(); return;
     }
-    // Sur un téléphone, le piment débloqué : on monte, ou on reste où on est (la carte s’en va)
-    // Brûlant débloqué : « Compris », la carte s’en va (sur un téléphone : pour la partie ; à distance : sur ce téléphone)
-    const lvv = e.target.closest('[data-lv="vu"]');
-    if (lvv) {
-      audio(); sClick(); haptic(8);
-      const n = +lvv.dataset.n;
-      if (duo && duo.info) { const vu = load('lvVu', {}) || {}; vu[duo.info.room] = n; save('lvVu', vu); }
-      else { S.lvNon = n; savePair(); }
-      report('piment', null, 'vu-' + n);
-      renderChat();
-      return;
-    }
+    // Un piment débloqué : on monte, ou on reste où on est (la carte s’en va : pour la partie sur un téléphone,
+    // sur ce téléphone à distance). À distance, on monte en proposant son envie : l’autre l’accepte avant de la lire.
     const lvo = e.target.closest('[data-lv="monter"], [data-lv="rester"]');
-    if (lvo && !duo) {
+    if (lvo) {
       audio();
       const n = +lvo.dataset.n;
-      if (lvo.dataset.lv === 'monter') { monterPiment(n); return; }
+      if (lvo.dataset.lv === 'monter') {
+        if (duo && !(S.phase === 'compose' && myTurn())) {
+          sNope(); haptic(20);
+          const f = lvo.parentElement.querySelector('.lv-flash');
+          if (f) { f.textContent = T('fil.piment-plus-tard'); f.hidden = false; clearTimeout(f._t); f._t = setTimeout(() => { f.hidden = true; }, 3000); }
+          return;
+        }
+        monterPiment(n);
+        return;
+      }
       sClick(); haptic(8);
-      S.lvNon = n; savePair(); report('piment', null, 'reste-' + n);
+      if (duo && duo.info) { const vu = load('lvVu', {}) || {}; vu[duo.info.room] = n; save('lvVu', vu); }
+      else { S.lvNon = n; savePair(); }
+      report('piment', null, 'reste-' + n);
       renderChat();
       return;
     }
@@ -4784,7 +4775,8 @@
   function reglesHtml(mode, st, enPartie) {
     const b = (n) => ({ html: '<b>' + esc(n) + '</b>' });
     const geste = (ill, txt, sous) => '<li><span class="geste-ill" aria-hidden="true"><svg viewBox="0 0 54 54"><use href="#' + ill + '"/></svg></span><span class="geste-text">' + txt + (sous ? '<span class="geste-sub">' + esc(sous) + '</span>' : '') + '</span></li>';
-    const ahoui = (k) => ' <button class="ahoui" type="button" data-histoire="' + k + '">' + esc(T('histoire.ahoui')) + '</button>';
+    // Plus de « Ah oui ?! » dans les gestes (3 novembre 2026) : un seul petit lien en bas, vers « Kiff Kiff, l’histoire »
+    const plus = '<button class="link-btn principe-plus" type="button" data-histoire="donner">' + esc(T('principe.plus')) + '</button>';
     let titre, l1, l2, l3, pied = '';
     if (mode === 'invite') {
       const A = ((st.names && st.names[0]) || '').trim() || 'Cerise';
@@ -4792,18 +4784,20 @@
       const g = st.gift && !enPartie; // une fois la partie commencée, l’envie glissée n’est plus à venir
       l1 = g ? TH('invite.regle-1-envie', { prénom: b(A) }) : TH('invite.regle-1');
       l2 = g ? TH('invite.regle-2-envie') : TH('invite.regle-2', { prénom: b(A) });
-      l3 = esc(T('invite.regle-3')) + ahoui('non');
+      l3 = esc(T('invite.regle-3'));
+      // Le piment ne s’annonce plus à l’arrivée (3 novembre 2026) : comme chez qui invite, on le découvre en jouant.
+      // Les parties d’avant, au piment choisi d’avance, le disent encore.
       const chip = (n) => '<span class="inv-piment"><span class="pgroup pgroup--' + n + ' is-on">' + CHILI.repeat(n) + '</span> ' + esc(D.niveaux[n - 1].nom) + '</span>';
-      if (!enPartie) pied = '<p class="regles-pied">' + (st.prog ? TH('invite.piment-monte', { piment: { html: chip(1) } }) : TH('invite.piments', { prénom: A, piments: { html: parseLevels(st.levels).map(chip).join(' ') } })) + '</p>';
-      if (!enPartie && arrivee && arrivee.ap) pied += '<p class="inv-apercu"><span class="inv-apercu-kicker">' + esc(T('invite.apercu')) + '</span><span class="inv-apercu-envie">' + arrivee.ap + '</span></p>';
+      if (!enPartie && !st.prog) pied = '<p class="regles-pied">' + TH('invite.piments', { prénom: A, piments: { html: parseLevels(st.levels).map(chip).join(' ') } }) + '</p>';
     } else {
       titre = T('principe.titre');
       // Qui propose en premier : l’autre téléphone (son prénom une fois la partie rejointe), ou la deuxième personne sur un téléphone
-      l1 = TH('principe.1', { prénom: b(duo ? ((enPartie && nameOf(1)) || T('principe.autre')) : nameOf(1)) }) + ahoui('donner');
+      l1 = TH('principe.1', { prénom: b(duo ? ((enPartie && nameOf(1)) || T('principe.autre')) : nameOf(1)) });
       l2 = TH('principe.2', { prénom: b(nameOf(0)) });
       l3 = esc(T('principe.3'));
-      pied = '<p class="regles-pied">' + esc(T('principe.piment')) + ahoui('non') + '</p>';
+      pied = '<p class="regles-pied">' + esc(T('principe.piment')) + '</p>';
     }
+    pied += plus;
     return '<li class="thread-regles"><div class="regles-carte"><span class="thread-kiff-kicker">' + esc(titre) + '</span><ol class="gestes gestes--fil">' +
       geste('ill-roues', l1, mode === 'invite' ? '' : T('principe.1-sous')) + geste('ill-reponses', l2, '') + geste('ill-kiff', l3, '') + '</ol>' + pied + '</div></li>';
   }
@@ -5503,6 +5497,8 @@
     const askBrulant = (yes, no) => {
       brulantYes = yes; brulantNo = no || null;
       brulantFocus = document.activeElement;
+      // À distance, l’autre n’est pas là : on propose Brûlant, il ou elle l’acceptera avant de lire l’envie (3 novembre 2026)
+      $('#brulant-yes').textContent = T(duo ? 'brulant.oui-distance' : 'brulant.oui', { prénom: duo ? nameOf(other(duo.seat)) : '' });
       show(ovBrulant);
       sSwitchOn(); haptic(20);
       $('#brulant-yes').focus({ preventScroll: true });
@@ -5516,16 +5512,18 @@
       if (go) go();
     };
     $('#brulant-yes').addEventListener('click', () => { audio(); closeBrulant(true); });
-    // « On monte » (sur un téléphone) : le piment débloqué rejoint les roues ; Brûlant passe par Tout Kiff Kiff et votre accord à deux
+    // « On monte » : le piment débloqué rejoint les roues ; Brûlant passe par Tout Kiff Kiff et votre accord à deux
     monterPiment = (n) => {
       if (n === 3 && !isComplet()) { openComplet('brulant'); return; }
       const go = () => {
         sClick(); haptic(12);
         setLevels([...new Set(S.levels.concat(n))]);
-        noteLv(); savePair(); report('piment', null, 'monte-' + n);
+        if (!duo) { noteLv(); savePair(); } // à distance, la note viendra quand l’autre aura accepté
+        report('piment', null, 'monte-' + n);
         renderChat(true);
       };
-      if (n === 3 && !brulantOk) { askBrulant(go); return; }
+      // Brûlant : toujours la feuille « Brûlant ? » d’abord, sur un téléphone comme à distance
+      if (n === 3 && (duo || !brulantOk)) { askBrulant(go); return; }
       go();
     };
     // Pour qui connaît déjà le jeu (sur un téléphone) : tous les piments, tout de suite
