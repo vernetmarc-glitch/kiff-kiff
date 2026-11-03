@@ -329,6 +329,7 @@ Les fondations du document « Kiff Kiff : cibles, diffusion et recrutement sans 
 - **L’image partagée** : le lien du message porte toujours `?de=image` (l’image elle-même reste sans code ni publicité, décision d’octobre).
 - **Trois pages de recherche** : `/jeu-coquin-a-distance/`, `/idees-de-sexto/`, `/pimenter-son-couple/` (feuille `pages.css`), suggestives, sans corps ni image, chacune avec « Jouer à Kiff Kiff » (`?de=distance`, `sexto`, `couple`). `robots.txt` (l’atelier exclu) et `sitemap.xml`. À déclarer dans Google Search Console.
 - **Contenus** : une tâche planifiée chaque lundi à 8 h 56 prépare la semaine (4 carrousels de 5 images, leurs textes, une idée de réponse Reddit, les chiffres de l’atelier quand elle peut les lire). Rien n’est publié sans Marc.
+- **La voix de Marc** (3 novembre, à sa demande : le ton était « trop loin » du sien). Guide tiré uniquement de ses propres textes : `docs/style-marc.md`. Réécrits dans cette voix : 31 textes du jeu (fil, relances, cartes, verrous des piments, Tout Kiff Kiff, messages d’invitation : « Ça te dit, une partie de Kiff Kiff ? … Rien ne s’affiche sans nos deux oui 😏 C’est par ici : »), les trois pages de recherche, le kit de diffusion et les carrousels. Les boutons et consignes restent neutres. Liste complète pour ses retouches : le doc « Kiff Kiff : les textes réécrits dans ta voix ». Tout nouveau texte (dont la tâche planifiée du lundi) suit ce guide ; quand Marc retouche, on met le guide à jour.
 
 ## Pistes ouvertes
 

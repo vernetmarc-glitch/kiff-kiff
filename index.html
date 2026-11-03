@@ -257,7 +257,7 @@
           <label for="name0" data-t="joueurs.ton-prenom">Ton prénom</label>
           <input id="name0" maxlength="20" autocomplete="off" placeholder="Cerise" enterkeyhint="next" data-t-ph="joueurs.exemple-1">
           <!-- Deux téléphones par défaut (3 novembre 2026) : le choix reste là, caché ; le lien sous le bouton bascule -->
-          <p class="where-texte" id="where-texte" data-t="joueurs.distance-texte">Chacun·e sur son téléphone : tu invites l’autre, et vous jouez au fil de la journée.</p>
+          <p class="where-texte" id="where-texte" data-t="joueurs.distance-texte">Chacun·e sur son téléphone : tu invites l’autre, et vos envies se baladent de l’un à l’autre au fil de la journée.</p>
           <p class="where-label" id="where-label" hidden data-t="joueurs.ou">L’autre joue…</p>
           <div class="where" role="group" aria-labelledby="where-label" hidden>
             <button class="where-btn" type="button" data-where="here" aria-pressed="true" data-t="joueurs.ici">Sur ce téléphone</button>
@@ -270,7 +270,7 @@
           <!-- Une personne qui n’a jamais joué sur ce téléphone : le principe lui sera montré -->
           <p class="first-note" id="first-note" hidden><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-etoiles"/></svg><span id="first-note-text"></span></p>
           <button class="btn" type="submit" id="start-go" data-t="joueurs.suivant">Suivant</button>
-          <button class="link-btn where-bascule" type="button" id="where-bascule">Vous êtes côte à côte ? Jouer sur ce téléphone</button>
+          <button class="link-btn where-bascule" type="button" id="where-bascule">Côte à côte ? Jouer sur ce téléphone</button>
           <button class="link-btn step-back" type="button"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-retour"/></svg><span data-t="joueurs.retour">Retour</span></button>
         </form>
       </section>
@@ -285,11 +285,11 @@
             <li><span class="geste-ill" aria-hidden="true"><svg viewBox="0 0 54 54"><use href="#ill-reponses"/></svg><b>2</b></span><span class="geste-text"><span data-t="principe.2"><b id="rule-b" data-tk="prénom">Pistache</b> répond «&nbsp;J’ai envie aussi&nbsp;», «&nbsp;Oui, mais…&nbsp;» ou «&nbsp;Non&nbsp;».</span><span class="geste-sub" data-t="principe.2-sous"></span></span></li>
             <li><span class="geste-ill" aria-hidden="true"><svg viewBox="0 0 54 54"><use href="#ill-kiff"/></svg><b>3</b></span><span class="geste-text"><span data-t="principe.3">Deux «&nbsp;j’ai envie&nbsp;»&nbsp;: kiff kiff&nbsp;!</span><span class="geste-sub" data-t="principe.3-sous"></span></span></li>
           </ol>
-          <p class="step-text principe-piment"><span data-t="principe.piment">On dit non quand on veut, sans se justifier.</span></p>
+          <p class="step-text principe-piment"><span data-t="principe.piment">On dit non quand on veut, sans avoir à se justifier. Et c’est très bien comme ça.</span></p>
           <button class="btn" id="rules-ok" type="button" data-t="principe.ok">Compris</button>
           <button class="link-btn step-back" type="button"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-retour"/></svg><span data-t="joueurs.retour">Retour</span></button>
           <!-- Pour qui veut plus de détails : « Kiff Kiff, l’histoire » (3 novembre 2026 ; avant : deux « Ah oui ?! » dans les gestes) -->
-          <button class="link-btn principe-plus" type="button" data-histoire="donner" data-t="principe.plus">Pourquoi ces règles&nbsp;?</button>
+          <button class="link-btn principe-plus" type="button" data-histoire="donner" data-t="principe.plus">Pourquoi ces règles, au fait&nbsp;?</button>
         </div>
       </section>
 
@@ -339,7 +339,7 @@
           <p class="inv-apercu" id="inv-apercu" hidden><span class="inv-apercu-kicker" data-t="invite.apercu">Et quand le piment monte :</span><span class="inv-apercu-envie" id="inv-apercu-envie"></span></p>
           <button class="btn" id="inv-ok" type="button" data-t="invite.ok">Compris</button>
           <button class="link-btn step-back" type="button"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-retour"/></svg><span data-t="joueurs.retour">Retour</span></button>
-          <button class="link-btn principe-plus" type="button" data-histoire="donner" data-t="principe.plus">Pourquoi ces règles&nbsp;?</button>
+          <button class="link-btn principe-plus" type="button" data-histoire="donner" data-t="principe.plus">Pourquoi ces règles, au fait&nbsp;?</button>
         </div>
       </section>
 
@@ -976,7 +976,7 @@ Toutes les réponses sont bonnes&nbsp;!</p>
 <script src="config.js?v=63"></script>
 <script src="duo.js?v=65"></script>
 <script src="push.js?v=66"></script>
-<script src="app.js?v=172"></script>
+<script src="app.js?v=173"></script>
 <!-- iPhone, appli installée : deux bandes d’une couleur unie en haut et en bas de l’écran (voir base.css) -->
 <div class="edge edge--haut" aria-hidden="true"></div><div class="edge edge--bas" aria-hidden="true"></div>
 </body>

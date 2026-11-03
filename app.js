@@ -5254,7 +5254,7 @@
     if (S.gift) return me ? T('duo.message-envie', { prénom: me }) : T('duo.message-envie-anonyme');
     if (!S.rencontre) return me ? T('duo.message', { prénom: me }) : T('duo.message-anonyme');
     // Le mode rencontre, à la première personne aussi (3 novembre 2026)
-    return 'On joue avant de se voir ? L’un·e propose une envie, l’autre répond oui, oui mais, ou non. Rien ne s’affiche sans nos deux oui. Ouvre ce lien sur ton téléphone :';
+    return 'On joue avant de se voir ? On se propose des envies chacun·e son tour, et l’autre répond oui, oui mais, ou non, sans avoir à se justifier. Rien ne s’affiche sans nos deux oui 😏 C’est par ici :';
   }
   $('#duo-copy').addEventListener('click', async () => {
     const url = duo && duo.info ? window.KiffDuo.link(duo.info) : '';
