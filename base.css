@@ -1360,6 +1360,12 @@ body:has(#ov-deal:not([hidden])) .deco-candles { display: none; }
 .chat-msg.is-swiping::before { content: ""; position: absolute; left: -34px; top: 50%; width: 22px; height: 22px; margin-top: -11px; border-radius: 50%; opacity: .35;
   background: currentColor; -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M10 8L5 12l5 4M5 12h9a5 5 0 0 1 5 5' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/></svg>") center / 18px no-repeat; mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M10 8L5 12l5 4M5 12h9a5 5 0 0 1 5 5' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/></svg>") center / 18px no-repeat; }
 .chat-msg.is-ready::before { opacity: .9; }
+/* Glisser un kiff kiff pour le citer (3 novembre 2026) : la même flèche que les messages */
+li.thread-kiff[data-kid] { position: relative; touch-action: pan-y; transition: transform .18s ease-out; }
+li.thread-kiff.is-swiping { transition: none; }
+li.thread-kiff.is-swiping::before { content: ""; position: absolute; left: -34px; top: 50%; width: 22px; height: 22px; margin-top: -11px; border-radius: 50%; opacity: .35;
+  background: currentColor; -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M10 8L5 12l5 4M5 12h9a5 5 0 0 1 5 5' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/></svg>") center / 18px no-repeat; mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M10 8L5 12l5 4M5 12h9a5 5 0 0 1 5 5' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/></svg>") center / 18px no-repeat; }
+li.thread-kiff.is-ready::before { opacity: .9; }
 /* Le bouton ↓ */
 .chat-bar { position: relative; }
 .chat-down { position: absolute; right: 6px; top: -54px; z-index: 3; min-width: 44px; height: 44px; padding: 0 12px; border: 0; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer;

@@ -2826,10 +2826,11 @@
   };
   const pressEnd = () => clearTimeout(pressT);
   const cl = $('#chat-list');
-  // Glisser un message vers la droite (comme dans les messageries) : y répondre
+  // Glisser un message vers la droite (comme dans les messageries) : y répondre.
+  // Un kiff kiff aussi (3 novembre 2026, demandé par Marc) : on le cite, comme depuis sa carte
   let swipe = null;
   cl.addEventListener('pointerdown', (e) => {
-    const li = e.target.closest('[data-mid]');
+    const li = e.target.closest('[data-mid], li.thread-kiff[data-kid]');
     swipe = li && canChat() ? { li, x: e.clientX, y: e.clientY, dx: 0, on: false } : null;
   });
   cl.addEventListener('pointermove', (e) => {
@@ -2849,7 +2850,12 @@
     const sw = swipe; swipe = null;
     if (!sw.on) return;
     sw.li.style.transform = ''; sw.li.classList.remove('is-swiping', 'is-ready');
-    if (sw.dx > 56) {
+    // Le toucher qui finit le geste n’ouvre pas la carte du kiff kiff
+    sw.li.dataset.swiped = '1'; setTimeout(() => { delete sw.li.dataset.swiped; }, 350);
+    if (sw.dx > 56 && sw.li.dataset.kid) {
+      haptic(10); startCite(sw.li.dataset.kid);
+      report('discussion', null, 'glisser-kiff');
+    } else if (sw.dx > 56) {
       replyTo = sw.li.dataset.mid; editing2 = null; citeKid = '';
       haptic(10); renderReplyBar(); chatInput.focus({ preventScroll: true });
       report('discussion', null, 'glisser');
@@ -2863,6 +2869,7 @@
   // Toucher une carte du fil l’ouvre en plein écran ; toucher une citation retrouve sa carte
   cl.addEventListener('click', (e) => {
     const c = e.target.closest('[data-envie]');
+    if (c && c.closest('[data-swiped]')) return; // c’était un glisser, pas un toucher
     if (c) { audio(); sClick(); haptic(8); openEnvie(c.dataset.envie); return; }
     // L’envie en cours, quand c’est à moi : la lire (ou la relire)
     if (e.target.closest('[data-envie-go]')) { $('#wait-go').click(); return; }
