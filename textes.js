@@ -405,6 +405,7 @@ window.KIFF_TEXTES = [
     ["tukiffes.titre", "Tu kiffes ?", "Titre de la feuille ouverte par « Vous kiffez ? » de la célébration (partage et café)"],
     ["tourner.titre", "Fais tourner !", "Titre de la feuille ouverte par « Fais tourner » (le partage seul)"],
     ["quiestla.titre", "Qui est là ?", "Titre de la feuille ouverte par « Qui est là ? » (histoire, café, retour)"],
+    ["quiestla.intro", "Hello les loupiot·e·s, c’est Marc ici, un humain aléatoire mais néanmoins varié 💃 J’ai créé JASG, éditeur de Kiff Kiff, dans le but principal de partager de la Joie, de l’Amour, et des Saucisses Grillées.", "« Qui est là ? » : le mot de Marc, en haut de la feuille, au-dessus des cartes"],
     ["tukiffes.partager-titre", "Faites découvrir le jeu", "Titre de la première carte"],
     ["tukiffes.partager-texte", "Montrez le code, ou envoyez le lien à quelqu’un qui a envie de jouer.", "Texte de la première carte"],
     ["tukiffes.envoyer", "Envoyer le lien", "Bouton de la première carte"],

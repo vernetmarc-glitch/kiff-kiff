@@ -794,6 +794,7 @@ body:has(#ov-deal:not([hidden])) .deco-candles { display: none; }
 .deal-card .btn, .deal-card a.btn { align-self: stretch; margin-top: 0; }
 .deal-card .deal-money { margin-top: 0 !important; }
 .sheet--coffee .deal-card .duo-text { font-size: 15px; line-height: 1.45; }
+.sheet--coffee .deal-intro { margin: 0 2px 4px; }
 
 /* Vos mots à vous deux : un petit crayon dans la roue */
 .reel-perso { flex: none; display: inline-flex; margin-left: 5px; opacity: .7; }
