@@ -497,6 +497,7 @@ window.KIFF_TEXTES = [
     ["invite.de", "{prénom} t’invite à jouer, chacun·e sur son téléphone.", "Premier écran de l’invitation, sous le titre"],
     ["invite.accroche", "Trois roues pour se proposer des envies, et savourer celles que vous partagez.", "Premier écran, sous la phrase d’invitation"],
     ["invite.comment", "Comment on joue ?", "Bouton du premier écran"],
+    ["invite.kicker", "{prénom} t’invite à jouer", "Au-dessus du principe en pleine page, chez la personne invitée (3 novembre 2026)"],
     ["invite.principe", "Le principe", "Titre du deuxième écran"],
     ["invite.regle-1", "**Tu commences** : trois roues, « J’ai envie de te… ». Puis chacun·e son tour : donner, puis recevoir.", "Deuxième écran, première règle (**…** : en gras)"],
     ["invite.regle-2", "{prénom} répond « J’ai envie aussi », ou « Oui, mais… » en changeant une chose.", "Deuxième écran, deuxième règle"],

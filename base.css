@@ -1454,6 +1454,8 @@ body:has(#ov-deal:not([hidden])) .deco-candles { display: none; }
 /* L’accueil n’a pas de points : ils montrent seulement les écrans d’une nouvelle partie (Qui joue ?, le principe, les piments) */
 #step-dots[data-step="0"] { display: none; }
 #step-dots i:first-child { display: none; }
+#ov-invited #inv-dots { display: none; } /* chez la personne invitée, le principe est seul (3 novembre 2026) */
+#ov-invited [data-step="1"] .step-back { display: none; }
 #step-dots i:last-child { display: none; } /* plus d’écran des piments (2 novembre 2026) : deux points, les prénoms et le principe */
 /* « Nouvelle partie » et la mention 18 ans calées tout en bas de l’écran : rien de la liste ne passe dessous.
    La page de l’accueil n’a plus de marge en bas ; la barre porte elle-même la marge (et la zone du geste de l’iPhone). */

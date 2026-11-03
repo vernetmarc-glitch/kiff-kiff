@@ -4715,9 +4715,11 @@
   /* La personne invitée ne connaît peut-être pas le jeu : trois écrans avant de rejoindre */
   const ovInv = $('#ov-invited');
   let invSteps = null;
-  /* L’arrivée d’une personne invitée : directement la conversation « Avec Marc » (2 novembre 2026 ; avant : trois écrans plein écran
-     et une fenêtre pour l’envie glissée). Dans le fil : l’invitation, les règles, l’envie glissée ; dans la carte d’action : le prénom,
-     « Rejoindre la partie » et la mention 18 ans ; puis, s’il y a une envie, « La découvrir » ou « Pas maintenant, je propose ». */
+  /* L’arrivée d’une personne invitée (3 novembre 2026, comme chez qui invite : un écran trop chargé pour commencer) :
+     d’abord le principe en pleine page (« Marc t’invite à jouer », les trois gestes, « Compris », « Pourquoi ces règles ? »),
+     puis la conversation « Avec Marc » : la carte d’action seule (le prénom, « Rejoindre la partie », la mention 18 ans)
+     et, s’il y en a une, l’envie glissée ; puis « La découvrir » ou « Pas maintenant, je propose ».
+     (Du 2 au 3 novembre 2026 : l’invitation et les règles en cartes dans le fil ; avant : trois écrans plein écran.) */
   let arrivee = null;
   function showInvited(st) {
     const A = (st.names && st.names[0] || '').trim() || 'Cerise';
@@ -4733,9 +4735,26 @@
       $('#arr-name').value = prov || load('duoName', '') || '';
       $('#arr-help').textContent = prov ? T('invite.prenom-propose', { prénom: A }) : T('invite.prenom-aide', { prénom: A });
     }
+    // Une fois par invitation (la feuille peut renvoyer l’état plusieurs fois)
+    if (invPrincipeVu !== invCle()) { showInvitePrincipe(); return; }
     renderWait();
   }
+  // Le principe en pleine page, une fois par arrivée : « Compris » mène à la conversation
+  let invPrincipeVu = '';
+  const invCle = () => (duo && duo.info && duo.info.room) || (duo && duo.id) || 'x';
+  function showInvitePrincipe() {
+    const st = arrivee.st, A = arrivee.A;
+    const b = (n) => ({ html: '<b>' + esc(n) + '</b>' });
+    const g = !!(st.gift && st.gift.keys);
+    $('#inv-kicker').textContent = T('invite.kicker', { prénom: A });
+    $('#inv-rule-1').innerHTML = g ? TH('invite.regle-1-envie', { prénom: b(A) }) : TH('invite.regle-1');
+    $('#inv-rule-2').innerHTML = g ? TH('invite.regle-2-envie') : TH('invite.regle-2', { prénom: b(A) });
+    if (!invSteps) invSteps = makeSteps($('#inv-steps'), $('#inv-dots'), ovInv);
+    invSteps.go(1, true);
+    show(ovInv);
+  }
   function renderArriveePage() {
+    if (!ovInv.hidden) return; // le principe d’abord
     const ov = ovPartie, A = arrivee.A;
     ov.classList.add('is-invite', 'is-arrivee');
     $('#wait-name').textContent = T('jeu.avec', { prénom: A });
@@ -4760,13 +4779,9 @@
   }
   function arriveeThreadHtml() {
     const st = arrivee.st, A = arrivee.A;
-    let html = '<li class="chat-day"><span>' + esc(dayLabel(Date.now())) + '</span></li>';
-    html += '<li class="thread-invite"><div class="invite-card arrivee-carte">' +
-      '<span class="thread-kiff-kicker">' + esc(T('arrivee.kicker', { prénom: A })) + '</span>' +
-      '<svg class="arrivee-emblem" viewBox="0 0 168 124" aria-hidden="true"><use href="#emblem"/></svg>' +
-      '<p class="invite-text">' + TH('invite.de', { prénom: { html: '<b>' + esc(A) + '</b>' } }) + '</p>' +
-      '<p class="invite-text arrivee-accroche">' + esc(T('invite.accroche')) + '</p></div></li>';
-    html += reglesHtml('invite', st);
+    // Le principe a eu sa page : le fil ne garde que l’envie glissée, s’il y en a une (3 novembre 2026)
+    let html = '';
+    if (st.gift && st.gift.keys) html += '<li class="chat-day"><span>' + esc(dayLabel(Date.now())) + '</span></li>';
     if (st.gift && st.gift.keys) html += '<li class="thread-kiff thread-envie"><button class="thread-kiff-btn" type="button" disabled><span class="thread-kiff-kicker">' + esc(T('cadeau.titre', { prénom: A })) + '</span>' +
       '<span class="party-sentence thread-kiff-card is-dos">' + CARTE_DOS + '</span></button></li>';
     return html;
@@ -4813,7 +4828,12 @@
   altActions.solo = () => { arrivee = null; closePartie(); leaveDuo(false); };
   altActions['cadeau-plus-tard'] = () => giftPlusTard();
   $('#inv-go').addEventListener('click', () => { audio(); sClick(); haptic(8); invSteps.go(1); });
-  $('#inv-ok').addEventListener('click', () => { audio(); sClick(); haptic(8); invSteps.go(2); });
+  $('#inv-ok').addEventListener('click', () => {
+    audio(); sClick(); haptic(8);
+    hide(ovInv);
+    invPrincipeVu = invCle();
+    if (arrivee) renderWait();
+  });
   $('#inv-form').addEventListener('submit', (e) => {
     e.preventDefault();
     audio();
@@ -4891,7 +4911,6 @@
     beginJoined(next);
   }
   function beginJoined(next) {
-    const venu = !!arrivee;
     arrivee = null;
     if (ovPartie) ovPartie.classList.remove('is-arrivee');
     $('#arrivee-form').hidden = true;
@@ -4899,7 +4918,7 @@
     duo.resume = true;
     save('duo', { room: duo.info.room, key: duo.info.key, broker: duo.info.broker, seat: duo.seat, id: duo.id });
     enterGame(next, next.proposer === duo.seat);
-    if (venu) S.regles = 'invite'; // les règles restent en tête du fil
+    // Les règles ne restent plus en tête du fil (3 novembre 2026) : elles ont eu leur page à l’arrivée
     pushState();
   }
   const ovGift = $('#ov-gift');
