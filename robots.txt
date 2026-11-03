@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+Disallow: /atelier/
+Sitemap: https://kiff-kiff.fr/sitemap.xml

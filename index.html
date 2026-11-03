@@ -30,7 +30,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,62..125,100..900;1,62..125,100..900&family=Bagel+Fat+One&family=Abril+Fatface&family=Merriweather:ital,opsz,wght@0,18..144,400..900;1,18..144,400..900&family=Baskervville:ital,wght@0,400..700;1,400..700&family=Jost:wght@300..700&family=Great+Vibes&family=Cinzel:wght@400..900&family=Syne:wght@600..800&family=Manrope:wght@400..800&family=Anton&family=Courier+Prime:wght@400;700&display=swap">
-<link rel="stylesheet" href="base.css?v=144">
+<link rel="stylesheet" href="base.css?v=145">
 <link rel="stylesheet" href="skins/arty.css?v=72" data-skin-sheet="arty">
 <link rel="stylesheet" href="skins/pomme.css?v=78" data-skin-sheet="pomme">
 <link rel="stylesheet" href="skins/redcorner.css?v=77" data-skin-sheet="redcorner">
@@ -218,6 +218,8 @@
             <p class="welcome-intro" id="welcome-intro" hidden data-t="accueil.intro">Trois roues pour se proposer des envies, et savourer celles que vous partagez.</p>
           </div>
           <!-- La une : la partie qui a du nouveau (ou la dernière jouée) -->
+          <!-- Ton lien Kiff Kiff (3 novembre 2026) : les personnes qui l’ont ouvert et veulent jouer avec toi -->
+          <section class="home-moi" id="home-moi" hidden aria-live="polite"></section>
           <section class="home-une" id="home-une" hidden aria-live="polite"></section>
           <h3 class="home-sec" id="home-sec" hidden><span data-t="accueil.vos-parties">Vos parties</span><span class="home-sec-n" id="home-sec-n"></span>
             <button class="home-edit" id="home-edit" type="button" aria-pressed="false" aria-label="Supprimer des parties"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-supprimer"/></svg></button></h3>
@@ -238,7 +240,7 @@
             </div>
           </div>
           <ol class="home-rules" id="home-rules">
-            <li><b>1</b><span data-t="accueil.regle-1">Sur un téléphone, ou chacun·e sur le sien.</span></li>
+            <li><b>1</b><span data-t="accueil.regle-1">Chacun·e sur son téléphone, ou côte à côte.</span></li>
             <li><b>2</b><span data-t="accueil.regle-2">« J’ai envie aussi », « Oui, mais… » ou « Non ».</span></li>
             <li><b>3</b><span data-t="accueil.regle-3">Deux « j’ai envie » : c’est un kiff kiff.</span></li>
           </ol>
@@ -253,11 +255,14 @@
 
       <section class="step" data-step="1" aria-labelledby="players-title">
         <form class="sheet step-sheet start-form" id="start-form" novalidate>
+          <p class="principe-kicker" id="moi-kicker" hidden></p>
           <h2 class="step-title" id="players-title" data-t="joueurs.titre">Qui joue&nbsp;?</h2>
           <label for="name0" data-t="joueurs.ton-prenom">Ton prénom</label>
           <input id="name0" maxlength="20" autocomplete="off" placeholder="Cerise" enterkeyhint="next" data-t-ph="joueurs.exemple-1">
-          <p class="where-label" id="where-label" data-t="joueurs.ou">L’autre joue…</p>
-          <div class="where" role="group" aria-labelledby="where-label">
+          <!-- Deux téléphones par défaut (3 novembre 2026) : le choix reste là, caché ; le lien sous le bouton bascule -->
+          <p class="where-texte" id="where-texte" data-t="joueurs.distance-texte">Chacun·e sur son téléphone : tu invites l’autre, et vous jouez au fil de la journée.</p>
+          <p class="where-label" id="where-label" hidden data-t="joueurs.ou">L’autre joue…</p>
+          <div class="where" role="group" aria-labelledby="where-label" hidden>
             <button class="where-btn" type="button" data-where="here" aria-pressed="true" data-t="joueurs.ici">Sur ce téléphone</button>
             <button class="where-btn" type="button" data-where="duo" aria-pressed="false" data-t="joueurs.distance">Sur son téléphone</button>
           </div>
@@ -268,6 +273,7 @@
           <!-- Une personne qui n’a jamais joué sur ce téléphone : le principe lui sera montré -->
           <p class="first-note" id="first-note" hidden><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-etoiles"/></svg><span id="first-note-text"></span></p>
           <button class="btn" type="submit" id="start-go" data-t="joueurs.suivant">Suivant</button>
+          <button class="link-btn where-bascule" type="button" id="where-bascule">Vous êtes côte à côte ? Jouer sur ce téléphone</button>
           <button class="link-btn step-back" type="button"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-retour"/></svg><span data-t="joueurs.retour">Retour</span></button>
         </form>
       </section>
@@ -387,6 +393,7 @@
       <button class="icon-btn" id="skin-open" type="button" aria-haspopup="dialog"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-ambiance"/></svg><span class="icon-label"><span data-t="menu.ambiance">Ambiance et son</span><span class="sr-only">&nbsp;: <span id="skin-current">Red Corner</span></span></span><span class="menu-sub" data-t="menu.ambiance-sous">L’habillage du jeu, et ses sons</span></button>
       <button class="icon-btn" id="install" type="button" hidden><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-installer"/></svg><span class="icon-label"><span data-t="menu.installer">Installer l’appli</span><span class="sr-only"> l’appli</span></span><span class="menu-sub" data-t="menu.installer-sous">Pour être averti·e quand l’autre répond</span></button>
       <button class="icon-btn" id="home-cont" type="button" hidden><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-telephones"/></svg><span class="icon-label"><span data-t="menu.distance">Continuer à distance</span><span class="sr-only"> : continuer la partie sur deux téléphones</span></span><span class="menu-sub" data-t="menu.distance-sous">La partie de ce téléphone, sur deux téléphones</span></button>
+      <button class="icon-btn" id="menu-moi" type="button" aria-haspopup="dialog"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-lien"/></svg><span class="icon-label"><span data-t="moi.menu">Ton lien Kiff Kiff</span></span><span class="menu-sub" data-t="moi.menu-sous">Pour ton profil de rencontre : chaque personne qui l’ouvre lance une partie avec toi</span></button>
       <button class="icon-btn" id="home-deal" type="button" aria-haspopup="dialog"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-tourner"/></svg><span class="icon-label"><span data-t="accueil.tourner">Fais tourner&nbsp;!</span><span class="sr-only"> : faire découvrir le jeu</span></span><span class="menu-sub" data-t="menu.tourner-sous">Faire découvrir le jeu</span></button>
       <button class="icon-btn" id="home-who" type="button" aria-haspopup="dialog"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-qui"/></svg><span class="icon-label"><span data-t="accueil.quiestla">Qui est là&nbsp;?</span><span class="sr-only"> L’histoire du jeu, un café, un retour</span></span><span class="menu-sub" data-t="menu.quiestla-sous">L’histoire du jeu, un café, un mot à Marc</span></button>
       <button class="icon-btn menu-avertir" id="menu-avertir" type="button" aria-pressed="false" hidden><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-avertir"/></svg><span class="icon-label"><span data-t="menu.avertir">Avertissements</span></span><span class="menu-sub" id="menu-avertir-sub" data-t="menu.avertir-sous">Quand c’est ton tour, dans toutes tes parties</span><span class="menu-toggle" aria-hidden="true"></span></button>
@@ -505,7 +512,7 @@ Toutes les réponses sont bonnes&nbsp;!</p>
 <!-- Invitation : l’envie glissée par qui invite, qu’on choisit de découvrir -->
 <div class="overlay overlay--handoff overlay--offer overlay--gift" id="ov-gift" hidden role="dialog" aria-modal="true" aria-labelledby="gift-title">
   <div class="sheet">
-    <p class="handoff-kicker" id="gift-kicker" data-t="cadeau.kicker">Une envie Tendre</p>
+    <p class="handoff-kicker" id="gift-kicker" data-t="cadeau.kicker">Une envie toute douce</p>
     <h2 class="handoff-title" id="gift-title"></h2>
     <div class="party-sentence offer-sentence gift-card" aria-hidden="true">
       <span class="gift-lead" data-t="cadeau.lead">J’ai envie…</span>
@@ -804,6 +811,28 @@ Toutes les réponses sont bonnes&nbsp;!</p>
   </div>
 </div>
 <!-- Brûlant sur un téléphone : on s’assure que les deux sont d’accord -->
+<!-- Ton lien Kiff Kiff (3 novembre 2026) : un lien et un QR code fixes, pour un profil de rencontre -->
+<div class="overlay overlay--edit overlay--skins" id="ov-moi" hidden role="dialog" aria-modal="true" aria-labelledby="moi-title">
+  <div class="sheet sheet--edit sheet--skins sheet--choice sheet--moi">
+    <div class="deal-head">
+      <h2 class="edit-label" id="moi-title" data-t="moi.titre">Ton lien Kiff Kiff</h2>
+      <button class="icon-btn icon-btn--bare" id="moi-close" type="button" aria-label="Fermer"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-fermer"/></svg></button>
+    </div>
+    <p class="duo-text" data-t="moi.texte">Mets-le dans ton profil de rencontre, ou son QR code dans une photo. Chaque personne qui l’ouvre lance une nouvelle partie avec toi, et tu es prévenu·e.</p>
+    <label class="moi-nom-label" for="moi-nom" data-t="moi.nom">Le prénom qu’on y verra</label>
+    <input id="moi-nom" maxlength="20" autocomplete="off" placeholder="Cerise">
+    <div class="moi-qr" id="moi-qr" aria-hidden="true"></div>
+    <p class="moi-lien" id="moi-lien"></p>
+    <div class="stack">
+      <button class="btn" id="moi-partager" type="button" data-t="moi.partager">Partager le lien</button>
+      <button class="link-btn" id="moi-copier" type="button" data-t="moi.copier">Copier le lien</button>
+      <button class="link-btn" id="moi-image" type="button" data-t="moi.image">Enregistrer le QR code</button>
+    </div>
+    <p class="deal-done" id="moi-done" hidden role="status"></p>
+    <p class="deal-note" id="moi-avertir" hidden data-t="moi.avertir">Active les avertissements (menu) pour savoir tout de suite quand quelqu’un l’utilise.</p>
+    <button class="link-btn moi-changer" id="moi-changer" type="button" data-t="moi.changer">Changer de lien (l’ancien ne marchera plus)</button>
+  </div>
+</div>
 <div class="overlay overlay--edit overlay--skins" id="ov-brulant" hidden role="dialog" aria-modal="true" aria-labelledby="brulant-title">
   <div class="sheet sheet--edit sheet--skins sheet--choice">
     <h2 class="edit-label" id="brulant-title" data-t="brulant.titre">Brûlant&nbsp;?</h2>
@@ -968,12 +997,12 @@ Toutes les réponses sont bonnes&nbsp;!</p>
 </div>
 
 <script src="data.js?v=64"></script>
-<script src="textes.js?v=46"></script>
+<script src="textes.js?v=47"></script>
 <script src="semantique.js?v=1"></script>
 <script src="config.js?v=63"></script>
 <script src="duo.js?v=65"></script>
 <script src="push.js?v=66"></script>
-<script src="app.js?v=169"></script>
+<script src="app.js?v=170"></script>
 <!-- iPhone, appli installée : deux bandes d’une couleur unie en haut et en bas de l’écran (voir base.css) -->
 <div class="edge edge--haut" aria-hidden="true"></div><div class="edge edge--bas" aria-hidden="true"></div>
 </body>
