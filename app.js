@@ -2183,7 +2183,7 @@
       const m = b.m.find((x) => x.id === ev.id); if (m) m.st = 1;
       // L’autre téléphone est averti quand le message est parti (il se tait s’il a déjà Kiff Kiff à l’écran)
       const sub = Array.isArray(duo.push) ? duo.push[other(duo.seat)] : null;
-      if (KP && sub) p = { sub, n: String(nameOf(duo.seat) || '').trim().slice(0, 30), kf: ev.k };
+      if (KP && sub && !String(sub.x || '').includes('m')) p = { sub, n: String(nameOf(duo.seat) || '').trim().slice(0, 30), kf: ev.k }; // sauf si l’autre a coupé « Les messages »
     }
     b.out.push({ ev, p });
     chatSave(b);
@@ -2580,9 +2580,9 @@
     });
     if (installWanted()) html += installCardHtml(B);
     else if (appCardWanted()) html += appCardHtml();
-    else if (avertirWanted()) html += avertirCardHtml(B);
+    // Plus de carte « Être averti·e » ni « Et si on se perd de vue ? » (3 novembre 2026, décision de Marc) :
+    // les notifications sont activées par défaut, le téléphone les demande au premier geste de jeu (autoAvertir)
     else if (contWanted()) html += contCardHtml();
-    else if (relanceWanted()) html += relanceCardHtml();
     if (typingKid) html += '<li class="chat-typing" aria-label="' + esc(B + ' ' + T('chat.ecrit')) + '"><span></span><span></span><span></span></li>';
     const sc = $('#kiff-scroll');
     const atEnd = sc.scrollHeight - sc.scrollTop - sc.clientHeight < 80;
@@ -3879,7 +3879,7 @@
   const notifKey = (st) => [st.phase, st.proposer, st.kiff ? st.kiff.n : 0, st.pass ? st.pass.n : 0].join('|');
   function pushPair() {
     const pair = duo && Array.isArray(duo.push) ? duo.push.slice(0, 2) : [null, null];
-    if (duo) pair[duo.seat] = pushMine;
+    if (duo) { const x = notifOff(); pair[duo.seat] = pushMine && x ? Object.assign({}, pushMine, { x }) : pushMine; }
     return pair;
   }
   async function refreshPush() {
@@ -3896,7 +3896,13 @@
      Pour qui les a acceptées : jusqu’à trois messages neutres (ils se voient sur l’écran verrouillé), à 19 h,
      3, 7 et 14 jours après le dernier passage dans le jeu, puis plus rien. Ce téléphone les écrit et les chiffre
      pour lui-même (le script ne les lit pas) ; chaque passage les repousse. */
-  const relancesOn = () => load('relances', null) === true;
+  // Les notifications, activées par défaut (3 novembre 2026) : « notifs » (l’interrupteur du menu),
+  // et dans « Détail » un interrupteur par type : t (ton tour, kiff kiff, arrivée, rappel), m (messages), r (idées pour rejouer)
+  const notifsOn = () => load('notifs', true) !== false;
+  const notifTypes = () => Object.assign({ t: true, m: true, r: load('relances', null) !== false }, load('notifTypes', {}) || {});
+  // Les types coupés voyagent avec mon adresse d’avertissement : c’est le téléphone de l’autre qui ne les envoie pas
+  const notifOff = () => { const n = notifTypes(); return (n.t ? '' : 't') + (n.m ? '' : 'm'); };
+  const relancesOn = () => notifsOn() && notifTypes().r;
   function appareilId() {
     let id = load('appareilId', '');
     if (!/^[a-z0-9]{12,24}$/.test(id)) {
@@ -3942,7 +3948,7 @@
     if (pushStatus !== 'on') await toggleNotif(btn);
     else { audio(); sClick(); haptic(8); }
     if (pushStatus !== 'on') return;
-    save('relances', true);
+    save('relances', true); save('notifTypes', Object.assign(load('notifTypes', {}) || {}, { r: true }));
     report('relance', null, 'oui');
     planRelances(true);
     flashPresence(T('relance.ok'));
@@ -3950,7 +3956,7 @@
   }
   function relancesNon() {
     audio(); sClick(); haptic(8);
-    save('relances', false);
+    save('relances', false); save('notifTypes', Object.assign(load('notifTypes', {}) || {}, { r: false }));
     if (KP && KP.plan) KP.plan(null, appareilId(), []);
     report('relance', null, 'non');
     flashPresence(T('relance.coupees'));
@@ -3966,7 +3972,7 @@
   // La partie n’a pas encore ma dernière adresse : on la lui donne (sans rien changer d’autre)
   function pushRefresh() {
     if (!duo || duo.stage !== 'game' || !KP) return;
-    if (!KP.sameSub(duo.pushSeen || null, pushMine)) sync();
+    if (!KP.sameSub(duo.pushSeen || null, pushMine) || ((duo.pushSeen && duo.pushSeen.x) || '') !== (pushMine ? notifOff() : '')) sync();
   }
   // Après mon coup : si c’est à l’autre et que l’appli n’est pas à son écran, son téléphone l’avertit
   function notifyOther(st) {
@@ -3978,7 +3984,7 @@
     const sub = Array.isArray(duo.push) ? duo.push[o] : null;
     // On avertit toujours : la présence de l’autre peut être en retard (appli en arrière-plan) ;
     // c’est son téléphone qui se tait s’il a déjà Kiff Kiff sous les yeux
-    if (!sub) return;
+    if (!sub || String(sub.x || '').includes('t')) return; // l’autre a coupé « Ton tour et vos kiff kiff »
     let kind = '';
     if (duo.lastPhase === 'lobby' && st.phase !== 'lobby') kind = 'arrivee'; // l’invitation est acceptée
     else if (st.phase === 'celebrate') kind = 'kiff';
@@ -4159,7 +4165,7 @@
     st.by = duo.id;
     duo.lastBy = duo.id;
     duo.conn.publishState(st);
-    duo.pushSeen = pushMine;
+    duo.pushSeen = st.push ? st.push[duo.seat] || null : pushMine;
     rememberGame(st);
     notifyOther(st);
     duo.lastPhase = st.phase;
@@ -4539,11 +4545,17 @@
     const b = $('#menu-avertir'); if (!b) return;
     b.hidden = !KP || !['on', 'off', 'install', 'blocked'].includes(pushStatus);
     b.setAttribute('aria-pressed', pushStatus === 'on' ? 'true' : 'false');
-    const r = $('#menu-relances');
-    if (r) {
-      r.hidden = !KP || !KP.plan || !window.KIFF_API || !['on', 'off', 'install', 'blocked'].includes(pushStatus);
-      r.setAttribute('aria-pressed', pushStatus === 'on' && relancesOn() ? 'true' : 'false');
-    }
+    // « Détail » : un interrupteur par type ; grisés quand tout est coupé
+    const d = $('#menu-notif-detail'), box = $('#menu-notif-types');
+    d.hidden = b.hidden;
+    if (b.hidden) box.hidden = true;
+    box.classList.toggle('is-off', pushStatus !== 'on');
+    const n = notifTypes(), relOk = !!(KP && KP.plan && window.KIFF_API);
+    box.querySelectorAll('[data-nt]').forEach((x) => {
+      const k = x.dataset.nt;
+      x.hidden = k === 'r' && !relOk;
+      x.setAttribute('aria-checked', n[k] ? 'true' : 'false'); // le choix gardé, grisé tant que tout est coupé
+    });
   }
   /* Connexion : la mienne et celle de l’autre */
   function renderDuoStatus() {
@@ -4838,7 +4850,7 @@
         '<span class="party-sentence thread-kiff-card"><span class="thread-kiff-text">' + esc(text) + '</span></span></button></li>';
     }
     if (S.regles) html += reglesHtml('cree');
-    if (giftAsk) { if (installWanted()) html += installCardHtml(nameOf(1)); else if (avertirWanted()) html += avertirCardHtml(nameOf(1)); return html; }
+    if (giftAsk) { if (installWanted()) html += installCardHtml(nameOf(1)); return html; }
     const url = window.KiffDuo.link(duo.info);
     html += '<li class="thread-invite"><div class="invite-card">' +
       '<span class="thread-kiff-kicker">' + esc(T('partie.invite-kicker')) + '</span>' +
@@ -4849,7 +4861,7 @@
       '<button class="link-btn invite-cancel" type="button" data-inv="cancel">' + esc(T('duo.annuler-partie')) + '</button>' +
       '</div></li>';
     if (installWanted()) html += installCardHtml(nameOf(1));
-    else if (avertirWanted()) html += avertirCardHtml(nameOf(1));
+
     return html;
   }
   /* La personne invitée ne connaît peut-être pas le jeu : trois écrans avant de rejoindre */
@@ -5356,6 +5368,8 @@
       await KP.disable();
       pushMine = null;
       pushStatus = 'off';
+      save('notifs', false); // coupées à la main : on ne les redemande plus de soi-même
+      if (KP.plan) KP.plan(null, appareilId(), []);
       pushChanged();
       flashPresence(T('avertir.coupes'));
       return;
@@ -5379,8 +5393,10 @@
     if (sub) {
       pushMine = sub;
       pushStatus = 'on';
+      save('notifs', true);
       report('notif', null, 'activee');
       pushChanged();
+      planRelances(true);
       flashPresence(T('avertir.ok'));
       return;
     }
@@ -5397,10 +5413,55 @@
   }
   $('#wait-notif').addEventListener('click', (e) => toggleNotif(e.currentTarget));
   $('#menu-avertir').addEventListener('click', async (e) => { await toggleNotif(e.currentTarget); renderMenuAvertir(); report('notif', null, 'menu'); });
-  $('#menu-relances').addEventListener('click', async (e) => {
-    if (pushStatus === 'on' && relancesOn()) relancesNon(); else await relancesOui(e.currentTarget);
+  $('#menu-notif-detail').addEventListener('click', (e) => {
+    audio(); sClick();
+    const box = $('#menu-notif-types'), open = box.hidden;
+    box.hidden = !open;
+    e.currentTarget.setAttribute('aria-expanded', open ? 'true' : 'false');
     renderMenuAvertir();
   });
+  $('#menu-notif-types').addEventListener('click', async (e) => {
+    const x = e.target.closest('[data-nt]'); if (!x) return;
+    const k = x.dataset.nt;
+    // Tout est coupé : toucher un type rallume les notifications (la demande du téléphone, pendant le toucher), avec ce type
+    if (pushStatus !== 'on') {
+      save('notifTypes', Object.assign(load('notifTypes', {}) || {}, { [k]: true }));
+      await toggleNotif(x);
+      renderMenuAvertir();
+      return;
+    }
+    const on = !notifTypes()[k];
+    if (k === 'r') { if (on) await relancesOui(x); else relancesNon(); renderMenuAvertir(); return; }
+    audio(); sClick(); haptic(8);
+    save('notifTypes', Object.assign(load('notifTypes', {}) || {}, { [k]: on }));
+    report('notif', null, (on ? 'type-oui-' : 'type-non-') + k);
+    if (duo && duo.info) pushChanged(); // l’autre téléphone l’apprend avec la partie
+    renderMenuAvertir();
+  });
+  /* Les notifications, activées par défaut (3 novembre 2026) : plus de carte qui les propose.
+     Au premier geste de jeu à deux téléphones (proposer, répondre, glisser l’envie de l’invitation), le téléphone
+     pose sa question, une fois (deux au plus si elle est restée sans réponse). Pas dans le navigateur tant qu’on
+     peut installer l’appli : l’installation d’abord. */
+  function autoAvertir() {
+    if (!duo || !KP || pushStatus !== 'off' || !notifsOn()) return;
+    if (!(isStandalone() || !installer.can())) return;
+    const n = load('notifAuto', 0) || 0;
+    if (n >= 2) return;
+    KP.enable().then(async (res) => {
+      const sub = res && res.sub;
+      const perm = window.Notification ? Notification.permission : 'default';
+      if (sub || perm !== 'default' || (res && res.erreur === 'refus')) save('notifAuto', n + 1);
+      else if (!res || !res.erreur) save('notifAuto', n + 1); // laissée sans réponse
+      if (sub) {
+        pushMine = sub; pushStatus = 'on';
+        report('notif', null, 'auto');
+        pushChanged();
+        planRelances(true);
+      } else pushStatus = await KP.status();
+      renderDuoStatus();
+    }).catch(() => {});
+  }
+  ['#act-main', '#offer-yes', '#offer-but', '#offer-pass'].forEach((q) => { const x = $(q); if (x) x.addEventListener('click', autoAvertir, true); });
   $('#duo-notif').addEventListener('click', (e) => toggleNotif(e.currentTarget));
   document.addEventListener('visibilitychange', () => {
     const vis = document.visibilityState === 'visible';
@@ -6740,7 +6801,7 @@
   $('#menu-close').addEventListener('click', () => { audio(); hide(ovMenu2); });
   ovMenu2.addEventListener('click', (e) => { if (e.target === ovMenu2) hide(ovMenu2); });
   // Un choix du menu le referme ; la fenêtre choisie s’ouvre à sa place
-  $('#ov-menu .menu-list').addEventListener('click', (e) => { if (e.target.closest('button') && !e.target.closest('#menu-avertir, #menu-relances')) hide(ovMenu2); }, true);
+  $('#ov-menu .menu-list').addEventListener('click', (e) => { if (e.target.closest('button') && !e.target.closest('#menu-avertir, #menu-notif-detail, #menu-notif-types')) hide(ovMenu2); }, true);
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !ovMenu2.hidden) hide(ovMenu2); });
   $('#menu-complet').addEventListener('click', () => { audio(); if (OFFRE === 'payant' && load('complet', false)) openAchat(); else openComplet('menu'); });
 

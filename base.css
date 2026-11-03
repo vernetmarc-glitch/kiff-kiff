@@ -1705,6 +1705,19 @@ html.kb-open .overlay.overlay--partie:not([hidden]), html.kb-open .overlay.overl
 .menu-avertir[aria-pressed="true"] .menu-toggle::after { transform: translateX(18px); background: var(--toggle-knob, #fff); }
 .menu-avertir .menu-sub { padding-right: 52px; }
 .menu-avertir[hidden] { display: none; }
+/* « Détail » : un interrupteur par type de notification (3 novembre 2026) */
+.menu-detail { align-self: flex-start; margin: -6px 0 2px 60px; padding: 4px 6px; font-size: 13px; opacity: .8; }
+.menu-detail[hidden], .menu-notif-types[hidden] { display: none; }
+.menu-notif-types { display: flex; flex-direction: column; margin: 0 0 8px 66px; }
+.menu-notif-types.is-off { opacity: .5; }
+.menu-type { display: flex; align-items: center; justify-content: space-between; gap: 14px; width: 100%; padding: 8px 4px 8px 0; border: 0; background: none; color: inherit; font: inherit; font-size: 14px; text-align: left; cursor: pointer; }
+.menu-type-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.menu-type-sub { font-size: 12px; opacity: .72; }
+.menu-type .menu-toggle { position: relative; flex: 0 0 auto; width: 38px; height: 22px; border-radius: 999px;
+  background: color-mix(in srgb, currentColor 14%, transparent); box-shadow: inset 0 0 0 1px color-mix(in srgb, currentColor 45%, transparent); }
+.menu-type .menu-toggle::after { content: ""; position: absolute; top: 3px; left: 3px; width: 16px; height: 16px; border-radius: 50%; background: currentColor; transition: transform .2s; }
+.menu-type[aria-checked="true"] .menu-toggle { background: var(--toggle-on, var(--pill-on-bg, currentColor)); }
+.menu-type[aria-checked="true"] .menu-toggle::after { transform: translateX(16px); background: var(--toggle-knob, #fff); }
 /* La fenêtre de partage */
 .sheet--partage { gap: 12px; }
 .partage-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
