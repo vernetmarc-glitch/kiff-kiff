@@ -241,6 +241,8 @@ label:has(+ input.is-missing), .name1-box:has(input.is-missing) label { font-wei
 .start-form .btn { margin-top: 20px; align-self: stretch; }
 .overlay--edit { align-items: end; }
 .sheet--edit { position: relative; align-items: stretch; gap: 10px; }
+.sheet--edit .edit-roue { align-self: center; padding: 6px 10px; font-size: 14px; opacity: .8; }
+.sheet--edit .edit-roue[hidden] { display: none; }
 .row { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
 #confetti { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1; }
 .overlay--party .sheet { position: relative; z-index: 2; }

@@ -247,6 +247,8 @@ window.KIFF_TEXTES = [
     ["libre.aide-0-te", "Écris le verbe comme après « de te » : chatouiller, mordiller, lire un poème à…", "Sous le champ, action, sens « de te »"],
     ["libre.aide-1", "Par exemple : le nombril, les mollets, la paume de la main.", "Sous le champ, endroit"],
     ["libre.aide-2", "Par exemple : en rougissant, au ralenti, avec un accent belge.", "Sous le champ, manière"],
+    ["libre.retoucher", "Une petite retouche ?", "Titre, en touchant un mot écrit à la main à un tour précédent (5 novembre 2026)"],
+    ["libre.autre-mot", "Choisir un autre mot dans la roue", "Petit lien sous « Valider », pendant une retouche : ouvre toute la roue"],
     ["libre.annuler", "Annuler", "Lien à gauche"],
     ["libre.valider", "Valider", "Bouton"]
   ] },

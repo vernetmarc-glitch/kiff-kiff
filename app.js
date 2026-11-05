@@ -335,6 +335,8 @@
   /* ---------- Grammaire ---------- */
   const VOWEL = /^[aeiouyàâäéèêëîïôöûüùœæh]/i;
   const isFree = (r, i) => !!LISTS[r][i].free;
+  const isMine = (r, i) => !!(LISTS[r][i] && LISTS[r][i].m); // un mot écrit à la main, à un tour précédent
+  let retouche = [null, null, null], retoucheDe = null; // la retouche d’un de ces mots (voir retoucher)
 
   /* Une action qui finit par « de » ou « à » (« … le long de ») laisse la préposition
      à l’endroit, qui fait la contraction : du bas du dos, des fesses, d’une épaule. */
@@ -683,6 +685,7 @@
           e.preventDefault();
           if (!this.canMove()) this.nope();
           else if (isFree(this.r, this.index)) openEditor(this.r);
+          else if (isMine(this.r, this.index)) retoucher(this.r);
           else openLoupe(this.r);
         }
       });
@@ -694,6 +697,7 @@
       if (y < -h / 2) this.step(-1);
       else if (y > h / 2) this.step(1);
       else if (isFree(this.r, this.index)) openEditor(this.r);
+      else if (this.canMove() && isMine(this.r, this.index)) retoucher(this.r);
       else if (this.canMove()) openLoupe(this.r);
       else this.settle();
     }
@@ -1083,6 +1087,7 @@
 
   /* ---------- Actions ---------- */
   function startComposition(proposer) {
+    retouche = [null, null, null];
     const turned = S.proposer !== proposer;
     S.proposer = proposer;
     S.phase = 'compose';
@@ -1170,9 +1175,12 @@
       const item = mineItem(r, text, S.dir);
       let x = S.mine[r].find((y) => sameItem(y, item));
       if (!x) { x = item; S.mine[r] = S.mine[r].concat(x).slice(-MINE_MAX); }
+      // Un mot retouché remplace l’ancien dans vos mots (5 novembre 2026)
+      if (retouche[r] && retouche[r] !== x) S.mine[r] = S.mine[r].filter((y) => y !== retouche[r]);
       tgt[r] = x;
       S.custom[r] = '';
     });
+    retouche = [null, null, null];
     if (!tgt.some(Boolean)) return false;
     relist();
     tgt.forEach((x, r) => {
@@ -1544,13 +1552,40 @@
     const body = html.replace(/(’) /g, '$1').replace(/ (<mark>)?,/g, '$1,');
     $('#edit-preview').innerHTML = 'J’ai envie ' + body + (/[.!?…](<\/mark>)?$/.test(body.trim()) ? '' : '.');
   }
+  /* Retoucher un mot écrit à la main à un tour précédent, par l’un·e ou l’autre (5 novembre 2026, demandé par Marc) :
+     toucher le mot ouvre l’éditeur avec son texte ; la retouche part dans la case à écrire, et remplace l’ancien
+     dans vos mots quand l’envie est proposée. Annuler remet la roue sur le mot d’avant. */
+  function retoucher(r) {
+    const rl = reels[r], x = LISTS[r][rl.index];
+    if (!x || !x.m) return;
+    if (!isComplet()) { openComplet('ecrire'); return; }
+    const text = r === 0 ? (S.dir === 'me' ? x.s : x.i) : x.t;
+    const fi = LISTS[r].findIndex((y) => y.free);
+    if (fi < 0) return;
+    retoucheDe = { r, x, custom: S.custom[r], text: text || '' };
+    rl.stop(); rl.p = Math.round(rl.p) + shortest(rl.index, fi, rl.n); rl.lastTick = rl.p;
+    S.custom[r] = (text || '').slice(0, 35);
+    renderReels();
+    sClick(); haptic(8);
+    openEditor(r);
+  }
+  function retoucheAnnulee() {
+    const d = retoucheDe; retoucheDe = null;
+    if (!d) return;
+    const rl = reels[d.r], i = LISTS[d.r].indexOf(d.x);
+    S.custom[d.r] = d.custom;
+    if (i >= 0) { rl.stop(); rl.p = Math.round(rl.p) + shortest(rl.index, i, rl.n); rl.lastTick = rl.p; S.idx[d.r] = i; }
+    renderReels();
+  }
   function openEditor(r) {
     if (!isComplet()) { openComplet('ecrire'); return; }
     editing = r;
     S.idx[r] = reels[r].index;
     const titles = [T('libre.titre-0'), T('libre.titre-1'), T('libre.titre-2')];
     const hints = [S.dir === 'me' ? T('libre.aide-0-me') : T('libre.aide-0-te'), T('libre.aide-1'), T('libre.aide-2')];
-    $('#edit-label').textContent = titles[r];
+    const rt = !!retoucheDe && retoucheDe.r === r;
+    $('#edit-roue').hidden = !rt;
+    $('#edit-label').textContent = rt ? T('libre.retoucher') : titles[r];
     $('#edit-hint').textContent = hints[r];
     editInput.value = S.custom[r];
     show(el.ovEdit);
@@ -1922,6 +1957,9 @@
   $('#edit-form').addEventListener('submit', (e) => {
     e.preventDefault();
     const v = sansMajuscule(editInput.value.replace(/\s+/g, ' ').trim().slice(0, 35));
+    // Une retouche vidée, ou laissée telle quelle : la roue revient sur le mot
+    if (retoucheDe && retoucheDe.r === editing && (!v || v === retoucheDe.text)) { hide(el.ovEdit); editInput.blur(); editing = -1; retoucheAnnulee(); return; }
+    if (retoucheDe && retoucheDe.r === editing) { retouche[editing] = retoucheDe.x; retoucheDe = null; report('libre', null, 'retouche'); }
     S.custom[editing] = v;
     hide(el.ovEdit);
     editInput.blur();
@@ -1930,7 +1968,9 @@
     if (v) { sClick(); haptic(8); }
     editing = -1;
   });
-  $('#edit-cancel').addEventListener('click', () => { hide(el.ovEdit); editInput.blur(); editing = -1; });
+  $('#edit-cancel').addEventListener('click', () => { hide(el.ovEdit); editInput.blur(); editing = -1; retoucheAnnulee(); });
+  // Depuis une retouche : revenir au mot, et ouvrir toute la roue (la loupe ne s’ouvre plus en touchant un mot écrit à la main)
+  $('#edit-roue').addEventListener('click', () => { const r = editing; hide(el.ovEdit); editInput.blur(); editing = -1; retoucheAnnulee(); if (r >= 0) openLoupe(r); });
 
   /* Célébration */
   /* Kiff kiff à distance : chaque téléphone doit voir sa célébration, même s’il revient
@@ -4388,7 +4428,7 @@
       else { hide(el.ovParty); stopConfetti(); }
     }
     if (S.phase === 'celebrate' && !el.ovParty.hidden && S.kiff && S.kiff.c === 'now' && el.ovParty.dataset.mode === 'fete') partyMode('vivre');
-    if (!myTurn() && !el.ovEdit.hidden) { hide(el.ovEdit); editing = -1; }
+    if (!myTurn() && !el.ovEdit.hidden) { hide(el.ovEdit); editing = -1; retoucheAnnulee(); }
     if (arrived && S.phase !== 'celebrate') { sSwitchOn(); haptic(30); }
     renderReels();
     render();
