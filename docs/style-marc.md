@@ -16,6 +16,20 @@ Tiré uniquement de textes écrits par Marc lui-même : le document « Graines, 
 8. **Le rythme parlé.** Des phrases longues qui respirent par virgules, puis une très courte. Des « Bref, », « Alors », « Et puis », « Mais trêve de teasing ». Ponctuation libre : « … », « .. », « ?! ».
 9. **Les emojis de signature**, peu nombreux, en fin de phrase : 💃 🥰 💋 🙏 ❤.
 
+## Pour la communication : la leçon du 7 novembre
+
+Le retour de Marc sur les premières propositions : « pas de subtilité, pas de transgression, ça tombe à plat, ni drôle ni excitant, de la communication à l’américaine aseptisée ». Ce qu’il demande :
+
+- **Un humour français, décalé, actuel**, qui joue des changements de registre. Pince-sans-rire plutôt qu’enthousiaste : pas de « je vous jure », pas de « ça change tout ».
+- **Transgressif, mais subtil.** Le texte reste poli ; c’est ce qu’il cache qui est cru. Les expressions masquées doivent être vraiment sales une fois démasquées.
+- **Drôle, intelligent et torride à la fois** : on sent qu’on ne fait pas n’importe quoi, que le consentement est vraiment respecté, et que ça reste franchement cochon.
+
+La meilleure source de sa voix, ce sont **ses roues** (onglet « mots » de la feuille de données) : « tel le marteau-piqueur (Bosch Pro) », « ravaler la façade de », « passer un coup de Kärcher sur », « débouches (au destop, par exemple) », « la DGSE (demi-gaule semi-exploitable) », « jusqu’au nerf optique », « histoire de repartir en boitant », « et sans penser à Macron, stp. ». Le cru collé au bricolage, à l’administratif, au médical (« la paroi antéro-vaginale »), à la culture pop. Montrer de vraies phrases des roues, avec le mot le plus cru caché : c’est honnête (le jeu les dit vraiment) et c’est là que le ton est juste.
+
+Le consentement se montre en action, jamais en leçon : le « oui, mais » qui négocie (« sur celle du salon, celle de la cuisine est déjà bancale »), le non qui a ses confettis, la notification qui ne montre rien. Le décor du quotidien fait le contraste : la réunion budget, la mutuelle, le crédit sur vingt-cinq ans, la belle-mère, le chat qui juge.
+
+Les arguments de fond (garder la flamme, à distance, envies spontanées, mots déjà là, dirty talk qu’on apprend, pas besoin de répondre tout de suite, sortir du « je pense à toi ») ne se disent jamais au premier degré : chaque post en fait sentir un par une scène.
+
 ## Ce qu’il n’écrit pas
 
 - Le ton de copywriter : « Le jeu qui fait sauter la timidité », « Des envies plus chaudes dans les roues », « zéro malentendu », les slogans balancés, les promesses en trois points.

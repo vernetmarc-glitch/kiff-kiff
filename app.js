@@ -1872,6 +1872,7 @@
   });
   function openLoupe(r) {
     audio(); sClick(); haptic(8);
+    report('loupe', null, 'ouverte'); // mesuré depuis le 7 novembre 2026 (avant : seul l’écran de déblocage l’était)
     loupeR = r;
     loupeFrom = reels[r].el;
     $('#loupe-title').textContent = REEL_NAMES[r].charAt(0).toUpperCase() + REEL_NAMES[r].slice(1);
@@ -1909,6 +1910,7 @@
   }
   function chooseWord(x) {
     if (loupeR < 0) return;
+    report('recherche', null, loupeQ.value.trim() ? 'mot-cherche' : 'mot-roue');
     const r = loupeR, rl = reels[r];
     audio(); sClick(); haptic(10);
     closeLoupe();
@@ -1927,6 +1929,7 @@
   // un sigle (« PQ ») ou une majuscule voulue plus loin restent tels quels (29 octobre 2026)
   const sansMajuscule = (v) => (/^\p{Lu}(?:\p{Ll}|\s|$)/u.test(v) ? v.charAt(0).toLowerCase() + v.slice(1) : v);
   function loupeWrite(text) {
+    report('recherche', null, 'ecrit');
     text = sansMajuscule(text);
     const r = loupeR, rl = reels[r];
     const fi = LISTS[r].findIndex((x) => x.free);

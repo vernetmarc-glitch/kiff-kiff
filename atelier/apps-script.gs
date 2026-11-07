@@ -51,7 +51,9 @@ const TYPES = ['partie', 'envie', 'kiff', 'passe', 'visite', 'invitation', 'rejo
   // le retour d’un téléphone (jour 1, semaine…), l’achat
   'appareil', 'retour', 'achat',
   // 3 novembre 2026 : les idées pour rejouer (envoi-j3, ouvre-j3…)
-  'relance'];
+  'relance',
+  // 7 novembre 2026 : la retouche d’un mot écrit à la main (libre:retouche)
+  'libre'];
 const PAR_JOUR = TYPES; // tous les comptes le sont aussi jour par jour (depuis le 2 novembre 2026)
 const ENT_JOURNAL = ['quand', 'type', 'variante'];
 const JOURNAL_MAX = 3000;
