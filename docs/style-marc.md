@@ -28,6 +28,12 @@ La meilleure source de sa voix, ce sont **ses roues** (onglet « mots » de la f
 
 Ses propres envies (9 novembre) montrent d’autres façons de masquer, à côté de la barre dorée : **la contrepèterie** (« Je veux que tu me laisses un choix dans la date, mais on prend un whisky d’abord »), **le double sens d’un mot innocent** (« frissonner le berlingot de la pointe d’une langue agile », « déglinguer la tirelire, en toute amitié »), **le vocabulaire du bricolage** (« que tu me démontes sans ménagement dès que je passe le pas de la porte »). La phrase reste présentable ; c’est le lecteur qui se salit l’esprit.
 
+**Moins on explique, plus c’est drôle** (9 novembre). Ce que Marc retire :
+- les explications et les solutions (pas de « Indice », pas de « Nous parlons bien sûr de confiserie », pas de révélation) ;
+- les questions au lecteur et les appels à réagir (« Réponses en commentaire », « Et vous, c’est quelle cuisson ? ») : ça téléguide et ça casse la spontanéité ;
+- tout ce qui sent le texte fait par une IA : les apartés empilés, les phrases qui commentent la blague, les légendes longues.
+Le bon format : un carrousel, une énigme par image, une case par lettre façon mots fléchés, et une légende de deux ou trois mots (« Textes à trous. »). La contrepèterie n’est qu’une des énigmes, pas le mode de tout le post.
+
 Le consentement se montre en action, jamais en leçon : le « oui, mais » qui négocie (« sur celle du salon, celle de la cuisine est déjà bancale »), le non qui a ses confettis, la notification qui ne montre rien. Le décor du quotidien fait le contraste : la réunion budget, la mutuelle, le crédit sur vingt-cinq ans, la belle-mère, le chat qui juge.
 
 Les arguments de fond (garder la flamme, à distance, envies spontanées, mots déjà là, dirty talk qu’on apprend, pas besoin de répondre tout de suite, sortir du « je pense à toi ») ne se disent jamais au premier degré : chaque post en fait sentir un par une scène.
