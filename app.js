@@ -6704,6 +6704,14 @@
       return { kind: 'duo', g, B, state, nu, news, t, freshKiff, msgLine, lastMsg, nk: g.nk || 0, lobby: g.turn === 'lobby' && g.seat === 0,
         title: g.turn === 'lobby' && g.seat === 0 ? (Bn ? T('parties.invitation-a', { prénom: Bn }) : T('parties.invitation')) : B };
     });
+    // La soirée à plusieurs (15 novembre 2026) : toujours dans la liste, qu’il y ait du monde ou pas
+    const gs = grSaved();
+    if (gs) {
+      const n = +gs.n || 1;
+      items.push({ kind: 'groupe', title: gs.soiree || T('groupe.titre'), B: gs.soiree || 'K', nu: +gs.nl || 0, pour: +gs.pour || 0,
+        news: (+gs.pour || 0) > 0 || (+gs.nl || 0) > 0, t: gs.t || 1, msgLine: '', nk: +gs.k || 0,
+        state: { me: (+gs.pour || 0) > 0, line: n < 2 ? T('groupe.accueil-seul') : T('groupe.accueil-ligne', { nombre: n }) } });
+    }
     // Les parties sur ce téléphone (celle en cours comprise), retrouvées même après avoir fermé l’appli
     const here = !duo && S.started && !S.mustRestart ? pairKey() : '';
     icis().forEach((x) => {
@@ -6716,6 +6724,12 @@
   /* Les stickers de l’accueil (2 novembre 2026) : « À toi de jouer », « Lou t’a écrit » (et combien), « Kiff kiff ! » ;
      la pastille rose dit qu’il y a du nouveau depuis ma dernière visite de la partie */
   function stickersHtml(it) {
+    if (it.kind === 'groupe') {
+      let g = '';
+      if (it.pour) g += '<span class="etiquette is-tour">' + esc(T(it.pour > 1 ? 'groupe.sticker-envies' : 'groupe.sticker-envie', { nombre: it.pour })) + '</span>';
+      if (it.nu) g += '<span class="etiquette is-ecrit">' + esc(T('groupe.sticker-messages')) + (it.nu > 1 ? ' · ' + it.nu : '') + '</span>';
+      return g ? '<span class="etiquettes">' + g + '</span>' : '';
+    }
     if (it.kind !== 'duo') return '';
     let h = '';
     if (it.freshKiff) h += '<span class="etiquette is-kiff">' + esc(T('accueil.sticker-kiff')) + '</span>';
@@ -6744,9 +6758,9 @@
     const rest = sorted.slice(1);
     const isDuo = top.kind === 'duo';
     const B = top.B || '';
-    const homeId = (it) => (it.kind === 'duo' ? it.g.room : 'ici:' + it.key);
+    const homeId = (it) => (it.kind === 'duo' ? it.g.room : it.kind === 'groupe' ? 'groupe' : 'ici:' + it.key);
     const kick = (top.news ? T('accueil.du-nouveau') : T('accueil.derniere')) + (top.t > 1 ? ' · ' + agoText(top.t) : '');
-    const goLabel = !isDuo ? T('accueil.ouvrir') : top.state.go === 'lire' ? T('partie.lire') : top.state.go === 'relire' ? T('partie.relire')
+    const goLabel = top.kind === 'groupe' ? T('groupe.accueil-go') : !isDuo ? T('accueil.ouvrir') : top.state.go === 'lire' ? T('partie.lire') : top.state.go === 'relire' ? T('partie.relire')
       : top.state.go === 'tourner' ? T('partie.tourner') : top.state.go === 'reprendre' ? T('partie.reprendre')
       : top.nu ? T('accueil.lire-messages') : T('accueil.ouvrir');
     const line = top.freshKiff ? T('parties.kiff-neuf') : top.state.line || '';
@@ -6785,6 +6799,7 @@
     audio(); sClick(); haptic(8);
     if (homeOpen || $('#welcome').classList.contains('is-editing')) { homeOpen = ''; $('#welcome').classList.remove('is-editing'); renderHome(); return; } // un toucher referme « Supprimer »
     if (room.startsWith('ici:')) { report('accueil', null, 'ici'); openIci(room.slice(4)); return; }
+    if (room === 'groupe') { report('accueil', null, 'groupe'); const sv = grSaved(); if (sv) grReprendre(sv); return; }
     pendingPartie = !!b.dataset.partie;
     // Le bouton de la une fait son action tout de suite : les roues, ou l’envie à lire
     const go = b.classList.contains('une-go') && !b.dataset.partie ? (/^(tourner|reprendre)$/.test(b.dataset.go || '') ? 'roues' : 'offre') : '';
@@ -6807,6 +6822,8 @@
   let homeOpen = '';
   function deleteGame(id) {
     homeOpen = '';
+    // La soirée : on y retourne, avec le choix de quitter (en gardant ou en effaçant ses traces)
+    if (id === 'groupe') { const sv = grSaved(); if (sv) { grReprendre(sv).then(() => show(ovGrQuitter)); } return; }
     if (id.startsWith('ici:')) forgetIci(id.slice(4));
     else stopGame(id);
     haptic(20); sClick();
@@ -7262,7 +7279,9 @@
   function grSave() {
     if (!G.info) return;
     save('groupe', { info: G.info, me: G.me, keys: G.keys, pseudo: G.pseudo, couleur: G.couleur, host: G.isHost ? 1 : 0,
-      blocked: [...G.blocked], answered: G.answered, vus: G.vus, lus: G.lus, soiree: (G.host && G.host.s) || '', t: Date.now() });
+      blocked: [...G.blocked], answered: G.answered, vus: G.vus, lus: G.lus, soiree: (G.host && G.host.s) || '', t: Date.now(),
+      n: G.people.size || 1, pour: G.conn ? grPourMoi().length : 0, k: G.fanfares.size,
+      nl: G.conn ? [...G.envies.values()].filter((e) => e.open && grEtat(e) === 'kiff').reduce((t, e) => t + grNonLus(e), 0) : 0 });
   }
   const grCoul = (c) => (COULEURS.includes(c) ? c : 'v');
   const grDot = (c) => '<i class="gr-dot gr-dot--' + grCoul(c) + '" aria-hidden="true"></i>';
@@ -7468,7 +7487,15 @@
     $('#gr-gens').innerHTML = gens.map(([id, p]) => '<button class="gr-chip gr-chip--gens' + (G.blocked.has(id) ? ' is-bloque' : '') + '" type="button" data-perso="' + id + '"><span class="gr-ini">' + grIni(p.n) + '</span>' +
       esc(p.n) + (G.blocked.has(id) ? '<span class="gr-sous">' + esc(T('groupe.bloque')) + '</span>' : grDot(p.c)) + '</button>').join('');
   }
-  $('#gr-qr-btn').addEventListener('click', () => { audio(); sClick(); const s = $('#gr-entrer'); s.hidden = !s.hidden; $('#gr-qr-btn').setAttribute('aria-expanded', String(!s.hidden)); });
+  function grInviter(montrer) {
+    const sec = $('#gr-entrer');
+    sec.hidden = montrer === undefined ? !sec.hidden : !montrer;
+    $('#gr-qr-btn').setAttribute('aria-expanded', String(!sec.hidden));
+    $('#gr-inviter').textContent = sec.hidden ? T('groupe.inviter') : T('groupe.inviter-masquer');
+    if (!sec.hidden) $('#gr-scroll').scrollTop = 0;
+  }
+  $('#gr-qr-btn').addEventListener('click', () => { audio(); sClick(); grInviter(); });
+  $('#gr-inviter').addEventListener('click', () => { audio(); sClick(); grInviter(); });
   $('#gr-copier').addEventListener('click', () => {
     audio();
     const url = KG.link(G.info);
@@ -7496,7 +7523,7 @@
   });
   $('#gr-composer').addEventListener('click', () => {
     audio();
-    if (G.people.size < 2) { sNope(); haptic(20); $('#gr-entrer').hidden = false; grFlash(T('groupe.personne')); return; }
+    if (G.people.size < 2) { sNope(); haptic(20); grInviter(true); grFlash(T('groupe.personne')); return; }
     if (grEnAttente().length >= GR_ENVIES) { sNope(); haptic(20); grFlash(T('groupe.quota-plein')); return; }
     sClick(); haptic(8);
     grComposer();
@@ -7971,8 +7998,7 @@
     setLevels(load('levels', [1, 2]), { silent: true, nosave: true });
     hide(el.ovStart); hide($('#ov-wait'));
     document.body.classList.add('en-groupe');
-    $('#gr-entrer').hidden = !qr;
-    $('#gr-qr-btn').setAttribute('aria-expanded', String(!!qr));
+    grInviter(!!qr);
     show(ovGr);
     ovGr.scrollTop = 0;
     grMaj();
@@ -7992,6 +8018,7 @@
   // Retour à l’accueil (la partie reste sur ce téléphone, « Revenir à la partie à plusieurs »), ou quitter pour de bon
   // quitter : '' (retour à l’accueil, la partie reste ici), 'quitter', ou 'effacer' (ses traces, sur le relais et ici)
   async function grSortir(quitter) {
+    if (!quitter && G.conn) grSave(); // l’accueil montre où en est la soirée
     if (quitter && G.conn) {
       if (quitter === 'effacer') await grEffacerTraces();
       else {
@@ -8009,7 +8036,8 @@
   }
   function grResumeMaj() {
     const sv = grSaved(), b = $('#gr-resume');
-    b.hidden = !sv;
+    b.hidden = true; // la soirée est dans la liste de l’accueil
+    if (!el.ovStart.hidden) renderHome();
     if (sv) b.textContent = sv.soiree ? T('groupe.revenir-nom', { soirée: sv.soiree }) : T('groupe.revenir');
   }
   $('#gr-resume').addEventListener('click', () => { audio(); const sv = grSaved(); if (sv) grReprendre(sv); });

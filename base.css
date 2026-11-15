@@ -2079,3 +2079,4 @@ body.en-groupe #kiffs-open, body.en-groupe #pass, body.en-groupe #top-who { disp
 #gr-fete-chat[hidden] { display: none; }
 .gr-soiree-box { display: flex; flex-direction: column; gap: 6px; }
 .gr-soiree-box[hidden] { display: none; }
+.gr-compose .gr-inviter { margin-top: 4px; min-height: 46px; font-size: 15px; }
