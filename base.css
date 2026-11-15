@@ -2100,3 +2100,6 @@ div.thread-kiff-btn { cursor: default; }
 /* Les bougies de Red Corner ne passent pas sur les écrans de la soirée (le bouton Envoyer, signalé par Marc le 15 novembre 2026) */
 body:has(#ov-groupe:not([hidden])) .deco-candles,
 body:has(.overlay[id^="ov-gr-"]:not([hidden])) .deco-candles { display: none; }
+.gr-deux-note { margin: 12px 8px 0; text-align: center; font-size: 14px; opacity: .9; }
+.thread-kiff .gr-deux-non { display: block; margin: 4px auto 0; font-size: 13.5px; }
+#gr-chat-fil { margin-bottom: 4px; }

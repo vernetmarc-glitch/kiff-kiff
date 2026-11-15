@@ -7412,8 +7412,20 @@
     const o = await KG.readSealed(e.open.key, bytes);
     if (!o || typeof o.p !== 'string' || typeof o.m !== 'string') return;
     const neuf = !e.chat.has(x);
-    e.chat.set(x, { p: o.p, n: String(o.n || '?').slice(0, 18), m: o.m.slice(0, 500), t: +o.t || 0 });
-    if (neuf && !old && grPret() && o.p !== G.me && !(G.chatId === e.id && !ovGrChat.hidden)) { grFlash(T('groupe.message-de', { prénom: o.n })); haptic(12); }
+    const m = { p: o.p, n: String(o.n || '?').slice(0, 18), m: o.m.slice(0, 500), t: +o.t || 0 };
+    // « Continuer à deux » : l’invitation (le lien d’une partie à deux), puis le oui ou le non de l’autre
+    if (typeof o.inv === 'string' && /#duo=/.test(o.inv)) m.inv = o.inv.slice(0, 300);
+    if (o.ok) m.ok = 1;
+    if (o.non) m.non = 1;
+    e.chat.set(x, m);
+    const signal = m.inv || m.ok || m.non;
+    if (signal && o.p !== G.me) grDeuxSuivi(e);
+    if (neuf && !old && grPret() && o.p !== G.me) {
+      if (m.inv) { grFlash(T('groupe.deux-propose', { prénom: m.n })); haptic(20); }
+      else if (m.non) grFlash(T('groupe.deux-refus', { prénom: m.n }));
+      else if (m.ok) grFlash(T('groupe.deux-accepte', { prénom: m.n }));
+      else if (!(G.chatId === e.id && !ovGrChat.hidden)) { grFlash(T('groupe.message-de', { prénom: o.n })); haptic(12); }
+    }
   }
   async function grLireRep(e, x, bytes) {
     const o = await KG.readReponse(e.open.key, bytes);
@@ -7574,10 +7586,16 @@
     const badge = '<span class="avatar thread-author" aria-hidden="true">' + esc(initial(it.moi ? G.pseudo : auteur)) + '</span>';
     const carte = (txt) => '<span class="party-sentence thread-kiff-card">' + badge + '<span class="thread-kiff-text">' + esc(txt) + '</span></span>';
     if (it.et === 'kiff') {
-      const nl = grNonLus(it.e);
+      const nl = grNonLus(it.e), deux = avec.length === 1 ? grDeux(it.e) : null;
+      let suite = '<button class="btn btn--line gr-continuer" type="button" data-chat="' + it.id + '">' + esc(grContinuer(p, it.id)) + (nl ? '<span class="gr-badge">' + nl + '</span>' : '') + '</button>';
+      if (deux && deux.non) suite = '<p class="gr-deux-note">' + esc(deux.mienne ? T('groupe.deux-refus', { prénom: grNom(avec[0]) }) : T('groupe.deux-non-ok')) + '</p>';
+      else if (deux && deux.sienne && !deux.ici && !deux.ok) {
+        suite = '<p class="gr-deux-note">' + esc(T('groupe.deux-propose', { prénom: deux.sienne.n })) + '</p>' +
+          '<button class="btn gr-continuer" type="button" data-deux-oui="' + it.id + '">' + esc(T('groupe.continuer-2')) + '</button>' +
+          '<button class="link-btn gr-deux-non" type="button" data-deux-non="' + it.id + '">' + esc(T('groupe.deux-non')) + '</button>';
+      } else if (deux && deux.mienne && !deux.ok) suite = '<p class="gr-deux-note">' + esc(T('groupe.deux-attente', { prénom: grNom(avec[0]) })) + '</p>' + (deux.ici ? suite : '');
       return '<li class="thread-kiff' + cote + '"><button class="thread-kiff-btn" type="button" data-chat="' + it.id + '"><span class="thread-kiff-kicker">' +
-        esc(T('groupe.kicker-kiff', { prénoms: grListe(avec) })) + '</span>' + carte(p.txt) + '</button>' +
-        '<button class="btn btn--line gr-continuer" type="button" data-chat="' + it.id + '">' + esc(grContinuer(p)) + (nl ? '<span class="gr-badge">' + nl + '</span>' : '') + '</button></li>';
+        esc(T('groupe.kicker-kiff', { prénoms: grListe(avec) })) + '</span>' + carte(p.txt) + '</button>' + suite + '</li>';
     }
     if (it.moi) {
       const etat = it.et === 'non' ? T('groupe.pas-cette-fois') : T('groupe.attente');
@@ -7596,7 +7614,11 @@
     const lire = e.target.closest('[data-lire]');
     if (lire) { audio(); sClick(); grLire(lire.dataset.lire); return; }
     const ch = e.target.closest('[data-chat]');
-    if (ch) { audio(); sClick(); grChat(ch.dataset.chat); return; }
+    if (ch) { audio(); sClick(); grContinuerAction(ch.dataset.chat); return; }
+    const oui = e.target.closest('[data-deux-oui]');
+    if (oui) { audio(); sSwitchOn(); haptic(15); grDeuxOui(oui.dataset.deuxOui); return; }
+    const non = e.target.closest('[data-deux-non]');
+    if (non) { audio(); sClick(); grDeuxNon(non.dataset.deuxNon); return; }
     const ret = e.target.closest('[data-retirer]');
     if (ret) { audio(); haptic(10); grEffacerEnvie(ret.dataset.retirer); grFlash(T('groupe.retiree')); grMaj(); }
   });
@@ -7704,14 +7726,117 @@
   /* ---------- La discussion d’un kiff kiff (« Continuer à deux », « Continuer entre nous ») ----------
      Chiffrée avec la clé de l’envie : seules les personnes du kiff kiff la lisent ; elle vit aussi longtemps que la soirée. */
   const grAvec = (p) => grNommes(p).concat(p.a).filter((x, i, a) => x !== G.me && a.indexOf(x) === i);
-  const grContinuer = (p) => T(grAvec(p).length > 1 ? 'groupe.continuer-n' : 'groupe.continuer-2');
-  const grNonLus = (e) => [...e.chat.values()].filter((m) => m.p !== G.me && m.t > (G.lus[e.id] || 0)).length;
+  /* « Continuer à deux » (16 novembre 2026, décidé avec Marc) : une vraie partie à deux, dans « Vos parties », sur l’accord des deux
+     (elle survit à la soirée). L’invitation passe par la discussion chiffrée du kiff kiff : un toucher chez l’autre pour la rejoindre.
+     À plusieurs, « Continuer entre nous » ouvre la discussion du kiff kiff, dans la soirée. */
+  function grDeux(e) {
+    const ms = [...e.chat.values()].sort((a, b) => a.t - b.t);
+    const mienne = ms.filter((m) => m.inv && m.p === G.me).pop() || null;
+    const sienne = ms.filter((m) => m.inv && m.p !== G.me).pop() || null;
+    const inv = mienne || sienne;
+    const room = inv ? ((window.KiffDuo && window.KiffDuo.parse(inv.inv)) || {}).room : '';
+    const reponse = inv ? ms.filter((m) => (m.ok || m.non) && m.p !== inv.p && m.t >= inv.t).pop() || null : null;
+    return { mienne, sienne, inv, room, ok: !!(reponse && reponse.ok), non: !!(reponse && reponse.non), ici: !!(room && findGame(room)) };
+  }
+  function grContinuer(p, id) {
+    if (grAvec(p).length > 1) return T('groupe.continuer-n');
+    const e = id && G.envies.get(id), d = e ? grDeux(e) : null;
+    if (d && d.ici && !d.non) return T('groupe.deux-ouvrir');
+    return T('groupe.continuer-2');
+  }
+  // Un non à l’invitation : la partie à deux qui l’attendait quitte la liste de qui l’avait proposée
+  function grDeuxSuivi(e) {
+    const d = grDeux(e);
+    if (d.non && d.mienne && d.room && findGame(d.room)) { forgetGame(d.room); if (!el.ovStart.hidden) renderHome(); }
+  }
+  async function grContinuerAction(id) {
+    const e = G.envies.get(id);
+    if (!e || !e.open) return;
+    const p = e.open.payload, avec = grAvec(p);
+    if (avec.length > 1) { grChat(id); return; }
+    const d = grDeux(e);
+    // Notre partie à deux existe déjà sur ce téléphone : on y va (la soirée reste dans la liste)
+    if (d.ici && !d.non) { grVersDuo(d.room); return; }
+    // L’autre propose déjà : c’est un oui
+    if (d.sienne && !d.non) { grDeuxOui(id); return; }
+    if (d.mienne && !d.non) return;
+    const autre = avec[0], nom = grNom(autre);
+    const auteur = p.a === G.me ? 0 : 1;
+    let link = '';
+    try { link = await grDuoCree(nom, p.txt, auteur === 0 ? G.pseudo : nom, auteur); } catch (er) { grFlash(T('groupe.erreur')); return; }
+    const x = KG.newId(10), o = { p: G.me, n: G.pseudo, m: '', inv: link, t: Date.now() };
+    e.chat.set(x, o);
+    await G.conn.chat(id, e.open.key, o, x);
+    report('invitation', null, 'soiree');
+    grFlash(T('groupe.deux-envoye', { prénom: nom }));
+    grMaj();
+  }
+  // Rejoindre la partie à deux proposée par l’autre (le parcours habituel d’une invitation)
+  async function grDeuxOui(id) {
+    const e = G.envies.get(id), d = e && grDeux(e);
+    if (!d || !d.sienne) return;
+    const info = window.KiffDuo && window.KiffDuo.parse(d.sienne.inv);
+    if (!info) return;
+    const x = KG.newId(10), o = { p: G.me, n: G.pseudo, m: '', ok: 1, t: Date.now() };
+    e.chat.set(x, o);
+    await G.conn.chat(id, e.open.key, o, x);
+    report('invitation', null, 'soiree-oui');
+    await grSortir('');
+    try { history.replaceState(null, '', window.KiffDuo.link(info)); } catch (er) { /* rien */ }
+    startJoin(info);
+  }
+  async function grDeuxNon(id) {
+    const e = G.envies.get(id);
+    if (!e || !e.open) return;
+    const x = KG.newId(10), o = { p: G.me, n: G.pseudo, m: '', non: 1, t: Date.now() };
+    e.chat.set(x, o);
+    await G.conn.chat(id, e.open.key, o, x);
+    grFlash(T('groupe.deux-non-ok'));
+    grMaj();
+  }
+  async function grVersDuo(room) {
+    await grSortir('');
+    openGame(room);
+  }
+  /* Créer la partie à deux sans quitter la soirée : comme « Continuer à distance », avec les deux pseudos de la soirée et le kiff kiff
+     déjà dans l’historique ; la partie part dans « Vos parties » (« Invitation à Anne ») et attend l’autre, comme une invitation envoyée. */
+  async function grDuoCree(autre, txt, auteurNom, auteurPlace) {
+    await loadDuoLibs();
+    if (duo) parkDuo();
+    const id = window.KiffDuo.newId();
+    duo = { seat: 0, id, seq: 0, lastBy: '', stage: 'creating', partnerOn: null, online: true, passN: null };
+    let conn;
+    try { conn = await window.KiffDuo.create(id, duoHandlers); } catch (er) { duo = null; throw er; }
+    duo.conn = conn; duo.info = conn.info;
+    const lv = S.levels.slice();
+    S.names = [G.pseudo, autre];
+    S.proposer = 0; S.phase = 'lobby';
+    S.original = null; S.bottom = false; S.pass = null; S.custom = ['', '', ''];
+    S.prog = true; S.gift = null; S.gifting = false; S.rencontre = false; S.cpOther = false;
+    S.kiff = null; S.kiffs = [{ t: txt, w: auteurNom, d: Date.now(), s: auteurPlace, lv: 1, v: 0 }];
+    S.mine = [[], [], []]; S.seen = [[], [], []];
+    setLevels([1], { silent: true, remote: true });
+    S.lvOk = [1];
+    S.t0 = Date.now();
+    lvDebut();
+    S.started = false;
+    pushState();
+    rememberGame({ phase: 'lobby', names: S.names });
+    const link = window.KiffDuo.link(conn.info);
+    parkDuo(); // la partie attend dans la liste ; on reste dans la soirée
+    S.prog = false;
+    setLevels(lv, { silent: true, nosave: true });
+    try { history.replaceState(null, '', location.pathname + location.search + '#groupe=' + G.info.broker + G.info.room + '.' + G.info.key); } catch (er) { /* rien */ }
+    return link;
+  }
+  const grNonLus = (e) => [...e.chat.values()].filter((m) => !m.inv && !m.ok && !m.non && m.p !== G.me && m.t > (G.lus[e.id] || 0)).length;
   function grChat(id) {
     const e = G.envies.get(id);
     if (!e || !e.open) return;
     G.chatId = id;
     hide(ovGr); hide(ovGrFete); stopConfetti();
-    $('#gr-chat-titre').textContent = T('groupe.rep-avec', { prénoms: grListe(grAvec(e.open.payload)) });
+    $('#gr-chat-titre').textContent = T('groupe.chat-titre', { prénoms: grListe(grAvec(e.open.payload)) });
+    $('#gr-chat-kicker').textContent = T('groupe.kicker-kiff', { prénoms: grListe(grAvec(e.open.payload)) });
     $('#gr-chat-phrase').textContent = e.open.payload.txt;
     show(ovGrChat);
     grChatRendre(true);
@@ -7721,7 +7846,7 @@
     if (!e || !e.open || ovGrChat.hidden) return;
     const sc = $('#gr-chat-scroll');
     const enBas = bas || sc.scrollHeight - sc.scrollTop - sc.clientHeight < 60;
-    const msgs = [...e.chat.values()].sort((a, b) => a.t - b.t);
+    const msgs = [...e.chat.values()].filter((m) => !m.inv && !m.ok && !m.non).sort((a, b) => a.t - b.t);
     const heure = (t) => new Date(t).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
     const partis = grAvec(e.open.payload).filter((x) => !G.people.has(x));
     $('#gr-chat-list').innerHTML = (msgs.length ? msgs.map((m) => '<li class="chat-msg' + (m.p === G.me ? ' is-mine' : '') + '">' +
@@ -7866,7 +7991,7 @@
     $('#gr-fete-phrase').textContent = p.txt;
     $('#gr-fete-ok').textContent = T('groupe.fete-ok');
     const fc = $('#gr-fete-chat');
-    fc.hidden = false; fc.textContent = grContinuer(p); fc.dataset.id = id;
+    fc.hidden = false; fc.textContent = grContinuer(p, id); fc.dataset.id = id;
     $('#gr-fete-ok').classList.add('btn--line');
     hide(ovGrRep);
     show(ovGrFete);
@@ -7893,7 +8018,7 @@
     const id = $('#gr-fete-chat').dataset.id;
     hide(ovGrFete); stopConfetti();
     if (G.fetes.length) G.fetes = G.fetes.filter((x) => x !== id);
-    grChat(id);
+    grContinuerAction(id);
   });
   $('#gr-fete-ok').addEventListener('click', () => {
     audio(); hide(ovGrFete); stopConfetti();
