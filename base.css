@@ -2097,3 +2097,6 @@ div.thread-kiff-btn { cursor: default; }
 .gr-inv-ok { align-self: center; }
 .gr-perso-retirer { align-self: center; font-size: 14px; }
 .gr-perso-retirer[hidden] { display: none; }
+/* Les bougies de Red Corner ne passent pas sur les écrans de la soirée (le bouton Envoyer, signalé par Marc le 15 novembre 2026) */
+body:has(#ov-groupe:not([hidden])) .deco-candles,
+body:has(.overlay[id^="ov-gr-"]:not([hidden])) .deco-candles { display: none; }
