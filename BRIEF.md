@@ -341,5 +341,7 @@ Les fondations du document « Kiff Kiff : cibles, diffusion et recrutement sans 
 
 ## Pistes ouvertes
 
+- **Kiff Kiff à plusieurs** (15 novembre, idée de Marc : soirée libertine, apéro sex-positif) : analyse et maquettes dans le doc « Kiff Kiff à plusieurs : analyse et propositions ». Phrases ouvertes par le prénom de qui reçoit (« Jade et Léo, j’ai envie de vous… », « Jade, j’ai envie que Léo te… ») ; 154 actions sur 156 se conjuguent seules à la 3ᵉ personne ; non anonyme ; un téléphone pour un apéro, plusieurs pour une soirée. Étapes proposées : phrases, puis à plusieurs sur un téléphone, puis la soirée sur plusieurs téléphones. Rien n’est construit.
+
 - Historique des envies réalisées.
 - Ajouter ses propres mots de façon permanente dans les listes.
