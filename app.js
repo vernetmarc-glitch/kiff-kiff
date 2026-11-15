@@ -7004,7 +7004,7 @@
     $('#home-cont').hidden = !!duo || !S.started || !!S.mustRestart;
     $('#welcome-go').textContent = S.started ? T('accueil.nouvelle') : T('accueil.commencer');
     $('#welcome-go').classList.toggle('btn--line', inDuo);
-    $('#gr-resume').hidden = !grSaved();
+    grResumeMaj();
     quitArmed(false);
     if (inDuo && offerKind) hideOffer(); // elle reviendra avec « Reprendre la partie »
     hide(ovHot);
@@ -7248,19 +7248,21 @@
   const KG = window.KiffGroupe;
   const ovGr = $('#ov-groupe'), ovGrEntree = $('#ov-gr-entree'), ovGrChoisir = $('#ov-gr-choisir');
   const ovGrRep = $('#ov-gr-rep'), ovGrFete = $('#ov-gr-fete'), ovGrPerso = $('#ov-gr-perso');
+  const ovGrChat = $('#ov-gr-chat'), ovGrQuitter = $('#ov-gr-quitter');
   const GR_ENVIES = 3, GR_NOMMES = 4, COULEURS = ['v', 'o', 'r'];
   Object.assign(G, {
     info: null, conn: null, keys: null, pseudo: '', couleur: 'v', host: null, isHost: false,
-    envies: new Map(), // id → { meta, open: { payload, key } | null, raw: Map(x → octets), dec: Map(x → { p, a }) }
-    fanfares: new Map(), etats: new Map(), blocked: new Set(), answered: {}, vus: {},
-    online: false, readyAt: 0, entree: null, picker: null, lit: '', quitT: 0, fetes: []
+    // id → { meta, open: { payload, key } | null, raw / dec : les réponses (x → octets / { p, a }), craw / chat : la discussion (x → octets / { p, n, m, t }) }
+    envies: new Map(),
+    fanfares: new Map(), etats: new Map(), blocked: new Set(), answered: {}, vus: {}, lus: {},
+    online: false, readyAt: 0, entree: null, picker: null, lit: '', fetes: [], chatId: ''
   });
   const grPret = () => !!G.conn && Date.now() > G.readyAt;
   const grSaved = () => { const g = load('groupe', null); return g && g.info && g.me && g.keys && g.pseudo ? g : null; };
   function grSave() {
     if (!G.info) return;
     save('groupe', { info: G.info, me: G.me, keys: G.keys, pseudo: G.pseudo, couleur: G.couleur, host: G.isHost ? 1 : 0,
-      blocked: [...G.blocked], answered: G.answered, vus: G.vus, t: Date.now() });
+      blocked: [...G.blocked], answered: G.answered, vus: G.vus, lus: G.lus, soiree: (G.host && G.host.s) || '', t: Date.now() });
   }
   const grCoul = (c) => (COULEURS.includes(c) ? c : 'v');
   const grDot = (c) => '<i class="gr-dot gr-dot--' + grCoul(c) + '" aria-hidden="true"></i>';
@@ -7274,6 +7276,7 @@
   }
   function grEtat(e) {
     if (!e || !e.open) return '';
+    if (G.fanfares.has(e.id)) return 'kiff';
     const p = e.open.payload, named = grNommes(p);
     const ans = new Map();
     e.dec.forEach((v) => { if (v && named.includes(v.p) && !ans.has(v.p)) ans.set(v.p, v.a); });
@@ -7308,7 +7311,8 @@
     G.readyAt = Date.now() + 1800;
     G.conn = await KG.connect(info, { id: G.me }, {
       host(o) {
-        G.host = o; G.max = Math.min(3, Math.max(1, +o.max || 2));
+        G.host = o;
+        if (G.on && o.s) grSave(); G.max = Math.min(3, Math.max(1, +o.max || 2));
         if (G.on) setLevels(S.levels, { silent: true, nosave: true });
         if (G.entree) grEntreeRendre();
         grMaj();
@@ -7321,27 +7325,36 @@
         grMaj();
       },
       envie(id, o) {
-        if (!o) { G.envies.delete(id); grMaj(); return; }
-        let e = G.envies.get(id);
-        if (!e) { e = { meta: o, open: null, raw: new Map(), dec: new Map() }; G.envies.set(id, e); }
+        if (!o) {
+          G.envies.delete(id);
+          if (G.chatId === id && !ovGrChat.hidden) { hide(ovGrChat); G.chatId = ''; show(ovGr); grFlash(T('groupe.chat-efface')); }
+          grMaj(); return;
+        }
+        const e = grEnvie(id);
         e.meta = o;
         if (!e.open && !e.opening && G.keys) {
           e.opening = KG.openEnvelope(o, G.keys.priv).then((r) => {
             e.opening = null;
             if (!r || !r.payload || typeof r.payload.txt !== 'string') return;
             e.open = r;
-            return Promise.all([...e.raw.entries()].map(([x, b]) => grLireRep(e, x, b)));
+            return Promise.all([...e.raw.entries()].map(([x, b]) => grLireRep(e, x, b)).concat([...e.craw.entries()].map(([x, b]) => grLireMsg(e, x, b, true))));
           }).then(() => grMaj()).catch(() => { e.opening = null; });
         }
       },
       reponse(eid, x, bytes) {
-        let e = G.envies.get(eid);
-        if (!e) { e = { meta: null, open: null, raw: new Map(), dec: new Map() }; G.envies.set(eid, e); }
+        const e = grEnvie(eid);
         if (!bytes) { e.raw.delete(x); e.dec.delete(x); grMaj(); return; }
         e.raw.set(x, bytes);
         if (e.open) grLireRep(e, x, bytes).then(() => grMaj());
       },
+      chat(eid, x, bytes, old) {
+        const e = grEnvie(eid);
+        if (!bytes) { e.craw.delete(x); e.chat.delete(x); grMaj(); grChatRendre(); return; }
+        e.craw.set(x, bytes);
+        if (e.open) grLireMsg(e, x, bytes, old).then(() => { grMaj(); grChatRendre(); });
+      },
       fanfare(id, o, old) {
+        if (!o) { G.fanfares.delete(id); grMaj(); return; }
         const avant = G.fanfares.size;
         G.fanfares.set(id, o);
         if (!old && avant === 0 && grPret()) grFanfare(id);
@@ -7351,6 +7364,18 @@
     });
     G.online = true;
     return G.conn;
+  }
+  function grEnvie(id) {
+    let e = G.envies.get(id);
+    if (!e) { e = { id, meta: null, open: null, raw: new Map(), dec: new Map(), craw: new Map(), chat: new Map() }; G.envies.set(id, e); }
+    return e;
+  }
+  async function grLireMsg(e, x, bytes, old) {
+    const o = await KG.readSealed(e.open.key, bytes);
+    if (!o || typeof o.p !== 'string' || typeof o.m !== 'string') return;
+    const neuf = !e.chat.has(x);
+    e.chat.set(x, { p: o.p, n: String(o.n || '?').slice(0, 18), m: o.m.slice(0, 500), t: +o.t || 0 });
+    if (neuf && !old && grPret() && o.p !== G.me && !(G.chatId === e.id && !ovGrChat.hidden)) { grFlash(T('groupe.message-de', { prénom: o.n })); haptic(12); }
   }
   async function grLireRep(e, x, bytes) {
     const o = await KG.readReponse(e.open.key, bytes);
@@ -7401,6 +7426,7 @@
     if (G.composing) { grChips(); return; }
     const n = G.people.size || 1, k = G.fanfares.size;
     const kt = k === 0 ? T('groupe.statut-kiffs-0') : k === 1 ? T('groupe.statut-kiffs-1') : T('groupe.statut-kiffs', { nombre: k });
+    $('#gr-titre').textContent = (G.host && G.host.s) || T('groupe.titre');
     $('#gr-statut').textContent = G.online ? T(n === 1 ? 'groupe.statut-1' : 'groupe.statut', { nombre: n, kiffs: kt }) : T('groupe.hors-ligne');
     // Faire entrer : le QR code
     const qr = $('#gr-qr');
@@ -7429,9 +7455,10 @@
     // Tes kiff kiff
     const ks = [...G.envies.entries()].filter(([, e]) => e.open && grEtat(e) === 'kiff' && (e.open.payload.a === G.me || grNommes(e.open.payload).includes(G.me)));
     $('#gr-kiffs-sec').hidden = !ks.length;
-    $('#gr-kiffs').innerHTML = ks.map(([, e]) => {
-      const p = e.open.payload, avec = grNommes(p).concat(p.a).filter((x) => x !== G.me);
-      return '<li class="gr-item gr-item--kiff"><p class="gr-phrase">' + esc(p.txt) + '</p><span class="gr-etat">' + esc(T('groupe.rep-avec', { prénoms: grListe(avec) })) + '</span></li>';
+    $('#gr-kiffs').innerHTML = ks.map(([id, e]) => {
+      const p = e.open.payload, avec = grAvec(p), nl = grNonLus(e);
+      return '<li class="gr-item gr-item--kiff"><p class="gr-phrase">' + esc(p.txt) + '</p><span class="gr-etat">' + esc(T('groupe.rep-avec', { prénoms: grListe(avec) })) + '</span>' +
+        '<button class="btn btn--line gr-chat-btn" type="button" data-chat="' + id + '">' + esc(grContinuer(p)) + (nl ? '<span class="gr-badge">' + nl + '</span>' : '') + '</button></li>';
     }).join('');
     // Qui est là
     $('#gr-n').textContent = '(' + n + ')';
@@ -7449,15 +7476,17 @@
     else grFlash(url);
   });
   $('#gr-envoyer').hidden = typeof navigator.share !== 'function';
-  $('#gr-envoyer').addEventListener('click', () => { audio(); navigator.share({ title: 'Kiff Kiff', text: T('groupe.invitation'), url: KG.link(G.info) }).then(() => report('partage', null, 'groupe')).catch(() => {}); });
+  $('#gr-envoyer').addEventListener('click', () => { audio(); navigator.share({ title: 'Kiff Kiff', text: G.host && G.host.s ? T('groupe.invitation-nom', { soirée: G.host.s }) : T('groupe.invitation'), url: KG.link(G.info) }).then(() => report('partage', null, 'groupe')).catch(() => {}); });
   ovGr.addEventListener('click', (e) => {
     const lire = e.target.closest('[data-lire]');
     if (lire) { audio(); sClick(); grLire(lire.dataset.lire); return; }
+    const ch = e.target.closest('[data-chat]');
+    if (ch) { audio(); sClick(); grChat(ch.dataset.chat); return; }
     const ret = e.target.closest('[data-retirer]');
     if (ret) {
       audio(); haptic(10);
       const id = ret.dataset.retirer;
-      G.envies.delete(id); G.conn.clearEnvie(id); grFlash(T('groupe.retiree')); grMaj();
+      grEffacerEnvie(id); grFlash(T('groupe.retiree')); grMaj();
       return;
     }
     const c = e.target.closest('[data-coul]');
@@ -7472,14 +7501,90 @@
     sClick(); haptic(8);
     grComposer();
   });
-  $('#gr-accueil').addEventListener('click', () => { audio(); grSortir(false); });
-  $('#gr-quitter').addEventListener('click', () => {
-    audio();
-    const b = $('#gr-quitter');
-    if (!G.quitT) { G.quitT = setTimeout(() => { G.quitT = 0; b.textContent = T('groupe.quitter'); }, 4000); b.textContent = T('groupe.quitter-confirmer'); sClick(); haptic(8); return; }
-    clearTimeout(G.quitT); G.quitT = 0; b.textContent = T('groupe.quitter');
-    grSortir(true);
+  $('#gr-accueil').addEventListener('click', () => { audio(); grSortir(''); });
+  // Quitter : en gardant ses kiff kiff pour les autres, ou en effaçant ses traces
+  $('#gr-quitter').addEventListener('click', () => { audio(); sClick(); show(ovGrQuitter); });
+  $('#gr-quitter-non').addEventListener('click', () => { audio(); hide(ovGrQuitter); });
+  ovGrQuitter.addEventListener('click', (e) => { if (e.target === ovGrQuitter) hide(ovGrQuitter); });
+  $('#gr-quitter-simple').addEventListener('click', () => { audio(); haptic(10); hide(ovGrQuitter); grSortir('quitter'); });
+  $('#gr-quitter-effacer').addEventListener('click', () => { audio(); haptic(10); hide(ovGrQuitter); grSortir('effacer'); });
+
+  /* ---------- La discussion d’un kiff kiff (« Continuer à deux », « Continuer entre nous ») ----------
+     Chiffrée avec la clé de l’envie : seules les personnes du kiff kiff la lisent ; elle vit aussi longtemps que la soirée. */
+  const grAvec = (p) => grNommes(p).concat(p.a).filter((x, i, a) => x !== G.me && a.indexOf(x) === i);
+  const grContinuer = (p) => T(grAvec(p).length > 1 ? 'groupe.continuer-n' : 'groupe.continuer-2');
+  const grNonLus = (e) => [...e.chat.values()].filter((m) => m.p !== G.me && m.t > (G.lus[e.id] || 0)).length;
+  function grChat(id) {
+    const e = G.envies.get(id);
+    if (!e || !e.open) return;
+    G.chatId = id;
+    hide(ovGr); hide(ovGrFete); stopConfetti();
+    $('#gr-chat-titre').textContent = T('groupe.rep-avec', { prénoms: grListe(grAvec(e.open.payload)) });
+    $('#gr-chat-phrase').textContent = e.open.payload.txt;
+    show(ovGrChat);
+    grChatRendre(true);
+  }
+  function grChatRendre(bas) {
+    const e = G.envies.get(G.chatId);
+    if (!e || !e.open || ovGrChat.hidden) return;
+    const sc = $('#gr-chat-scroll');
+    const enBas = bas || sc.scrollHeight - sc.scrollTop - sc.clientHeight < 60;
+    const msgs = [...e.chat.values()].sort((a, b) => a.t - b.t);
+    const heure = (t) => new Date(t).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+    const partis = grAvec(e.open.payload).filter((x) => !G.people.has(x));
+    $('#gr-chat-list').innerHTML = (msgs.length ? msgs.map((m) => '<li class="chat-msg' + (m.p === G.me ? ' is-mine' : '') + '">' +
+      (m.p !== G.me && grAvec(e.open.payload).length > 1 ? '<span class="gr-chat-qui">' + esc(m.n) + '</span>' : '') +
+      '<span class="chat-text">' + esc(m.m) + '</span><span class="chat-meta">' + heure(m.t) + '</span></li>').join('') : '<li class="chat-empty">' + esc(T('groupe.chat-vide')) + '</li>') +
+      partis.map((x) => '<li class="chat-empty">' + esc(T('groupe.chat-parti', { prénom: (msgs.find((m) => m.p === x) || {}).n || '?' })) + '</li>').join('');
+    G.lus[G.chatId] = Date.now(); grSave();
+    if (enBas) sc.scrollTop = sc.scrollHeight;
+  }
+  $('#gr-chat-retour').addEventListener('click', () => { audio(); hide(ovGrChat); G.chatId = ''; show(ovGr); grMaj(); });
+  const grChatInput = $('#gr-chat-input');
+  grChatInput.addEventListener('input', () => { grChatInput.style.height = 'auto'; grChatInput.style.height = Math.min(120, grChatInput.scrollHeight) + 'px'; });
+  grChatInput.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); $('#gr-chat-form').requestSubmit(); } });
+  $('#gr-chat-form').addEventListener('submit', (ev) => {
+    ev.preventDefault();
+    const m = grChatInput.value.replace(/\s+$/, '').slice(0, 500);
+    const e = G.envies.get(G.chatId);
+    if (!m.trim() || !e || !e.open || !G.conn) return;
+    audio(); sClick(); haptic(6);
+    const x = KG.newId(10), o = { p: G.me, n: G.pseudo, m, t: Date.now() };
+    e.chat.set(x, o);
+    G.conn.chat(G.chatId, e.open.key, o, x);
+    grChatInput.value = ''; grChatInput.style.height = '';
+    report('message', null, 'groupe');
+    grChatRendre(true);
   });
+
+  /* ---------- Effacer : une envie (avec tout ce qui s’y rattache), ou ses traces en quittant ---------- */
+  function grEffacerEnvie(id) {
+    const e = G.envies.get(id);
+    if (e) {
+      e.raw.forEach((b, x) => G.conn.clearReponse(id, x));
+      e.craw.forEach((b, x) => G.conn.clearChat(id, x));
+      e.chat.forEach((m, x) => G.conn.clearChat(id, x));
+    }
+    if (G.fanfares.has(id)) G.conn.clearFanfare(id);
+    G.envies.delete(id);
+    G.conn.clearEnvie(id);
+  }
+  async function grEffacerTraces() {
+    const c = G.conn;
+    if (!c) return;
+    for (const [id, e] of [...G.envies.entries()]) {
+      if (!e.open) {
+        const a = G.answered[id];
+        if (a && a.x) c.clearReponse(id, a.x);
+        continue;
+      }
+      if (e.open.payload.a === G.me) { grEffacerEnvie(id); continue; }
+      e.dec.forEach((v, x) => { if (v.p === G.me) c.clearReponse(id, x); });
+      e.chat.forEach((m, x) => { if (m.p === G.me) c.clearChat(id, x); });
+    }
+    Object.keys(G.answered).forEach((id) => { const a = G.answered[id]; if (a && a.x && !G.envies.has(id)) c.clearReponse(id, a.x); });
+    await c.clearProfile();
+  }
 
   /* ---------- Une personne : bloquer ---------- */
   function grPerso(id) {
@@ -7519,8 +7624,9 @@
   async function grRepondre(id, a, discret) {
     const e = G.envies.get(id);
     if (!e || !e.open || G.answered[id]) return;
-    G.answered[id] = a; grSave();
-    await G.conn.reponse(id, e.open.key, { p: G.me, a, t: Date.now() });
+    const x = KG.newId(8);
+    G.answered[id] = { a, x }; grSave();
+    await G.conn.reponse(id, e.open.key, { p: G.me, a, t: Date.now() }, x);
     if (!discret) report(a === 'oui' ? 'kiff' : 'passe', null, 'groupe');
   }
   $('#gr-rep-oui').addEventListener('click', () => {
@@ -7550,6 +7656,9 @@
     $('#gr-fete-qui').textContent = grListe(avec);
     $('#gr-fete-phrase').textContent = p.txt;
     $('#gr-fete-ok').textContent = T('groupe.fete-ok');
+    const fc = $('#gr-fete-chat');
+    fc.hidden = false; fc.textContent = grContinuer(p); fc.dataset.id = id;
+    $('#gr-fete-ok').classList.add('btn--line');
     hide(ovGrRep);
     show(ovGrFete);
     sParty(); haptic(30);
@@ -7564,10 +7673,19 @@
     $('#gr-fete-texte').textContent = T('groupe.fanfare-texte');
     $('#gr-fete-carte').hidden = true;
     $('#gr-fete-ok').textContent = T('groupe.fanfare-ok');
+    $('#gr-fete-chat').hidden = true;
+    $('#gr-fete-ok').classList.remove('btn--line');
     show(ovGrFete);
     sParty(); haptic(30);
     requestAnimationFrame(() => confetti('#gr-confetti'));
   }
+  $('#gr-fete-chat').addEventListener('click', () => {
+    audio(); sClick();
+    const id = $('#gr-fete-chat').dataset.id;
+    hide(ovGrFete); stopConfetti();
+    if (G.fetes.length) G.fetes = G.fetes.filter((x) => x !== id);
+    grChat(id);
+  });
   $('#gr-fete-ok').addEventListener('click', () => {
     audio(); hide(ovGrFete); stopConfetti();
     if (G.fetes.length) { setTimeout(grFeteSuivante, 300); return; }
@@ -7731,7 +7849,8 @@
     try {
       const env = await KG.envelope(payload, pubs);
       const id = KG.newId(10);
-      G.envies.set(id, { meta: { t: Date.now() }, open: { payload, key: env.key }, raw: new Map(), dec: new Map() });
+      const ne = grEnvie(id);
+      ne.meta = { t: Date.now() }; ne.open = { payload, key: env.key };
       G.etats.set(id, 'attente');
       await G.conn.envie(id, { ct: env.ct, w: env.w, ek: env.ek, t: Date.now() });
       report('envie', choiceLabels(), 'groupe-' + (autres.length + 1));
@@ -7748,8 +7867,9 @@
     const m = G.entree;
     const lancer = m.mode === 'lancer';
     $('#gr-entree-kicker').hidden = lancer;
-    $('#gr-entree-kicker').textContent = T('groupe.rejoindre-kicker');
-    $('#gr-entree-titre').textContent = lancer ? T('groupe.lancer-titre') : G.host ? T('groupe.rejoindre-titre', { prénom: G.host.n }) : T('groupe.rejoindre-titre-x');
+    $('#gr-entree-titre').textContent = lancer ? T('groupe.lancer-titre') : G.host ? (G.host.s || T('groupe.rejoindre-titre', { prénom: G.host.n })) : T('groupe.rejoindre-titre-x');
+    $('#gr-entree-kicker').textContent = G.host && G.host.s ? T('groupe.rejoindre-de', { prénom: G.host.n }) : T('groupe.rejoindre-kicker');
+    $('#gr-soiree-box').hidden = !lancer;
     const n = G.people.size;
     $('#gr-entree-texte').textContent = lancer ? T('groupe.lancer-texte') : n === 1 ? T('groupe.rejoindre-texte-1', { prénom: [...G.people.values()][0].n }) : n ? T('groupe.rejoindre-texte', { nombre: n }) : T('groupe.rejoindre-texte-0');
     $('#gr-entree-go').textContent = lancer ? T('groupe.lancer-go') : T('groupe.rejoindre-go');
@@ -7772,6 +7892,7 @@
   $('#gr-entree-form').addEventListener('submit', async (e) => {
     e.preventDefault(); audio();
     const inp = $('#gr-pseudo');
+    if (G.entree.mode === 'lancer' && needName($('#gr-soiree'))) return;
     if (needName(inp)) return;
     const pseudo = inp.value.replace(/\s+/g, ' ').trim().slice(0, 18);
     const m = G.entree;
@@ -7787,7 +7908,8 @@
         G.blocked = new Set(); G.answered = {}; G.vus = {};
         await grConnecter(KG.newInfo());
         G.max = m.max;
-        await G.conn.host({ n: pseudo, max: m.max, t0: Date.now() });
+        G.host = { n: pseudo, s: $('#gr-soiree').value.replace(/\s+/g, ' ').trim().slice(0, 40), max: m.max, t0: Date.now() };
+        await G.conn.host(G.host);
         report('partie', null, 'groupe-lancer');
       } else report('partie', null, 'groupe-rejoindre');
       await grProfil();
@@ -7806,6 +7928,7 @@
     G.entree = { mode: 'lancer', c: 'v', max: Math.min(2, isComplet() ? 3 : 2) };
     G.keys = null;
     $('#gr-pseudo').value = ($('#name0').value || load('names', [''])[0] || '').trim().slice(0, 18);
+    $('#gr-soiree').value = '';
     grErreur('');
     grEntreeRendre();
     show(ovGrEntree);
@@ -7828,7 +7951,7 @@
   }
   async function grReprendre(sv) {
     Object.assign(G, { info: sv.info, me: sv.me, keys: sv.keys, pseudo: sv.pseudo, couleur: grCoul(sv.couleur), isHost: !!sv.host,
-      blocked: new Set(sv.blocked || []), answered: sv.answered || {}, vus: sv.vus || {} });
+      blocked: new Set(sv.blocked || []), answered: sv.answered || {}, vus: sv.vus || {}, lus: sv.lus || {} });
     hide(el.ovStart);
     grOuvrir(false);
     try {
@@ -7858,7 +7981,8 @@
     G.on = false; G.composing = false;
     document.body.classList.remove('en-groupe', 'en-groupe-roues');
     $('#gr-qui').hidden = true;
-    [ovGr, ovGrChoisir, ovGrRep, ovGrFete, ovGrPerso, ovGrEntree].forEach((o) => hide(o));
+    [ovGr, ovGrChoisir, ovGrRep, ovGrFete, ovGrPerso, ovGrEntree, ovGrChat, ovGrQuitter].forEach((o) => hide(o));
+    G.chatId = '';
     stopConfetti();
     const c = G.conn; G.conn = null;
     if (c) c.close().catch(() => {});
@@ -7866,24 +7990,33 @@
     newDraw(); relist(); renderReels();
   }
   // Retour à l’accueil (la partie reste sur ce téléphone, « Revenir à la partie à plusieurs »), ou quitter pour de bon
+  // quitter : '' (retour à l’accueil, la partie reste ici), 'quitter', ou 'effacer' (ses traces, sur le relais et ici)
   async function grSortir(quitter) {
     if (quitter && G.conn) {
-      const mine = grEnAttente();
-      for (const [id] of mine) await G.conn.clearEnvie(id);
-      await G.conn.profile({ out: 1, t: Date.now() });
-      report('groupe', null, 'quitter');
+      if (quitter === 'effacer') await grEffacerTraces();
+      else {
+        for (const [id] of grEnAttente()) grEffacerEnvie(id);
+        await G.conn.profile({ out: 1, t: Date.now() });
+      }
+      report('groupe', null, quitter === 'effacer' ? 'effacer' : 'quitter');
       try { store && store.removeItem('roue:groupe'); } catch (e) { /* rien */ }
     }
     grFermer();
     try { history.replaceState(null, '', location.pathname + location.search); } catch (e) { /* rien */ }
     openHome();
-    $('#gr-resume').hidden = !grSaved();
+    grResumeMaj();
+    if (quitter === 'effacer') homeToast(T('groupe.efface'));
+  }
+  function grResumeMaj() {
+    const sv = grSaved(), b = $('#gr-resume');
+    b.hidden = !sv;
+    if (sv) b.textContent = sv.soiree ? T('groupe.revenir-nom', { soirée: sv.soiree }) : T('groupe.revenir');
   }
   $('#gr-resume').addEventListener('click', () => { audio(); const sv = grSaved(); if (sv) grReprendre(sv); });
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && G.conn) G.conn.wake(); });
   // Au démarrage : un lien de partie à plusieurs, ou la partie restée sur ce téléphone (montrée à l’accueil)
   function grDemarrer() {
-    $('#gr-resume').hidden = !grSaved();
+    grResumeMaj();
     const info = KG && KG.parse(location.hash);
     if (info && KG.supported()) setTimeout(() => grArrivee(info), 50);
   }

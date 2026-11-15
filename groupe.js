@@ -9,6 +9,7 @@
  *   kiffkiff/g1/<partie>/e/<envie>    une envie, chiffrée pour ses seuls destinataires (auteur et destinataires cachés)
  *   kiffkiff/g1/<partie>/r/<envie>/<x>   une réponse, chiffrée avec la clé de l’envie, sous un nom tiré au hasard
  *   kiffkiff/g1/<partie>/f/<envie>    un kiff kiff a eu lieu (rien d’autre) : le compteur de la soirée
+ *   kiffkiff/g1/<partie>/c/<envie>/<x>   un message de la discussion d’un kiff kiff, chiffré avec la clé de l’envie
  *
  * Deux niveaux de chiffrement :
  * - la clé de la partie (dans le lien, après le « # ») : le relais ne lit rien ;
@@ -178,7 +179,8 @@
       if (parts[0] === 'h' && parts.length === 1) sealed((o) => { if (o && this.on.host) this.on.host(o, old); });
       else if (parts[0] === 'p' && parts.length === 2) sealed((o) => { if (this.on.profile) this.on.profile(parts[1], o, old); });
       else if (parts[0] === 'e' && parts.length === 2) sealed((o) => { if (this.on.envie) this.on.envie(parts[1], o, old); });
-      else if (parts[0] === 'f' && parts.length === 2) sealed((o) => { if (o && this.on.fanfare) this.on.fanfare(parts[1], o, old); });
+      else if (parts[0] === 'f' && parts.length === 2) sealed((o) => { if (this.on.fanfare) this.on.fanfare(parts[1], o, old); });
+      else if (parts[0] === 'c' && parts.length === 3 && this.on.chat) this.on.chat(parts[1], parts[2], empty ? null : new Uint8Array(payload), old);
       else if (parts[0] === 'r' && parts.length === 3 && this.on.reponse) this.on.reponse(parts[1], parts[2], empty ? null : new Uint8Array(payload), old);
     }
     pub(sub, data, retain = true) {
@@ -193,8 +195,13 @@
     async envie(id, obj) { return this.pub('e/' + id, await seal(this.key, obj)); }
     clearEnvie(id) { return this.pub('e/' + id, ''); }
     // Une réponse sous un nom de sujet tiré au hasard : le reste de la partie ne sait pas qui répond
-    async reponse(envieId, envieKey, obj) { return this.pub('r/' + envieId + '/' + newId(8), await seal(envieKey, obj)); }
-    clearReponse(envieId, rid) { return this.pub('r/' + envieId + '/' + rid, ''); }
+    async reponse(envieId, envieKey, obj, x) { return this.pub('r/' + envieId + '/' + (x || newId(8)), await seal(envieKey, obj)); }
+    clearReponse(envieId, x) { return this.pub('r/' + envieId + '/' + x, ''); }
+    // La discussion d’un kiff kiff : seules ses personnes ont la clé de l’envie
+    async chat(envieId, envieKey, obj, x) { return this.pub('c/' + envieId + '/' + (x || newId(10)), await seal(envieKey, obj)); }
+    clearChat(envieId, x) { return this.pub('c/' + envieId + '/' + x, ''); }
+    clearFanfare(envieId) { return this.pub('f/' + envieId, ''); }
+    clearProfile() { return this.pub('p/' + this.me.id, ''); }
     async fanfare(envieId, obj) { return this.pub('f/' + envieId, await seal(this.key, obj)); }
     wake() { if (this.client && !this.client.connected && !this.closed) { try { this.client.reconnect(); } catch (e) { /* rien */ } } }
     async close() {
@@ -212,5 +219,5 @@
     try { return await unseal(envieKey, bytes); } catch (e) { return null; }
   }
 
-  window.KiffGroupe = { supported, newInfo, parse, link, newId, newKeys, envelope, openEnvelope, connect, readReponse };
+  window.KiffGroupe = { supported, newInfo, parse, link, newId, newKeys, envelope, openEnvelope, connect, readReponse, readSealed: readReponse };
 })();

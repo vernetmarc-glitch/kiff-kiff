@@ -30,7 +30,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,62..125,100..900;1,62..125,100..900&family=Bagel+Fat+One&family=Abril+Fatface&family=Merriweather:ital,opsz,wght@0,18..144,400..900;1,18..144,400..900&family=Baskervville:ital,wght@0,400..700;1,400..700&family=Jost:wght@300..700&family=Great+Vibes&family=Cinzel:wght@400..900&family=Syne:wght@600..800&family=Manrope:wght@400..800&family=Anton&family=Courier+Prime:wght@400;700&display=swap">
-<link rel="stylesheet" href="base.css?v=151">
+<link rel="stylesheet" href="base.css?v=152">
 <link rel="stylesheet" href="skins/arty.css?v=72" data-skin-sheet="arty">
 <link rel="stylesheet" href="skins/pomme.css?v=78" data-skin-sheet="pomme">
 <link rel="stylesheet" href="skins/redcorner.css?v=77" data-skin-sheet="redcorner">
@@ -724,6 +724,10 @@ Toutes les réponses sont bonnes&nbsp;!</p>
     <p class="gr-kicker" id="gr-entree-kicker" hidden></p>
     <h2 class="edit-label" id="gr-entree-titre"></h2>
     <p class="duo-text" id="gr-entree-texte"></p>
+    <div class="gr-soiree-box" id="gr-soiree-box">
+      <label class="duo-name-label" for="gr-soiree" data-t="groupe.soiree">Le nom de la soirée</label>
+      <input id="gr-soiree" maxlength="40" autocomplete="off" enterkeyhint="next" data-t-ph="groupe.soiree-exemple" placeholder="Apéro du solstice">
+    </div>
     <label class="duo-name-label" for="gr-pseudo" data-t="groupe.pseudo">Ton pseudo pour la soirée</label>
     <input id="gr-pseudo" maxlength="18" autocomplete="off" enterkeyhint="go">
     <p class="duo-name-label" id="gr-couleur-lab" data-t="groupe.couleur">Ta couleur du moment</p>
@@ -821,7 +825,46 @@ Toutes les réponses sont bonnes&nbsp;!</p>
     <h2 class="party-title" id="gr-fete-titre"></h2>
     <p class="party-text" id="gr-fete-texte"></p>
     <div class="party-card" id="gr-fete-carte" hidden><span class="party-who" id="gr-fete-qui"></span><p class="party-sentence" id="gr-fete-phrase"></p></div>
-    <div class="party-acts"><button class="btn" id="gr-fete-ok" type="button" data-t="groupe.fete-ok">Retour à la soirée</button></div>
+    <div class="party-acts">
+      <button class="btn" id="gr-fete-chat" type="button" hidden></button>
+      <button class="btn" id="gr-fete-ok" type="button" data-t="groupe.fete-ok">Retour à la soirée</button>
+    </div>
+  </div>
+</div>
+
+<!-- La discussion d’un kiff kiff : seules ses personnes la lisent (« Continuer à deux », « Continuer entre nous ») -->
+<div class="overlay overlay--edit overlay--skins overlay--loupe overlay--groupe overlay--gr-chat" id="ov-gr-chat" hidden role="dialog" aria-modal="true" aria-labelledby="gr-chat-titre">
+  <div class="sheet sheet--edit sheet--skins sheet--loupe sheet--groupe">
+    <div class="kiff-head">
+      <button class="sticker sticker--round kiff-back" id="gr-chat-retour" type="button" aria-label="Retour à la soirée"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      <div class="kiff-head-text">
+        <h2 class="edit-label kiff-title" id="gr-chat-titre"></h2>
+        <p class="kiff-status" data-t="groupe.chat-statut">Seules les personnes de ce kiff kiff lisent ici.</p>
+      </div>
+      <span class="kiff-head-pad" aria-hidden="true"></span>
+    </div>
+    <div class="gr-scroll" id="gr-chat-scroll">
+      <p class="party-sentence gr-chat-carte" id="gr-chat-phrase"></p>
+      <ul class="chat-list" id="gr-chat-list"></ul>
+    </div>
+    <form class="chat-bar" id="gr-chat-form" novalidate>
+      <div class="chat-form">
+        <textarea id="gr-chat-input" rows="1" maxlength="500" enterkeyhint="send" data-t-ph="groupe.chat-ecrire" placeholder="Écrire…"></textarea>
+        <button class="chat-send" id="gr-chat-send" type="submit" aria-label="Envoyer"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-envoyer"/></svg></button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Quitter la soirée : en gardant ses kiff kiff pour les autres, ou en effaçant ses traces -->
+<div class="overlay overlay--edit overlay--skins" id="ov-gr-quitter" hidden role="dialog" aria-modal="true" aria-labelledby="gr-quitter-titre">
+  <div class="sheet sheet--edit sheet--skins gr-quitter-sheet">
+    <h2 class="edit-label" id="gr-quitter-titre" data-t="groupe.quitter-titre">Quitter la soirée</h2>
+    <button class="btn btn--line" id="gr-quitter-simple" type="button" data-t="groupe.quitter-simple">Quitter</button>
+    <p class="duo-text gr-quitter-txt" data-t="groupe.quitter-simple-texte"></p>
+    <button class="btn" id="gr-quitter-effacer" type="button" data-t="groupe.quitter-effacer">Quitter et effacer mes traces</button>
+    <p class="duo-text gr-quitter-txt" data-t="groupe.quitter-effacer-texte"></p>
+    <button class="link-btn gr-quitter-non" id="gr-quitter-non" type="button" data-t="groupe.annuler">Annuler</button>
   </div>
 </div>
 
@@ -1108,13 +1151,13 @@ Toutes les réponses sont bonnes&nbsp;!</p>
 </div>
 
 <script src="data.js?v=64"></script>
-<script src="textes.js?v=57"></script>
+<script src="textes.js?v=58"></script>
 <script src="semantique.js?v=1"></script>
 <script src="config.js?v=63"></script>
 <script src="duo.js?v=65"></script>
 <script src="push.js?v=66"></script>
-<script src="groupe.js?v=1"></script>
-<script src="app.js?v=181"></script>
+<script src="groupe.js?v=2"></script>
+<script src="app.js?v=182"></script>
 <!-- iPhone, appli installée : deux bandes d’une couleur unie en haut et en bas de l’écran (voir base.css) -->
 <div class="edge edge--haut" aria-hidden="true"></div><div class="edge edge--bas" aria-hidden="true"></div>
 </body>
