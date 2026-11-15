@@ -7036,6 +7036,7 @@
     renderWait();
     renderDuoStatus();
     homeShown();
+    setTimeout(grApercu, 300); // la soirée à plusieurs : où elle en est vraiment
   }
 
   /* ---------- Accueil : la phrase sous le titre, toujours là (elle se change dans l’Atelier ; vide, elle disparaît) ---------- */
@@ -7283,12 +7284,16 @@
   });
   const grPret = () => !!G.conn && Date.now() > G.readyAt;
   const grSaved = () => { const g = load('groupe', null); return g && g.info && g.me && g.keys && g.pseudo ? g : null; };
-  function grSave() {
+  function grSave(garderT) {
     if (!G.info) return;
+    const avant = load('groupe', null) || {};
+    const pret = grPret();
+    const nl = () => [...G.envies.values()].filter((e) => e.open && grEtat(e) === 'kiff').reduce((t, e) => t + grNonLus(e), 0);
     save('groupe', { info: G.info, me: G.me, keys: G.keys, pseudo: G.pseudo, couleur: G.couleur, host: G.isHost ? 1 : 0,
       blocked: [...G.blocked], answered: G.answered, vus: G.vus, lus: G.lus, soiree: (G.host && G.host.s) || '', t: Date.now(), j: G.j || 0,
-      n: G.people.size || 1, pour: G.conn ? grPourMoi().length : 0, k: G.fanfares.size,
-      nl: G.conn ? [...G.envies.values()].filter((e) => e.open && grEtat(e) === 'kiff').reduce((t, e) => t + grNonLus(e), 0) : 0 });
+      n: pret ? G.people.size || 1 : avant.n || 1, pour: pret ? grPourMoi().length : avant.pour || 0, k: pret ? G.fanfares.size : avant.k || 0,
+      nl: pret ? nl() : avant.nl || 0 });
+    if (garderT && avant.t) { const g = load('groupe', null); g.t = avant.t; save('groupe', g); }
   }
   const grCoul = (c) => (COULEURS.includes(c) ? c : 'v');
   const grDot = (c) => '<i class="gr-dot gr-dot--' + grCoul(c) + '" aria-hidden="true"></i>';
@@ -7456,10 +7461,13 @@
   let grMajT = 0;
   function grMaj() {
     if (grMajT) return;
-    grMajT = setTimeout(() => { grMajT = 0; grSuivi(); grRendre(); }, 60);
+    grMajT = setTimeout(() => { grMajT = 0; grSuivi(); grRendre(); if (G.on && grPret()) grNoteAccueil(); }, 60);
   }
+  let grNoteT = 0;
+  function grNoteAccueil() { clearTimeout(grNoteT); grNoteT = setTimeout(() => { if (G.on && grPret()) grSave(true); }, 1500); }
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden' && G.on && grPret()) grSave(true); });
   function grSuivi() {
-    if (!G.conn) return;
+    if (!G.conn || G.apercu) return;
     G.envies.forEach((e, id) => {
       if (!e.open) return;
       const p = e.open.payload, named = grNommes(p);
@@ -7487,6 +7495,7 @@
   const ovGrGens = $('#ov-gr-gens'), ovGrMenu = $('#ov-gr-menu'), ovGrInv = $('#ov-gr-inviter'), ovGrClore = $('#ov-gr-clore');
   let grFlashT = 0;
   function grFlash(t) {
+    if (!G.on) return;
     if (G.composing) { flashHint(t, 3200); return; }
     const f = $('#gr-flash');
     f.textContent = t; f.hidden = false;
@@ -8316,15 +8325,41 @@
       setTimeout(() => { if (G.entree) grEntreeRendre(); }, 1200);
     } catch (e) { grErreur(T('groupe.erreur')); }
   }
-  async function grReprendre(sv) {
+  function grCharger(sv) {
     Object.assign(G, { info: sv.info, me: sv.me, keys: sv.keys, pseudo: sv.pseudo, couleur: grCoul(sv.couleur), isHost: !!sv.host,
       blocked: new Set(sv.blocked || []), answered: sv.answered || {}, vus: sv.vus || {}, lus: sv.lus || {}, j: sv.j || Date.now() });
+  }
+  /* L’accueil (15 novembre 2026, signalé par Marc : « personne encore » alors qu’il y avait du monde) : un coup d’œil à la soirée,
+     comme pour les parties à deux — qui est là, les envies qui t’attendent, les messages — puis on se déconnecte. */
+  let grApercuEnCours = false;
+  async function grApercu() {
+    const sv = grSaved();
+    if (!sv || G.on || G.conn || grApercuEnCours || !KG || !KG.supported()) return;
+    grApercuEnCours = true;
+    try {
+      grCharger(sv);
+      G.apercu = true;
+      await grConnecter(sv.info);
+      await new Promise((r) => setTimeout(r, 2600));
+      if (!G.on && G.apercu && grPret()) grSave(true);
+    } catch (e) { /* hors ligne : l’accueil garde sa note */ }
+    finally {
+      G.apercu = false;
+      if (!G.on && G.conn) { const c = G.conn; G.conn = null; c.close().catch(() => {}); }
+      grApercuEnCours = false;
+      if (!G.on && !el.ovStart.hidden) renderHome();
+    }
+  }
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && !G.on && !el.ovStart.hidden) grApercu(); });
+  async function grReprendre(sv) {
+    G.apercu = false;
+    grCharger(sv);
     hide(el.ovStart);
     grOuvrir(false);
     try {
       await grConnecter(sv.info);
       await grProfil();
-      grSave();
+      grSave(true);
       try { history.replaceState(null, '', location.pathname + location.search + '#groupe=' + G.info.broker + G.info.room + '.' + G.info.key); } catch (e) { /* rien */ }
     } catch (e) { G.online = false; grMaj(); setTimeout(() => { if (G.on && !G.online) grReprendre(sv); }, 5000); }
   }
@@ -8388,6 +8423,7 @@
     grResumeMaj();
     const info = KG && KG.parse(location.hash);
     if (info && KG.supported()) setTimeout(() => grArrivee(info), 50);
+    else setTimeout(grApercu, 800);
   }
   // Un lien de partie collé dans l’appli déjà ouverte
   window.addEventListener('hashchange', () => {

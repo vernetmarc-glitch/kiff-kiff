@@ -758,7 +758,7 @@ window.KIFF_TEXTES = [
     ["groupe.rejoindre-go", "Rejoindre", "Rejoindre : le bouton"],
     ["groupe.age", "Réservé aux adultes : en rejoignant, tu confirmes avoir 18 ans ou plus.", "Rejoindre : sous le bouton"],
     ["groupe.pseudo", "Ton pseudo pour la soirée", "Lancer et rejoindre : le champ"],
-    ["groupe.pseudo-pris", "Ce pseudo est déjà là ce soir : un autre ?", "Lancer et rejoindre : le pseudo est déjà pris"],
+    ["groupe.pseudo-pris", "Ce pseudo est déjà là ce soir. Si c’est toi, dans le navigateur : ouvre la soirée là-bas, puis menu › Continuer dans l’appli installée. Sinon, choisis-en un autre.", "Lancer et rejoindre : le pseudo est déjà pris"],
     ["groupe.couleur", "Ta couleur du moment", "Lancer et rejoindre : le choix de la couleur (elle se change à tout moment)"],
     ["groupe.couleur-v", "Partant·e", "La couleur verte"],
     ["groupe.couleur-o", "Ça dépend", "La couleur orange"],
