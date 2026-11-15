@@ -778,7 +778,6 @@ window.KIFF_TEXTES = [
     ["groupe.vos-kiffs", "Tes kiff kiff de la soirée", "La partie : les kiff kiff où tu es"],
     ["groupe.qui-est-la", "Qui est là", "La partie : la liste des personnes"],
     ["groupe.moi", "Toi", "La partie : devant ta propre couleur"],
-    ["groupe.legende", "Vert : partant·e. Orange : ça dépend. Rouge : je regarde.", "La partie : sous la liste des personnes"],
     ["groupe.quitter", "Quitter la partie", "La partie : en bas"],
     ["groupe.quitter-confirmer", "Touche encore pour quitter : tes envies en attente partiront avec toi", "Après une première touche sur « Quitter la partie »"],
     ["groupe.envoyee", "Envie envoyée.", "La partie : le mot bref après « Proposer »"],
