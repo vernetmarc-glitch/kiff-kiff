@@ -30,7 +30,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,62..125,100..900;1,62..125,100..900&family=Bagel+Fat+One&family=Abril+Fatface&family=Merriweather:ital,opsz,wght@0,18..144,400..900;1,18..144,400..900&family=Baskervville:ital,wght@0,400..700;1,400..700&family=Jost:wght@300..700&family=Great+Vibes&family=Cinzel:wght@400..900&family=Syne:wght@600..800&family=Manrope:wght@400..800&family=Anton&family=Courier+Prime:wght@400;700&display=swap">
-<link rel="stylesheet" href="base.css?v=153">
+<link rel="stylesheet" href="base.css?v=154">
 <link rel="stylesheet" href="skins/arty.css?v=72" data-skin-sheet="arty">
 <link rel="stylesheet" href="skins/pomme.css?v=78" data-skin-sheet="pomme">
 <link rel="stylesheet" href="skins/redcorner.css?v=77" data-skin-sheet="redcorner">
@@ -744,50 +744,86 @@ Toutes les réponses sont bonnes&nbsp;!</p>
   </form>
 </div>
 
-<!-- La partie : faire entrer, composer, les envies pour toi et les tiennes, qui est là -->
-<div class="overlay overlay--edit overlay--skins overlay--loupe overlay--groupe" id="ov-groupe" hidden role="dialog" aria-modal="true" aria-labelledby="gr-titre">
-  <div class="sheet sheet--edit sheet--skins sheet--loupe sheet--groupe">
-    <div class="kiff-head">
-      <button class="sticker sticker--round kiff-back" id="gr-accueil" type="button" aria-label="L’accueil"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
-      <div class="kiff-head-text">
-        <h2 class="edit-label kiff-title" id="gr-titre" data-t="groupe.titre">Partie à plusieurs</h2>
-        <p class="kiff-status" id="gr-statut"></p>
+<!-- La soirée (16 novembre 2026, demandé par Marc : la même allure qu’une partie à deux) : le fil de la soirée,
+     l’action du moment en tête, la discussion de tout le monde, et les fonctions de qui l’a lancée dans le menu -->
+<div class="overlay overlay--edit overlay--skins overlay--loupe overlay--kiff overlay--partie overlay--groupe" id="ov-groupe" hidden role="dialog" aria-modal="true" aria-labelledby="gr-titre">
+  <div class="sheet sheet--edit sheet--skins sheet--loupe sheet--kiff sheet--partie">
+    <header class="top partie-top">
+      <button class="sticker sticker--round" id="gr-accueil" type="button" aria-label="Accueil"><svg class="ic-home" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M3.5 11.2 12 4l8.5 7.2" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/><path d="M6 10v9.5h4.5v-5h3v5H18V10" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linejoin="round"/></svg></button>
+      <div class="top-who gr-who" id="gr-who" role="button" tabindex="0" aria-label="Qui est là"><span class="top-name" id="gr-titre"></span><span class="top-pres"><span id="gr-statut"></span></span></div>
+      <div class="top-actions">
+        <button class="sticker sticker--round" id="gr-menu-btn" type="button" aria-haspopup="dialog" aria-label="La soirée"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M5 7h14M5 12h14M5 17h14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg></button>
       </div>
-      <button class="sticker sticker--round" id="gr-qr-btn" type="button" aria-expanded="false" aria-controls="gr-entrer" aria-label="Faire entrer quelqu’un"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M14 14h2v2h-2zM18 14h2v2h-2zM16 16h2v2h-2zM14 18h2v2h-2zM18 18h2v2h-2z" fill="currentColor"/></svg></button>
-    </div>
-    <div class="gr-scroll" id="gr-scroll">
-      <section class="gr-entrer" id="gr-entrer" hidden>
-        <p class="duo-text gr-centre" data-t="groupe.scanner">Scannez pour rejoindre, à tout moment de la soirée.</p>
-        <div class="duo-qr" id="gr-qr"></div>
-        <div class="duo-share">
-          <button class="btn" id="gr-envoyer" type="button" data-t="duo.envoyer">Envoyer le lien</button>
-          <button class="btn btn--line" id="gr-copier" type="button" data-t="duo.copier">Copier le lien</button>
+    </header>
+    <section class="partie-action" id="gr-action" aria-live="polite">
+      <div class="partie-carte party-sentence" id="gr-carte" aria-hidden="true"></div>
+      <div class="partie-action-text">
+        <span class="partie-line" id="gr-ligne"></span>
+        <div class="partie-acts">
+          <button class="btn partie-go" id="gr-go" type="button"></button>
+          <button class="link-btn partie-alt" id="gr-alt" type="button" hidden></button>
         </div>
-      </section>
-      <p class="gr-flash" id="gr-flash" role="status" hidden></p>
-      <section class="gr-sec" id="gr-pour-toi-sec" hidden>
-        <h3 class="gr-h" data-t="groupe.pour-toi">Pour toi</h3>
-        <ul class="gr-list" id="gr-pour-toi"></ul>
-      </section>
-      <div class="gr-compose">
-        <button class="btn" id="gr-composer" type="button" data-t="groupe.composer">Composer une envie</button>
-        <p class="gr-quota" id="gr-quota"></p>
-        <button class="btn btn--line gr-inviter" id="gr-inviter" type="button" data-t="groupe.inviter">Faire entrer quelqu’un</button>
       </div>
-      <section class="gr-sec" id="gr-tiennes-sec" hidden>
-        <h3 class="gr-h" data-t="groupe.tiennes">Tes envies</h3>
-        <ul class="gr-list" id="gr-tiennes"></ul>
-      </section>
-      <section class="gr-sec" id="gr-kiffs-sec" hidden>
-        <h3 class="gr-h" data-t="groupe.vos-kiffs">Tes kiff kiff de la soirée</h3>
-        <ul class="gr-list" id="gr-kiffs"></ul>
-      </section>
-      <section class="gr-sec">
-        <h3 class="gr-h"><span data-t="groupe.qui-est-la">Qui est là</span> <span class="gr-n" id="gr-n"></span></h3>
-        <div class="gr-moi" id="gr-moi"></div>
-        <div class="gr-gens" id="gr-gens"></div>
-      </section>
-      <button class="link-btn gr-quitter" id="gr-quitter" type="button" data-t="groupe.quitter">Quitter la partie</button>
+    </section>
+    <div class="kiff-scroll" id="gr-scroll"><ol class="chat-list" id="gr-fil" aria-label="La soirée"></ol></div>
+    <div class="chat-bar">
+      <form class="chat-form" id="gr-msg-form" autocomplete="off">
+        <label class="sr-only" for="gr-msg" data-t="chat.message">Message</label>
+        <textarea id="gr-msg" rows="1" maxlength="1000" enterkeyhint="send" data-t-ph="groupe.msg-ecrire" placeholder="Un mot à toute la soirée…"></textarea>
+        <button class="chat-send" type="submit" aria-label="Envoyer"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-envoyer"/></svg></button>
+      </form>
+    </div>
+  </div>
+</div>
+<p class="gr-flash" id="gr-flash" role="status" hidden></p>
+
+<!-- Qui est là : sa couleur du moment, les autres (toucher quelqu’un : le bloquer ; l’hôte peut aussi le retirer) -->
+<div class="overlay overlay--edit overlay--skins" id="ov-gr-gens" hidden role="dialog" aria-modal="true" aria-labelledby="gr-gens-titre">
+  <div class="sheet sheet--edit sheet--skins gr-feuille">
+    <div class="deal-head"><h2 class="edit-label" id="gr-gens-titre"></h2><button class="icon-btn icon-btn--bare" type="button" data-fermer aria-label="Fermer"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-fermer"/></svg></button></div>
+    <div class="gr-moi" id="gr-moi"></div>
+    <div class="gr-gens" id="gr-gens"></div>
+  </div>
+</div>
+
+<!-- La soirée : faire entrer quelqu’un, et pour qui l’a lancée : le piment, clore la soirée -->
+<div class="overlay overlay--edit overlay--skins" id="ov-gr-menu" hidden role="dialog" aria-modal="true" aria-labelledby="gr-menu-titre">
+  <div class="sheet sheet--edit sheet--skins gr-feuille">
+    <div class="deal-head"><h2 class="edit-label" id="gr-menu-titre"></h2><button class="icon-btn icon-btn--bare" type="button" data-fermer aria-label="Fermer"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-fermer"/></svg></button></div>
+    <button class="btn" id="gr-inviter" type="button" data-t="groupe.inviter">Faire entrer quelqu’un</button>
+    <button class="btn btn--line" id="gr-qui-btn" type="button" data-t="groupe.qui-est-la">Qui est là</button>
+    <div class="gr-hote" id="gr-hote" hidden>
+      <p class="gr-hote-lab" data-t="groupe.hote">Tu as lancé la soirée</p>
+      <p class="duo-name-label" data-t="groupe.max">Le piment, au plus</p>
+      <div class="gr-maxs" id="gr-hote-max" role="group"></div>
+      <button class="btn btn--line" id="gr-clore" type="button" data-t="groupe.clore">Clore la soirée</button>
+    </div>
+    <button class="link-btn gr-quitter" id="gr-quitter" type="button" data-t="groupe.quitter">Quitter la soirée</button>
+  </div>
+</div>
+
+<!-- La page d’invitation : le QR code et le lien (au lancement, puis depuis le menu, toute la soirée) -->
+<div class="overlay overlay--edit overlay--skins" id="ov-gr-inviter" hidden role="dialog" aria-modal="true" aria-labelledby="gr-inv-titre">
+  <div class="sheet sheet--edit sheet--skins gr-feuille gr-inv">
+    <div class="deal-head"><h2 class="edit-label" id="gr-inv-titre"></h2><button class="icon-btn icon-btn--bare" type="button" data-fermer aria-label="Fermer"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-fermer"/></svg></button></div>
+    <p class="duo-text gr-centre" data-t="groupe.scanner">Scannez pour rejoindre, à tout moment de la soirée.</p>
+    <div class="duo-qr" id="gr-qr"></div>
+    <div class="duo-share">
+      <button class="btn" id="gr-envoyer" type="button" data-t="duo.envoyer">Envoyer le lien</button>
+      <button class="btn btn--line" id="gr-copier" type="button" data-t="duo.copier">Copier le lien</button>
+    </div>
+    <button class="link-btn gr-inv-ok" type="button" data-fermer data-t="groupe.inv-ok">C’est parti</button>
+  </div>
+</div>
+
+<!-- Clore la soirée (l’hôte) : tout s’efface pour tout le monde -->
+<div class="overlay overlay--edit overlay--skins" id="ov-gr-clore" hidden role="alertdialog" aria-modal="true" aria-labelledby="gr-clore-titre">
+  <div class="sheet sheet--edit sheet--skins">
+    <h2 class="edit-label" id="gr-clore-titre" data-t="groupe.clore-titre">Clore la soirée ?</h2>
+    <p class="duo-text" data-t="groupe.clore-texte">Les envies, les réponses, les messages et les kiff kiff de la soirée s’effacent pour tout le monde, et plus personne ne peut la rejoindre.</p>
+    <div class="row">
+      <button class="link-btn" type="button" data-fermer data-t="groupe.annuler">Annuler</button>
+      <button class="btn" id="gr-clore-ok" type="button" data-t="groupe.clore-ok">Clore et tout effacer</button>
     </div>
   </div>
 </div>
@@ -878,6 +914,7 @@ Toutes les réponses sont bonnes&nbsp;!</p>
       <button class="link-btn" id="gr-perso-non" type="button" data-t="groupe.annuler">Annuler</button>
       <button class="btn" id="gr-perso-ok" type="button"></button>
     </div>
+    <button class="link-btn gr-perso-retirer" id="gr-perso-retirer" type="button" hidden data-t="groupe.retirer-qqn">Retirer de la soirée</button>
   </div>
 </div>
 
@@ -1152,13 +1189,13 @@ Toutes les réponses sont bonnes&nbsp;!</p>
 </div>
 
 <script src="data.js?v=64"></script>
-<script src="textes.js?v=59"></script>
+<script src="textes.js?v=60"></script>
 <script src="semantique.js?v=1"></script>
 <script src="config.js?v=63"></script>
 <script src="duo.js?v=65"></script>
 <script src="push.js?v=66"></script>
-<script src="groupe.js?v=2"></script>
-<script src="app.js?v=183"></script>
+<script src="groupe.js?v=3"></script>
+<script src="app.js?v=184"></script>
 <!-- iPhone, appli installée : deux bandes d’une couleur unie en haut et en bas de l’écran (voir base.css) -->
 <div class="edge edge--haut" aria-hidden="true"></div><div class="edge edge--bas" aria-hidden="true"></div>
 </body>

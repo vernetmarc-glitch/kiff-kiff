@@ -9,6 +9,7 @@
  *   kiffkiff/g1/<partie>/e/<envie>    une envie, chiffrée pour ses seuls destinataires (auteur et destinataires cachés)
  *   kiffkiff/g1/<partie>/r/<envie>/<x>   une réponse, chiffrée avec la clé de l’envie, sous un nom tiré au hasard
  *   kiffkiff/g1/<partie>/f/<envie>    un kiff kiff a eu lieu (rien d’autre) : le compteur de la soirée
+ *   kiffkiff/g1/<partie>/m/<x>          un message de la discussion de toute la soirée (clé de la partie)
  *   kiffkiff/g1/<partie>/c/<envie>/<x>   un message de la discussion d’un kiff kiff, chiffré avec la clé de l’envie
  *
  * Deux niveaux de chiffrement :
@@ -149,6 +150,7 @@
       this.client = null;
       this.closed = false;
       this.queue = Promise.resolve();
+      this.seen = new Set(); // les sujets conservés par le relais (pour que l’hôte puisse tout effacer en clôturant la soirée)
     }
     async open(timeoutMs = 10000) {
       this.key = await roomKey(this.info);
@@ -173,13 +175,15 @@
     // old : un message conservé par le relais (l’historique de la soirée), pas une nouveauté
     recv(topic, payload, old) {
       if (!topic.startsWith(this.base)) return;
-      const parts = topic.slice(this.base.length).split('/');
+      const sub = topic.slice(this.base.length), parts = sub.split('/');
       const empty = !payload || !payload.length;
+      if (empty) this.seen.delete(sub); else this.seen.add(sub);
       const sealed = (fn) => { if (empty) { fn(null); return; } unseal(this.key, payload).then((o) => fn(o)).catch(() => {}); };
       if (parts[0] === 'h' && parts.length === 1) sealed((o) => { if (o && this.on.host) this.on.host(o, old); });
       else if (parts[0] === 'p' && parts.length === 2) sealed((o) => { if (this.on.profile) this.on.profile(parts[1], o, old); });
       else if (parts[0] === 'e' && parts.length === 2) sealed((o) => { if (this.on.envie) this.on.envie(parts[1], o, old); });
       else if (parts[0] === 'f' && parts.length === 2) sealed((o) => { if (this.on.fanfare) this.on.fanfare(parts[1], o, old); });
+      else if (parts[0] === 'm' && parts.length === 2) sealed((o) => { if (this.on.msg) this.on.msg(parts[1], o, old); });
       else if (parts[0] === 'c' && parts.length === 3 && this.on.chat) this.on.chat(parts[1], parts[2], empty ? null : new Uint8Array(payload), old);
       else if (parts[0] === 'r' && parts.length === 3 && this.on.reponse) this.on.reponse(parts[1], parts[2], empty ? null : new Uint8Array(payload), old);
     }
@@ -202,6 +206,11 @@
     clearChat(envieId, x) { return this.pub('c/' + envieId + '/' + x, ''); }
     clearFanfare(envieId) { return this.pub('f/' + envieId, ''); }
     clearProfile() { return this.pub('p/' + this.me.id, ''); }
+    // La discussion de toute la soirée
+    async msg(obj, x) { return this.pub('m/' + (x || newId(10)), await seal(this.key, obj)); }
+    clearMsg(x) { return this.pub('m/' + x, ''); }
+    // Clore la soirée : tout ce que le relais garde, sauf la partie elle-même (qui dit « terminée »)
+    clearAll() { [...this.seen].filter((t) => t !== 'h').forEach((t) => this.pub(t, '')); return this.queue; }
     async fanfare(envieId, obj) { return this.pub('f/' + envieId, await seal(this.key, obj)); }
     wake() { if (this.client && !this.client.connected && !this.closed) { try { this.client.reconnect(); } catch (e) { /* rien */ } } }
     async close() {

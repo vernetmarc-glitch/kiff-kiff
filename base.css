@@ -1068,10 +1068,10 @@ body:has(#ov-deal:not([hidden])) .deco-candles { display: none; }
 .chat-reply .icon-btn { min-width: 36px; min-height: 36px; }
 .chat-form { display: flex; align-items: flex-end; gap: 6px; }
 .chat-form .icon-btn { flex: none; min-width: 44px; min-height: 44px; }
-#chat-input, #gr-chat-input { flex: 1; min-width: 0; min-height: 44px; max-height: 120px; resize: none; box-sizing: border-box; padding: 11px 16px; border-radius: 22px; font: inherit; font-size: 16px; line-height: 1.3;
+#chat-input, #gr-chat-input, #gr-msg { flex: 1; min-width: 0; min-height: 44px; max-height: 120px; resize: none; box-sizing: border-box; padding: 11px 16px; border-radius: 22px; font: inherit; font-size: 16px; line-height: 1.3;
   color: inherit; background: color-mix(in srgb, currentColor 7%, transparent); border: 1px solid color-mix(in srgb, currentColor 35%, transparent); -webkit-user-select: text; user-select: text; }
-#chat-input::placeholder, #gr-chat-input::placeholder { color: inherit; opacity: .55; }
-#chat-input:focus, #gr-chat-input:focus { outline: none; border-color: currentColor; }
+#chat-input::placeholder, #gr-chat-input::placeholder, #gr-msg::placeholder { color: inherit; opacity: .55; }
+#chat-input:focus, #gr-chat-input:focus, #gr-msg:focus { outline: none; border-color: currentColor; }
 .chat-send { flex: none; width: 44px; height: 44px; border: 0; border-radius: 50%; display: grid; place-items: center; cursor: pointer;
   background: var(--card-btn-bg, var(--pill-on-bg, currentColor)); color: var(--card-btn-fg, var(--pill-on-fg, #fff)); }
 .chat-send .ic { width: 20px; height: 20px; stroke-width: 2; }
@@ -2013,7 +2013,7 @@ body.en-groupe #kiffs-open, body.en-groupe #pass, body.en-groupe #top-who { disp
 .gr-entrer { display: flex; flex-direction: column; gap: 12px; }
 .gr-entrer[hidden] { display: none; }
 .gr-centre { text-align: center; }
-.gr-flash { align-self: center; padding: 8px 14px; border-radius: 999px; background: var(--pill-on-bg, rgba(255, 255, 255, .15)); color: var(--pill-on-fg, inherit); font-size: 14px; font-weight: 700; text-align: center; }
+.gr-flash { position: fixed; z-index: 60; left: 50%; bottom: calc(96px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); max-width: calc(100vw - 48px); box-shadow: 0 8px 24px rgba(0, 0, 0, .35); padding: 9px 16px; border-radius: 999px; background: var(--pill-on-bg, rgba(255, 255, 255, .15)); color: var(--pill-on-fg, inherit); font-size: 14px; font-weight: 700; text-align: center; }
 .gr-flash[hidden] { display: none; }
 .gr-sec { display: flex; flex-direction: column; gap: 8px; }
 .gr-sec[hidden] { display: none; }
@@ -2080,3 +2080,20 @@ body.en-groupe #kiffs-open, body.en-groupe #pass, body.en-groupe #top-who { disp
 .gr-soiree-box { display: flex; flex-direction: column; gap: 6px; }
 .gr-soiree-box[hidden] { display: none; }
 .gr-compose .gr-inviter { margin-top: 4px; min-height: 46px; font-size: 15px; }
+/* La soirée en fil (16 novembre 2026) */
+.overlay--groupe .gr-who { cursor: pointer; }
+.thread-note.gr-note-fete { font-weight: 700; opacity: 1; }
+.thread-kiff .gr-continuer { display: flex; align-items: center; justify-content: center; margin: 14px auto 2px; min-height: 40px; padding: 0 16px; font-size: 14px; }
+.thread-kiff .gr-retirer { display: block; margin: 6px auto 0; font-size: 13px; }
+div.thread-kiff-btn { cursor: default; }
+.gr-feuille { gap: 12px; }
+.gr-feuille .deal-head { margin-bottom: 2px; }
+.gr-feuille > .btn { align-self: stretch; }
+.gr-hote { display: flex; flex-direction: column; gap: 10px; margin-top: 8px; padding-top: 14px; border-top: 1px solid color-mix(in srgb, currentColor 18%, transparent); }
+.gr-hote[hidden] { display: none; }
+.gr-hote .btn { align-self: stretch; }
+.gr-hote-lab { font-size: 12px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; opacity: .85; }
+.gr-inv .duo-share { align-self: stretch; }
+.gr-inv-ok { align-self: center; }
+.gr-perso-retirer { align-self: center; font-size: 14px; }
+.gr-perso-retirer[hidden] { display: none; }
