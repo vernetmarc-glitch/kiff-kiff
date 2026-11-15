@@ -7783,6 +7783,7 @@
     report('invitation', null, 'soiree-oui');
     await grSortir('');
     try { history.replaceState(null, '', window.KiffDuo.link(info)); } catch (er) { /* rien */ }
+    invPrincipeVu = info.room; // elle connaît le jeu par la soirée : pas de « Le jeu en trois gestes » (16 novembre 2026)
     startJoin(info);
   }
   async function grDeuxNon(id) {
