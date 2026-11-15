@@ -824,6 +824,7 @@ window.KIFF_TEXTES = [
     ["groupe.kicker-envie-de", "L’envie de {prénom}", "Le fil : au-dessus d’une envie reçue, pas encore lue"],
     ["groupe.kicker-oui", "L’envie de {prénom} · tu as dit oui", "Le fil : une envie reçue à laquelle tu as dit oui, en attente des autres"],
     ["groupe.kicker-kiff", "Kiff kiff avec {prénoms}", "Le fil : au-dessus d’un kiff kiff"],
+    ["groupe.appli", "Continuer dans l’appli installée", "Le menu de la soirée, dans le navigateur : copie la soirée (et les autres parties) pour l’appli installée"],
     ["groupe.hote", "Tu as lancé la soirée", "Le menu de la soirée : au-dessus des réglages de l’hôte"],
     ["groupe.clore", "Clore la soirée", "Le menu de la soirée (l’hôte) : le bouton"],
     ["groupe.clore-titre", "Clore la soirée ?", "Clore : le titre"],

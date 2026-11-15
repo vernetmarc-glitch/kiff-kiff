@@ -7088,7 +7088,7 @@
   };
   // Le lien de reprise : les parties, les conversations et les réglages de ce téléphone, dans la partie du lien après « # »
   // (jamais envoyée à un serveur, comme les clés des invitations)
-  const REPRISE_KEYS = ['parties', 'chats', 'paires', 'names', 'duoName', 'rulesSeen', 'envieFaite', 'connus', 'gestesVus', 'complet', 'skin', 'kiffSeen', 'decouverts', 'offertVu'];
+  const REPRISE_KEYS = ['groupe', 'groupeExclu', 'parties', 'chats', 'paires', 'names', 'duoName', 'rulesSeen', 'envieFaite', 'connus', 'gestesVus', 'complet', 'skin', 'kiffSeen', 'decouverts', 'offertVu'];
   const b64u = (str) => btoa(unescape(encodeURIComponent(str))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
   const unb64u = (b) => decodeURIComponent(escape(atob(b.replace(/-/g, '+').replace(/_/g, '/'))));
   function repriseLink() {
@@ -7096,7 +7096,7 @@
     REPRISE_KEYS.forEach((k) => { const v = load(k, null); if (v != null) o[k] = v; });
     return location.origin + location.pathname + '#reprise=' + b64u(JSON.stringify(o));
   }
-  const hasData = () => games().length > 0 || Object.keys(load('paires', {}) || {}).length > 0;
+  const hasData = () => games().length > 0 || Object.keys(load('paires', {}) || {}).length > 0 || !!load('groupe', null);
   function importReprise(text) {
     const m = /#reprise=([A-Za-z0-9_-]+)/.exec(text || '');
     if (!m) return false;
@@ -7109,6 +7109,9 @@
     save('parties', mine.concat(add).slice(0, 40));
     if (o.chats && typeof o.chats === 'object') save('chats', Object.assign({}, o.chats, load('chats', {}) || {}));
     if (o.paires && typeof o.paires === 'object') save('paires', Object.assign({}, o.paires, load('paires', {}) || {}));
+    // La soirée à plusieurs (15 novembre 2026, signalé par Marc : Anne l’avait rejointe dans Safari) : même pseudo, mêmes clés
+    if (o.groupe && o.groupe.info && o.groupe.me && o.groupe.keys && !load('groupe', null)) save('groupe', o.groupe);
+    if (Array.isArray(o.groupeExclu)) save('groupeExclu', (load('groupeExclu', []) || []).concat(o.groupeExclu).slice(-30));
     ['names', 'duoName', 'rulesSeen', 'envieFaite', 'connus', 'gestesVus', 'complet', 'skin', 'kiffSeen', 'decouverts', 'offertVu'].forEach((k) => { if (o[k] != null && load(k, null) == null) save(k, o[k]); });
     report('installer', null, 'reprise');
     return true;
@@ -7149,6 +7152,8 @@
       homeToast(T('reprise.ok-mot'));
       return true;
     }
+    const gi = window.KiffGroupe && window.KiffGroupe.parse(text || '');
+    if (gi) { hide($('#ov-retrouver')); report('installer', null, 'retrouver-soiree'); grArrivee(gi, true); return true; }
     const m = /#(duo=[^\s]+)/.exec(text || '');
     const inv = m && window.KiffDuo ? window.KiffDuo.parse('#' + m[1]) : null;
     if (!inv) return false;
@@ -7201,7 +7206,7 @@
   }
   $('#dansappli-copier').addEventListener('click', () => {
     audio(); sClick(); haptic(8);
-    const url = appInv && window.KiffDuo ? window.KiffDuo.link(appInv) : location.href;
+    const url = appInv && appInv.groupe ? window.KiffGroupe.link(appInv.groupe) : appInv && window.KiffDuo ? window.KiffDuo.link(appInv) : location.href;
     if (!navigator.clipboard || !navigator.clipboard.writeText) return;
     navigator.clipboard.writeText(url).then(() => { report('installer', null, 'lien-copie'); $('#dansappli-copier').textContent = T('dansappli.copie'); }).catch(() => {});
   });
@@ -7209,7 +7214,8 @@
     audio(); hide($('#ov-dansappli'));
     save('dansAppliNon', true); // la prochaine fois, on joue ici sans demander
     const inv = appInv; appInv = null;
-    if (inv) startJoin(inv);
+    if (inv && inv.groupe) grArrivee(inv.groupe, true);
+    else if (inv) startJoin(inv);
   });
   function copyForApp() {
     if (!navigator.clipboard || !navigator.clipboard.writeText) { flashPresence(T('duo.copie-impossible')); return; }
@@ -7665,12 +7671,19 @@
   });
   function grMenuRendre() {
     $('#gr-menu-titre').textContent = (G.host && G.host.s) || T('groupe.titre');
+    $('#gr-appli').hidden = isStandalone();
     const h = grHote();
     $('#gr-hote').hidden = !h;
     if (h) $('#gr-hote-max').innerHTML = [1, 2, 3].filter((x) => x < 3 || isComplet()).map((x) => '<button class="where-btn" type="button" data-hmax="' + x + '" aria-pressed="' + (G.max === x) + '">' + esc(D.niveaux[x - 1].nom) + '</button>').join('');
   }
   $('#gr-menu-btn').addEventListener('click', () => { audio(); sClick(); grMenuRendre(); show(ovGrMenu); });
   $('#gr-qui-btn').addEventListener('click', () => { audio(); hide(ovGrMenu); grGens(); });
+  $('#gr-appli').addEventListener('click', () => {
+    audio(); sClick();
+    grSave();
+    if (!navigator.clipboard || !navigator.clipboard.writeText) { grFlash(T('duo.copie-impossible')); return; }
+    navigator.clipboard.writeText(repriseLink()).then(() => { report('installer', null, 'copie-appli-soiree'); hide(ovGrMenu); grFlash(T('reprise.copie')); }).catch(() => grFlash(T('duo.copie-impossible')));
+  });
   // L’hôte règle le piment de la soirée (pour les envies à venir)
   $('#gr-hote-max').addEventListener('click', (e) => {
     const b = e.target.closest('[data-hmax]');
@@ -8270,9 +8283,20 @@
     show(ovGrEntree);
   });
   // Un lien (ou un QR code) de partie à plusieurs
-  async function grArrivee(info) {
+  async function grArrivee(info, ici) {
     const sv = grSaved();
     if (sv && sv.info.room === info.room) { grReprendre(sv); return; }
+    // Ouvert dans le navigateur alors que l’appli est installée : y jouer (comme pour une partie à deux), ou jouer ici
+    if (!ici && !isStandalone()) {
+      await Promise.race([appCheck, new Promise((r) => setTimeout(r, 600))]);
+      if ((appHere || (IOS && load('installAsked', false))) && !load('dansAppliNon', false)) {
+        appInv = { groupe: info };
+        report('installer', null, 'lien-navigateur-soiree');
+        hide(el.ovStart);
+        show($('#ov-dansappli'));
+        return;
+      }
+    }
     G.me = KG.newId(9); G.isHost = false; G.keys = null; G.blocked = new Set(); G.answered = {}; G.vus = {};
     G.entree = { mode: 'rejoindre', c: 'v' };
     $('#gr-pseudo').value = (load('names', [''])[0] || '').trim().slice(0, 18);
