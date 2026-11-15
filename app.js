@@ -7603,18 +7603,21 @@
       return '<li class="thread-kiff' + cote + '"><button class="thread-kiff-btn" type="button" data-chat="' + it.id + '"><span class="thread-kiff-kicker">' +
         esc(T('groupe.kicker-kiff', { prénoms: grListe(avec) })) + '</span>' + carte(p.txt) + '</button>' + suite + '</li>';
     }
+    // Pas encore partagée par tout le monde : la carte en pointillé, sans dire qui n’a pas répondu (le non reste anonyme)
+    const attente = it.et === 'attente';
+    const resteHtml = attente ? '<p class="gr-deux-note gr-reste">' + esc(T('groupe.reste')) + '</p>' : '';
     if (it.moi) {
       const etat = it.et === 'non' ? T('groupe.pas-cette-fois') : T('groupe.attente');
-      return '<li class="thread-kiff' + cote + (it.et === 'non' ? ' is-done' : '') + '"><div class="thread-kiff-btn"><span class="thread-kiff-kicker">' +
-        esc(T('groupe.kicker-ton-envie', { prénoms: grListe(avec), etat })) + '</span>' + carte(p.txt) + '</div>' +
-        (it.et === 'attente' ? '<button class="link-btn gr-retirer" type="button" data-retirer="' + it.id + '">' + esc(T('groupe.retirer')) + '</button>' : '') + '</li>';
+      return '<li class="thread-kiff' + cote + (it.et === 'non' ? ' is-done' : '') + (attente ? ' is-attente' : '') + '"><div class="thread-kiff-btn"><span class="thread-kiff-kicker">' +
+        esc(T('groupe.kicker-ton-envie', { prénoms: grListe(avec), etat })) + '</span>' + carte(p.txt) + '</div>' + resteHtml +
+        (attente ? '<button class="link-btn gr-retirer" type="button" data-retirer="' + it.id + '">' + esc(T('groupe.retirer')) + '</button>' : '') + '</li>';
     }
     if (!it.a) {
       return '<li class="thread-kiff thread-envie is-cachee' + cote + '"><button class="thread-kiff-btn" type="button" data-lire="' + it.id + '"><span class="thread-kiff-kicker">' +
         esc(T('groupe.kicker-envie-de', { prénom: auteur })) + '</span><span class="party-sentence thread-kiff-card thread-envie-dos">' + CARTE_DOS +
         '<span class="sr-only">' + esc(T('groupe.lire-envie')) + '</span></span></button></li>';
     }
-    return '<li class="thread-kiff' + cote + '"><div class="thread-kiff-btn"><span class="thread-kiff-kicker">' + esc(T('groupe.kicker-oui', { prénom: auteur })) + '</span>' + carte(p.txt) + '</div></li>';
+    return '<li class="thread-kiff' + cote + (attente ? ' is-attente' : '') + '"><div class="thread-kiff-btn"><span class="thread-kiff-kicker">' + esc(T('groupe.kicker-oui', { prénom: auteur })) + '</span>' + carte(p.txt) + '</div>' + resteHtml + '</li>';
   }
   ovGr.addEventListener('click', (e) => {
     const lire = e.target.closest('[data-lire]');
@@ -7982,9 +7985,7 @@
     const id = G.lit; hide(ovGrRep);
     const e = G.envies.get(id);
     grRepondre(id, 'oui').then(() => {
-      if (!e || !e.open) return;
-      const manque = grNommes(e.open.payload).filter((x) => x !== G.me && ![...e.dec.values()].some((v) => v.p === x));
-      if (manque.length) grFlash(T('groupe.attendre', { prénoms: grListe(manque) }));
+      if (e && e.open && grEtat(e) === 'attente') grFlash(T('groupe.attendre'));
     });
   });
   $('#gr-rep-non').addEventListener('click', () => { audio(); sSwitchOff(); haptic(10); const id = G.lit; hide(ovGrRep); grRepondre(id, 'non'); grFlash(T('groupe.non-ok')); });

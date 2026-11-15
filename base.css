@@ -2103,3 +2103,7 @@ body:has(.overlay[id^="ov-gr-"]:not([hidden])) .deco-candles { display: none; }
 .gr-deux-note { margin: 12px 8px 0; text-align: center; font-size: 14px; opacity: .9; }
 .thread-kiff .gr-deux-non { display: block; margin: 4px auto 0; font-size: 13.5px; }
 #gr-chat-fil { margin-bottom: 4px; }
+/* Une envie pas encore partagée par tout le monde : en pointillé (15 novembre 2026, demandé par Marc) */
+.thread-kiff.is-attente .thread-kiff-card { background: transparent !important; color: inherit !important; box-shadow: none !important; outline: 1.5px dashed currentColor; outline-offset: -1.5px; opacity: .85; }
+.thread-kiff.is-attente .thread-kiff-card::before, .thread-kiff.is-attente .thread-kiff-card::after { display: none !important; }
+.thread-kiff.is-attente .gr-reste { margin-top: 10px; font-size: 13.5px; font-style: italic; opacity: .85; }
