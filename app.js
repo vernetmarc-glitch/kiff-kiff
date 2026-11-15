@@ -6100,11 +6100,13 @@
       // À distance aussi, un prénom pour l’autre : on retrouve l’invitation, et l’autre pourra le changer
       $('#name1-label').textContent = T(w === 'here' ? 'joueurs.son-prenom' : 'joueurs.son-prenom-distance');
       $('#where-texte').textContent = T(w === 'here' ? 'joueurs.ici-texte' : 'joueurs.distance-texte');
-      $('#where-bascule').textContent = T(w === 'here' ? 'joueurs.vers-distance' : 'joueurs.vers-ici');
       renderFirst();
     };
-    // Deux téléphones par défaut (3 novembre 2026) ; un petit lien pour jouer côte à côte
-    $('#where-bascule').addEventListener('click', () => { audio(); sClick(); haptic(8); setWhere(where === 'here' ? 'duo' : 'here'); report('partie', null, where === 'here' ? 'vers-ici' : 'vers-distance'); });
+    // Deux choix directs (15 novembre 2026, demandé par Marc) : « Jouer à distance » (le bouton principal)
+    // et « Jouer sur ce téléphone » (le bouton secondaire) lancent chacun leur partie ; plus de bascule
+    $('#where-bascule').addEventListener('click', () => { audio(); setWhere('here'); report('partie', null, 'vers-ici'); toRules(); });
+    // (Entrée dans le champ déclenche aussi ce bouton, sans toucher : après « Jouer sur ce téléphone » refusé faute de prénom, on y reste)
+    $('#start-go').addEventListener('click', (e) => { e.preventDefault(); audio(); if (e.detail !== 0 || where !== 'here') setWhere('duo'); toRules(); });
     // Qui découvre le jeu sur ce téléphone : une ligne le dit, et le principe lui sera montré
     function newcomers() {
       const n0 = $('#name0').value.trim(), n1 = $('#name1').value.trim();

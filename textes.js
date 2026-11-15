@@ -84,15 +84,15 @@ window.KIFF_TEXTES = [
     ["joueurs.distance", "Sur son téléphone", "Deuxième choix"],
     ["joueurs.distance-texte", "Chacun·e sur son téléphone : tu invites l’autre, et vos envies se baladent de l’un à l’autre au fil de la journée.", "Sous « Ton prénom », quand l’autre joue sur son téléphone (le choix par défaut depuis le 3 novembre 2026)"],
     ["joueurs.ici-texte", "Sur ce téléphone : vous vous le passez, côte à côte. Idéal sous la couette.", "Même place, quand on joue sur un seul téléphone"],
-    ["joueurs.vers-ici", "Jouer sur ce téléphone", "Bouton secondaire sous « Suivant » : passer au jeu sur un seul téléphone"],
-    ["joueurs.vers-distance", "Chacun·e sur son téléphone", "Le même bouton, quand on joue sur un seul téléphone"],
+    ["joueurs.vers-ici", "Jouer sur ce téléphone", "Bouton secondaire sous « Jouer à distance » : lance la partie sur ce téléphone"],
+    ["joueurs.vers-distance", "Chacun·e sur son téléphone", "Plus affiché depuis le 15 novembre 2026 (deux boutons directs, plus de bascule)"],
     ["joueurs.son-prenom", "Son prénom", "Au-dessus du deuxième champ"],
     ["joueurs.son-prenom-distance", "Son prénom (iel pourra le changer en recevant l’invitation)", "Au-dessus du deuxième champ, quand l’autre joue sur son téléphone"],
     ["joueurs.premiere", "Première partie pour {prénom} : on lui montre le jeu.", "Sous les prénoms, quand quelqu’un n’a jamais joué sur ce téléphone"],
     ["joueurs.premiere-toi", "Première partie pour toi : on te montre le jeu.", "Même ligne, quand c’est toi qui découvres le jeu"],
     ["joueurs.premiere-deux", "Première partie pour vous deux : on vous montre le jeu.", "Même ligne, quand aucun des deux n’a joué sur ce téléphone"],
     ["joueurs.exemple-2", "Pistache", "Prénom d’exemple, en gris dans le deuxième champ"],
-    ["joueurs.suivant", "Suivant", "Bouton"],
+    ["joueurs.suivant", "Jouer à distance", "Bouton principal de « Qui joue ? » : lance la partie chacun·e sur son téléphone (avant le 15 novembre 2026 : « Suivant »)"],
     ["joueurs.retour", "Retour", "Sous le bouton, sur chaque écran du départ et de l’invitation"]
   ] },
   { id: "principe", nom: "Le principe", textes: [
