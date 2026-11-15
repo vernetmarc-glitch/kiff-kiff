@@ -30,7 +30,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,62..125,100..900;1,62..125,100..900&family=Bagel+Fat+One&family=Abril+Fatface&family=Merriweather:ital,opsz,wght@0,18..144,400..900;1,18..144,400..900&family=Baskervville:ital,wght@0,400..700;1,400..700&family=Jost:wght@300..700&family=Great+Vibes&family=Cinzel:wght@400..900&family=Syne:wght@600..800&family=Manrope:wght@400..800&family=Anton&family=Courier+Prime:wght@400;700&display=swap">
-<link rel="stylesheet" href="base.css?v=150">
+<link rel="stylesheet" href="base.css?v=151">
 <link rel="stylesheet" href="skins/arty.css?v=72" data-skin-sheet="arty">
 <link rel="stylesheet" href="skins/pomme.css?v=78" data-skin-sheet="pomme">
 <link rel="stylesheet" href="skins/redcorner.css?v=77" data-skin-sheet="redcorner">
@@ -178,6 +178,13 @@
       <span data-t="jeu.hasard">Hasard</span>
     </button>
   </div>
+  <!-- La partie à plusieurs : qui donne, qui reçoit (ou tous ensemble) -->
+  <div class="gr-qui" id="gr-qui" hidden>
+    <div class="gr-row" data-role="g"><span class="gr-lab" data-t="groupe.qui-donne">Qui donne</span><span class="gr-chips" id="gr-g"></span></div>
+    <div class="gr-row" data-role="r"><span class="gr-lab" data-t="groupe.qui-recoit">Qui reçoit</span><span class="gr-chips" id="gr-r"></span></div>
+    <div class="gr-row" data-role="t" hidden><span class="gr-lab" data-t="groupe.ensemble">Ensemble</span><span class="gr-chips" id="gr-t"></span></div>
+    <button class="gr-tous" id="gr-tous" type="button" aria-pressed="false" data-t="groupe.tous">Tous ensemble</button>
+  </div>
   <p class="switch switch--top is-static" id="sw-top" aria-checked="true">
     <span class="sw-text"><span class="sw-label ink" id="sw-titre" data-ink="J’ai envie…">J’ai envie…</span><span class="sw-owner" id="owner-top"></span></span>
   </p>
@@ -232,6 +239,7 @@
             <button class="btn" id="welcome-go" type="button" data-t="accueil.commencer">Commencer</button>
             <p class="age-note" data-t="accueil.age">Réservé aux adultes&nbsp;: en jouant, tu confirmes avoir 18&nbsp;ans ou plus.</p>
             <button class="link-btn resume-link" id="resume" type="button" hidden data-t="accueil.reprendre">Reprendre la partie en cours</button>
+            <button class="link-btn resume-link" id="gr-resume" type="button" hidden data-t="groupe.revenir">Revenir à la partie à plusieurs</button>
             <!-- Sur iPhone, l’appli installée ne voit pas ce qui a été joué dans Safari : le lien de reprise, copié en installant -->
             <div class="reprise" id="reprise" hidden>
               <button class="link-btn" id="reprise-go" type="button" data-t="reprise.bouton">Retrouver une partie déjà commencée</button>
@@ -271,6 +279,9 @@
           <p class="first-note" id="first-note" hidden><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-etoiles"/></svg><span id="first-note-text"></span></p>
           <button class="btn" type="submit" id="start-go" data-t="joueurs.suivant">Jouer à distance</button>
           <button class="btn btn--line where-bascule" type="button" id="where-bascule" data-t="joueurs.vers-ici">Jouer sur ce téléphone</button>
+          <!-- La partie à plusieurs (15 novembre 2026) : une soirée, de 3 à 100 téléphones -->
+          <p class="gr-ou" data-t="groupe.ou">ou, pour une soirée</p>
+          <button class="btn btn--line gr-lancer" type="button" id="gr-lancer" data-t="groupe.lancer">Lancer une partie à plusieurs</button>
           <button class="link-btn step-back" type="button"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-retour"/></svg><span data-t="joueurs.retour">Retour</span></button>
         </form>
       </section>
@@ -706,6 +717,127 @@ Toutes les réponses sont bonnes&nbsp;!</p>
     <div class="party-acts" id="non-acts"></div>
   </div>
 </div>
+<!-- ========== La partie à plusieurs (15 novembre 2026) ========== -->
+<!-- Lancer ou rejoindre : un pseudo, la couleur du moment (et pour qui lance : le piment maximum de la soirée) -->
+<div class="overlay overlay--edit overlay--skins" id="ov-gr-entree" hidden role="dialog" aria-modal="true" aria-labelledby="gr-entree-titre">
+  <form class="sheet sheet--edit sheet--skins gr-entree" id="gr-entree-form" novalidate>
+    <p class="gr-kicker" id="gr-entree-kicker" hidden></p>
+    <h2 class="edit-label" id="gr-entree-titre"></h2>
+    <p class="duo-text" id="gr-entree-texte"></p>
+    <label class="duo-name-label" for="gr-pseudo" data-t="groupe.pseudo">Ton pseudo pour la soirée</label>
+    <input id="gr-pseudo" maxlength="18" autocomplete="off" enterkeyhint="go">
+    <p class="duo-name-label" id="gr-couleur-lab" data-t="groupe.couleur">Ta couleur du moment</p>
+    <div class="gr-couleurs" id="gr-couleurs" role="group" aria-labelledby="gr-couleur-lab"></div>
+    <div class="gr-max" id="gr-max-box">
+      <p class="duo-name-label" id="gr-max-lab" data-t="groupe.max">Le piment, au plus</p>
+      <div class="gr-maxs" id="gr-maxs" role="group" aria-labelledby="gr-max-lab"></div>
+    </div>
+    <p class="duo-error" id="gr-entree-err" hidden role="alert"></p>
+    <div class="row">
+      <button class="link-btn" id="gr-entree-non" type="button" data-t="groupe.annuler">Annuler</button>
+      <button class="btn" id="gr-entree-go" type="submit"></button>
+    </div>
+  </form>
+</div>
+
+<!-- La partie : faire entrer, composer, les envies pour toi et les tiennes, qui est là -->
+<div class="overlay overlay--edit overlay--skins overlay--loupe overlay--groupe" id="ov-groupe" hidden role="dialog" aria-modal="true" aria-labelledby="gr-titre">
+  <div class="sheet sheet--edit sheet--skins sheet--loupe sheet--groupe">
+    <div class="kiff-head">
+      <button class="sticker sticker--round kiff-back" id="gr-accueil" type="button" aria-label="L’accueil"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      <div class="kiff-head-text">
+        <h2 class="edit-label kiff-title" id="gr-titre" data-t="groupe.titre">Partie à plusieurs</h2>
+        <p class="kiff-status" id="gr-statut"></p>
+      </div>
+      <button class="sticker sticker--round" id="gr-qr-btn" type="button" aria-expanded="false" aria-controls="gr-entrer" aria-label="Faire entrer quelqu’un"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M14 14h2v2h-2zM18 14h2v2h-2zM16 16h2v2h-2zM14 18h2v2h-2zM18 18h2v2h-2z" fill="currentColor"/></svg></button>
+    </div>
+    <div class="gr-scroll" id="gr-scroll">
+      <section class="gr-entrer" id="gr-entrer" hidden>
+        <p class="duo-text gr-centre" data-t="groupe.scanner">Scannez pour rejoindre, à tout moment de la soirée.</p>
+        <div class="duo-qr" id="gr-qr"></div>
+        <div class="duo-share">
+          <button class="btn" id="gr-envoyer" type="button" data-t="duo.envoyer">Envoyer le lien</button>
+          <button class="btn btn--line" id="gr-copier" type="button" data-t="duo.copier">Copier le lien</button>
+        </div>
+      </section>
+      <p class="gr-flash" id="gr-flash" role="status" hidden></p>
+      <section class="gr-sec" id="gr-pour-toi-sec" hidden>
+        <h3 class="gr-h" data-t="groupe.pour-toi">Pour toi</h3>
+        <ul class="gr-list" id="gr-pour-toi"></ul>
+      </section>
+      <div class="gr-compose">
+        <button class="btn" id="gr-composer" type="button" data-t="groupe.composer">Composer une envie</button>
+        <p class="gr-quota" id="gr-quota"></p>
+      </div>
+      <section class="gr-sec" id="gr-tiennes-sec" hidden>
+        <h3 class="gr-h" data-t="groupe.tiennes">Tes envies</h3>
+        <ul class="gr-list" id="gr-tiennes"></ul>
+      </section>
+      <section class="gr-sec" id="gr-kiffs-sec" hidden>
+        <h3 class="gr-h" data-t="groupe.vos-kiffs">Tes kiff kiff de la soirée</h3>
+        <ul class="gr-list" id="gr-kiffs"></ul>
+      </section>
+      <section class="gr-sec">
+        <h3 class="gr-h"><span data-t="groupe.qui-est-la">Qui est là</span> <span class="gr-n" id="gr-n"></span></h3>
+        <div class="gr-moi" id="gr-moi"></div>
+        <div class="gr-gens" id="gr-gens"></div>
+        <p class="gr-legende" data-t="groupe.legende">Vert : partant·e. Orange : ça dépend. Rouge : je regarde.</p>
+      </section>
+      <button class="link-btn gr-quitter" id="gr-quitter" type="button" data-t="groupe.quitter">Quitter la partie</button>
+    </div>
+  </div>
+</div>
+
+<!-- Choisir qui donne, qui reçoit -->
+<div class="overlay overlay--edit overlay--skins" id="ov-gr-choisir" hidden role="dialog" aria-modal="true" aria-labelledby="gr-choisir-titre">
+  <div class="sheet sheet--edit sheet--skins gr-choisir">
+    <h2 class="edit-label" id="gr-choisir-titre"></h2>
+    <p class="duo-text" id="gr-choisir-texte"></p>
+    <input id="gr-cherche" type="search" autocomplete="off" hidden data-t-ph="groupe.chercher" placeholder="Chercher un pseudo">
+    <div class="gr-choix" id="gr-choix"></div>
+    <div class="row row--end"><button class="btn" id="gr-choisir-ok" type="button" data-t="groupe.ok">C’est bon</button></div>
+  </div>
+</div>
+
+<!-- Une envie reçue : oui ou non, et personne ne saura qui a dit non -->
+<div class="overlay overlay--handoff overlay--offer" id="ov-gr-rep" hidden role="dialog" aria-modal="true" aria-labelledby="gr-rep-titre">
+  <div class="sheet">
+    <p class="handoff-kicker" id="gr-rep-kicker"></p>
+    <h2 class="handoff-title" id="gr-rep-titre"></h2>
+    <p class="party-sentence offer-sentence" id="gr-rep-phrase"></p>
+    <div class="stack">
+      <button class="btn btn--oui" id="gr-rep-oui" type="button" data-t="groupe.oui">Oui, j’ai envie aussi</button>
+      <button class="btn btn--non" id="gr-rep-non" type="button" data-t="groupe.non">Non, et c’est très bien</button>
+    </div>
+    <p class="offer-toutes" id="gr-rep-note" data-t="groupe.secret">Personne ne saura qui a dit non.</p>
+    <button class="link-btn offer-back" id="gr-rep-plus-tard" type="button" data-t="groupe.plus-tard">Plus tard</button>
+  </div>
+</div>
+
+<!-- Kiff kiff à plusieurs, et la fanfare du premier kiff kiff de la soirée -->
+<div class="overlay overlay--party overlay--gr-fete" id="ov-gr-fete" hidden>
+  <canvas class="confetti" id="gr-confetti" aria-hidden="true"></canvas>
+  <div class="sheet">
+    <svg class="emblem emblem--party" viewBox="0 0 168 124" aria-hidden="true"><path class="e-lens" d="M84 21.6A46 46 0 0 1 84 102.4A46 46 0 0 1 84 21.6Z"/><circle class="e-ring e-ring--1" cx="62" cy="62" r="46"/><circle class="e-ring e-ring--2" cx="106" cy="62" r="46"/></svg>
+    <h2 class="party-title" id="gr-fete-titre"></h2>
+    <p class="party-text" id="gr-fete-texte"></p>
+    <div class="party-card" id="gr-fete-carte" hidden><span class="party-who" id="gr-fete-qui"></span><p class="party-sentence" id="gr-fete-phrase"></p></div>
+    <div class="party-acts"><button class="btn" id="gr-fete-ok" type="button" data-t="groupe.fete-ok">Retour à la soirée</button></div>
+  </div>
+</div>
+
+<!-- Une personne de la partie : la bloquer, sans qu’elle le sache -->
+<div class="overlay overlay--edit overlay--skins" id="ov-gr-perso" hidden role="dialog" aria-modal="true" aria-labelledby="gr-perso-titre">
+  <div class="sheet sheet--edit sheet--skins">
+    <h2 class="edit-label" id="gr-perso-titre"></h2>
+    <p class="duo-text" id="gr-perso-texte"></p>
+    <div class="row">
+      <button class="link-btn" id="gr-perso-non" type="button" data-t="groupe.annuler">Annuler</button>
+      <button class="btn" id="gr-perso-ok" type="button"></button>
+    </div>
+  </div>
+</div>
+
 <div class="overlay overlay--edit overlay--skins overlay--loupe overlay--kiffs" id="ov-kiffs" hidden role="dialog" aria-modal="true" aria-labelledby="kiffs-title">
   <div class="sheet sheet--edit sheet--skins sheet--loupe sheet--kiffs">
     <div class="kiff-head">
@@ -977,12 +1109,13 @@ Toutes les réponses sont bonnes&nbsp;!</p>
 </div>
 
 <script src="data.js?v=64"></script>
-<script src="textes.js?v=55"></script>
+<script src="textes.js?v=56"></script>
 <script src="semantique.js?v=1"></script>
 <script src="config.js?v=63"></script>
 <script src="duo.js?v=65"></script>
 <script src="push.js?v=66"></script>
-<script src="app.js?v=179"></script>
+<script src="groupe.js?v=1"></script>
+<script src="app.js?v=181"></script>
 <!-- iPhone, appli installée : deux bandes d’une couleur unie en haut et en bas de l’écran (voir base.css) -->
 <div class="edge edge--haut" aria-hidden="true"></div><div class="edge edge--bas" aria-hidden="true"></div>
 </body>

@@ -149,7 +149,8 @@
   function dkey(x) { return [x.s || '', x.i || '', x.t || ''].join('|'); }
   // La réserve d’une roue : le piment, puis le ton (une roue sans mot de ce ton garde tous les siens)
   function poolOf(r, levels, anyTon) {
-    const all = SOURCE[r].filter((x) => levels.includes(x.lvl || 1));
+    let all = SOURCE[r].filter((x) => levels.includes(x.lvl || 1));
+    if (G.composing) all = all.filter((x) => grMotOk(r, x));
     if (anyTon) return all;
     const t = S.ton === 'b' || S.ton === 'e' ? S.ton : 'm';
     const l = t === 'm' ? all : all.filter((x) => (t === 'b') === !!x.dc);
@@ -286,6 +287,9 @@
   };
   const save = (k, v) => { try { if (store) store.setItem('roue:' + k, JSON.stringify(v)); } catch (e) { /* rien */ } };
 
+  /* ---------- La partie à plusieurs (15 novembre 2026) : son état ; tout le reste est plus bas (« Partie à plusieurs ») ----------
+     composing : on compose une envie de la partie ; sel : qui donne (g), qui reçoit (r), ou tous ensemble (t, sans soi). */
+  const G = { on: false, composing: false, sel: { g: [], r: [], t: [], tous: false }, me: '', people: new Map(), max: 3 };
   /* ---------- État ---------- */
   const S = {
     names: load('names', ['', '']),
@@ -347,6 +351,7 @@
     return (dir === 'me' ? a.s : a.i) || '';
   }
   function actionForm(i, dir) {
+    if (G.composing) return grAction(i).replace(PREP_TAIL, '');
     return actionRaw(i, dir).replace(PREP_TAIL, '');
   }
   function actionPrep(i) {
@@ -371,7 +376,7 @@
   }
   function objetForm(j, prep, dir = S.dir) {
     const o = LISTS[1][j];
-    const base = o.free ? S.custom[1].trim() : (o.t || (dir === 'me' ? o.s : o.i));
+    const base = o.free ? S.custom[1].trim() : G.composing ? grObjet(o) : (o.t || (dir === 'me' ? o.s : o.i));
     if (!base) return '';
     if (prep === 'de') return withDe(base);
     return prep === 'à' && !/^(à|au|aux)\s/i.test(base) ? withA(base) : base;
@@ -379,6 +384,7 @@
   function maniereForm(k, dir = S.dir) {
     const m = LISTS[2][k];
     if (m.free) return S.custom[2].trim();
+    if (G.composing) return grManiere(m);
     return m.t || (dir === 'me' ? m.s : m.i);
   }
   function dirForm(dir, act) {
@@ -388,16 +394,116 @@
   }
   const glue = (a, b) => (a.endsWith('’') ? a + b : a + ' ' + b);
 
+  /* ---------- La grammaire à plusieurs (15 novembre 2026) ----------
+     Les mots des roues sont écrits pour deux (« que tu me masses », « de te masser ») ; à plusieurs, la phrase s’ouvre
+     sur les prénoms de qui reçoit, et le verbe s’accorde :
+       Jade et Léo, j’ai envie de vous masser…              je donne
+       J’ai envie que Jade et Léo me massent…                je reçois
+       Jade, j’ai envie que Léo te masse…                    je regarde
+       Jade, j’ai envie que Léo et moi, on te masse…         je donne avec quelqu’un
+       Jade, j’ai envie que Léo nous masse…                  je reçois avec quelqu’un
+       Jade et Léo, j’ai envie qu’à trois, on se masse…      tous ensemble
+     La troisième personne vient de la forme « que tu me » : masses → masse, massent. Les possessifs suivent :
+     ton → votre (plusieurs à recevoir), mon → notre ; ceux de qui donne : ton → son, leur. */
+  const PERSO = /(^|[\s(])(je|me|moi|tu|te|toi|vous|nous)(?=[\s,.!?…)]|$)|(^|[\s(])[jmt][’']/i;
+  const POSS = /(^|[\s(])(ton|ta|tes|mon|ma|mes)(?=\s)/gi;
+  const POSS_ANY = /(^|[\s(])(ton|ta|tes|mon|ma|mes|son|sa|ses|votre|vos|notre|nos|leurs?)(?=\s)/i;
+  function grMotOk(r, x) {
+    if (!x || x.free) return true;
+    const all = [x.t, x.s, x.i].filter(Boolean).map((t) => (r === 0 ? t.replace(/^\S+/, '') : t)).join(' | ');
+    if (PERSO.test(all)) return false;
+    if (r === 0) return !POSS_ANY.test(' ' + (x.s || '').replace(/^\S+/, '') + ' ');
+    if (G.sel.tous && (x.s || x.i) && x.s !== x.i) return false;
+    return true;
+  }
+  const grNom = (id) => (id === G.me ? G.pseudo || '' : (G.people.get(id) || {}).n || '?');
+  const grListe = (ids) => { const n = ids.map(grNom); return n.length < 2 ? (n[0] || '') : n.slice(0, -1).join(', ') + ' et ' + n[n.length - 1]; };
+  const NOMBRES = ['', '', 'deux', 'trois', 'quatre', 'cinq', 'six', 'sept', 'huit', 'neuf', 'dix'];
+  // Qui fait quoi : le cas de la phrase, les prénoms en tête, le pronom, l’accord du verbe
+  function grRole() {
+    const sel = G.sel, me = G.me;
+    if (sel.tous) return { k: 'tous', voc: sel.t.slice(), n: sel.t.length + 1 };
+    const gMe = sel.g.includes(me), rMe = sel.r.includes(me);
+    const go = sel.g.filter((x) => x !== me), ro = sel.r.filter((x) => x !== me);
+    const te = ro.length > 1 ? 'vous' : 'te';
+    if (gMe && !go.length) return { k: 'A', voc: ro, pron: te, verb: 'inf', rp: ro.length > 1 ? 'pl' : 'sg2', gp: 'moi' };
+    if (!gMe && rMe && !ro.length) return { k: 'B', voc: [], subj: go, pron: 'me', verb: go.length > 1 ? 'pl' : 'sg', rp: 'moi', gp: go.length > 1 ? 'eux' : 'lui' };
+    if (!gMe && rMe) return { k: 'E', voc: ro, subj: go, pron: 'nous', verb: go.length > 1 ? 'pl' : 'sg', rp: 'nous', gp: go.length > 1 ? 'eux' : 'lui' };
+    if (gMe) return { k: 'D', voc: ro, subj: go, pron: te, verb: 'sg', rp: ro.length > 1 ? 'pl' : 'sg2', gp: 'nous' };
+    return { k: 'C', voc: ro, subj: go, pron: te, verb: go.length > 1 ? 'pl' : 'sg', rp: ro.length > 1 ? 'pl' : 'sg2', gp: go.length > 1 ? 'eux' : 'lui' };
+  }
+  // « masses » → « masse » / « massent » (le premier mot seulement : « souffles sur » → « souffle sur »)
+  function grV3(s, pl) {
+    const w = String(s || '').split(' ');
+    const v = w[0], lc = v.toLowerCase();
+    const IRR3 = { sois: ['soit', 'soient'], aies: ['ait', 'aient'] };
+    if (IRR3[lc]) w[0] = IRR3[lc][pl ? 1 : 0];
+    else if (/es$/i.test(v)) w[0] = v.slice(0, -1) + (pl ? 'nt' : '');
+    return w.join(' ');
+  }
+  function grAction(i) {
+    const a = LISTS[0][i];
+    if (!a) return '';
+    if (a.free) return S.custom[0].trim();
+    const ro = grRole();
+    if (ro.k === 'A') return a.i || toInf(a.s || '');
+    return grV3(a.s || '', ro.k !== 'tous' && ro.k !== 'D' && ro.verb === 'pl');
+  }
+  // Les possessifs : de « ton » (à qui l’on parle) ou « mon » (soi) vers la bonne personne
+  const POSS_TO = {
+    sg2: { ton: 'ton', ta: 'ta', tes: 'tes' }, pl: { ton: 'votre', ta: 'votre', tes: 'vos' },
+    moi: { mon: 'mon', ma: 'ma', mes: 'mes' }, nous: { mon: 'notre', ma: 'notre', mes: 'nos', ton: 'notre', ta: 'notre', tes: 'nos' },
+    lui: { ton: 'son', ta: 'sa', tes: 'ses' }, eux: { ton: 'leur', ta: 'leur', tes: 'leurs' }
+  };
+  const grPoss = (t, to) => String(t || '').replace(POSS, (m, a, w) => a + ((POSS_TO[to] || {})[w.toLowerCase()] || w));
+  // L’endroit est à qui reçoit : la forme « de te » (ton) ou « que tu me » (mon), puis l’accord
+  function grObjet(o) {
+    if (o.t) return o.t;
+    const ro = grRole();
+    if (ro.rp === 'moi' || ro.rp === 'nous') return grPoss(o.s || o.i, ro.rp);
+    return grPoss(o.i || o.s, ro.rp);
+  }
+  // La manière est à qui donne : « que tu me » (ton : l’autre donne), « de te » (mon : je donne)
+  function grManiere(m) {
+    if (m.t) return m.t;
+    const ro = grRole();
+    if (ro.gp === 'moi' || ro.gp === 'nous') return grPoss(m.i || m.s, ro.gp);
+    return grPoss(m.s || m.i, ro.gp);
+  }
+  // L’ouverture, jusqu’au verbe : « Jade et Léo, j’ai envie de vous »
+  function grDebut(act) {
+    const ro = grRole();
+    const voc = ro.voc.length ? grListe(ro.voc) + ', ' : '';
+    const je = voc ? 'j’ai envie' : 'J’ai envie';
+    const el = !!act && VOWEL.test(act);
+    const pr = (p) => (el && /^(te|me|se)$/.test(p) ? p.charAt(0) + '’' : p);
+    const que = (t) => (VOWEL.test(t) ? 'qu’' + t : 'que ' + t);
+    let mid;
+    if (ro.k === 'A') mid = 'de ' + pr(ro.pron);
+    else if (ro.k === 'tous') mid = 'qu’' + (ro.n >= 3 ? 'à ' + (NOMBRES[ro.n] || ro.n) + ', on ' : 'on ') + pr('se');
+    else if (ro.subj && !ro.subj.length) mid = 'qu’on ' + pr(ro.pron);
+    else if (ro.k === 'D') mid = que(grListe(ro.subj) + ' et moi, on ' + pr(ro.pron));
+    else mid = que(grListe(ro.subj)) + ' ' + pr(ro.pron);
+    return voc + je + ' ' + mid;
+  }
+  function grPhrase() {
+    const p = parts();
+    const debut = grDebut(p.act);
+    const s = (glue(debut, p.act) + ' ' + p.obj + ' ' + p.man).replace(/\s+/g, ' ').replace(/ ,/g, ',').trim();
+    return /[.!?…]$/.test(s) ? s : s + '.';
+  }
+
   function parts(idx = S.idx, dir = S.dir) {
     const act = actionForm(idx[0], dir);
     return {
-      dir: dirForm(dir, act),
+      dir: G.composing ? grDebut(act).replace(/^J’ai envie /, '').replace(/^.*?j’ai envie /, '') : dirForm(dir, act),
       act,
       obj: objetForm(idx[1], actionPrep(idx[0]), dir),
       man: maniereForm(idx[2], dir)
     };
   }
   function sentence() {
+    if (G.composing) return grPhrase();
     const p = parts();
     const s = ('J’ai envie ' + glue(p.dir, p.act) + ' ' + p.obj + ' ' + p.man).replace(/\s+/g, ' ').replace(/ ,/g, ',').trim();
     return /[.!?…]$/.test(s) ? s : s + '.';
@@ -775,6 +881,8 @@
     return t.fait(seat, 'te') && !t.fait(seat, 'me') ? 'me' : 'te';
   }
   function renderDir() {
+    if (G.composing) { grRenderDir(); return; }
+    $('#sw-titre').classList.remove('is-groupe');
     if (S.phase === 'compose') S.dir = S.gifting ? 'te' : sensDe(S.proposer);
     // Le titre dit le sens : « J’ai envie de te… » ou « J’ai envie que tu me… », sur une ligne
     const debut = T('jeu.titre').replace(/[….\s]+$/u, ''), sens = dirForm(S.dir, '');
@@ -817,6 +925,7 @@
 
   function renderHint() {
     if (hintFlash) { el.hint.textContent = hintFlash; return; }
+    if (G.composing) { const n = grEnAttente().length; el.hint.textContent = grValide() ? T('groupe.consigne') : n ? T('groupe.quota', { nombre: n }) : ''; return; }
     const A = esc(nameOf(S.proposer));
     const B = esc(nameOf(other(S.proposer)));
     const ch = changes();
@@ -856,6 +965,7 @@
     // « On passe » vit en bas, à gauche du bouton principal ; #pass garde seulement son action
     el.actAlt.textContent = S.gifting && ph === 'compose' ? T('jeu.sans-envie') : T('jeu.passe');
     if (S.gifting && ph === 'compose') el.actAlt.hidden = true; // la première envie part avec l’invitation (3 novembre 2026)
+    if (G.composing) grRenderActs(); // la partie à plusieurs : « Proposer à Jade et Léo », « Retour »
 
     // « de te / que tu me » : le sens suit le tour, il ne se choisit pas (2 novembre 2026)
     el.dice.hidden = ph !== 'compose';
@@ -1308,6 +1418,7 @@
 
   /* A propose son envie */
   function propose() {
+    if (G.composing) { grProposer(); return; }
     if (S.phase !== 'compose' || !myTurn() || reels.some((r) => r.busy) || blockedByFree()) return;
     gesteVu(composer());
     if (S.gifting) { endGift(true); return; }
@@ -1349,7 +1460,7 @@
     if (S.phase === 'compose') propose();
     else if (S.phase === 'adjust') finishAdjust();
   });
-  el.actAlt.addEventListener('click', () => el.pass.click());
+  el.actAlt.addEventListener('click', () => { if (G.composing) { audio(); grRetour(); return; } el.pass.click(); });
   document.querySelectorAll('.stamp').forEach((st) => st.addEventListener('click', (e) => {
     e.stopPropagation();
     if (S.phase !== 'adjust' || !st.closest('.is-changed')) return;
@@ -3732,6 +3843,8 @@
       levels = levels.filter((n) => n <= u);
       if (!levels.length) levels = [1];
     }
+    // La partie à plusieurs : pas plus que le piment choisi par qui l’a lancée
+    if (G.on) { levels = levels.filter((n) => n <= G.max); if (!levels.length) levels = [1]; }
     const prev = LISTS.map((l, r) => l[S.idx[r]]);
     S.levels = levels;
     if (!duo && !opts.nosave) save('levels', levels);
@@ -3772,7 +3885,7 @@
     const u = unlocked();
     document.querySelectorAll('.piment-list input[type="checkbox"]').forEach((c) => {
       c.checked = S.levels.includes(+c.value);
-      const lock = +c.value > u;
+      const lock = +c.value > u || (G.on && +c.value > G.max);
       c.disabled = lock;
       const lab = c.closest('.piment-toggle');
       lab.classList.toggle('is-locked', lock);
@@ -3780,7 +3893,7 @@
       lab.classList.toggle('is-pack', !lock && +c.value === 3 && !isComplet());
       const d = lab.querySelector('.piment-tdesc');
       if (!d.dataset.desc) d.dataset.desc = d.textContent;
-      d.textContent = lock ? T('roues.verrou-' + c.value) : d.dataset.desc;
+      d.textContent = lock && !G.on ? T('roues.verrou-' + c.value) : d.dataset.desc;
     });
     const tout = $('#piment-tout');
     if (tout) tout.hidden = !(!duo && S.prog && u < 3);
@@ -4448,6 +4561,8 @@
   let filCle = '';
   function renderWait() {
     const ov = ovPartie;
+    if (G.on) { if (!ov.hidden) hide(ov); return; } // la partie à plusieurs n’a pas de fil
+
     if (duo && (duo.stage === 'invite' || duo.stage === 'gift-ask')) { renderInvitePage(); return; }
     if (duo && duo.stage === 'join' && arrivee) { renderArriveePage(); return; }
     ov.classList.remove('is-invite', 'is-arrivee');
@@ -6192,7 +6307,7 @@
     });
     // Retour à l’accueil depuis le jeu
     // En haut à gauche des roues : le fil de la partie (29 octobre 2026) ; hors partie, l’accueil
-    el.home.addEventListener('click', () => { audio(); if (enJeu()) { sClick(); haptic(8); roues = false; renderWait(); return; } openHome(); });
+    el.home.addEventListener('click', () => { audio(); if (G.composing) { grRetour(); return; } if (enJeu()) { sClick(); haptic(8); roues = false; renderWait(); return; } openHome(); });
     // Deux téléphones
     $('#duo-resume').addEventListener('click', () => {
       audio();
@@ -6889,6 +7004,7 @@
     $('#home-cont').hidden = !!duo || !S.started || !!S.mustRestart;
     $('#welcome-go').textContent = S.started ? T('accueil.nouvelle') : T('accueil.commencer');
     $('#welcome-go').classList.toggle('btn--line', inDuo);
+    $('#gr-resume').hidden = !grSaved();
     quitArmed(false);
     if (inDuo && offerKind) hideOffer(); // elle reviendra avec « Reprendre la partie »
     hide(ovHot);
@@ -7122,8 +7238,665 @@
     btn.addEventListener('click', () => { audio(); installer.run(); });
   }
 
+  /* ========== Partie à plusieurs (15 novembre 2026) ==========
+     Une soirée ouverte, de 3 à 100 téléphones : on rejoint en scannant, on part quand on veut, sans tours.
+     Chacun·e compose quand il veut (trois envies en circulation au plus, une seule en attente avec la même personne),
+     pour une à quatre personnes ; seules les personnes nommées lisent l’envie (groupe.js) et y répondent.
+     Tout le monde dit oui : kiff kiff. Un non : « pas cette fois », sans jamais dire qui.
+     Bloquer quelqu’un : ses envies reçoivent un non automatique, et il ou elle disparaît de ta liste, sans le savoir.
+     Le premier kiff kiff de la soirée : une fanfare chez tout le monde, sans rien dire de l’envie. */
+  const KG = window.KiffGroupe;
+  const ovGr = $('#ov-groupe'), ovGrEntree = $('#ov-gr-entree'), ovGrChoisir = $('#ov-gr-choisir');
+  const ovGrRep = $('#ov-gr-rep'), ovGrFete = $('#ov-gr-fete'), ovGrPerso = $('#ov-gr-perso');
+  const GR_ENVIES = 3, GR_NOMMES = 4, COULEURS = ['v', 'o', 'r'];
+  Object.assign(G, {
+    info: null, conn: null, keys: null, pseudo: '', couleur: 'v', host: null, isHost: false,
+    envies: new Map(), // id → { meta, open: { payload, key } | null, raw: Map(x → octets), dec: Map(x → { p, a }) }
+    fanfares: new Map(), etats: new Map(), blocked: new Set(), answered: {}, vus: {},
+    online: false, readyAt: 0, entree: null, picker: null, lit: '', quitT: 0, fetes: []
+  });
+  const grPret = () => !!G.conn && Date.now() > G.readyAt;
+  const grSaved = () => { const g = load('groupe', null); return g && g.info && g.me && g.keys && g.pseudo ? g : null; };
+  function grSave() {
+    if (!G.info) return;
+    save('groupe', { info: G.info, me: G.me, keys: G.keys, pseudo: G.pseudo, couleur: G.couleur, host: G.isHost ? 1 : 0,
+      blocked: [...G.blocked], answered: G.answered, vus: G.vus, t: Date.now() });
+  }
+  const grCoul = (c) => (COULEURS.includes(c) ? c : 'v');
+  const grDot = (c) => '<i class="gr-dot gr-dot--' + grCoul(c) + '" aria-hidden="true"></i>';
+  const grIni = (n) => esc((String(n || '?').trim().charAt(0) || '?').toUpperCase());
+
+  /* ---------- Ce que l’on sait des envies ---------- */
+  // Les personnes nommées dans une envie (sans son auteur)
+  function grNommes(p) {
+    const all = (p.tous ? p.t : (p.g || []).concat(p.r || [])).filter((x, i, a) => x && a.indexOf(x) === i);
+    return all.filter((x) => x !== p.a);
+  }
+  function grEtat(e) {
+    if (!e || !e.open) return '';
+    const p = e.open.payload, named = grNommes(p);
+    const ans = new Map();
+    e.dec.forEach((v) => { if (v && named.includes(v.p) && !ans.has(v.p)) ans.set(v.p, v.a); });
+    if ([...ans.values()].includes('non')) return 'non';
+    if (named.length && named.every((x) => ans.get(x) === 'oui')) return 'kiff';
+    // Quelqu’un est parti sans répondre : l’envie ne pourra pas se faire
+    if (grPret() && named.some((x) => !ans.has(x) && x !== G.me && !G.people.has(x))) return 'non';
+    return 'attente';
+  }
+  const grMine = () => [...G.envies.entries()].filter(([, e]) => e.open && e.open.payload.a === G.me);
+  const grEnAttente = () => grMine().filter(([, e]) => grEtat(e) === 'attente');
+  // Les personnes avec qui j’ai déjà une envie en attente (une seule à la fois avec chacun·e)
+  function grOccupes() {
+    const s = new Set();
+    G.envies.forEach((e) => {
+      if (!e.open || grEtat(e) !== 'attente') return;
+      const p = e.open.payload, all = grNommes(p).concat(p.a);
+      if (!all.includes(G.me)) return;
+      all.forEach((x) => { if (x !== G.me) s.add(x); });
+    });
+    return s;
+  }
+  const grPourMoi = () => [...G.envies.entries()].filter(([id, e]) => e.open && e.open.payload.a !== G.me && grNommes(e.open.payload).includes(G.me) &&
+    !G.answered[id] && !G.blocked.has(e.open.payload.a) && grEtat(e) === 'attente');
+
+  /* ---------- Le réseau ---------- */
+  async function grConnecter(info) {
+    await loadDuoLibs();
+    if (G.conn) { try { await G.conn.close(); } catch (e) { /* rien */ } }
+    G.info = info;
+    G.people = new Map(); G.envies = new Map(); G.fanfares = new Map(); G.etats = new Map(); G.host = null;
+    G.readyAt = Date.now() + 1800;
+    G.conn = await KG.connect(info, { id: G.me }, {
+      host(o) {
+        G.host = o; G.max = Math.min(3, Math.max(1, +o.max || 2));
+        if (G.on) setLevels(S.levels, { silent: true, nosave: true });
+        if (G.entree) grEntreeRendre();
+        grMaj();
+      },
+      profile(id, o, old) {
+        const was = G.people.has(id);
+        if (!o || o.out) G.people.delete(id);
+        else G.people.set(id, { n: String(o.n || '?').slice(0, 18), c: grCoul(o.c), pub: o.pub, t: +o.t || 0 });
+        if (o && !o.out && !was && id !== G.me && !old && grPret() && G.people.size <= 16) grFlash(T('groupe.arrive', { prénom: grNom(id) }));
+        grMaj();
+      },
+      envie(id, o) {
+        if (!o) { G.envies.delete(id); grMaj(); return; }
+        let e = G.envies.get(id);
+        if (!e) { e = { meta: o, open: null, raw: new Map(), dec: new Map() }; G.envies.set(id, e); }
+        e.meta = o;
+        if (!e.open && !e.opening && G.keys) {
+          e.opening = KG.openEnvelope(o, G.keys.priv).then((r) => {
+            e.opening = null;
+            if (!r || !r.payload || typeof r.payload.txt !== 'string') return;
+            e.open = r;
+            return Promise.all([...e.raw.entries()].map(([x, b]) => grLireRep(e, x, b)));
+          }).then(() => grMaj()).catch(() => { e.opening = null; });
+        }
+      },
+      reponse(eid, x, bytes) {
+        let e = G.envies.get(eid);
+        if (!e) { e = { meta: null, open: null, raw: new Map(), dec: new Map() }; G.envies.set(eid, e); }
+        if (!bytes) { e.raw.delete(x); e.dec.delete(x); grMaj(); return; }
+        e.raw.set(x, bytes);
+        if (e.open) grLireRep(e, x, bytes).then(() => grMaj());
+      },
+      fanfare(id, o, old) {
+        const avant = G.fanfares.size;
+        G.fanfares.set(id, o);
+        if (!old && avant === 0 && grPret()) grFanfare(id);
+        grMaj();
+      },
+      status(on) { G.online = on; grMaj(); }
+    });
+    G.online = true;
+    return G.conn;
+  }
+  async function grLireRep(e, x, bytes) {
+    const o = await KG.readReponse(e.open.key, bytes);
+    if (o && typeof o.p === 'string' && (o.a === 'oui' || o.a === 'non')) e.dec.set(x, { p: o.p, a: o.a });
+  }
+  const grProfil = (extra) => G.conn && G.conn.profile(Object.assign({ n: G.pseudo, c: G.couleur, pub: G.keys.pub, t: Date.now() }, extra || {}));
+
+  /* ---------- Ce qui change : la page de la partie, les fêtes, les non automatiques ---------- */
+  let grMajT = 0;
+  function grMaj() {
+    if (grMajT) return;
+    grMajT = setTimeout(() => { grMajT = 0; grSuivi(); grRendre(); }, 60);
+  }
+  function grSuivi() {
+    if (!G.conn) return;
+    G.envies.forEach((e, id) => {
+      if (!e.open) return;
+      const p = e.open.payload, named = grNommes(p);
+      const moi = p.a === G.me || named.includes(G.me);
+      if (!moi) return;
+      // Une envie d’une personne bloquée : un non, en silence
+      if (p.a !== G.me && G.blocked.has(p.a) && !G.answered[id] && named.includes(G.me)) { grRepondre(id, 'non', true); return; }
+      const et = grEtat(e), avant = G.etats.get(id);
+      if (et === avant) return;
+      G.etats.set(id, et);
+      if (et === 'kiff') {
+        if (!G.fanfares.has(id)) G.conn.fanfare(id, { t: Date.now() });
+        if (!G.vus[id] && grPret()) { G.vus[id] = 1; grSave(); G.fetes.push(id); grFeteSuivante(); }
+        else if (!G.vus[id]) { G.vus[id] = 1; grSave(); G.fetes.push(id); setTimeout(grFeteSuivante, 2000); }
+      }
+      if (et === 'attente' && !avant && p.a !== G.me && named.includes(G.me) && !G.answered[id] && grPret()) {
+        grFlash(T('groupe.nouvelle')); haptic(20); sSwitchOn();
+      }
+    });
+  }
+
+  /* ---------- La page de la partie ---------- */
+  let grFlashT = 0;
+  function grFlash(t) {
+    if (G.composing) { flashHint(t, 3200); return; }
+    const f = $('#gr-flash');
+    f.textContent = t; f.hidden = false;
+    clearTimeout(grFlashT);
+    grFlashT = setTimeout(() => { f.hidden = true; }, 3200);
+  }
+  function grRendre() {
+    if (!G.on) return;
+    if (G.composing) { grChips(); return; }
+    const n = G.people.size || 1, k = G.fanfares.size;
+    const kt = k === 0 ? T('groupe.statut-kiffs-0') : k === 1 ? T('groupe.statut-kiffs-1') : T('groupe.statut-kiffs', { nombre: k });
+    $('#gr-statut').textContent = G.online ? T(n === 1 ? 'groupe.statut-1' : 'groupe.statut', { nombre: n, kiffs: kt }) : T('groupe.hors-ligne');
+    // Faire entrer : le QR code
+    const qr = $('#gr-qr');
+    const url = G.info ? KG.link(G.info) : '';
+    if (url && qr.dataset.url !== url) { qr.innerHTML = window.KiffDuo ? window.KiffDuo.qrSvg(url) : ''; qr.dataset.url = url; }
+    // Pour toi
+    const pt = grPourMoi().sort((a, b) => (a[1].meta.t || 0) - (b[1].meta.t || 0));
+    $('#gr-pour-toi-sec').hidden = !pt.length;
+    $('#gr-pour-toi').innerHTML = pt.map(([id, e]) => '<li class="gr-item gr-item--pour"><span class="gr-item-txt">' + grDot((G.people.get(e.open.payload.a) || {}).c) +
+      esc(T('groupe.de', { prénom: e.open.payload.an || grNom(e.open.payload.a) })) + '</span><button class="btn gr-lire" type="button" data-lire="' + id + '">' + esc(T('groupe.lire')) + '</button></li>').join('');
+    // Composer
+    const att = grEnAttente().length, seul = G.people.size < 2;
+    const cb = $('#gr-composer');
+    cb.classList.toggle('is-off', att >= GR_ENVIES || seul);
+    $('#gr-quota').textContent = seul ? T('groupe.personne') : att >= GR_ENVIES ? T('groupe.quota-plein') : att ? T('groupe.quota', { nombre: att }) : '';
+    $('#gr-quota').hidden = !$('#gr-quota').textContent;
+    // Tes envies
+    const mine = grMine().sort((a, b) => (b[1].open.payload.d || 0) - (a[1].open.payload.d || 0)).slice(0, 12);
+    $('#gr-tiennes-sec').hidden = !mine.length;
+    $('#gr-tiennes').innerHTML = mine.map(([id, e]) => {
+      const et = grEtat(e);
+      const lab = et === 'kiff' ? T('groupe.kiff') : et === 'non' ? T('groupe.pas-cette-fois') : T('groupe.attente');
+      return '<li class="gr-item gr-item--' + et + '"><p class="gr-phrase">' + esc(e.open.payload.txt) + '</p><span class="gr-etat">' + esc(lab) + '</span>' +
+        (et === 'attente' ? '<button class="link-btn gr-retirer" type="button" data-retirer="' + id + '">' + esc(T('groupe.retirer')) + '</button>' : '') + '</li>';
+    }).join('');
+    // Tes kiff kiff
+    const ks = [...G.envies.entries()].filter(([, e]) => e.open && grEtat(e) === 'kiff' && (e.open.payload.a === G.me || grNommes(e.open.payload).includes(G.me)));
+    $('#gr-kiffs-sec').hidden = !ks.length;
+    $('#gr-kiffs').innerHTML = ks.map(([, e]) => {
+      const p = e.open.payload, avec = grNommes(p).concat(p.a).filter((x) => x !== G.me);
+      return '<li class="gr-item gr-item--kiff"><p class="gr-phrase">' + esc(p.txt) + '</p><span class="gr-etat">' + esc(T('groupe.rep-avec', { prénoms: grListe(avec) })) + '</span></li>';
+    }).join('');
+    // Qui est là
+    $('#gr-n').textContent = '(' + n + ')';
+    $('#gr-moi').innerHTML = '<span class="gr-moi-lab">' + esc(T('groupe.moi')) + ' · ' + esc(G.pseudo) + '</span>' + COULEURS.map((c) =>
+      '<button class="gr-coul gr-coul--' + c + '" type="button" data-coul="' + c + '" aria-pressed="' + (G.couleur === c) + '">' + grDot(c) + esc(T('groupe.couleur-' + c)) + '</button>').join('');
+    const gens = [...G.people.entries()].filter(([id]) => id !== G.me).sort((a, b) => a[1].n.localeCompare(b[1].n, 'fr'));
+    $('#gr-gens').innerHTML = gens.map(([id, p]) => '<button class="gr-chip gr-chip--gens' + (G.blocked.has(id) ? ' is-bloque' : '') + '" type="button" data-perso="' + id + '"><span class="gr-ini">' + grIni(p.n) + '</span>' +
+      esc(p.n) + (G.blocked.has(id) ? '<span class="gr-sous">' + esc(T('groupe.bloque')) + '</span>' : grDot(p.c)) + '</button>').join('');
+  }
+  $('#gr-qr-btn').addEventListener('click', () => { audio(); sClick(); const s = $('#gr-entrer'); s.hidden = !s.hidden; $('#gr-qr-btn').setAttribute('aria-expanded', String(!s.hidden)); });
+  $('#gr-copier').addEventListener('click', () => {
+    audio();
+    const url = KG.link(G.info);
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(url).then(() => grFlash(T('partage.lien-ok'))).catch(() => grFlash(url));
+    else grFlash(url);
+  });
+  $('#gr-envoyer').hidden = typeof navigator.share !== 'function';
+  $('#gr-envoyer').addEventListener('click', () => { audio(); navigator.share({ title: 'Kiff Kiff', text: T('groupe.invitation'), url: KG.link(G.info) }).then(() => report('partage', null, 'groupe')).catch(() => {}); });
+  ovGr.addEventListener('click', (e) => {
+    const lire = e.target.closest('[data-lire]');
+    if (lire) { audio(); sClick(); grLire(lire.dataset.lire); return; }
+    const ret = e.target.closest('[data-retirer]');
+    if (ret) {
+      audio(); haptic(10);
+      const id = ret.dataset.retirer;
+      G.envies.delete(id); G.conn.clearEnvie(id); grFlash(T('groupe.retiree')); grMaj();
+      return;
+    }
+    const c = e.target.closest('[data-coul]');
+    if (c) { audio(); sClick(); haptic(8); G.couleur = grCoul(c.dataset.coul); grSave(); grProfil(); grMaj(); return; }
+    const pe = e.target.closest('[data-perso]');
+    if (pe) { audio(); sClick(); grPerso(pe.dataset.perso); }
+  });
+  $('#gr-composer').addEventListener('click', () => {
+    audio();
+    if (G.people.size < 2) { sNope(); haptic(20); $('#gr-entrer').hidden = false; grFlash(T('groupe.personne')); return; }
+    if (grEnAttente().length >= GR_ENVIES) { sNope(); haptic(20); grFlash(T('groupe.quota-plein')); return; }
+    sClick(); haptic(8);
+    grComposer();
+  });
+  $('#gr-accueil').addEventListener('click', () => { audio(); grSortir(false); });
+  $('#gr-quitter').addEventListener('click', () => {
+    audio();
+    const b = $('#gr-quitter');
+    if (!G.quitT) { G.quitT = setTimeout(() => { G.quitT = 0; b.textContent = T('groupe.quitter'); }, 4000); b.textContent = T('groupe.quitter-confirmer'); sClick(); haptic(8); return; }
+    clearTimeout(G.quitT); G.quitT = 0; b.textContent = T('groupe.quitter');
+    grSortir(true);
+  });
+
+  /* ---------- Une personne : bloquer ---------- */
+  function grPerso(id) {
+    const p = G.people.get(id);
+    if (!p) return;
+    const bl = G.blocked.has(id);
+    $('#gr-perso-titre').textContent = T('groupe.perso-titre', { prénom: p.n });
+    $('#gr-perso-texte').textContent = bl ? T('groupe.debloquer-texte', { prénom: p.n }) : T('groupe.bloquer-texte', { prénom: p.n });
+    const ok = $('#gr-perso-ok');
+    ok.textContent = bl ? T('groupe.debloquer') : T('groupe.bloquer');
+    ok.dataset.id = id;
+    show(ovGrPerso);
+  }
+  $('#gr-perso-non').addEventListener('click', () => { audio(); hide(ovGrPerso); });
+  $('#gr-perso-ok').addEventListener('click', () => {
+    audio(); haptic(10);
+    const id = $('#gr-perso-ok').dataset.id;
+    if (G.blocked.has(id)) G.blocked.delete(id); else { G.blocked.add(id); report('groupe', null, 'bloquer'); }
+    ['g', 'r', 't'].forEach((k) => { G.sel[k] = G.sel[k].filter((x) => x !== id); });
+    grSave(); hide(ovGrPerso); grMaj();
+  });
+  ovGrPerso.addEventListener('click', (e) => { if (e.target === ovGrPerso) hide(ovGrPerso); });
+
+  /* ---------- Lire une envie, y répondre ---------- */
+  function grLire(id) {
+    const e = G.envies.get(id);
+    if (!e || !e.open) return;
+    const p = e.open.payload;
+    G.lit = id;
+    $('#gr-rep-kicker').textContent = T('groupe.rep-kicker', { prénom: p.an || grNom(p.a) });
+    const autres = grNommes(p).filter((x) => x !== G.me);
+    $('#gr-rep-titre').textContent = autres.length ? T('groupe.rep-avec', { prénoms: grListe(autres) }) : T('groupe.rep-titre');
+    $('#gr-rep-phrase').textContent = p.txt;
+    show(ovGrRep);
+    $('#gr-rep-oui').focus({ preventScroll: true });
+  }
+  async function grRepondre(id, a, discret) {
+    const e = G.envies.get(id);
+    if (!e || !e.open || G.answered[id]) return;
+    G.answered[id] = a; grSave();
+    await G.conn.reponse(id, e.open.key, { p: G.me, a, t: Date.now() });
+    if (!discret) report(a === 'oui' ? 'kiff' : 'passe', null, 'groupe');
+  }
+  $('#gr-rep-oui').addEventListener('click', () => {
+    audio(); sSwitchOn(); haptic(15);
+    const id = G.lit; hide(ovGrRep);
+    const e = G.envies.get(id);
+    grRepondre(id, 'oui').then(() => {
+      if (!e || !e.open) return;
+      const manque = grNommes(e.open.payload).filter((x) => x !== G.me && ![...e.dec.values()].some((v) => v.p === x));
+      if (manque.length) grFlash(T('groupe.attendre', { prénoms: grListe(manque) }));
+    });
+  });
+  $('#gr-rep-non').addEventListener('click', () => { audio(); sSwitchOff(); haptic(10); const id = G.lit; hide(ovGrRep); grRepondre(id, 'non'); grFlash(T('groupe.non-ok')); });
+  $('#gr-rep-plus-tard').addEventListener('click', () => { audio(); hide(ovGrRep); });
+
+  /* ---------- Les fêtes : un kiff kiff où l’on est, la fanfare du premier de la soirée ---------- */
+  function grFeteSuivante() {
+    if (!G.on || !ovGrFete.hidden || G.composing) return;
+    const id = G.fetes.shift();
+    if (!id) return;
+    const e = G.envies.get(id);
+    if (!e || !e.open) { grFeteSuivante(); return; }
+    const p = e.open.payload, avec = grNommes(p).concat(p.a).filter((x) => x !== G.me);
+    $('#gr-fete-titre').innerHTML = '<span class="ink ink--flat" data-ink="' + esc(T('groupe.fete-titre')) + '">' + esc(T('groupe.fete-titre')) + '</span>';
+    $('#gr-fete-texte').textContent = avec.length > 1 ? T('groupe.fete-texte') : T('groupe.fete-texte-2');
+    $('#gr-fete-carte').hidden = false;
+    $('#gr-fete-qui').textContent = grListe(avec);
+    $('#gr-fete-phrase').textContent = p.txt;
+    $('#gr-fete-ok').textContent = T('groupe.fete-ok');
+    hide(ovGrRep);
+    show(ovGrFete);
+    sParty(); haptic(30);
+    requestAnimationFrame(() => confetti('#gr-confetti'));
+  }
+  function grFanfare(id) {
+    // Les personnes de ce kiff kiff ont leur propre fête
+    const e = G.envies.get(id);
+    if (e && e.open && (e.open.payload.a === G.me || grNommes(e.open.payload).includes(G.me))) return;
+    if (!G.on || !ovGrFete.hidden) return;
+    $('#gr-fete-titre').innerHTML = '<span class="ink ink--flat" data-ink="' + esc(T('groupe.fanfare-titre')) + '">' + esc(T('groupe.fanfare-titre')) + '</span>';
+    $('#gr-fete-texte').textContent = T('groupe.fanfare-texte');
+    $('#gr-fete-carte').hidden = true;
+    $('#gr-fete-ok').textContent = T('groupe.fanfare-ok');
+    show(ovGrFete);
+    sParty(); haptic(30);
+    requestAnimationFrame(() => confetti('#gr-confetti'));
+  }
+  $('#gr-fete-ok').addEventListener('click', () => {
+    audio(); hide(ovGrFete); stopConfetti();
+    if (G.fetes.length) { setTimeout(grFeteSuivante, 300); return; }
+    if (G.composing) return;
+    if ($('#gr-fete-carte').hidden && G.people.size > 1 && grEnAttente().length < GR_ENVIES) grComposer(); // « Je veux le mien »
+  });
+
+  /* ---------- Composer : les roues, avec qui donne et qui reçoit ---------- */
+  function grComposer() {
+    G.composing = true;
+    hide(ovGr);
+    document.body.classList.add('en-groupe-roues');
+    $('#gr-qui').hidden = false;
+    S.phase = 'compose'; S.original = null; S.custom = ['', '', ''];
+    // Toi qui donnes, d’abord ; personne de choisi pour recevoir (la dernière fois : peut-être plus là, ou déjà en attente)
+    const occ = grOccupes();
+    const ok = (x) => x === G.me || (G.people.has(x) && !occ.has(x) && !G.blocked.has(x) && (G.people.get(x).c !== 'r'));
+    ['g', 'r', 't'].forEach((k) => { G.sel[k] = G.sel[k].filter(ok); });
+    if (!G.sel.tous && !G.sel.g.length && !G.sel.r.includes(G.me)) G.sel.g = [G.me];
+    setLevels(S.levels, { silent: true, nosave: true });
+    newDraw(); relist(); renderReels();
+    grChips(); render();
+    setTimeout(() => shuffle(false, true), 250);
+  }
+  function grRetour() {
+    G.composing = false;
+    document.body.classList.remove('en-groupe-roues');
+    $('#gr-qui').hidden = true;
+    hide(ovGrChoisir);
+    S.phase = 'start';
+    newDraw(); relist(); renderReels();
+    show(ovGr);
+    grMaj();
+    setTimeout(grFeteSuivante, 400);
+  }
+  const grAutres = () => (G.sel.tous ? G.sel.t : G.sel.g.concat(G.sel.r)).filter((x, i, a) => x !== G.me && a.indexOf(x) === i);
+  function grValide() {
+    if (G.sel.tous) return G.sel.t.length ? '' : 't';
+    if (!G.sel.g.length) return 'g';
+    if (!G.sel.r.length) return 'r';
+    if (!G.sel.g.includes(G.me) && !G.sel.r.includes(G.me) && !grAutres().length) return 'r';
+    return '';
+  }
+  function grChips() {
+    const chip = (id, k) => '<button class="gr-chip is-on" type="button" data-choisir="' + k + '"><span class="gr-ini">' + (id === G.me ? esc(T('groupe.toi').charAt(0)) : grIni(grNom(id))) + '</span>' +
+      esc(id === G.me ? T('groupe.toi') : grNom(id)) + '</button>';
+    const plus = (k) => '<button class="gr-chip gr-chip--plus" type="button" data-choisir="' + k + '">' + esc(T('groupe.choisir')) + '</button>';
+    ['g', 'r', 't'].forEach((k) => {
+      const ids = k === 't' ? [G.me].concat(G.sel.t) : G.sel[k];
+      $('#gr-' + k).innerHTML = ids.map((id) => chip(id, k)).join('') + (k !== 't' || G.sel.t.length < GR_NOMMES ? plus(k) : '');
+    });
+    $('#gr-qui .gr-row[data-role="g"]').hidden = G.sel.tous;
+    $('#gr-qui .gr-row[data-role="r"]').hidden = G.sel.tous;
+    $('#gr-qui .gr-row[data-role="t"]').hidden = !G.sel.tous;
+    const tb = $('#gr-tous');
+    tb.setAttribute('aria-pressed', String(G.sel.tous));
+    tb.textContent = G.sel.tous ? T('groupe.chacun') : T('groupe.tous');
+  }
+  $('#gr-qui').addEventListener('click', (e) => {
+    const b = e.target.closest('[data-choisir]');
+    if (b) { audio(); sClick(); haptic(6); grChoisir(b.dataset.choisir); }
+  });
+  $('#gr-tous').addEventListener('click', () => {
+    audio(); sClick(); haptic(8);
+    const avant = grAutres();
+    G.sel.tous = !G.sel.tous;
+    if (G.sel.tous && !G.sel.t.length) G.sel.t = avant.slice(0, GR_NOMMES);
+    if (!G.sel.tous && !G.sel.g.length && !G.sel.r.length) { G.sel.g = [G.me]; G.sel.r = G.sel.t.slice(); }
+    grApres(true);
+  });
+  // Après un changement de qui fait quoi : les mots s’accordent (et « tous ensemble » change les mots possibles)
+  function grApres(tirage) {
+    if (tirage) newDraw();
+    relist(); renderReels(); grChips(); render();
+  }
+
+  /* Choisir les personnes d’une ligne : toi, et les autres (ni en rouge, ni bloqué·es, ni déjà en attente avec toi) */
+  function grChoisir(k) {
+    G.picker = { k, sel: (k === 't' ? G.sel.t : G.sel[k]).slice() };
+    $('#gr-choisir-titre').textContent = T(k === 'g' ? 'groupe.choisir-donne' : k === 'r' ? 'groupe.choisir-recoit' : 'groupe.choisir-tous');
+    $('#gr-choisir-texte').textContent = T('groupe.choisir-texte');
+    const q = $('#gr-cherche');
+    q.value = '';
+    q.hidden = G.people.size <= 10;
+    grChoixRendre();
+    show(ovGrChoisir);
+  }
+  function grChoixRendre() {
+    const pk = G.picker, occ = grOccupes();
+    const q = $('#gr-cherche').value.trim().toLowerCase();
+    const autre = pk.k === 'g' ? G.sel.r : pk.k === 'r' ? G.sel.g : [];
+    // Les autres déjà choisis dans l’autre ligne comptent dans les quatre
+    const nAutres = pk.sel.filter((x) => x !== G.me).length + autre.filter((x) => x !== G.me && !pk.sel.includes(x)).length;
+    const rows = [];
+    if (pk.k !== 't') rows.push([G.me, { n: T('groupe.toi'), c: G.couleur }]);
+    [...G.people.entries()].filter(([id]) => id !== G.me && !G.blocked.has(id)).sort((a, b) => a[1].n.localeCompare(b[1].n, 'fr')).forEach((x) => rows.push(x));
+    $('#gr-choix').innerHTML = rows.filter(([id, p]) => !q || id === G.me || p.n.toLowerCase().includes(q)).map(([id, p]) => {
+      const on = pk.sel.includes(id);
+      const why = id === G.me ? '' : p.c === 'r' ? T('groupe.regarde') : occ.has(id) ? T('groupe.en-attente-avec') : '';
+      const off = !on && (!!why || (id !== G.me && nAutres >= GR_NOMMES));
+      return '<button class="gr-choix-btn" type="button" data-pick="' + id + '" aria-pressed="' + on + '"' + (off ? ' disabled' : '') + '><span class="gr-ini">' + grIni(p.n) + '</span><span class="gr-choix-n">' + esc(p.n) +
+        (why ? '<span class="gr-sous">' + esc(why) + '</span>' : '') + '</span>' + grDot(p.c) + '</button>';
+    }).join('');
+  }
+  $('#gr-cherche').addEventListener('input', grChoixRendre);
+  $('#gr-choix').addEventListener('click', (e) => {
+    const b = e.target.closest('[data-pick]');
+    if (!b || b.disabled) return;
+    audio(); sClick(); haptic(6);
+    const id = b.dataset.pick, pk = G.picker;
+    pk.sel = pk.sel.includes(id) ? pk.sel.filter((x) => x !== id) : pk.sel.concat(id);
+    grChoixRendre();
+  });
+  function grChoixFin() {
+    const pk = G.picker;
+    if (!pk) return;
+    if (pk.k === 't') G.sel.t = pk.sel.filter((x) => x !== G.me);
+    else {
+      G.sel[pk.k] = pk.sel;
+      const o = pk.k === 'g' ? 'r' : 'g';
+      G.sel[o] = G.sel[o].filter((x) => !pk.sel.includes(x)); // personne ne donne et ne reçoit à la fois
+    }
+    G.picker = null;
+    hide(ovGrChoisir);
+    grApres(false);
+  }
+  $('#gr-choisir-ok').addEventListener('click', () => { audio(); grChoixFin(); });
+  ovGrChoisir.addEventListener('click', (e) => { if (e.target === ovGrChoisir) grChoixFin(); });
+
+  // Le titre au-dessus des roues : l’ouverture de la phrase, sur deux lignes au besoin
+  function grRenderDir() {
+    const h = $('#sw-titre');
+    const t = grDebut('') + '…';
+    if (h.textContent !== t) { h.textContent = t; h.setAttribute('data-ink', t); }
+    h.classList.add('is-groupe');
+    h.style.fontSize = '';
+    el.dir.innerHTML = '';
+  }
+  function grRenderActs() {
+    const v = grValide();
+    el.actMain.textContent = v === 't' ? T('groupe.choisir-tous') : v ? T('groupe.proposer-x') : T('groupe.proposer', { prénoms: grListe(grAutres()) });
+    el.actMain.disabled = false;
+    el.actAlt.hidden = false;
+    el.actAlt.textContent = T('groupe.retour');
+    el.dice.hidden = false;
+  }
+  async function grProposer() {
+    if (reels.some((r) => r.busy) || blockedByFree()) return;
+    const v = grValide();
+    if (v) { sNope(); haptic(20); grChoisir(v); return; }
+    if (grEnAttente().length >= GR_ENVIES) { sNope(); flashHint(T('groupe.quota-plein'), 3200); return; }
+    const autres = grAutres();
+    const pubs = [G.keys.pub].concat(autres.map((x) => (G.people.get(x) || {}).pub)).filter(Boolean);
+    if (pubs.length < autres.length + 1) { sNope(); grApres(false); return; }
+    const payload = {
+      a: G.me, an: G.pseudo, tous: !!G.sel.tous,
+      g: G.sel.tous ? [] : G.sel.g.slice(), r: G.sel.tous ? [] : G.sel.r.slice(), t: G.sel.tous ? [G.me].concat(G.sel.t) : [],
+      txt: sentence(), d: Date.now()
+    };
+    el.actMain.disabled = true;
+    try {
+      const env = await KG.envelope(payload, pubs);
+      const id = KG.newId(10);
+      G.envies.set(id, { meta: { t: Date.now() }, open: { payload, key: env.key }, raw: new Map(), dec: new Map() });
+      G.etats.set(id, 'attente');
+      await G.conn.envie(id, { ct: env.ct, w: env.w, ek: env.ek, t: Date.now() });
+      report('envie', choiceLabels(), 'groupe-' + (autres.length + 1));
+      markSeen();
+    } catch (e) { el.actMain.disabled = false; sNope(); return; }
+    sSwitchOn(); haptic(15);
+    G.sel.r = G.sel.r.filter((x) => x === G.me); G.sel.t = [];
+    grRetour();
+    grFlash(T('groupe.envoyee'));
+  }
+
+  /* ---------- Entrer dans la partie : lancer, rejoindre, revenir ---------- */
+  function grEntreeRendre() {
+    const m = G.entree;
+    const lancer = m.mode === 'lancer';
+    $('#gr-entree-kicker').hidden = lancer;
+    $('#gr-entree-kicker').textContent = T('groupe.rejoindre-kicker');
+    $('#gr-entree-titre').textContent = lancer ? T('groupe.lancer-titre') : G.host ? T('groupe.rejoindre-titre', { prénom: G.host.n }) : T('groupe.rejoindre-titre-x');
+    const n = G.people.size;
+    $('#gr-entree-texte').textContent = lancer ? T('groupe.lancer-texte') : n === 1 ? T('groupe.rejoindre-texte-1', { prénom: [...G.people.values()][0].n }) : n ? T('groupe.rejoindre-texte', { nombre: n }) : T('groupe.rejoindre-texte-0');
+    $('#gr-entree-go').textContent = lancer ? T('groupe.lancer-go') : T('groupe.rejoindre-go');
+    $('#gr-couleurs').innerHTML = COULEURS.map((c) => '<button class="where-btn gr-coul-btn" type="button" data-c="' + c + '" aria-pressed="' + (m.c === c) + '">' + grDot(c) + esc(T('groupe.couleur-' + c)) + '</button>').join('');
+    $('#gr-max-box').hidden = !lancer;
+    $('#gr-maxs').innerHTML = [1, 2, 3].filter((n2) => n2 < 3 || isComplet()).map((n2) => '<button class="where-btn" type="button" data-max="' + n2 + '" aria-pressed="' + (m.max === n2) + '">' + esc(D.niveaux[n2 - 1].nom) + '</button>').join('');
+    let age = $('#gr-age');
+    if (!age) { age = document.createElement('p'); age.id = 'gr-age'; age.className = 'age-note gr-age'; $('#gr-entree-form').appendChild(age); }
+    age.textContent = T('groupe.age');
+    age.hidden = lancer;
+  }
+  $('#gr-couleurs').addEventListener('click', (e) => { const b = e.target.closest('[data-c]'); if (!b) return; audio(); sClick(); G.entree.c = b.dataset.c; grEntreeRendre(); });
+  $('#gr-maxs').addEventListener('click', (e) => { const b = e.target.closest('[data-max]'); if (!b) return; audio(); sClick(); G.entree.max = +b.dataset.max; grEntreeRendre(); });
+  $('#gr-entree-non').addEventListener('click', () => {
+    audio(); hide(ovGrEntree);
+    if (G.entree && G.entree.mode === 'rejoindre') { grFermer(); try { history.replaceState(null, '', location.pathname + location.search); } catch (e) { /* rien */ } openHome(); }
+    G.entree = null;
+  });
+  function grErreur(t) { const er = $('#gr-entree-err'); er.textContent = t; er.hidden = !t; }
+  $('#gr-entree-form').addEventListener('submit', async (e) => {
+    e.preventDefault(); audio();
+    const inp = $('#gr-pseudo');
+    if (needName(inp)) return;
+    const pseudo = inp.value.replace(/\s+/g, ' ').trim().slice(0, 18);
+    const m = G.entree;
+    if (m.mode === 'rejoindre' && [...G.people.entries()].some(([id, p]) => id !== G.me && p.n.toLowerCase() === pseudo.toLowerCase())) { grErreur(T('groupe.pseudo-pris')); sNope(); return; }
+    grErreur('');
+    const go = $('#gr-entree-go');
+    go.disabled = true;
+    try {
+      G.pseudo = pseudo; G.couleur = grCoul(m.c);
+      if (!G.keys) G.keys = await KG.newKeys();
+      if (m.mode === 'lancer') {
+        G.me = KG.newId(9); G.isHost = true;
+        G.blocked = new Set(); G.answered = {}; G.vus = {};
+        await grConnecter(KG.newInfo());
+        G.max = m.max;
+        await G.conn.host({ n: pseudo, max: m.max, t0: Date.now() });
+        report('partie', null, 'groupe-lancer');
+      } else report('partie', null, 'groupe-rejoindre');
+      await grProfil();
+      grSave();
+      save('names', [pseudo, (load('names', ['', '']) || [])[1] || '']);
+      try { history.replaceState(null, '', location.pathname + location.search + '#groupe=' + G.info.broker + G.info.room + '.' + G.info.key); } catch (er) { /* rien */ }
+      hide(ovGrEntree);
+      G.entree = null;
+      grOuvrir(m.mode === 'lancer');
+    } catch (er) { grErreur(T('groupe.erreur')); } finally { go.disabled = false; }
+  });
+  // Depuis « Qui joue ? »
+  $('#gr-lancer').addEventListener('click', () => {
+    audio(); sClick(); haptic(8);
+    if (!KG || !KG.supported()) { flashPresence(T('groupe.erreur')); return; }
+    G.entree = { mode: 'lancer', c: 'v', max: Math.min(2, isComplet() ? 3 : 2) };
+    G.keys = null;
+    $('#gr-pseudo').value = ($('#name0').value || load('names', [''])[0] || '').trim().slice(0, 18);
+    grErreur('');
+    grEntreeRendre();
+    show(ovGrEntree);
+  });
+  // Un lien (ou un QR code) de partie à plusieurs
+  async function grArrivee(info) {
+    const sv = grSaved();
+    if (sv && sv.info.room === info.room) { grReprendre(sv); return; }
+    G.me = KG.newId(9); G.isHost = false; G.keys = null; G.blocked = new Set(); G.answered = {}; G.vus = {};
+    G.entree = { mode: 'rejoindre', c: 'v' };
+    $('#gr-pseudo').value = (load('names', [''])[0] || '').trim().slice(0, 18);
+    grErreur('');
+    grEntreeRendre();
+    hide(el.ovStart);
+    show(ovGrEntree);
+    try {
+      await grConnecter(info);
+      setTimeout(() => { if (G.entree) grEntreeRendre(); }, 1200);
+    } catch (e) { grErreur(T('groupe.erreur')); }
+  }
+  async function grReprendre(sv) {
+    Object.assign(G, { info: sv.info, me: sv.me, keys: sv.keys, pseudo: sv.pseudo, couleur: grCoul(sv.couleur), isHost: !!sv.host,
+      blocked: new Set(sv.blocked || []), answered: sv.answered || {}, vus: sv.vus || {} });
+    hide(el.ovStart);
+    grOuvrir(false);
+    try {
+      await grConnecter(sv.info);
+      await grProfil();
+      grSave();
+      try { history.replaceState(null, '', location.pathname + location.search + '#groupe=' + G.info.broker + G.info.room + '.' + G.info.key); } catch (e) { /* rien */ }
+    } catch (e) { G.online = false; grMaj(); setTimeout(() => { if (G.on && !G.online) grReprendre(sv); }, 5000); }
+  }
+  // La page de la partie s’ouvre : ce téléphone quitte ses autres parties le temps de la soirée
+  function grOuvrir(qr) {
+    if (duo) parkDuo();
+    G.on = true;
+    S.started = false; S.prog = false; S.lvNon = 0; S.cpOther = false;
+    S.kept = [[], [], []]; S.kiffs = [];
+    setMemory(null);
+    setLevels(load('levels', [1, 2]), { silent: true, nosave: true });
+    hide(el.ovStart); hide($('#ov-wait'));
+    document.body.classList.add('en-groupe');
+    $('#gr-entrer').hidden = !qr;
+    $('#gr-qr-btn').setAttribute('aria-expanded', String(!!qr));
+    show(ovGr);
+    ovGr.scrollTop = 0;
+    grMaj();
+  }
+  function grFermer() {
+    G.on = false; G.composing = false;
+    document.body.classList.remove('en-groupe', 'en-groupe-roues');
+    $('#gr-qui').hidden = true;
+    [ovGr, ovGrChoisir, ovGrRep, ovGrFete, ovGrPerso, ovGrEntree].forEach((o) => hide(o));
+    stopConfetti();
+    const c = G.conn; G.conn = null;
+    if (c) c.close().catch(() => {});
+    S.phase = 'start';
+    newDraw(); relist(); renderReels();
+  }
+  // Retour à l’accueil (la partie reste sur ce téléphone, « Revenir à la partie à plusieurs »), ou quitter pour de bon
+  async function grSortir(quitter) {
+    if (quitter && G.conn) {
+      const mine = grEnAttente();
+      for (const [id] of mine) await G.conn.clearEnvie(id);
+      await G.conn.profile({ out: 1, t: Date.now() });
+      report('groupe', null, 'quitter');
+      try { store && store.removeItem('roue:groupe'); } catch (e) { /* rien */ }
+    }
+    grFermer();
+    try { history.replaceState(null, '', location.pathname + location.search); } catch (e) { /* rien */ }
+    openHome();
+    $('#gr-resume').hidden = !grSaved();
+  }
+  $('#gr-resume').addEventListener('click', () => { audio(); const sv = grSaved(); if (sv) grReprendre(sv); });
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && G.conn) G.conn.wake(); });
+  // Au démarrage : un lien de partie à plusieurs, ou la partie restée sur ce téléphone (montrée à l’accueil)
+  function grDemarrer() {
+    $('#gr-resume').hidden = !grSaved();
+    const info = KG && KG.parse(location.hash);
+    if (info && KG.supported()) setTimeout(() => grArrivee(info), 50);
+  }
+  // Un lien de partie collé dans l’appli déjà ouverte
+  window.addEventListener('hashchange', () => {
+    const info = KG && KG.parse(location.hash);
+    if (info && KG.supported() && !(G.info && G.info.room === info.room && G.conn)) grArrivee(info);
+  });
+  if (/[?&]essai=1\b/.test(location.search)) window.__kiffGr = { G, grDebut, grPhrase, sentence, grRole, LISTS, S, relist, renderReels };
+
   window.addEventListener('resize', renderReels);
   init();
+  grDemarrer();
   setupInstall();
   renderIntro();
   if (!el.ovStart.hidden && !location.hash) homeShown();
